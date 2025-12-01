@@ -62,8 +62,7 @@ BEGIN
         EndDate     DATETIME,
         Progress    INT,
         AssignPriority    TINYINT,
-        Status      NVARCHAR(50),
-        CommittedHours FLOAT NULL -- Thời gian cam kết hoàn thành (giờ)
+        Status      NVARCHAR(50)
     );
 END
 GO

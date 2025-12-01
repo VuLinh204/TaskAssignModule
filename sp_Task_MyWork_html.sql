@@ -276,6 +276,7 @@ BEGIN
         }
         /* Make temp-subtask rows visually consistent with other cu-rows */
         #sp_Task_MyWork_html .temp-subtask {
+            cursor: pointer;
             display: flex;
             align-items: center;
             padding: 16px 20px;
@@ -1199,13 +1200,13 @@ BEGIN
             font-weight: 700;
             cursor: pointer;
             position: relative;
+            border-radius: 10px 10px 0 0;
             transition: all 0.3s ease;
         }
 
         #sp_Task_MyWork_html .header-row:hover {
             background: linear-gradient(135deg, var(--task-primary) 0%, var(--task-primary-light) 100%);
             box-shadow: var(--shadow-lg);
-            border-radius: 10px 10px 0 0;
         }
 
         #sp_Task_MyWork_html .header-row .expand-icon {
@@ -3268,13 +3269,17 @@ BEGIN
                     </div>`;
 
                 // When user clicks the "+" toggle, replace the minimal footer with the expanded create HTML
-                $(document).on("click", "#btnListCreateToggle", function(e) {
+                $(document).on("click", ".temp-subtask:not(.expanded)", function(e) {
+                    // Chỉ xử lý nếu chưa ở trạng thái expanded
                     e.stopPropagation();
-                    // replace the minimal footer block with expanded HTML
-                    $(this).closest(".temp-subtask").replaceWith(expandedCreateHtml);
-                    // populate hidden select options (delegated handlers will pick up inputs)
+                    // Thay thế toàn bộ dòng footer bằng form mở rộng
+                    $(this).replaceWith(expandedCreateHtml);
+                    
+                    // Populate select
                     try {
-                        var opts = `<option value=""></option>` + (tasks || []).map(t => `<option value="${t.TaskID}">${escapeHtml(t.TaskName)}</option>`).join("");
+                        var opts = `<option value=""></option>` + (tasks || []).map(t => 
+                            `<option value="${t.TaskID}">${escapeHtml(t.TaskName)}</option>`
+                        ).join("");
                         $("#listCreateParentSelect").html(opts);
                         $("#listCreateParentSearch").focus();
                     } catch(e) { console.warn(e); }
