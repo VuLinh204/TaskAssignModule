@@ -44,40 +44,18 @@ BEGIN
             --radius-lg: 12px;
             --radius-xl: 16px;
         }
-        /* Header */
-        #sp_Task_MyWork_html .cu-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            gap: 16px;
-            flex-wrap: wrap;
-        }
         #sp_Task_MyWork_html .h-title {
-            margin: 0;
             font-weight: 700;
             font-size: clamp(20px, 5vw, 28px);
-            display: flex;
-            align-items: center;
-            gap: 12px;
         }
         #sp_Task_MyWork_html .h-title i {
             color: var(--task-primary);
             font-size: 1.2em;
         }
-        #sp_Task_MyWork_html .header-actions {
-            display: flex;
-            gap: 12px;
-            align-items: center;
-            flex-wrap: wrap;
-        }
         /* Compact Stats Row: small, tidy cards with icons and reduced padding */
         #sp_Task_MyWork_html .stats-row {
-            display: flex;
             gap: 10px;
             margin-bottom: 12px;
-            align-items: center;
-            flex-wrap: wrap;
         }
         #sp_Task_MyWork_html .stats-row .stat-card {
             padding: 8px 12px;
@@ -802,7 +780,7 @@ BEGIN
         #sp_Task_MyWork_html .assign-row {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(1fr, 1fr));
-            gap: 16px;
+            gap: 0 10px;
         }
         #sp_Task_MyWork_html .subtask-horizontal {
             background: var(--bg-white);
@@ -1227,6 +1205,7 @@ BEGIN
         #sp_Task_MyWork_html .header-row:hover {
             background: linear-gradient(135deg, var(--task-primary) 0%, var(--task-primary-light) 100%);
             box-shadow: var(--shadow-lg);
+            border-radius: 10px 10px 0 0;
         }
 
         #sp_Task_MyWork_html .header-row .expand-icon {
@@ -1489,9 +1468,9 @@ BEGIN
         }
     </style>
     <div id="sp_Task_MyWork_html">
-        <div class="cu-header">
-            <div class="h-title"><i class="bi bi-check-circle-fill"></i>Công việc của tôi</div>
-            <div class="header-actions">
+        <div class="cu-header d-flex justify-content-between align-items-center mb-4 gap-2 flex-wrap">
+            <div class="h-title m-0 gap-3 d-flex align-items-center"><i class="bi bi-check-circle-fill"></i>Công việc của tôi</div>
+            <div class="header-actions d-flex align-items-center gap-2 flex-wrap">
                 <div class="view-switcher">
                     <button class="view-btn active" id="viewListT"><i class="bi bi-list-ul"></i> Danh sách</button>
                     <button class="view-btn" id="viewKanbanT"><i class="bi bi-kanban"></i> Kanban</button>
@@ -1505,7 +1484,7 @@ BEGIN
             </div>
         </div>
         <!-- Statistics -->
-        <div class="stats-row" id="stats-container">
+        <div class="stats-row d-flex align-items-center flex-wrap" id="stats-container">
             <div class="stat-card todo">
                 <div class="stat-label">Chưa làm</div>
                 <div class="stat-value" id="stat-todo">0</div>
@@ -1637,7 +1616,7 @@ BEGIN
                                     <div style="font-size: 24px; font-weight: 700; color: var(--task-primary);" id="detailProgressPct">0%</div>
                                     <div style="font-size: 12px; color: #676879;">Tiến độ</div>
                                 </div>
-             </div>
+                            </div>
                             <div class="kpi-progress-bar">
                                 <div class="kpi-progress-fill" id="detailProgressBar" style="width: 0%"></div>
                             </div>
@@ -1743,6 +1722,10 @@ BEGIN
                                     <label class="form-label">Ngày yêu cầu</label>
                                     <input type="date" class="form-control" id="dDate" />
                                 </div>
+                                <div class="form-group">
+                                    <label class="form-label">Hạn hoàn thành</label>
+                                    <input type="date" class="form-control" id="dDue" />
+                                </div>
                             </div>
                         </div>
                         <!-- Step 2: Phân bổ chi tiết -->
@@ -1751,7 +1734,7 @@ BEGIN
                                 <div class="step-number">2</div>
                                 <div class="step-title">Phân bổ chi tiết (Subtasks)</div>
                                 <div style="margin-left:auto; display:flex; gap:8px; align-items:center;">
-                                    <button class="btn btn-sm btn-outline-primary" id="btnQuickAddSubtask" title="Thêm task con">+</button>
+                                    <button class="text-success" id="btnQuickAddSubtask" title="Thêm task con"><i class="bi bi-plus-lg fs-4"></i></button>
                                 </div>
                             </div>
                             <div id="subtask-assign-container" style="overflow-x: auto;" class="assign-row">
@@ -1779,7 +1762,7 @@ BEGIN
             var rowAssigneeMap = {};
             var currentChildTasks = []; // cached child tasks for selected ParentTaskID
             var expandedHeadersState = {};
-            var attachmentMode = ""; // "file" or "link"
+            var attachmentMode = ""; // "file"
 
             // Expose only specific APIs intentionally
             window.toggleHeaderExpand = toggleHeaderExpand;
@@ -3261,7 +3244,7 @@ BEGIN
                             <small class="text-muted">Tạo công việc mới</small>
                         </div>
                         <div>
-                            <button id="btnListCreateToggle" class="btn btn-sm btn-outline-primary rounded-circle" title="Tạo công việc">+</button>
+                            <button id="btnListCreateToggle" class="text-success rounded-circle" title="Tạo công việc"><i class="bi bi-plus-lg fs-4"></i></button>
                         </div>
                     </div>`;
 
@@ -3336,7 +3319,20 @@ BEGIN
                         loadTasks();
                     }
                 });
-                $(document).on("click", "#btnListCreateCancel", function() { $("#listCreateParentSearch").val(""); $("#listCreateParentSelect").val(""); $("#listCreateParentDropdown").hide(); });
+                $(document).on("click", "#btnListCreateCancel", function() {
+                    try {
+                        $("#listCreateParentSearch").val("");
+                        $("#listCreateParentSelect").val("");
+                        $("#listCreateParentDropdown").hide();
+                        // restore minimal footer by replacing expanded block with footerHtml
+                        try {
+                            var $block = $(this).closest(".temp-subtask");
+                            if ($block.length && typeof footerHtml !== "undefined") {
+                                $block.replaceWith(footerHtml);
+                            }
+                        } catch(e) { console.warn(e); }
+                    } catch(e) { console.warn(e); }
+                });
                 try { setRowAssigneeMapFromAllTasks(); } catch(e) { console.warn(e); }
                 setTimeout(function() {
                     for (var headerId in expandedHeadersState) {
@@ -4573,6 +4569,7 @@ BEGIN
                 let parent = $("#selParent").val();
                 let mainUser = $("#selMainUser").val();
                 let dDate = $("#dDate").val();
+                let dDue = $("#dDue").val();
                 if(!parent || !mainUser) {
                     uiManager.showAlert({ type: "warning",  message: "Vui lòng chọn Công việc chính và Người chịu trách nhiệm chính",});
                     return;
@@ -4622,6 +4619,7 @@ BEGIN
                             "MainResponsibleID", mainUser,
                             "AssignmentDetails", JSON.stringify(details),
                             "AssignmentDate", dDate,
+                            "AssignmentDueDate", dDue,
                             "AssignedBy", assignedBy
                         ]
                     },
