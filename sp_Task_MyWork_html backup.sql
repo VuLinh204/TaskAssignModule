@@ -132,7 +132,7 @@ BEGIN
             overflow: hidden;
         }
         #sp_Task_MyWork_html .stat-card::before {
-            content: "";
+            content: """";
             position: absolute;
             top: 0;
             left: 0;
@@ -718,7 +718,6 @@ BEGIN
         #sp_Task_MyWork_html .status-select-wrapper {
             display: flex;
             align-items: center;
-            margin-top: 24px;
             margin-left: 20px;
             gap: 12px;
         }
@@ -975,6 +974,7 @@ BEGIN
         #sp_Task_MyWork_html .attachments-section {
             margin-top: 24px;
             border-radius: var(--radius-lg);
+            padding: 24px;
             border: 1px solid var(--border-color);
         }
 
@@ -1117,6 +1117,7 @@ BEGIN
         #sp_Task_MyWork_html .description-section {
             margin-top: 24px;
             border-radius: var(--radius-lg);
+            padding: 24px;
             border: 1px solid var(--border-color);
         }
 
@@ -1650,6 +1651,12 @@ BEGIN
 
                         <!-- Description Section -->
                         <div class="description-section">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <div class="section-title"><i class="bi bi-file-text"></i> Mô tả chi tiết</div>
+                                <button class="btn btn-sm btn-outline-primary" id="btnEditDescription">
+                                    <i class="bi bi-pencil"></i> Chỉnh sửa
+                                </button>
+                            </div>
                             <div id="descriptionDisplay" class="description-content">
                                 Chưa có mô tả...
                             </div>
@@ -1666,13 +1673,32 @@ BEGIN
 
                         <!-- Attachments Section -->
                         <div class="attachments-section">
-                            <div id="attachmentsList"></div>
-                            <!-- Inline upload area: chỉ cho phép upload file + drag & drop -->
-                            <div id="uploadArea" style="display:none;border:1px dashed var(--border-color);padding:12px;border-radius:8px;text-align:center;margin-top:8px;cursor:pointer;">
-                                <i class="bi bi-upload" style="font-size:20px;margin-bottom:6px;display:block;color:var(--text-muted)"></i>
-                                <div style="color:var(--text-muted);">Kéo thả file vào đây hoặc click để chọn file</div>
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <div class="section-title"><i class="bi bi-paperclip"></i> Tài liệu đính kèm</div>
+                                <button class="btn btn-sm btn-outline-primary" id="btnAddAttachment">
+                                    <i class="bi bi-plus-lg"></i> Thêm tài liệu
+                                </button>
                             </div>
-                            <input type="file" id="fileInput" style="display:none;" />
+                            <div id="attachmentsList"></div>
+                            <!-- Modal chọn kiểu đính kèm -->
+                            <div class="modal fade" id="mdlAttachType" tabindex="-1">
+                                <div class="modal-dialog modal-dialog-centered">
+                                    <div class="modal-content">
+                          <div class="modal-header">
+                                            <h5 class="modal-title">Chọn loại đính kèm</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <div class="modal-body text-center">
+                                            <button class="btn btn-outline-primary w-100 mb-2" id="btnAttachFile">
+                                                <i class="bi bi-file-earmark"></i> Tải file lên
+                                            </button>
+                                            <button class="btn btn-outline-primary w-100" id="btnAttachLink">
+                                                <i class="bi bi-link-45deg"></i> Thêm link
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         <!-- Subtask Table Section -->
@@ -1725,11 +1751,7 @@ BEGIN
                             <div class="assign-row" style="grid-template-columns: repeat(2, 1fr);">
                                 <div class="form-group">
                                     <label class="form-label">Công việc chính</label>
-                                    <div class="search-select" style="position:relative;">
-                                        <input type="text" id="selParentSearch" class="form-control" autocomplete="off" placeholder="Tìm công việc..." />
-                                        <div class="search-select-dropdown" id="selParentDropdown" style="position:absolute; z-index:1050; display:none; max-height:260px; overflow:auto; background:#fff; border:1px solid #e8eaed;"></div>
-                                        <select class="form-control d-none" id="selParent"></select>
-                                    </div>
+                                    <div id="parentTaskSelector"></div>
                                 </div>
                                 <div class="form-group">
                                     <label class="form-label">Người yêu cầu</label>
@@ -1751,7 +1773,8 @@ BEGIN
                                 <div class="step-number">2</div>
                                 <div class="step-title">Phân bổ chi tiết (Subtasks)</div>
                                 <div style="margin-left:auto; display:flex; gap:8px; align-items:center;">
-                                    <button class="btn btn-sm btn-outline-primary" id="btnQuickAddSubtask" title="Thêm task con">+</button>
+                                    <button class="btn btn-sm btn-outline-primary" id="btnAddTempRow">Thêm hàng</button>
+                                    <button class="btn btn-sm btn-outline-secondary" id="btnReloadChecklist">Tải lại checklist</button>
                                 </div>
                             </div>
                             <div id="subtask-assign-container" style="overflow-x: auto;" class="assign-row">
@@ -1791,17 +1814,13 @@ BEGIN
                 loadTasks();
             });
 
-            // Hàm `attachUIHandlers`: đăng ký tất cả các event handlers cho giao diện.
-            // - Đăng ký các sự kiện tĩnh (click trên các button chính) và các handler ủy quyền
-            //   cho phần tử động (rows, dropdowns, inputs, v.v.).
-            // - Không trả về giá trị.
             function attachUIHandlers() {
                 // Static buttons
                 $("#btnAssign").on("click", openAssignModal);
                 $("#btnRefresh").on("click", loadTasks);
                 $("#btnUpdateKPI").on("click", updateKPI);
                 $("#btnAddParentOpen").on("click", openAddParentModal);
-                $("#btnQuickAddSubtask").on("click", showQuickSubtaskInput);
+                $("#btnAddTempRow").on("click", addTempRow);
                 $("#btnReloadChecklist").on("click", reloadChecklist);
                 $("#btnSubmitAssignment").on("click", submitAssignment);
                 // Delegated handlers for dynamic elements
@@ -1814,7 +1833,6 @@ BEGIN
                     var id = $(this).data("taskid");
                     if(id) openTaskDetail(id);
                 });
-                
                 // Riêng cho header row - không mở detail
                 $(document).on("click", ".header-row", function(e) {
                     // Chỉ toggle expand, không mở detail
@@ -1834,7 +1852,7 @@ BEGIN
                     }
                 });
                 $(document).on("click", ".btn-temp-remove", function() {
-                    $(this).closest(".temp-subtask").remove();
+                    $(btn).closest(".temp-subtask").remove();
                 });
                 // Toggle subtask status (in detail table)
                 $(document).on("click", ".subtask-toggle-status", function(e) {
@@ -2018,8 +2036,13 @@ BEGIN
                                 </div>`;
                             }).join("");
 
-                            // no footer buttons — selection is auto-saved when user clicks outside
-                            $list.html(items);
+                            // footer with actions
+                            var footer = `<div style="padding:8px;border-top:1px solid var(--border-color);display:flex;gap:8px;justify-content:flex-end;">
+                                <button type="button" class="btn btn-sm btn-outline-secondary row-assignee-clear">Xóa</button>
+                                <button type="button" class="btn btn-sm btn-primary row-assignee-apply">Áp dụng</button>
+                            </div>`;
+
+                            $list.html(items + footer);
                         }
                     };
 
@@ -2036,7 +2059,7 @@ BEGIN
                                 $dd.toggle();
                                 $dd.find(".row-assignee-search").val("").focus();
                             },
-                            error: function() {
+          error: function() {
                                 // fallback: still try to populate empty
                                 populateList();
                                 $dd.toggle();
@@ -2073,6 +2096,88 @@ BEGIN
                     $it.toggleClass("selected", now);
                 });
 
+                // Apply selected assignees for this subtask
+                $(document).on("click", ".row-assignee-apply", function(e){
+                    e.stopPropagation();
+                    var $btn = $(this);
+                    var $dd = $btn.closest(".row-assignee-dropdown");
+                    var $wrap = $dd.closest(".row-assignee");
+                    var taskId = $wrap.data("taskid");
+                    var selected = [];
+                    $dd.find(".row-assignee-item.selected").each(function(){ selected.push($(this).data("empid")); });
+                    var csv = (selected || []).map(function(x){ return String(x).trim(); }).filter(Boolean).join(",");
+
+                    AjaxHPAParadise({
+                        data: {
+                            name: "sp_Task_UpdateSubtaskAssignees",
+                            param: ["ChildTaskID", taskId, "EmployeeIDs", csv, "LoginID", LoginID]
+                        },
+                        success: function(){
+                            uiManager.showAlert({
+                                type: "success",
+                                message: "Cập nhật người phụ trách thành công!",
+                            });
+                            try {
+                                var t = allTasks.find(x=>String(x.TaskID) === String(taskId));
+                                if (t) {
+                                    t.AssignedToEmployeeIDs = csv;
+                                    // build names array from selected items
+                                    var names = [];
+                                    $dd.find(".row-assignee-item.selected").each(function(){ names.push($(this).data("empname") || $(this).find("div").eq(1).find("div").first().text()); });
+                                    t.AssignedToEmployeeNames = names.join(",");
+                                }
+
+                                // Refresh icons
+                                var icons = buildAssigneeIcons(t || { AssignedToEmployeeIDs: csv, AssignedToEmployeeNames: (t && t.AssignedToEmployeeNames) || "" }, 3);
+                                $wrap.find(".assignee-icons").html(icons);
+                   // Ensure the whole row is in sync in case other render logic overwrites the icons
+                                        try { refreshTaskRowInList(taskId); } catch(e) { /* fallback already updated icons */ }
+                                        $dd.hide();
+                            } catch(e){ console.warn(e); }
+                        },
+                        error: function(){
+                            uiManager.showAlert({
+                                type: "error",
+                                message: "Cập nhật người phụ trách thất bại!",
+                            });
+                        }
+                    });
+                });
+
+                // Clear selection
+                $(document).on("click", ".row-assignee-clear", function(e){
+                    e.stopPropagation();
+                    var $btn = $(this);
+                    var $dd = $btn.closest(".row-assignee-dropdown");
+                    var $wrap = $dd.closest(".row-assignee");
+                    var taskId = $wrap.data("taskid");
+
+                    AjaxHPAParadise({
+                        data: { name: "sp_Task_UpdateSubtaskAssignees", param: ["ChildTaskID", taskId, "EmployeeIDs", "", "LoginID", LoginID] },
+                        success: function(){
+                            uiManager.showAlert({
+                                type: "success",
+                                message: "Xóa người phụ trách thành công!",
+                            });
+                            try {
+                                var t = allTasks.find(x=>String(x.TaskID) === String(taskId));
+                                if (t) {
+                                    t.AssignedToEmployeeIDs = "";
+                                    t.AssignedToEmployeeNames = "";
+                                }
+                                $dd.find(".row-assignee-item").removeClass("selected").find(".row-assignee-checkbox").prop("checked", false);
+                                        $wrap.find(".assignee-icons").html(buildAssigneeIcons(t || {}, 3));
+                                        try { refreshTaskRowInList(taskId); } catch(e) {}
+                                        $dd.hide();
+                            } catch(e){ console.warn(e); }
+                        },
+                        error: function(){ uiManager.showAlert({
+                                type: "error",
+                                message: "Xóa người phụ trách thất bại!",
+                            });
+                        }
+                    });
+                });
 
                 // Close assignee dropdown when clicking elsewhere. If user clicked outside
                 // while having selected assignees, auto-save the selection before hiding.
@@ -2469,7 +2574,7 @@ BEGIN
                             $("#txtLinkName, #txtLinkURL").val("");
                             loadAttachments(currentTaskID);
                             uiManager.showAlert({
-                            type: "success",
+               type: "success",
                                 message: "Thêm link thành công!",
                             });
                         },
@@ -2488,8 +2593,11 @@ BEGIN
                 $(document).on("click", ".subtask-priority, .st-priority", function(e) {
                     e.stopPropagation();
                 });
-                $("#viewListT, #viewKanbanT").on("click", function() { 
-                    switchView($(this).attr("id") === "viewListT" ? "list" : "kanban"); 
+                $("#viewListT").click(function() {
+                    switchView("list");
+                });
+                $("#viewKanbanT").click(function() {
+                    switchView("kanban");
                 });
                 $("#detailStatusSelect").change(function() {
                     updateTaskStatusFromSelect();
@@ -2542,40 +2650,7 @@ BEGIN
                         $(document).trigger("renderSubtasks");
                     }, 200);
                 };
-                $(document).on("click", ".task-title", function(e) {
-                    var taskId = $(this).closest(".cu-row").data("taskid");
-                    if (!taskId) return;
-                    
-                    e.stopPropagation(); // Chặn sự kiện click row để không mở modal ngay lập tức nếu đang sửa
-                    
-                    makeEditableField({
-                        element: this,
-                        type: "text",
-                        taskId: taskId,
-                        field: "TaskName",
-                        sp: "sp_Task_UpdateName", // Tên SP update
-                        placeholder: "Nhập tên công việc...",
-                        onSave: function(val) {
-                            console.log("Đã lưu tên mới:", val);
-                            loadTasks(); // Reload lại list sau khi sửa
-                        }
-                    });
-                });
-
-                $(document).on("click", "#descriptionDisplay", function(e) {
-                    makeEditableField({
-                        element: this,
-                        type: "textarea",
-                        taskId: currentTaskID,
-                        field: "Description",
-                        sp: "sp_Task_UpdateDescription",
-                        placeholder: "Nhập mô tả chi tiết..."
-                    });
-                });
             }
-            // Hàm `loadTasks`: tải danh sách công việc của người dùng từ backend
-            // - Gọi `sp_Task_GetMyTasks`, lưu kết quả vào biến toàn cục và khởi tạo dữ liệu
-            // - Tiếp tục tải thiết lập phân công (employees) rồi render UI
             function loadTasks() {
                 AjaxHPAParadise({
                     data: { name: "sp_Task_GetMyTasks", param: ["LoginID", LoginID] },
@@ -2583,7 +2658,7 @@ BEGIN
                         try {
                             var res = JSON.parse(response);
                             var headers = res.data[0] || [];      // Headers
-                            var headerTasks = res.data[1] || [];  // Tasks với HeaderID
+ var headerTasks = res.data[1] || [];  // Tasks với HeaderID
                             var standaloneTasks = res.data[2] || []; // Tasks không có HeaderID
 
                             // Lưu vào biến global
@@ -2627,8 +2702,6 @@ BEGIN
                     }
                 });
             }
-            // Hàm `loadAttachments`: tải danh sách file đính kèm cho TaskID
-            // - Gọi `sp_Task_GetDetail` và gọi `renderAttachments` để hiển thị
             function loadAttachments(taskId) {
                 AjaxHPAParadise({
                     data: { name: "sp_Task_GetDetail", param: ["TaskID", taskId, "LoginID", LoginID] },
@@ -2644,8 +2717,6 @@ BEGIN
                     }
                 });
             }
-            // Hàm `renderAttachments`: render HTML cho danh sách attachments
-            // - Nhận mảng attachment và đưa vào `#attachmentsList`.
             function renderAttachments(attachments) {
                 if (attachments.length === 0) {
                     $("#attachmentsList").html(`<p class="text-muted small">Chưa có tài liệu nào</p>`);
@@ -2798,13 +2869,11 @@ BEGIN
                 });
             }
             function filterOptionsForSearch(selectId, text, dropdownSelector) {
-                var rawText = (text || "").trim();
-                var q = normalizeForSearch(rawText || "");
+                var q = normalizeForSearch(text || "");
                 var $select = $("#" + selectId);
                 var $dropdown = $(dropdownSelector);
                 var opts = $select.find("option");
                 var html = "";
-                var matchedExact = false;
                 opts.each(function() {
                     var v = $(this).attr("value");
                     var t = $(this).text() || "";
@@ -2813,42 +2882,9 @@ BEGIN
                     if(!q || norm.indexOf(q) !== -1) {
                         html += `<div class="search-item" data-target="${selectId}" data-value="${v}" style="padding:8px 12px; cursor:pointer; border-bottom:1px solid #f1f1f1;">${escapeHtml(t)}</div>`;
                     }
-                    if (q && norm === q) matchedExact = true;
                 });
                 if(html === "") html = `<div style="padding:8px 12px;color:#777;">Không tìm thấy</div>`;
-
-                // Nếu đang search cho selParent và không có exact match, cho phép tạo mới ngay từ dropdown
-                if (selectId === "selParent" && rawText && !matchedExact) {
-                    html += `<div class="search-item create-parent" data-name="${escapeHtml(rawText)}" style="padding:8px 12px; cursor:pointer; border-top:1px solid #f1f1f1; background:#f8f9fb; font-weight:600;">Tạo công việc "${escapeHtml(rawText)}"</div>`;
-                }
-
                 $dropdown.html(html).show();
-            }
-
-            // Click handler: khi người dùng chọn tạo công việc mới từ dropdown
-            $(document).on("click", ".search-select-dropdown .create-parent", function(e) {
-                e.stopPropagation();
-                var name = $(this).data("name") || $(this).text().trim();
-                createParentInline(name);
-                $(this).closest(".search-select-dropdown").hide();
-            });
-
-            // Tạo công việc cha tạm thời trên client và chọn luôn
-            function createParentInline(name) {
-                if (!name || String(name).trim() === "") return;
-                var n = String(name).trim();
-                // tạo id tạm (client-side)
-                var newId = 1;
-                try { newId = Math.max(0, ...((tasks||[]).map(t=>t.TaskID||0))) + 1; } catch(e) { newId = Date.now(); }
-                var nt = { TaskID: newId, TaskName: n };
-                tasks = tasks || [];
-                tasks.push(nt);
-                // re-render dropdown và chọn
-                renderAssignDropdowns();
-                try { $("#selParent").val(newId); } catch(e) {}
-                try { $("#selParentSearch").val(n).addClass("search-valid"); } catch(e) {}
-                // load template (likely empty)
-                loadAssignTemplate();
             }
             function switchView(view) {
                 $(".view-btn").removeClass("active");
@@ -2949,9 +2985,6 @@ BEGIN
                 renderTaskCards("#tasks-done", doneTasks);
             }
 
-            // Hàm `buildAssigneeIcons`: build HTML các avatar/icon cho người phụ trách
-            // - Nhận object task `t` (có thể chứa các trường AssignedToEmployeeIDs/Names)
-            // - Sử dụng mảng `employees` để ánh xạ ID -> tên
             function buildAssigneeIcons(t, maxVisible) {
                 maxVisible = Number(maxVisible) || 3;
                 try {
@@ -3037,8 +3070,6 @@ BEGIN
             // Call this after tasks have been loaded/rendered so buildAssigneeIcons can use these names.
             // Because the backend no longer returns name columns, ensure `employees` is loaded
             // (via `sp_Task_GetAssignmentSetup`) and use it to resolve IDs -> names.
-            // Hàm `setRowAssigneeMapFromAllTasks`: xây bản đồ ID->Tên per-task từ `allTasks`
-            // - Dùng để hỗ trợ `buildAssigneeIcons` khi backend không trả tên trực tiếp
             function setRowAssigneeMapFromAllTasks() {
                 try {
                     if (!allTasks || !Array.isArray(allTasks)) return;
@@ -3109,14 +3140,12 @@ BEGIN
                 } catch (e) { console.warn("setRowAssigneeMapFromAllTasks error:", e); }
             }
 
-            // Hàm `refreshTaskRowInList`: cập nhật DOM của một task trong list sau khi thay đổi
-            // - Tìm row hiện tại và thay bằng HTML mới do `renderTaskRow` tạo
             function refreshTaskRowInList(taskId) {
                 try {
                     var t = findTaskById(taskId);
                     if (!t) return;
 
-                    var $row = $(`.task-row[data-taskid="${taskId}"]`);
+                    var $row = $(`.task-row[data-taskid=" + taskId + "]`);
                     if ($row.length) {
                         // Determine if this is rendered as a child/subtask
                         var isChild = $row.hasClass("subtask-row") || $row.closest(".subtask-container").length > 0;
@@ -3126,7 +3155,7 @@ BEGIN
                     } else {
                         // Check inside subtask containers (headers) as a fallback
                         $(".subtask-container").each(function() {
-                            var $r = $(this).find(`.task-row[data-taskid="${taskId}"]`);
+                            var $r = $(this).find(`.task-row[data-taskid=" + taskId + "]`);
                             if ($r.length) {
                                 $r.replaceWith(renderTaskRow(t, true));
                             }
@@ -3188,8 +3217,6 @@ BEGIN
                 }).join("");
                 $(container).html(html);
             }
-            // Hàm `renderListView`: render chế độ danh sách (list view)
-            // - Hi-support: headers + standalone tasks + grouping parent/children
             function renderListView(data) {
                 if (data.length === 0 && (!window.taskHeaders || window.taskHeaders.length === 0)) {
                     $("#list-container").html(`<div class="empty-state"><i class="bi bi-inbox"></i><p>Không có công việc nào</p></div>`);
@@ -3253,90 +3280,6 @@ BEGIN
                 }
 
                 $("#list-container").html(htmlParts.join(""));
-
-                // Thêm dòng ở cuối: hiển thị nút "+" gọn — click sẽ mở vùng tạo/chọn công việc
-                var footerHtml = `
-                    <div class="cu-row temp-subtask d-flex align-items-center mt-3">
-                        <div class="flex-grow-1">
-                            <small class="text-muted">Tạo công việc mới</small>
-                        </div>
-                        <div>
-                            <button id="btnListCreateToggle" class="btn btn-sm btn-outline-primary rounded-circle" title="Tạo công việc">+</button>
-                        </div>
-                    </div>`;
-
-                $("#list-container").append(footerHtml);
-
-                // Expanded HTML (inserted when user clicks "+") — reuse bootstrap classes and minimal inline styles
-                var expandedCreateHtml = `
-                    <div class="cu-row temp-subtask mt-3 d-flex align-items-start gap-3">
-                        <div class="flex-grow-1">
-                            <div class="fw-bold mb-1">Tạo công việc mới / Chọn có sẵn</div>
-                            <div class="search-select position-relative">
-                                <input type="text" id="listCreateParentSearch" class="form-control" autocomplete="off" placeholder="Nhập tên công việc hoặc chọn..." />
-                                <div class="search-select-dropdown" id="listCreateParentDropdown" style="position:absolute; z-index:1050; display:none; max-height:260px; overflow:auto; background:#fff; border:1px solid #e8eaed;"></div>
-                                <select class="form-control d-none" id="listCreateParentSelect"></select>
-                            </div>
-                        </div>
-                        <div class="d-flex flex-column align-items-end" style="gap:6px;">
-                            <button class="btn btn-sm btn-outline-secondary" id="btnListCreateCancel">Hủy</button>
-                            <button class="btn btn-sm btn-primary" id="btnListCreateSave">Lưu</button>
-                        </div>
-                    </div>`;
-
-                // When user clicks the "+" toggle, replace the minimal footer with the expanded create HTML
-                $(document).on("click", "#btnListCreateToggle", function(e) {
-                    e.stopPropagation();
-                    // replace the minimal footer block with expanded HTML
-                    $(this).closest(".temp-subtask").replaceWith(expandedCreateHtml);
-                    // populate hidden select options (delegated handlers will pick up inputs)
-                    try {
-                        var opts = `<option value=""></option>` + (tasks || []).map(t => `<option value="${t.TaskID}">${escapeHtml(t.TaskName)}</option>`).join("");
-                        $("#listCreateParentSelect").html(opts);
-                        $("#listCreateParentSearch").focus();
-                    } catch(e) { console.warn(e); }
-                });
-
-                // populate hidden select with tasks
-                try {
-                    var opts = `<option value=""></option>` + (tasks || []).map(t => `<option value="${t.TaskID}">${escapeHtml(t.TaskName)}</option>`).join("");
-                    $("#listCreateParentSelect").html(opts);
-                } catch(e) { console.warn(e); }
-
-                // handlers for footer search-select
-                $(document).on("input", "#listCreateParentSearch", function() {
-                    filterOptionsForSearch("listCreateParentSelect", $(this).val() || "", "#listCreateParentDropdown");
-                });
-                $(document).on("focus click", "#listCreateParentSearch", function(e) {
-                    e.stopPropagation();
-                    filterOptionsForSearch("listCreateParentSelect", "", "#listCreateParentDropdown");
-                    $("#listCreateParentDropdown").css("width", Math.max($(this).outerWidth(),200)+"px").show();
-                });
-                $(document).on("click", "#listCreateParentDropdown .search-item", function(e) {
-                    e.stopPropagation();
-                    var val = $(this).data("value");
-                    var name = $(this).text();
-                    if ($(this).hasClass("create-parent")) {
-                        createParentInline($(this).data("name") || name);
-                        loadTasks();
-                    } else {
-                        $("#listCreateParentSelect").val(val);
-                        $("#listCreateParentSearch").val(name).addClass("search-valid");
-                    }
-                    $("#listCreateParentDropdown").hide();
-                });
-                $(document).on("click", "#btnListCreateSave", function() {
-                    var sel = $("#listCreateParentSelect").val();
-                    var txt = $("#listCreateParentSearch").val().trim();
-                    if (sel) {
-                        // selected existing
-                        uiManager.showAlert({ type: "success", message: "Đã chọn công việc." });
-                    } else if (txt) {
-                        createParentInline(txt);
-                        loadTasks();
-                    }
-                });
-                $(document).on("click", "#btnListCreateCancel", function() { $("#listCreateParentSearch").val(""); $("#listCreateParentSelect").val(""); $("#listCreateParentDropdown").hide(); });
                 try { setRowAssigneeMapFromAllTasks(); } catch(e) { console.warn(e); }
                 setTimeout(function() {
                     for (var headerId in expandedHeadersState) {
@@ -3397,8 +3340,6 @@ BEGIN
                     $row.addClass("expanded");
                 }
             }
-            // Hàm `renderTaskRow`: tạo HTML cho một task hoặc subtask
-            // - `t`: object task, `isChild`: boolean nếu là subtask
             function renderTaskRow(t, isChild) {
                 var startStr = formatSimpleDate(t.MyStartDate);
                 var dueStr = formatSimpleDate(t.DueDate);
@@ -3439,9 +3380,6 @@ BEGIN
                             var currentIds = [];
                             if (t.AssignedToEmployeeIDs) {
                                 currentIds = String(t.AssignedToEmployeeIDs).split(",").map(s => s.trim()).filter(Boolean);
-                            }
-                            if ((!currentIds || currentIds.length === 0) && (window.EmployeeID_Login || LoginID)) {
-                                currentIds = [String(window.EmployeeID_Login || LoginID)];
                             }
                             
                             createAssigneeDropdown({
@@ -3544,8 +3482,6 @@ BEGIN
                     </div>
                 </div>`;
             }
-            // Hàm `openTaskDetail`: mở modal chi tiết task
-            // - Điền dữ liệu chi tiết vào modal và hiển thị modal
             function openTaskDetail(taskID) {
                 // Tìm task từ tất cả các nguồn
                 let task = findTaskById(taskID);
@@ -3611,9 +3547,6 @@ BEGIN
                 var mdl = new bootstrap.Modal(document.getElementById("mdlTaskDetail"));
                 mdl.show();
 
-                // Hiện vùng upload file trong modal chi tiết
-                try { $("#uploadArea").show(); } catch(e) {}
-
                 setTimeout(function() {
                     try {
                         document.getElementById("mdlTaskDetail").focus();
@@ -3635,8 +3568,6 @@ BEGIN
 
                 return null;
             }
-            // Hàm `loadSubtasksForDetail`: load danh sách subtask cho parent và render
-            // - Gọi `sp_Task_GetDetailedTemplate` rồi `sp_Task_GetAssignHistoryForTaskAndEmployee`
             function loadSubtasksForDetail(parentTaskID) {
                 // First fetch the template (list of child tasks), then call assign-history once for all child IDs
                 AjaxHPAParadise({
@@ -3783,8 +3714,6 @@ BEGIN
                     }
                 });
             }
-            // Hàm `renderSubtaskTable`: hiển thị bảng subtasks trong modal chi tiết
-            // - Nhận mảng subtasks đã chuẩn hóa và build DOM #subtaskTableBody
             function renderSubtaskTable(subtasks) {
                 if (!subtasks || subtasks.length === 0) {
                     $("#subtaskTableContainer").hide();
@@ -3800,7 +3729,7 @@ BEGIN
                     // Normalize status
                     var statusCode = 1;
                     if (s.Status !== undefined && s.Status !== null) {
-                        if (!isNaN(Number(s.Status))) {
+          if (!isNaN(Number(s.Status))) {
                             statusCode = Number(s.Status);
                         } else {
                             var st = String(s.Status).toLowerCase();
@@ -3823,11 +3752,6 @@ BEGIN
                         else if (s.EmployeeID && String(s.EmployeeID).trim() && String(s.EmployeeID) !== "-") currentAssignees = [String(s.EmployeeID).trim()];
                         currentAssignees = currentAssignees.filter(function(id){ return id && String(id).trim() && String(id) !== "-"; });
                     } catch(e) {}
-
-                    // Nếu chưa có người phụ trách, gợi ý mặc định là người đăng nhập (window.EmployeeID_Login hoặc LoginID)
-                    if ((!currentAssignees || currentAssignees.length === 0) && (window.EmployeeID_Login || LoginID)) {
-                        currentAssignees = [String(window.EmployeeID_Login || LoginID)];
-                    }
 
                     return `
                     <tr data-childid="${s.ChildTaskID}" class="subtask-row-draggable" draggable="true">
@@ -3923,8 +3847,6 @@ BEGIN
 
                 $("#commentsList").html(html);
             }
-            // Hàm `updateKPI`: gửi giá trị KPI mới cho task hiện tại
-            // - Gọi `sp_Task_UpdateKPI` và reload dữ liệu khi thành công
             function updateKPI() {
                 var val = $("#txtUpdateKPI").val();
                 var note = $("#txtUpdateNote").val();
@@ -4005,8 +3927,6 @@ BEGIN
                     }
                 });
             }
-            // Hàm `openAssignModal`: mở modal giao việc và khởi tạo dữ liệu cần thiết
-            // - Tải `sp_Task_GetAssignmentSetup` nếu cần và render dropdowns
             function openAssignModal() {
                 // Reset trạng thái và UI mỗi lần mở modal
                 currentTemplate = [];
@@ -4021,8 +3941,12 @@ BEGIN
                     </div>
                 `);
 
-                // Nếu chưa có `tasks` (danh sách công việc chính), luôn gọi API để lấy dữ liệu
-                if (!tasks || tasks.length === 0) {
+                // Nếu employees đã có (từ lần load trước), dùng luôn → KHÔNG gọi lại API
+                if (employees && employees.length > 0) {
+                    renderAssignDropdowns();
+                    showAssignModal();
+                } else {
+                    // Chỉ gọi API nếu chưa có danh sách nhân viên
                     AjaxHPAParadise({
                         data: {
                             name: "sp_Task_GetAssignmentSetup",
@@ -4033,7 +3957,7 @@ BEGIN
                                 let data = JSON.parse(res).data;
                                 headers = data[0] || [];
                                 tasks = data[1] || [];
-                                employees = data[2] || employees || [];
+                                employees = data[2] || [];
                             } catch(e) {
                                 console.warn("Parse assignment setup failed:", e);
                             }
@@ -4046,25 +3970,19 @@ BEGIN
                             showAssignModal();
                         }
                     });
-                } else {
-                    // tasks đã có → dùng luôn
-                    renderAssignDropdowns();
-                    showAssignModal();
                 }
 
                 // Khởi tạo employee selectors
-                // Mặc định người yêu cầu và người chịu trách nhiệm chính lấy từ `window.EmployeeID_Login` nếu có, fallback `LoginID`
-                var defaultEmp = (window.EmployeeID_Login || LoginID);
                 createEmployeeSelector({
                     container: "#assignedBySelector",
-                    selectedIds: [defaultEmp],
+                    selectedIds: [LoginID],
                     multi: false,
                     onChange: (ids) => { $("#selAssignedBy").val(ids[0]); }
                 });
-
+                
                 createEmployeeSelector({
                     container: "#mainUserSelector",
-                    selectedIds: [defaultEmp],
+                    selectedIds: [],
                     multi: false,
                     onChange: (ids) => { $("#selMainUser").val(ids[0]); }
                 });
@@ -4087,8 +4005,6 @@ BEGIN
                     } catch(e) { /* ignore */ }
                 }, 80);
             }
-            // Hàm `renderAssignDropdowns`: render các dropdown trong modal giao việc
-            // - Ghi dữ liệu vào `#selParent`, `#selMainUser`, `#selAssignedBy` và gọi `syncSearchInputs`
             function renderAssignDropdowns() {
                 // 1. Render danh sách công việc chính
                 $("#selParent").html(`<option value=""></option>` +
@@ -4104,10 +4020,9 @@ BEGIN
                     ).join("");
 
                 // 3. Render người yêu cầu (mặc định chọn người đang đăng nhập)
-                var defaultEmp = (window.EmployeeID_Login || LoginID);
                 const empAssignedOpts = `<option value="">-- Người yêu cầu (mặc định) --</option>` +
                     (employees || []).map(e =>
-                        `<option value="${e.EmployeeID}" ${e.EmployeeID == defaultEmp ? "selected" : ""}>
+                        `<option value="${e.EmployeeID}" ${e.EmployeeID == LoginID ? "selected" : ""}>
                             ${escapeHtml(e.FullName)} (${e.EmployeeID})
                         </option>`
                     ).join("");
@@ -4122,8 +4037,6 @@ BEGIN
                 const today = new Date().toISOString().split("T")[0];
                 $("#dDate").val(today);
             }
-            // Hàm `syncSearchInputs`: đồng bộ giá trị từ hidden select lên input tìm kiếm
-            // - Dùng để hiển thị text đã chọn trong các input dạng searchable-select
             function syncSearchInputs() {
                 try {
                     const asText = $("#selAssignedBy option:selected").text().trim() || "";
@@ -4138,8 +4051,6 @@ BEGIN
                     console.warn("syncSearchInputs error:", e);
                 }
             }
-            // Hàm `loadAssignTemplate`: khi chọn công việc chính -> tải template phân công
-            // - Gọi `sp_Task_GetAssignmentSetup` (để refresh employees) rồi `fetchAssignTemplate`
             function loadAssignTemplate() {
                 let pid = $("#selParent").val();
                 if(!pid) {
@@ -4163,8 +4074,6 @@ BEGIN
                     }
                 });
             }
-            // Hàm `fetchAssignTemplate`: lấy template giao việc chi tiết cho ParentTaskID
-            // - Sau khi lấy template, gọi `fetchChildTasks` rồi render giao việc
             function fetchAssignTemplate(pid) {
                 AjaxHPAParadise({
                     data: {
@@ -4192,8 +4101,6 @@ BEGIN
                 }
                 fetchAssignTemplate(pid);
             }
-            // Hàm `fetchChildTasks`: lấy các child tasks liên quan tới ParentTaskID
-            // - Gọi `sp_Task_GetTaskRelations` rồi filter từ `tasks` đã có
             function fetchChildTasks(pid, cb) {
                 AjaxHPAParadise({
                     data: {
@@ -4211,8 +4118,6 @@ BEGIN
                     error: function() { cb([]); }
                 });
             }
-            // Hàm `renderTempSubtasksUI`: xây UI tạm khi template rỗng
-            // - Hiển thị thông báo hoặc các control để thêm hàng tạm
             function renderTempSubtasksUI(pid) {
                 var empOpts = `<option value="">-- Chọn người làm --</option>` + employees.map(e => `<option value="${e.EmployeeID}">${e.FullName}</option>`).join("");
                 fetchChildTasks(pid, function(childTasks) {
@@ -4228,8 +4133,6 @@ BEGIN
                     $("#subtask-assign-container").html(html);
                 });
             }
-            // Hàm `addTempRow`: thêm một hàng subtask tạm trong modal giao việc
-            // - Kiểm tra parent đã chọn, tạo DOM hàng mới và khởi tạo select/inputs
             function addTempRow() {
                 // require a selected parent task
                 var pid = $("#selParent").val();
@@ -4291,139 +4194,6 @@ BEGIN
                     } catch(e) { /* ignore focus errors */ }
                 });
             }
-            // ---------- Quick add (minimal) for creating a subtask ----------
-            // Hiển thị một ô input nhỏ khi người dùng click nút "+".
-            // Gõ tên sẽ tìm kiếm các task có thể làm task con (dựa trên allTasks),
-            // chọn một task hiện có sẽ liên kết task đó làm con; nếu blur/ click ngoài
-            // và có tên thì sẽ tạo mới task con và liên kết vào Parent.
-            function showQuickSubtaskInput() {
-                var pid = $("#selParent").val();
-                if(!pid) { uiManager.showAlert({ type: "warning", message: "Vui lòng chọn Công việc chính trước khi thêm task con" }); return; }
-
-                // If already visible, just focus
-                if($("#quickAddWrapper").length) { $("#quickSubtaskInput").focus(); return; }
-
-                var wrapper = `<div id="quickAddWrapper" style="grid-column:1 / -1; padding:8px 0;">
-                    <div style="display:flex; gap:8px; align-items:center; position:relative;">
-                        <input id="quickSubtaskInput" class="form-control" placeholder="Nhập tên task con hoặc chọn từ gợi ý..." autocomplete="off" style="min-width:260px;" />
-                        <div class="search-select-dropdown" id="quickSubtaskDropdown" style="position:absolute; z-index:1060; display:none; max-height:220px; overflow:auto; border:1px solid #ddd; box-shadow:0 6px 18px rgba(0,0,0,0.08); background:#fff; top:40px; left:0; right:0;"></div>
-                    </div>
-                </div>`;
-
-                // prepend so input appears on top
-                $("#subtask-assign-container").prepend(wrapper);
-                $("#quickSubtaskInput").focus();
-            }
-
-            // Render candidate list for quick subtask search
-            function renderQuickSubtaskDropdown(q) {
-                q = (q||"").toLowerCase();
-                var pid = $("#selParent").val();
-                var candidates = (allTasks || []).filter(function(t){
-                    if(!t || !t.TaskName) return false;
-                    if(String(t.TaskID) === String(pid)) return false; // skip self
-                    if(t.ParentTaskID && Number(t.ParentTaskID) !== 0) return false; // skip those already children
-                    if(t.Status === 5) return false; // skip disabled
-                    if(t.PositionID && String(t.PositionID).trim() !== "") return false; // skip fixed tasks
-
-                    return t.TaskName.toLowerCase().indexOf(q) !== -1;
-                }).slice(0,50);
-
-                var $dd = $("#quickSubtaskDropdown");
-                if(!candidates || candidates.length === 0) {
-                    $dd.html(`<div style="padding:10px;color:var(--text-muted);">Không có gợi ý</div>`).show();
-                    return;
-                }
-
-                var html = candidates.map(function(t){
-                    return `<div class="search-item-quick p-2" data-taskid="${t.TaskID}" style="cursor:pointer;border-bottom:1px solid #f1f3f5;">${escapeHtml(t.TaskName)}</div>`;
-                }).join("");
-
-                $dd.html(html).show();
-            }
-
-            // Create new subtask (save then relate) when user types and clicks outside
-            function createSubtaskFromQuick(name) {
-                var pid = $("#selParent").val();
-                if(!pid) { uiManager.showAlert({ type: "warning", message: "Vui lòng chọn Công việc chính trước khi thêm task con" }); removeQuickAdd(); return; }
-                name = (name||"").trim();
-                if(!name) { removeQuickAdd(); return; }
-
-                // First create the task
-                AjaxHPAParadise({
-                    data: {
-                        name: "sp_Task_SaveTask",
-                        param: [
-                            "TaskID", 0,
-                            "TaskName", name,
-                            "PositionID", "",
-                            "DefaultKPI", 0,
-                            "Unit", "",
-                            "Status", 1
-                        ]
-                    },
-                    success: function(res) {
-                        try {
-                            var parsed = JSON.parse(res);
-                            var newId = parsed.data && parsed.data[0] && parsed.data[0][0] && parsed.data[0][0].TaskID;
-                            if(!newId) { throw new Error("No TaskID returned"); }
-
-                            // then link it as child
-                            AjaxHPAParadise({
-                                data: {
-                                    name: "sp_Task_SaveTaskRelations",
-                                    param: ["ParentTaskID", pid, "ChildTaskIDs", String(newId)]
-                                },
-                                success: function() {
-                                    removeQuickAdd();
-                                    fetchAssignTemplate(pid);
-                                    uiManager.showAlert({ type: "success", message: "Tạo task con thành công." });
-                                },
-                                error: function() {
-                                    uiManager.showAlert({ type: "error", message: "Tạo quan hệ task con thất bại." });
-                                }
-                            });
-                        } catch(e) {
-                            console.warn(e);
-                            uiManager.showAlert({ type: "error", message: "Tạo task thất bại." });
-                        }
-                    },
-                    error: function() { uiManager.showAlert({ type: "error", message: "Tạo task thất bại." }); }
-                });
-            }
-
-            // If user selects an existing task from suggestions - link it as child
-            $(document).on("click", ".search-item-quick", function(e){
-                e.stopPropagation();
-                var tid = $(this).data("taskid");
-                var pid = $("#selParent").val();
-                if(!pid) { uiManager.showAlert({ type: "warning", message: "Vui lòng chọn Công việc chính trước khi thực hiện" }); return; }
-                AjaxHPAParadise({
-                    data: { name: "sp_Task_SaveTaskRelations", param: ["ParentTaskID", pid, "ChildTaskIDs", String(tid)] },
-                    success: function() { removeQuickAdd(); fetchAssignTemplate(pid); uiManager.showAlert({ type: "success", message: "Đã thêm task con." }); },
-                    error: function(){ uiManager.showAlert({ type: "error", message: "Thêm task con thất bại." }); }
-                });
-            });
-
-            // Helper to remove quick add UI
-            function removeQuickAdd() { $("#quickAddWrapper").remove(); $("#quickSubtaskDropdown").remove(); }
-
-            // Input handlers for quick subtask
-            $(document).on("input", "#quickSubtaskInput", function(e){
-                var q = ($(this).val()||"").trim();
-                if(!q) { $("#quickSubtaskDropdown").hide(); return; }
-                renderQuickSubtaskDropdown(q);
-            });
-
-            // Save on outside click: if quick input exists and click outside, create or link
-            $(document).on("click", function(e){
-                if($(e.target).closest("#quickAddWrapper, #btnQuickAddSubtask, .search-item-quick").length) return;
-                if($("#quickAddWrapper").length) {
-                    var val = $("#quickSubtaskInput").val() || "";
-                    if(val.trim()) { createSubtaskFromQuick(val.trim()); }
-                    else { removeQuickAdd(); }
-                }
-            });
             function tempExistingChanged(sel) {
                 var $row = $(sel).closest(".temp-subtask");
                 var val = $(sel).val();
@@ -4625,10 +4395,10 @@ BEGIN
                             "AssignedBy", assignedBy
                         ]
                     },
-                    success: function() {
+   success: function() {
                         uiManager.showAlert({
                             type: "success",
-                            message: "Giao việc thành công!"
+               message: "Giao việc thành công!"
                         });
                         bootstrap.Modal.getInstance(document.getElementById("mdlAssign")).hide();
                         loadTasks();
@@ -4866,7 +4636,7 @@ BEGIN
                         this.classList.add("dragging");
                         e.dataTransfer.effectAllowed = "move";
                         e.dataTransfer.setData("text/html", this.innerHTML);
-                    });
+         });
 
                     // Kết thúc kéo
                     row.addEventListener("dragend", function() {
@@ -5328,7 +5098,16 @@ BEGIN
                 
                 $container.html(html);
                 
-                // No Apply button: rely on global auto-save handler (click outside)
+                // Attach change handler
+                if (cfg.onChange) {
+                    $container.find(".row-assignee-apply").on("click", function() {
+                        const selected = [];
+                        $container.find(".row-assignee-item.selected").each(function() {
+                            selected.push($(this).data("empid"));
+                        });
+                        cfg.onChange(selected, cfg.taskId);
+                    });
+                }
                 
                 return $container.find(".row-assignee");
             }
@@ -5354,7 +5133,14 @@ BEGIN
                     `;
                 }).join("");
                 
-                return items;
+                const footer = `
+                    <div style="padding:8px;border-top:1px solid var(--border-color);display:flex;gap:8px;justify-content:flex-end;">
+                        <button type="button" class="btn btn-sm btn-outline-secondary row-assignee-clear">Xóa</button>
+                        <button type="button" class="btn btn-sm btn-primary row-assignee-apply">Áp dụng</button>
+                    </div>
+                `;
+                
+                return items + footer;
             }
 
             function createAssigneeSelect({ container, taskId, selectedIds = [], multi = true, onChange }) {
@@ -5532,175 +5318,6 @@ BEGIN
 
                 renderIcons();
                 return $widget;
-            }
-
-            function makeEditableField(config) {
-                // Config mặc định
-                var defaults = {
-                    element: null,          // DOM element cần biến thành input
-                    type: "text",           // text, textarea, select, date, employee, file
-                    taskId: 0,              // ID công việc
-                    subtaskId: null,        // ID công việc con (nếu có)
-                    field: "",              // Tên trường trong DB (để truyền vào SP)
-                    sp: "",                 // Tên Store Procedure để gọi ajax
-                    getValue: null,         // Hàm custom để lấy giá trị hiện tại (nếu cần)
-                    setValue: null,         // Hàm custom để set giá trị hiển thị sau khi lưu
-                    options: [],            // Danh sách options cho type="select" [{value:1, text:"A"}]
-                    placeholder: "Nhập...",
-                    onSave: null            // Callback sau khi save thành công
-                };
-                
-                var cfg = $.extend({}, defaults, config);
-                var $el = $(cfg.element);
-                
-                // Nếu đang edit rồi thì thôi
-                if ($el.hasClass("editing")) return;
-                
-                // Đánh dấu đang edit
-                $el.addClass("editing");
-                
-                // Lấy giá trị hiện tại
-                var currentVal = typeof cfg.getValue === "function" ? cfg.getValue() : $el.text().trim();
-                var originalHtml = $el.html(); // Lưu lại để revert nếu Cancel
-                
-                // Tạo Input HTML dựa trên Type
-                var $inputContainer = $(`<div class="" style="display:flex; gap:4px; align-items:center; width:100%; min-width:200px;"></div>`);
-                var $input;
-
-                if (cfg.type === "textarea") {
-                    $input = $(`<textarea class="form-control form-control-sm" rows="3"></textarea>`).val(currentVal);
-                } 
-                else if (cfg.type === "select") {
-                    $input = $(`<select class="form-select form-select-sm"></select>`);
-                    if(cfg.options && cfg.options.length) {
-                        cfg.options.forEach(function(opt) {
-                            var sel = (opt.value == currentVal) ? "selected" : "";
-                            $input.append(`<option value=""+opt.value+"" "+sel+">"+opt.text+"</option>`);
-                        });
-                    }
-                }
-                else if (cfg.type === "date") {
-                    // Cần format date chuẩn YYYY-MM-DD để input date hiểu
-                    $input = $(`<input type="date" class="form-control form-control-sm">`).val(currentVal);
-                }
-                else if (cfg.type === "employee") {
-                    // Logic tạo dropdown chọn nhân viên (giả lập select đơn giản cho demo)
-                    $input = $(`<select class="form-select form-select-sm"></select>`);
-                    $input.append(`<option value="">-- Chọn nhân viên --</option>`);
-                    if (employees && employees.length) {
-                        employees.forEach(function(e) {
-                            var sel = (e.EmployeeID == currentVal || e.FullName == currentVal) ? "selected" : "";
-                            $input.append(`<option value=""+e.EmployeeID+"" "+sel+">"+e.FullName+"</option>`);
-                        });
-                    }
-                }
-                else if (cfg.type === "file") {
-                    $input = $(`<input type="file" class="form-control form-control-sm">`);
-                }
-                else { // Default text
-                    $input = $(`<input type="text" class="form-control form-control-sm">`).val(currentVal);
-                }
-                
-                // Thêm placeholder
-                if (cfg.type !== "select" && cfg.type !== "file") {
-                    $input.attr("placeholder", cfg.placeholder);
-                }
-
-                // Nút Save / Cancel
-                var $btnSave = $(`<button class="btn btn-sm btn-success"><i class="bi bi-check"></i></button>`);
-                var $btnCancel = $(`<button class="btn btn-sm btn-secondary"><i class="bi bi-x"></i></button>`);
-
-                // Ráp giao diện
-                $inputContainer.append($input).append($btnSave).append($btnCancel);
-                $el.empty().append($inputContainer);
-                
-                // Focus vào input
-                $input.focus();
-
-                // --- XỬ LÝ SỰ KIỆN ---
-                
-                // Hủy bỏ
-                $btnCancel.on("click", function(e) {
-                    e.stopPropagation();
-                    $el.removeClass("editing").html(originalHtml);
-                });
-
-                // Lưu
-                $btnSave.on("click", function(e) {
-                    e.stopPropagation();
-                    var newVal;
-                    
-                    // Lấy giá trị tùy type
-                    if (cfg.type === "file") {
-                        // Xử lý upload file riêng (thường phải dùng FormData và Ajax upload riêng)
-                        var files = $input[0].files;
-                        if (files.length > 0) {
-                            // Gọi hàm upload file ở đây (giả sử có hàm handleFileUpload)
-                            handleFileUpload(files); 
-                            $el.removeClass("editing").html(originalHtml); // Revert UI, chờ upload xong reload
-                            return; 
-                        } else {
-                            return; // Không có file
-                        }
-                    } else {
-                        newVal = $input.val();
-                    }
-
-                    // Gọi SP Update
-                    var params = [
-                        "TaskID", cfg.taskId,
-                        "LoginID", LoginID,
-                        cfg.field, newVal
-                    ];
-                    if (cfg.subtaskId) params.push("ChildTaskID", cfg.subtaskId);
-
-                    AjaxHPAParadise({
-                        data: {
-                            name: cfg.sp,
-                            param: params
-                        },
-                        success: function(response) {
-                            // Update UI thành công
-                            $el.removeClass("editing");
-                            
-                            // Hiển thị giá trị mới (nếu select/employee cần map ID -> Text)
-                            var displayVal = newVal;
-                            if (cfg.type === "select") {
-                                displayVal = $input.find("option:selected").text();
-                            } 
-                            else if (cfg.type === "employee") {
-                                displayVal = $input.find("option:selected").text();
-                            }
-
-                            if (typeof cfg.setValue === "function") {
-                                cfg.setValue(displayVal);
-                            } else {
-                                $el.text(displayVal);
-                            }
-
-                            if (typeof cfg.onSave === "function") {
-                                cfg.onSave(newVal);
-                            }
-                            
-                            // Optional: Show toast
-                            // uiManager.showAlert({ type: "success", message: "Đã cập nhật!" });
-                        },
-                        error: function() {
-                            alert("Lỗi cập nhật!");
-                            $el.removeClass("editing").html(originalHtml);
-                        }
-                    });
-                });
-                
-                // Support Enter to save (text inputs)
-                $input.on("keydown", function(e) {
-                    if (e.key === "Enter" && cfg.type !== "textarea") {
-                        $btnSave.click();
-                    }
-                    if (e.key === "Escape") {
-                        $btnCancel.click();
-                    }
-                });
             }
         })();
     </script>

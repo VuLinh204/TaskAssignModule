@@ -1,3 +1,303 @@
+--Begin script: sp_Task_UpdateSubtaskOrder
+USE Paradise_Beta_Tai2
+GO
+if object_id('[dbo].[sp_Task_UpdateSubtaskOrder]') is null
+	EXEC ('CREATE PROCEDURE [dbo].[sp_Task_UpdateSubtaskOrder] as select 1')
+GO
+ALTER PROCEDURE [dbo].[sp_Task_UpdateSubtaskOrder]
+    @ParentTaskID BIGINT,
+    @OrderedChildIDs VARCHAR(MAX),
+    @LoginID INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    DECLARE @EmployeeID VARCHAR(20);
+    SELECT @EmployeeID = EmployeeID FROM tblSC_Login WHERE LoginID = @LoginID;
+
+    -- Kiểm tra task cha
+    IF NOT EXISTS (SELECT 1 FROM tblTask WHERE TaskID = @ParentTaskID)
+    BEGIN
+        SELECT 0 AS Success, N'Task cha không tồn tại!' AS ErrorMessage;
+        RETURN;
+    END
+
+    -- Lấy HeaderID (task này thuộc header nào mà user đang làm)
+    DECLARE @HeaderID INT;
+    SELECT @HeaderID = HeaderID
+    FROM tblTask_AssignHistory
+    WHERE TaskID = @ParentTaskID AND EmployeeID = @EmployeeID;
+
+    -- Bảng tạm phân thứ tự mới
+    DECLARE @Temp TABLE (ChildID BIGINT, SortOrder INT IDENTITY(1,1));
+
+    INSERT INTO @Temp (ChildID)
+    SELECT CAST(value AS BIGINT)
+    FROM STRING_SPLIT(@OrderedChildIDs, ',')
+    WHERE ISNUMERIC(value) = 1;
+
+    -- Cập nhật SortOrder theo HeaderID + user hiện tại
+    UPDATE AH
+    SET AH.SortOrder = T.SortOrder
+    FROM tblTask_AssignHistory AH
+    INNER JOIN @Temp T ON AH.TaskID = T.ChildID
+    WHERE AH.EmployeeID = @EmployeeID
+      AND AH.HeaderID = @HeaderID;
+
+    SELECT 1 AS Success, N'Cập nhật thứ tự thành công!';
+END
+GO
+--Begin script: sp_Task_GetDetailedTemplate
+USE Paradise_Beta_Tai2
+GO
+if object_id('[dbo].[sp_Task_GetDetailedTemplate]') is null
+	EXEC ('CREATE PROCEDURE [dbo].[sp_Task_GetDetailedTemplate] as select 1')
+GO
+--Begin script: sp_Task_GetDetailedTemplate
+ALTER PROCEDURE [dbo].[sp_Task_GetDetailedTemplate]
+    @ParentTaskID BIGINT
+AS
+BEGIN
+    SELECT
+        T.TaskID AS ChildTaskID,
+        T.TaskName AS ChildTaskName,
+        ISNULL(T.KPIPerDay, 0) AS DefaultKPI,
+        T.Unit,
+        ISNULL(T.Priority, 3) AS Priority,
+        0 AS IsNew
+    FROM tblTask_Template TMP
+    INNER JOIN tblTask T ON TMP.ChildTaskID = T.TaskID
+    WHERE TMP.ParentTaskID = @ParentTaskID
+    ORDER BY T.TaskID;
+END
+GO
+--Begin script: sp_Task_GetDetail
+USE Paradise_Beta_Tai2
+GO
+if object_id('[dbo].[sp_Task_GetDetail]') is null
+	EXEC ('CREATE PROCEDURE [dbo].[sp_Task_GetDetail] as select 1')
+GO
+
+ALTER PROCEDURE [dbo].[sp_Task_GetDetail]
+    @TaskID BIGINT = 10,
+    @LoginID INT = 59
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    DECLARE @EmployeeID VARCHAR(20);
+    SELECT @EmployeeID = EmployeeID FROM tblSC_Login WHERE LoginID = @LoginID;
+
+    -- 1. Task chính
+    SELECT
+        T.*,
+        CASE WHEN EXISTS(SELECT 1 FROM tblTask_Template WHERE ParentTaskID = @TaskID) THEN 1 ELSE 0 END AS HasSubtasks,
+        (SELECT ParentTaskID FROM tblTask_Template WHERE ChildTaskID = @TaskID) AS BelongsToParent,
+        AH.HeaderID,
+        AH.StartDate AS MyStartDate,
+        AH.EndDate AS MyDueDate,
+        H.PersonInCharge AS RequestedBy,
+        H.HeaderTitle,
+        ISNULL(
+            (SELECT TOP 1 FullName
+             FROM dbo.fn_vtblEmployeeList_Bydate(CAST(GETDATE() AS DATE), '-1', NULL)
+             WHERE EmployeeID = H.PersonInCharge),
+            H.PersonInCharge
+        ) AS RequestedByName,
+        ISNULL(
+            CASE
+                WHEN AH.HeaderID IS NOT NULL THEN
+                    (SELECT TOP 1 MainAH.EmployeeID
+                     FROM tblTask_AssignHistory MainAH
+                     INNER JOIN tblTask_Template TT ON TT.ChildTaskID = @TaskID
+                     WHERE MainAH.HeaderID = AH.HeaderID
+                       AND MainAH.TaskID = TT.ParentTaskID)
+                ELSE AH.EmployeeID
+            END,
+            AH.EmployeeID
+        ) AS MainResponsibleID,
+        ISNULL(
+            (SELECT TOP 1 FullName
+             FROM dbo.fn_vtblEmployeeList_Bydate(CAST(GETDATE() AS DATE), '-1', NULL)
+             WHERE EmployeeID =
+                ISNULL(
+                    CASE WHEN AH.HeaderID IS NOT NULL THEN
+                        (SELECT TOP 1 MainAH.EmployeeID
+                         FROM tblTask_AssignHistory MainAH
+                         INNER JOIN tblTask_Template TT ON TT.ChildTaskID = @TaskID
+                         WHERE MainAH.HeaderID = AH.HeaderID
+                           AND MainAH.TaskID = TT.ParentTaskID)
+                    ELSE AH.EmployeeID END,
+                    AH.EmployeeID
+                )
+            ),
+            @EmployeeID
+        ) AS MainResponsibleName
+    FROM tblTask T
+    LEFT JOIN tblTask_AssignHistory AH ON AH.TaskID = T.TaskID AND AH.EmployeeID = @EmployeeID
+    LEFT JOIN tblTask_AssignHeader H ON H.HeaderID = AH.HeaderID
+    WHERE T.TaskID = @TaskID
+    ORDER BY AH.StartDate DESC;
+
+    -- 2. Assign history
+    SELECT
+        AH.HistoryID,
+        AH.HeaderID,
+        AH.EmployeeID,
+        AH.StartDate,
+        AH.EndDate,
+        AH.ActualKPI,
+        AH.Progress,
+        AH.Status,
+        ISNULL(
+            (SELECT TOP 1 FullName
+             FROM dbo.fn_vtblEmployeeList_Bydate(CAST(GETDATE() AS DATE), '-1', NULL)
+             WHERE EmployeeID = AH.EmployeeID),
+            AH.EmployeeID
+        ) AS EmployeeName
+    FROM tblTask_AssignHistory AH
+    WHERE AH.TaskID = @TaskID
+    ORDER BY AH.StartDate DESC, AH.HistoryID DESC;
+
+    -- 3. Comments
+    SELECT
+        C.CommentID,
+        C.EmployeeID,
+        C.Content,
+        C.CreatedDate,
+        ISNULL(
+            (SELECT TOP 1 FullName
+             FROM dbo.fn_vtblEmployeeList_Bydate(CAST(GETDATE() AS DATE), '-1', NULL)
+             WHERE EmployeeID = C.EmployeeID),
+            C.EmployeeID
+        ) AS EmployeeName
+    FROM tblTask_Comment C
+    WHERE C.TaskID = @TaskID
+    ORDER BY C.CreatedDate DESC;
+
+    -- 4. Attachments
+    SELECT
+        A.AttachID,
+        A.FileName,
+        A.FilePath,
+        A.UploadedBy,
+        A.UploadedDate,
+        ISNULL(
+            (SELECT TOP 1 FullName FROM dbo.fn_vtblEmployeeList_Bydate(CAST(GETDATE() AS DATE), '-1', NULL)
+             WHERE EmployeeID = A.UploadedBy),
+            A.UploadedBy
+        ) AS UploadedByName
+    FROM tblTask_Attachment A
+    WHERE A.TaskID = @TaskID
+    ORDER BY A.UploadedDate DESC;
+
+-- 5. Subtasks
+        SELECT
+        TT.ChildTaskID,
+        T.TaskName AS ChildTaskName,
+        ISNULL(T.KPIPerDay, 0) AS DefaultKPI,
+        T.Unit,
+        ISNULL(T.Priority, 3) AS Priority,
+        H.EmployeeID AS AssignedToEmployeeID,
+        H.StartDate AS SubtaskStartDate,
+        H.EndDate AS SubtaskEndDate,
+        ISNULL(H.ActualKPI, 0) AS SubtaskActualKPI,
+        ISNULL(H.Progress, 0) AS SubtaskProgress,
+        CASE
+            WHEN H.Status = N'Done' THEN 3
+            WHEN H.Status = N'Doing' THEN 2
+            ELSE 1
+        END AS SubtaskStatusCode,
+        H.Status,
+        Emp.FullName AS AssignedToEmployeeName
+    FROM tblTask_Template TT
+    INNER JOIN tblTask T ON TT.ChildTaskID = T.TaskID
+    LEFT JOIN tblTask_AssignHistory H
+        ON H.TaskID = TT.ChildTaskID
+       AND H.EmployeeID = @EmployeeID
+    LEFT JOIN dbo.fn_vtblEmployeeList_Bydate(CAST(GETDATE() AS DATE), '-1', NULL) Emp
+        ON Emp.EmployeeID = H.EmployeeID
+    WHERE TT.ParentTaskID = @TaskID
+    ORDER BY ISNULL(H.SortOrder, 999999), TT.ChildTaskID;
+
+    -- 6. List task khả dụng
+    SELECT
+        T.TaskID,
+        T.TaskName,
+        ISNULL(T.KPIPerDay, 0) AS DefaultKPI,
+        T.Unit,
+        ISNULL(T.Priority, 3) AS Priority,
+        CASE WHEN T.PositionID IS NOT NULL THEN 1 ELSE 0 END AS IsFixed
+    FROM tblTask T
+    WHERE T.Status = 1
+      AND T.TaskID != @TaskID
+      AND T.PositionID IS NULL
+      AND NOT EXISTS (SELECT 1 FROM tblTask_Template TT WHERE TT.ChildTaskID = T.TaskID)
+      AND NOT EXISTS (SELECT 1 FROM tblTask_Template TT WHERE TT.ParentTaskID = T.TaskID)
+      AND NOT EXISTS (
+          SELECT 1 FROM tblTask_AssignHistory H
+          WHERE H.TaskID = T.TaskID AND H.HeaderID IS NULL
+      )
+    ORDER BY T.TaskName;
+END
+GO
+--Begin script: sp_Task_UpdateMainTaskOrder
+USE Paradise_Beta_Tai2
+GO
+if object_id('[dbo].[sp_Task_UpdateMainTaskOrder]') is null
+	EXEC ('CREATE PROCEDURE [dbo].[sp_Task_UpdateMainTaskOrder] as select 1')
+GO
+
+-- Tạo lại SP (phiên bản hoàn chỉnh + xử lý HeaderID = NULL đúng cách)
+ALTER PROCEDURE [dbo].[sp_Task_UpdateMainTaskOrder]
+    @LoginID INT,
+    @HeaderID INT = NULL,                    -- NULL = task standalone (không thuộc header nào)
+    @OrderedTaskIDs VARCHAR(MAX)             -- "15,8,27,4"
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+	DECLARE @EmployeeID VARCHAR(20);
+	SELECT @EmployeeID = EmployeeID
+	FROM tblSC_Login
+	WHERE LoginID = @LoginID;
+
+    -- Bảng tạm lưu thứ tự mới
+    DECLARE @Temp TABLE (TaskID BIGINT, NewOrder INT IDENTITY(1,1))
+
+    INSERT INTO @Temp (TaskID)
+    SELECT CAST(LTRIM(RTRIM(value)) AS BIGINT)
+    FROM STRING_SPLIT(@OrderedTaskIDs, ',')
+    WHERE LTRIM(RTRIM(value)) <> ''
+      AND ISNUMERIC(LTRIM(RTRIM(value))) = 1
+
+    -- Cập nhật SortOrder theo thứ tự người dùng kéo thả
+    UPDATE AH
+    SET AH.SortOrder = T.NewOrder
+    FROM tblTask_AssignHistory AH
+    INNER JOIN @Temp T ON AH.TaskID = T.TaskID
+    WHERE AH.EmployeeID = @EmployeeID
+      AND (
+            (@HeaderID IS NULL AND AH.HeaderID IS NULL)
+            OR
+            (AH.HeaderID = @HeaderID)
+          )
+
+    -- Đảm bảo các task còn lại (không có trong danh sách kéo thả) có SortOrder lớn (đẩy xuống dưới)
+    UPDATE tblTask_AssignHistory
+    SET SortOrder = 999999
+    WHERE EmployeeID = @EmployeeID
+      AND (
+            (@HeaderID IS NULL AND HeaderID IS NULL)
+            OR
+            (HeaderID = @HeaderID)
+          )
+      AND TaskID NOT IN (SELECT TaskID FROM @Temp)
+      AND (SortOrder IS NULL OR SortOrder = 999999)
+
+    SELECT 1 AS Success, N'Đã lưu thứ tự công việc thành công!' AS Message
+END
+GO
 --Begin script: sp_Task_GetMyTasks
 USE Paradise_Beta_Tai2
 GO
@@ -968,329 +1268,5 @@ BEGIN
     SELECT ChildTaskID
     FROM tblTask_Template
     WHERE ParentTaskID = @ParentTaskID;
-END
-GO
---Begin script: sp_Task_GetDetail
-USE Paradise_Beta_Tai2
-GO
-if object_id('[dbo].[sp_Task_GetDetail]') is null
-	EXEC ('CREATE PROCEDURE [dbo].[sp_Task_GetDetail] as select 1')
-GO
-
--- =============================================
--- sp_Task_GetDetail - Thêm thông tin người yêu cầu và trách nhiệm chính
--- =============================================
-ALTER PROCEDURE [dbo].[sp_Task_GetDetail]
-    @TaskID BIGINT = 10,
-    @LoginID INT = 59
-AS
-BEGIN
-    SET NOCOUNT ON;
-
-    DECLARE @EmployeeID VARCHAR(20);
-    SELECT @EmployeeID = EmployeeID FROM tblSC_Login WHERE LoginID = @LoginID;
-
-    -- 1. Task chính + Thông tin người yêu cầu & trách nhiệm chính
-    SELECT
-        T.*,
-        CASE WHEN EXISTS(SELECT 1 FROM tblTask_Template WHERE ParentTaskID = @TaskID) THEN 1 ELSE 0 END AS HasSubtasks,
-        (SELECT ParentTaskID FROM tblTask_Template WHERE ChildTaskID = @TaskID) AS BelongsToParent,
-
-        -- Thông tin từ AssignHistory của user hiện tại
-        AH.HeaderID,
-        AH.StartDate AS MyStartDate,
-        AH.EndDate AS MyDueDate,
-
-        -- Thông tin Header (nếu có)
-        H.PersonInCharge AS RequestedBy,
-        H.HeaderTitle,
-
-        -- Lấy tên người yêu cầu từ PersonInCharge
-        ISNULL(
-            (SELECT TOP 1 FullName FROM dbo.fn_vtblEmployeeList_Bydate(CAST(GETDATE() AS DATE), '-1', NULL)
-             WHERE EmployeeID = H.PersonInCharge),
-            H.PersonInCharge
-        ) AS RequestedByName,
-
-        -- Người chịu trách nhiệm chính:
-        -- Nếu có Header -> lấy người được giao task cha (ParentTask) trong cùng Header
-        -- Nếu không có Header -> lấy người được giao task này
-        ISNULL(
-            CASE
-                WHEN AH.HeaderID IS NOT NULL THEN
-                    -- Tìm task cha trong header này
-                    (SELECT TOP 1 MainAH.EmployeeID
-                     FROM tblTask_AssignHistory MainAH
-                     INNER JOIN tblTask_Template TT ON TT.ChildTaskID = @TaskID
-                     WHERE MainAH.HeaderID = AH.HeaderID
-                       AND MainAH.TaskID = TT.ParentTaskID)
-                ELSE
-                    AH.EmployeeID
-            END,
-            AH.EmployeeID
-        ) AS MainResponsibleID,
-
-        -- Tên người chịu trách nhiệm chính
-        ISNULL(
-            (SELECT TOP 1 FullName
-             FROM dbo.fn_vtblEmployeeList_Bydate(CAST(GETDATE() AS DATE), '-1', NULL)
-             WHERE EmployeeID =
-                ISNULL(
-                    CASE
-                        WHEN AH.HeaderID IS NOT NULL THEN
-                            (SELECT TOP 1 MainAH.EmployeeID
-                             FROM tblTask_AssignHistory MainAH
-                             INNER JOIN tblTask_Template TT ON TT.ChildTaskID = @TaskID
-                             WHERE MainAH.HeaderID = AH.HeaderID
-                               AND MainAH.TaskID = TT.ParentTaskID)
-                        ELSE
-                            AH.EmployeeID
-                    END,
-                    AH.EmployeeID
-                )
-            ),
-            @EmployeeID
-        ) AS MainResponsibleName
-
-    FROM tblTask T
-    LEFT JOIN tblTask_AssignHistory AH ON AH.TaskID = T.TaskID AND AH.EmployeeID = @EmployeeID
-    LEFT JOIN tblTask_AssignHeader H ON H.HeaderID = AH.HeaderID
-    WHERE T.TaskID = @TaskID
-    ORDER BY AH.StartDate DESC;
-
-    -- 2. Assign history với tên người thực hiện
-    SELECT
-        AH.HistoryID,
-        AH.HeaderID,
-        AH.EmployeeID,
-        AH.StartDate,
-        AH.EndDate,
-        AH.ActualKPI,
-        AH.Progress,
-        AH.Status,
-        -- Thêm tên nhân viên
-        ISNULL(
-            (SELECT TOP 1 FullName FROM dbo.fn_vtblEmployeeList_Bydate(CAST(GETDATE() AS DATE), '-1', NULL)
-             WHERE EmployeeID = AH.EmployeeID),
-            AH.EmployeeID
-        ) AS EmployeeName
-    FROM tblTask_AssignHistory AH
-    WHERE AH.TaskID = @TaskID
-    ORDER BY AH.StartDate DESC, AH.HistoryID DESC;
-
-    -- 3. Comments với tên người comment
-    SELECT
-        C.CommentID,
-      C.EmployeeID,
-        C.Content,
-        C.CreatedDate,
-        -- Thêm tên nhân viên
-        ISNULL(
-            (SELECT TOP 1 FullName FROM dbo.fn_vtblEmployeeList_Bydate(CAST(GETDATE() AS DATE), '-1', NULL)
-             WHERE EmployeeID = C.EmployeeID),
-            C.EmployeeID
-        ) AS EmployeeName
-    FROM tblTask_Comment C
-    WHERE C.TaskID = @TaskID
-    ORDER BY C.CreatedDate DESC;
-
-    -- 4. Checklist
-    SELECT ItemID, Title, IsDone, SortOrder
-    FROM tblTask_Checklist
-    WHERE TaskID = @TaskID
-    ORDER BY SortOrder;
-
-    -- 5. Attachments với tên người upload
-    SELECT
-        A.AttachID,
-        A.FileName,
-        A.FilePath,
-        A.UploadedBy,
-        A.UploadedDate,
-        -- Thêm tên người upload
-        ISNULL(
-            (SELECT TOP 1 FullName FROM dbo.fn_vtblEmployeeList_Bydate(CAST(GETDATE() AS DATE), '-1', NULL)
-             WHERE EmployeeID = A.UploadedBy),
-            A.UploadedBy
-        ) AS UploadedByName
-    FROM tblTask_Attachment A
-    WHERE A.TaskID = @TaskID
-    ORDER BY A.UploadedDate DESC;
-
-    -- 6. TASK CON HIỆN TẠI (Đã được giao) với tên người thực hiện
-    SELECT
-        TT.ChildTaskID,
-        T.TaskName AS ChildTaskName,
-        ISNULL(T.KPIPerDay, 0) AS DefaultKPI,
-        T.Unit,
-        ISNULL(T.Priority, 3) AS Priority,
-        H.EmployeeID AS AssignedToEmployeeID,
-        H.StartDate AS SubtaskStartDate,
-        H.EndDate AS SubtaskEndDate,
-        ISNULL(H.ActualKPI, 0) AS SubtaskActualKPI,
-        ISNULL(H.Progress, 0) AS SubtaskProgress,
-        CASE
-            WHEN ISNULL(H.Status, N'Pending') = N'Done' THEN 3
-            WHEN ISNULL(H.Status, N'Pending') = N'Doing' THEN 2
-            ELSE 1
-        END AS SubtaskStatusCode,
-        ISNULL(H.Status, N'Pending') AS Status,
-        -- Thêm tên người được giao
-        ISNULL(
-            (SELECT TOP 1 FullName FROM dbo.fn_vtblEmployeeList_Bydate(CAST(GETDATE() AS DATE), '-1', NULL)
-             WHERE EmployeeID = H.EmployeeID),
-            H.EmployeeID
-        ) AS AssignedToEmployeeName
-    FROM tblTask_Template TT
-    INNER JOIN tblTask T ON TT.ChildTaskID = T.TaskID
-    LEFT JOIN tblTask_AssignHistory H ON H.TaskID = T.TaskID AND H.EmployeeID = @EmployeeID
-    WHERE TT.ParentTaskID = @TaskID
-    ORDER BY TT.ChildTaskID;
-
-    -- 7. DANH SÁCH TASK KHẢ DỤNG ĐỂ THÊM LÀM TASK CON
-    SELECT
-        T.TaskID,
-        T.TaskName,
-        ISNULL(T.KPIPerDay, 0) AS DefaultKPI,
-        T.Unit,
-        ISNULL(T.Priority, 3) AS Priority,
-        CASE WHEN T.PositionID IS NOT NULL THEN 1 ELSE 0 END AS IsFixed
-    FROM tblTask T
-    WHERE T.Status = 1
-      AND T.TaskID != @TaskID -- Không phải chính nó
-      AND T.PositionID IS NULL -- Không cố định theo chức vụ
-      AND NOT EXISTS ( -- Chưa là task con của task khác
-          SELECT 1 FROM tblTask_Template TT WHERE TT.ChildTaskID = T.TaskID
-      )
-      AND NOT EXISTS ( -- Không phải là task cha
-          SELECT 1 FROM tblTask_Template TT WHERE TT.ParentTaskID = T.TaskID
-      )
-      AND NOT EXISTS ( -- Chưa được giao tự động
-          SELECT 1 FROM tblTask_AssignHistory H
-          WHERE H.TaskID = T.TaskID AND H.HeaderID IS NULL
-      )
-    ORDER BY T.TaskName;
-END
-GO
---Begin script: sp_Task_GetDetailedTemplate
-USE Paradise_Beta_Tai2
-GO
-if object_id('[dbo].[sp_Task_GetDetailedTemplate]') is null
-	EXEC ('CREATE PROCEDURE [dbo].[sp_Task_GetDetailedTemplate] as select 1')
-GO
-ALTER PROCEDURE [dbo].[sp_Task_GetDetailedTemplate]
-    @ParentTaskID BIGINT = 2
-AS
-BEGIN
-    SELECT
-        T.TaskID AS ChildTaskID,
-        T.TaskName AS ChildTaskName,
-        ISNULL(T.KPIPerDay, 0) AS DefaultKPI,
-        T.Unit,
-        ISNULL(T.Priority, 3) AS Priority,
-        0 AS IsNew, -- Đánh dấu là task có sẵn
-        ISNULL(TMP.SortOrder, 999) AS SortOrder -- Thêm SortOrder
-    FROM tblTask_Template TMP
-    INNER JOIN tblTask T ON TMP.ChildTaskID = T.TaskID
-    WHERE TMP.ParentTaskID = @ParentTaskID
-    ORDER BY ISNULL(TMP.SortOrder, 999), TMP.ChildTaskID; -- Sắp xếp theo SortOrder
-END
-GO
---Begin script: sp_Task_UpdateSubtaskOrder
-USE Paradise_Beta_Tai2
-GO
-if object_id('[dbo].[sp_Task_UpdateSubtaskOrder]') is null
-	EXEC ('CREATE PROCEDURE [dbo].[sp_Task_UpdateSubtaskOrder] as select 1')
-GO
-
-ALTER PROCEDURE [dbo].[sp_Task_UpdateSubtaskOrder]
-    @ParentTaskID BIGINT,
-    @OrderedChildIDs VARCHAR(MAX), -- Comma-separated: "10,11,12,13"
-    @LoginID INT = NULL
-AS
-BEGIN
-    SET NOCOUNT ON;
-
-    -- Kiểm tra parent task tồn tại
-    IF NOT EXISTS (SELECT 1 FROM tblTask WHERE TaskID = @ParentTaskID)
-    BEGIN
-        SELECT 0 AS Success, N'Task cha không tồn tại!' AS ErrorMessage;
-        RETURN;
-    END
-
-    -- Parse danh sách child IDs và tạo bảng tạm với thứ tự
-    DECLARE @TempOrder TABLE (
-        ChildTaskID BIGINT,
-        SortOrder INT
-    );
-
-    DECLARE @Counter INT = 1;
-
-    INSERT INTO @TempOrder (ChildTaskID, SortOrder)
-    SELECT
-        CAST(value AS BIGINT) AS ChildTaskID,
-        @Counter + (ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) - 1) AS SortOrder
-    FROM STRING_SPLIT(@OrderedChildIDs, ',')
-    WHERE LTRIM(RTRIM(value)) <> ''
-      AND ISNUMERIC(value) = 1;
-
-    -- Kiểm tra tất cả child tasks có thuộc parent này không
-    IF EXISTS (
-        SELECT 1
-        FROM @TempOrder T
-        WHERE NOT EXISTS (
-            SELECT 1
-            FROM tblTask_Template TT
-            WHERE TT.ParentTaskID = @ParentTaskID
-              AND TT.ChildTaskID = T.ChildTaskID
-        )
-    )
-    BEGIN
-        SELECT 0 AS Success, N'Một số task con không thuộc task cha này!' AS ErrorMessage;
-        RETURN;
-    END
-
-    -- Cập nhật thứ tự trong bảng Template
-    -- (Nếu bảng tblTask_Template có cột SortOrder)
-    IF EXISTS (
-        SELECT 1
-        FROM sys.columns
-        WHERE object_id = OBJECT_ID('tblTask_Template')
-          AND name = 'SortOrder'
-    )
-    BEGIN
-        UPDATE TT
-        SET TT.SortOrder = T.SortOrder
-        FROM tblTask_Template TT
-        INNER JOIN @TempOrder T ON TT.ChildTaskID = T.ChildTaskID
-        WHERE TT.ParentTaskID = @ParentTaskID;
-    END
-    ELSE
-    BEGIN
-        -- Nếu chưa có cột SortOrder, thêm vào
-        IF NOT EXISTS (
-            SELECT 1
-            FROM sys.columns
-            WHERE object_id = OBJECT_ID('tblTask_Template')
-              AND name = 'SortOrder'
-        )
-        BEGIN
-            ALTER TABLE tblTask_Template ADD SortOrder INT NULL;
-        END
-
-        -- Sau đó cập nhật
-        UPDATE TT
-        SET TT.SortOrder = T.SortOrder
-        FROM tblTask_Template TT
-        INNER JOIN @TempOrder T ON TT.ChildTaskID = T.ChildTaskID
-        WHERE TT.ParentTaskID = @ParentTaskID;
-    END
-
-    -- Trả về kết quả thành công
-    SELECT
-        1 AS Success,
-        N'Cập nhật thứ tự thành công!' AS Message,
-        @ParentTaskID AS ParentTaskID,
-        (SELECT COUNT(*) FROM @TempOrder) AS UpdatedCount;
 END
 GO

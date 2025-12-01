@@ -41,7 +41,8 @@ BEGIN
         HeaderTitle    NVARCHAR(255),
         StartDate      DATETIME,
         PersonInCharge VARCHAR(100),
-        Note           NVARCHAR(500)
+        Note           NVARCHAR(500),
+        CommittedHours FLOAT NULL -- Thời gian cam kết hoàn thành (giờ)
     );
 END
 GO
@@ -61,7 +62,8 @@ BEGIN
         EndDate     DATETIME,
         Progress    INT,
         AssignPriority    TINYINT,
-        Status      NVARCHAR(50)
+        Status      NVARCHAR(50),
+        CommittedHours FLOAT NULL -- Thời gian cam kết hoàn thành (giờ)
     );
 END
 GO
@@ -94,21 +96,6 @@ BEGIN
         FilePath     NVARCHAR(1000),
         UploadedBy   VARCHAR(20),
         UploadedDate DATETIME
-    );
-END
-GO
-
------------------------------------------
--- 7. tblTask_Checklist
------------------------------------------
-IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name='tblTask_Checklist')
-BEGIN
-    CREATE TABLE dbo.tblTask_Checklist (
-        ItemID     BIGINT IDENTITY(1,1) PRIMARY KEY,
-        TaskID     BIGINT,
-        Title      NVARCHAR(500),
-        IsDone     BIT,
-        SortOrder  INT
     );
 END
 GO
