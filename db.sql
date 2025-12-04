@@ -18,6 +18,26 @@ BEGIN
 END
 GO
 
+-- Migration: switch header linking to use TaskID (non-destructive migration)
+-- 1) Add TaskID column to tblTask_AssignHeader (will be used to reference Parent TaskID)
+IF COL_LENGTH('dbo.tblTask_AssignHeader','TaskID') IS NULL
+BEGIN
+    ALTER TABLE dbo.tblTask_AssignHeader ADD TaskID BIGINT NULL;
+END
+
+-- 2) In tblTask_AssignHistory: replace EndDate (datetime) with CommittedHours (float) as requested
+IF COL_LENGTH('dbo.tblTask_AssignHistory','CommittedHours') IS NULL
+BEGIN
+    ALTER TABLE dbo.tblTask_AssignHistory ADD CommittedHours FLOAT NULL;
+END
+
+-- Ensure EndDate exists (keep start/end dates for history) — do NOT drop it
+IF COL_LENGTH('dbo.tblTask_AssignHistory','EndDate') IS NULL
+BEGIN
+    ALTER TABLE dbo.tblTask_AssignHistory ADD EndDate DATETIME NULL;
+END
+
+
 -----------------------------------------
 -- 2. tblTask_Template
 -----------------------------------------
@@ -66,6 +86,31 @@ BEGIN
     );
 END
 GO
+
+-- Safe rename: rename columns using sp_rename when appropriate so other scripts can reference the new names immediately.
+-- 1) tblTask_AssignHeader: rename `TaskID` -> `TaskParentID` if TaskParentID doesn't exist but TaskID does
+IF COL_LENGTH('dbo.tblTask_AssignHeader','TaskParentID') IS NULL AND COL_LENGTH('dbo.tblTask_AssignHeader','TaskID') IS NOT NULL
+BEGIN
+    EXEC sp_rename 'dbo.tblTask_AssignHeader.TaskID', 'TaskParentID', 'COLUMN';
+END
+
+-- 2) tblTask_AssignHistory: rename `HeaderID` -> `TaskParentID` if TaskParentID missing and HeaderID exists
+IF COL_LENGTH('dbo.tblTask_AssignHistory','TaskParentID') IS NULL AND COL_LENGTH('dbo.tblTask_AssignHistory','HeaderID') IS NOT NULL
+BEGIN
+    EXEC sp_rename 'dbo.tblTask_AssignHistory.HeaderID', 'TaskParentID', 'COLUMN';
+END
+
+-- 3) Ensure CommittedHours exists in both tables (non-destructive)
+IF COL_LENGTH('dbo.tblTask_AssignHeader','CommittedHours') IS NULL
+BEGIN
+    ALTER TABLE dbo.tblTask_AssignHeader ADD CommittedHours FLOAT NULL;
+END
+
+IF COL_LENGTH('dbo.tblTask_AssignHistory','CommittedHours') IS NULL
+BEGIN
+    ALTER TABLE dbo.tblTask_AssignHistory ADD CommittedHours FLOAT NULL;
+END
+
 
 -----------------------------------------
 -- 5. tblTask_Comment
