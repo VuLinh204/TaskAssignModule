@@ -1,3 +1,226 @@
+--Begin script: sp_Task_GetListForParent
+USE Paradise_Beta_Tai2
+GO
+if object_id('[dbo].[sp_Task_GetListForParent]') is null
+	EXEC ('CREATE PROCEDURE [dbo].[sp_Task_GetListForParent] as select 1')
+GO
+ALTER PROCEDURE [dbo].[sp_Task_GetListForParent]
+    @Keyword NVARCHAR(100) = '',
+    @LoginID INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    DECLARE @Like NVARCHAR(102) = '%' + TRIM(@Keyword) + '%';
+
+    SELECT TOP 50
+        T.TaskID AS value,
+        T.TaskName + ' (ID: ' + CAST(T.TaskID AS VARCHAR(20)) + ')' AS text
+    FROM tblTask T
+    WHERE T.Status = 1
+      AND (T.TaskName LIKE @Like OR CAST(T.TaskID AS VARCHAR) LIKE @Like)
+      AND (
+            -- Cho phép chọn task đã có subtask (làm cha)
+            EXISTS (SELECT 1 FROM tblTask_Template TT WHERE TT.ParentTaskID = T.TaskID)
+            OR
+            -- Hoặc task chưa có con nào
+            NOT EXISTS (SELECT 1 FROM tblTask_Template TT WHERE TT.ChildTaskID = T.TaskID)
+          )
+    ORDER BY
+        CASE WHEN T.TaskName LIKE @Like + '%' THEN 0 ELSE 1 END,
+        T.TaskName
+END
+GO
+--Begin script: sp_Task_GetAssignmentSetup
+USE Paradise_Beta_Tai2
+GO
+if object_id('[dbo].[sp_Task_GetAssignmentSetup]') is null
+	EXEC ('CREATE PROCEDURE [dbo].[sp_Task_GetAssignmentSetup] as select 1')
+GO
+ALTER PROCEDURE [dbo].[sp_Task_GetAssignmentSetup]
+    @LoginID INT = 59,
+    @LanguageID VARCHAR(2) = 'VN',
+    @ParentTaskID BIGINT = NULL
+AS
+BEGIN
+    -- Chỉ trả về danh sách công việc có thể làm cha
+    SELECT
+        T.TaskID,
+        T.TaskName,
+        '' AS Description,
+        (SELECT COUNT(*) FROM tblTask_Template WHERE ParentTaskID = T.TaskID) AS ChildCount,
+        CASE WHEN EXISTS(SELECT 1 FROM tblTask_Template WHERE ParentTaskID = T.TaskID) THEN 1 ELSE 0 END AS HasChildren
+    FROM tblTask T
+    WHERE T.Status = 1
+      AND T.TaskID <> ISNULL(@ParentTaskID, -1) -- Loại bỏ chính nó nếu có truyền @ParentTaskID
+    ORDER BY T.TaskID DESC;
+END
+GO
+--Begin script: sp_Task_GetMyTasks
+USE Paradise_Beta_Tai2
+GO
+if object_id('[dbo].[sp_Task_GetMyTasks]') is null
+	EXEC ('CREATE PROCEDURE [dbo].[sp_Task_GetMyTasks] as select 1')
+GO
+
+ALTER PROCEDURE [dbo].[sp_Task_GetMyTasks]
+    @LoginID INT = 59,
+    @LanguageID VARCHAR(2) = 'VN'
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    -- Lấy EmployeeID của người login
+    DECLARE @EmployeeID VARCHAR(20)
+    SELECT @EmployeeID = EmployeeID
+    FROM tblSC_Login
+    WHERE LoginID = @LoginID
+
+    IF @EmployeeID IS NULL
+    BEGIN
+        SELECT CAST(NULL AS BIGINT) AS TaskID, N'' AS TaskName WHERE 1 = 0
+        RETURN
+    END
+
+    -- Populate assign history (nếu có)
+    EXEC dbo.sp_Task_PopulateAssignHistoryForLogin @LoginID = @LoginID
+
+    -------------------------------------------------------------------------
+    -- Result set 1: Headers with tasks
+    -------------------------------------------------------------------------
+    SELECT DISTINCT
+        H.TaskParentID,
+        H.HeaderTitle,
+        H.StartDate,
+        H.PersonInCharge,
+        ISNULL((
+            SELECT COUNT(*)
+            FROM tblTask_AssignHistory ah
+            WHERE ah.TaskParentID = H.TaskParentID
+              AND ',' + ah.EmployeeID + ',' LIKE '%,' + @EmployeeID + ',%'
+        ),0) AS TasksCountForEmployee,
+        ISNULL((SELECT COUNT(*) FROM tblTask_AssignHistory ah WHERE ah.TaskParentID = H.TaskParentID),0) AS TotalTasksInHeader,
+        CAST(AVG(CAST(ISNULL(AH.Progress,0) AS FLOAT)) AS INT) AS AvgProgress,
+        SUM(CASE WHEN ISNULL(AH.Status,N'Pending')=N'Done' THEN 1 ELSE 0 END) AS CompletedTasks,
+        MAX(CASE WHEN AH.EndDate < GETDATE() AND ISNULL(AH.Status,N'Pending')!=N'Done' THEN 1 ELSE 0 END) AS IsOverdue
+    FROM tblTask_AssignHistory AH
+    INNER JOIN tblTask_AssignHeader H ON AH.TaskParentID = H.TaskParentID
+    WHERE ',' + AH.EmployeeID + ',' LIKE '%,' + @EmployeeID + ',%'
+    GROUP BY H.TaskParentID, H.HeaderTitle, H.StartDate, H.PersonInCharge
+    ORDER BY H.StartDate DESC
+
+    -------------------------------------------------------------------------
+    -- Result set 2: Child tasks belonging to headers
+    -------------------------------------------------------------------------
+    SELECT
+        H.TaskParentID,
+        T.TaskID,
+        T.TaskName,
+        T.PositionID,
+        T.Unit,
+        ISNULL(T.KPIPerDay,0) AS TargetKPI,
+        ISNULL(AH.ActualKPI,0) AS ActualKPI,
+        ISNULL(AH.Progress,0) AS Progress,
+        CASE
+            WHEN ISNULL(T.KPIPerDay,0) > 0 THEN CAST(ISNULL(AH.ActualKPI,0)*100.0/T.KPIPerDay AS INT)
+            WHEN EXISTS (SELECT 1 FROM tblTask_Template TT WHERE TT.ParentTaskID=T.TaskID) THEN
+                ISNULL((
+                    SELECT CAST(COUNT(CASE WHEN ch.Status=N'Done' THEN 1 END)*100.0/NULLIF(COUNT(*),0) AS INT)
+                    FROM tblTask_Template tt_inner
+                    INNER JOIN tblTask_AssignHistory ch ON ch.TaskID=tt_inner.ChildTaskID
+                    WHERE tt_inner.ParentTaskID=T.TaskID
+                      AND ',' + ch.EmployeeID + ',' LIKE '%,' + @EmployeeID + ',%'
+                ),0)
+            ELSE ISNULL(AH.Progress,0)
+        END AS ProgressPct,
+        ISNULL(AH.Status,N'Pending') AS AssignStatus,
+        CASE
+            WHEN ISNULL(AH.Status,N'Pending')=N'Pending' THEN 1
+            WHEN ISNULL(AH.Status,N'Pending')=N'Doing'   THEN 2
+            WHEN ISNULL(AH.Status,N'Pending')=N'Done'    THEN 3
+            ELSE 1
+        END AS StatusCode,
+        AH.StartDate AS AssignedDate,
+        AH.StartDate AS MyStartDate,
+        AH.EndDate AS DueDate,
+        CASE WHEN AH.EndDate IS NOT NULL AND AH.EndDate<GETDATE() AND ISNULL(AH.Status,N'Pending')!=N'Done' THEN 1 ELSE 0 END AS IsOverdue,
+        CASE WHEN EXISTS (SELECT 1 FROM tblTask_Template TT WHERE TT.ParentTaskID=T.TaskID) THEN 1 ELSE 0 END AS HasSubtasks,
+        ISNULL((SELECT COUNT(*) FROM tblTask_Comment C WHERE C.TaskID=T.TaskID),0) AS CommentCount,
+        ISNULL((SELECT COUNT(*) FROM tblTask_Attachment A WHERE A.TaskID=T.TaskID),0) AS AttachmentCount,
+        ISNULL(AH.AssignPriority,T.Priority) AS AssignPriority,
+        -- Multi-assignee CSV
+        ISNULL((
+            SELECT STUFF((
+                SELECT ',' + ISNULL(AH2.EmployeeID,'')
+                FROM tblTask_AssignHistory AH2
+                WHERE AH2.TaskID=T.TaskID AND AH2.TaskParentID=AH.TaskParentID
+                FOR XML PATH('')
+            ),1,1,'')
+        ),'') AS AssignedToEmployeeIDs,
+        (SELECT ParentTaskID FROM tblTask_Template WHERE ChildTaskID=T.TaskID) AS ParentTaskID
+    FROM tblTask_AssignHistory AH
+    INNER JOIN tblTask T ON T.TaskID = AH.TaskID
+    INNER JOIN tblTask_AssignHeader H ON H.TaskParentID = AH.TaskParentID
+    WHERE ',' + AH.EmployeeID + ',' LIKE '%,' + @EmployeeID + ',%'
+      AND T.Status=1
+    ORDER BY H.StartDate DESC, T.TaskName
+
+    -------------------------------------------------------------------------
+    -- Result set 3: Standalone tasks (no header)
+    -------------------------------------------------------------------------
+    SELECT
+        T.TaskID,
+        T.TaskName,
+        T.PositionID,
+        T.Unit,
+        ISNULL(T.KPIPerDay,0) AS TargetKPI,
+        ISNULL(H.ActualKPI,0) AS ActualKPI,
+        ISNULL(H.Progress,0) AS Progress,
+        CASE
+            WHEN ISNULL(T.KPIPerDay,0) > 0 THEN CAST(ISNULL(H.ActualKPI,0)*100.0/T.KPIPerDay AS INT)
+            WHEN EXISTS (SELECT 1 FROM tblTask_Template TT WHERE TT.ParentTaskID=T.TaskID) THEN
+                ISNULL((
+                    SELECT CAST(COUNT(CASE WHEN ch.Status=N'Done' THEN 1 END)*100.0/NULLIF(COUNT(*),0) AS INT)
+                    FROM tblTask_Template tt_inner
+                    INNER JOIN tblTask_AssignHistory ch ON ch.TaskID=tt_inner.ChildTaskID
+                    WHERE tt_inner.ParentTaskID=T.TaskID
+                      AND ',' + ch.EmployeeID + ',' LIKE '%,' + @EmployeeID + ',%'
+                ),0)
+            ELSE ISNULL(H.Progress,0)
+        END AS ProgressPct,
+        ISNULL(H.Status,N'Pending') AS AssignStatus,
+        CASE
+            WHEN ISNULL(H.Status,N'Pending')=N'Pending' THEN 1
+            WHEN ISNULL(H.Status,N'Pending')=N'Doing'   THEN 2
+            WHEN ISNULL(H.Status,N'Pending')=N'Done'    THEN 3
+            ELSE 1
+        END AS StatusCode,
+        H.StartDate AS AssignedDate,
+        H.StartDate AS MyStartDate,
+        H.EndDate AS DueDate,
+        CASE WHEN H.EndDate IS NOT NULL AND H.EndDate<GETDATE() AND ISNULL(H.Status,N'Pending')!=N'Done' THEN 1 ELSE 0 END AS IsOverdue,
+        CASE WHEN EXISTS (SELECT 1 FROM tblTask_Template TT WHERE TT.ParentTaskID=T.TaskID) THEN 1 ELSE 0 END AS HasSubtasks,
+        ISNULL((SELECT COUNT(*) FROM tblTask_Comment C WHERE C.TaskID=T.TaskID),0) AS CommentCount,
+        ISNULL((SELECT COUNT(*) FROM tblTask_Attachment A WHERE A.TaskID=T.TaskID),0) AS AttachmentCount,
+        ISNULL(H.AssignPriority,T.Priority) AS AssignPriority,
+        -- Multi-assignee CSV
+        ISNULL((
+            SELECT STUFF((
+                SELECT ',' + ISNULL(H2.EmployeeID,'')
+                FROM tblTask_AssignHistory H2
+                WHERE H2.TaskID=T.TaskID AND H2.TaskParentID IS NULL
+                FOR XML PATH('')
+            ),1,1,'')
+        ),'') AS AssignedToEmployeeIDs,
+        (SELECT ParentTaskID FROM tblTask_Template WHERE ChildTaskID=T.TaskID) AS ParentTaskID
+    FROM tblTask_AssignHistory H
+    INNER JOIN tblTask T ON T.TaskID = H.TaskID
+        WHERE ',' + H.EmployeeID + ',' LIKE '%,' + @EmployeeID + ',%'
+            AND T.Status=1
+            AND H.TaskParentID IS NULL
+    ORDER BY IsOverdue DESC, ISNULL(H.EndDate,'9999-12-31') ASC, T.TaskName
+END
+GO
 --Begin script: sp_Task_GetDetail
 USE Paradise_Beta_Tai2
 GO
@@ -316,171 +539,6 @@ BEGIN
       AND (SortOrder IS NULL OR SortOrder = 999999)
 
     SELECT 1 AS Success, N'Đã lưu thứ tự công việc thành công!' AS Message
-END
-GO
---Begin script: sp_Task_GetMyTasks
-USE Paradise_Beta_Tai2
-GO
-if object_id('[dbo].[sp_Task_GetMyTasks]') is null
-	EXEC ('CREATE PROCEDURE [dbo].[sp_Task_GetMyTasks] as select 1')
-GO
-
-ALTER PROCEDURE [dbo].[sp_Task_GetMyTasks]
-    @LoginID INT = 59,
-    @LanguageID VARCHAR(2) = 'VN'
-AS
-BEGIN
-    SET NOCOUNT ON;
-
-    -- Lấy EmployeeID của người login
-    DECLARE @EmployeeID VARCHAR(20)
-    SELECT @EmployeeID = EmployeeID
-    FROM tblSC_Login
-    WHERE LoginID = @LoginID
-
-    IF @EmployeeID IS NULL
-    BEGIN
-        SELECT CAST(NULL AS BIGINT) AS TaskID, N'' AS TaskName WHERE 1 = 0
-        RETURN
-    END
-
-    -- Populate assign history (nếu có)
-    EXEC dbo.sp_Task_PopulateAssignHistoryForLogin @LoginID = @LoginID
-
-    -------------------------------------------------------------------------
-    -- Result set 1: Headers with tasks
-    -------------------------------------------------------------------------
-    SELECT DISTINCT
-        H.TaskParentID,
-        H.HeaderTitle,
-        H.StartDate,
-        H.PersonInCharge,
-        ISNULL((
-            SELECT COUNT(*)
-            FROM tblTask_AssignHistory ah
-            WHERE ah.TaskParentID = H.TaskParentID
-              AND ',' + ah.EmployeeID + ',' LIKE '%,' + @EmployeeID + ',%'
-        ),0) AS TasksCountForEmployee,
-        ISNULL((SELECT COUNT(*) FROM tblTask_AssignHistory ah WHERE ah.TaskParentID = H.TaskParentID),0) AS TotalTasksInHeader,
-        CAST(AVG(CAST(ISNULL(AH.Progress,0) AS FLOAT)) AS INT) AS AvgProgress,
-        SUM(CASE WHEN ISNULL(AH.Status,N'Pending')=N'Done' THEN 1 ELSE 0 END) AS CompletedTasks,
-        MAX(CASE WHEN AH.EndDate < GETDATE() AND ISNULL(AH.Status,N'Pending')!=N'Done' THEN 1 ELSE 0 END) AS IsOverdue
-    FROM tblTask_AssignHistory AH
-    INNER JOIN tblTask_AssignHeader H ON AH.TaskParentID = H.TaskParentID
-    WHERE ',' + AH.EmployeeID + ',' LIKE '%,' + @EmployeeID + ',%'
-    GROUP BY H.TaskParentID, H.HeaderTitle, H.StartDate, H.PersonInCharge
-    ORDER BY H.StartDate DESC
-
-    -------------------------------------------------------------------------
-    -- Result set 2: Child tasks belonging to headers
-    -------------------------------------------------------------------------
-    SELECT
-        H.TaskParentID,
-        T.TaskID,
-        T.TaskName,
-        T.PositionID,
-        T.Unit,
-        ISNULL(T.KPIPerDay,0) AS TargetKPI,
-        ISNULL(AH.ActualKPI,0) AS ActualKPI,
-        ISNULL(AH.Progress,0) AS Progress,
-        CASE
-            WHEN ISNULL(T.KPIPerDay,0) > 0 THEN CAST(ISNULL(AH.ActualKPI,0)*100.0/T.KPIPerDay AS INT)
-            WHEN EXISTS (SELECT 1 FROM tblTask_Template TT WHERE TT.ParentTaskID=T.TaskID) THEN
-                ISNULL((
-                    SELECT CAST(COUNT(CASE WHEN ch.Status=N'Done' THEN 1 END)*100.0/NULLIF(COUNT(*),0) AS INT)
-                    FROM tblTask_Template tt_inner
-                    INNER JOIN tblTask_AssignHistory ch ON ch.TaskID=tt_inner.ChildTaskID
-                    WHERE tt_inner.ParentTaskID=T.TaskID
-                      AND ',' + ch.EmployeeID + ',' LIKE '%,' + @EmployeeID + ',%'
-                ),0)
-            ELSE ISNULL(AH.Progress,0)
-        END AS ProgressPct,
-        ISNULL(AH.Status,N'Pending') AS AssignStatus,
-        CASE
-            WHEN ISNULL(AH.Status,N'Pending')=N'Pending' THEN 1
-            WHEN ISNULL(AH.Status,N'Pending')=N'Doing'   THEN 2
-            WHEN ISNULL(AH.Status,N'Pending')=N'Done'    THEN 3
-            ELSE 1
-        END AS StatusCode,
-        AH.StartDate AS AssignedDate,
-        AH.StartDate AS MyStartDate,
-        AH.EndDate AS DueDate,
-        CASE WHEN AH.EndDate IS NOT NULL AND AH.EndDate<GETDATE() AND ISNULL(AH.Status,N'Pending')!=N'Done' THEN 1 ELSE 0 END AS IsOverdue,
-        CASE WHEN EXISTS (SELECT 1 FROM tblTask_Template TT WHERE TT.ParentTaskID=T.TaskID) THEN 1 ELSE 0 END AS HasSubtasks,
-        ISNULL((SELECT COUNT(*) FROM tblTask_Comment C WHERE C.TaskID=T.TaskID),0) AS CommentCount,
-        ISNULL((SELECT COUNT(*) FROM tblTask_Attachment A WHERE A.TaskID=T.TaskID),0) AS AttachmentCount,
-        ISNULL(AH.AssignPriority,T.Priority) AS AssignPriority,
-        -- Multi-assignee CSV
-        ISNULL((
-            SELECT STUFF((
-                SELECT ',' + ISNULL(AH2.EmployeeID,'')
-                FROM tblTask_AssignHistory AH2
-                WHERE AH2.TaskID=T.TaskID AND AH2.TaskParentID=AH.TaskParentID
-                FOR XML PATH('')
-            ),1,1,'')
-        ),'') AS AssignedToEmployeeIDs,
-        (SELECT ParentTaskID FROM tblTask_Template WHERE ChildTaskID=T.TaskID) AS ParentTaskID
-    FROM tblTask_AssignHistory AH
-    INNER JOIN tblTask T ON T.TaskID = AH.TaskID
-    INNER JOIN tblTask_AssignHeader H ON H.TaskParentID = AH.TaskParentID
-    WHERE ',' + AH.EmployeeID + ',' LIKE '%,' + @EmployeeID + ',%'
-      AND T.Status=1
-    ORDER BY H.StartDate DESC, T.TaskName
-
-    -------------------------------------------------------------------------
-    -- Result set 3: Standalone tasks (no header)
-    -------------------------------------------------------------------------
-    SELECT
-        T.TaskID,
-        T.TaskName,
-        T.PositionID,
-        T.Unit,
-        ISNULL(T.KPIPerDay,0) AS TargetKPI,
-        ISNULL(H.ActualKPI,0) AS ActualKPI,
-        ISNULL(H.Progress,0) AS Progress,
-        CASE
-            WHEN ISNULL(T.KPIPerDay,0) > 0 THEN CAST(ISNULL(H.ActualKPI,0)*100.0/T.KPIPerDay AS INT)
-            WHEN EXISTS (SELECT 1 FROM tblTask_Template TT WHERE TT.ParentTaskID=T.TaskID) THEN
-                ISNULL((
-                    SELECT CAST(COUNT(CASE WHEN ch.Status=N'Done' THEN 1 END)*100.0/NULLIF(COUNT(*),0) AS INT)
-                    FROM tblTask_Template tt_inner
-                    INNER JOIN tblTask_AssignHistory ch ON ch.TaskID=tt_inner.ChildTaskID
-                    WHERE tt_inner.ParentTaskID=T.TaskID
-                      AND ',' + ch.EmployeeID + ',' LIKE '%,' + @EmployeeID + ',%'
-                ),0)
-            ELSE ISNULL(H.Progress,0)
-        END AS ProgressPct,
-        ISNULL(H.Status,N'Pending') AS AssignStatus,
-        CASE
-            WHEN ISNULL(H.Status,N'Pending')=N'Pending' THEN 1
-            WHEN ISNULL(H.Status,N'Pending')=N'Doing'   THEN 2
-            WHEN ISNULL(H.Status,N'Pending')=N'Done'    THEN 3
-            ELSE 1
-        END AS StatusCode,
-        H.StartDate AS AssignedDate,
-        H.StartDate AS MyStartDate,
-        H.EndDate AS DueDate,
-        CASE WHEN H.EndDate IS NOT NULL AND H.EndDate<GETDATE() AND ISNULL(H.Status,N'Pending')!=N'Done' THEN 1 ELSE 0 END AS IsOverdue,
-        CASE WHEN EXISTS (SELECT 1 FROM tblTask_Template TT WHERE TT.ParentTaskID=T.TaskID) THEN 1 ELSE 0 END AS HasSubtasks,
-        ISNULL((SELECT COUNT(*) FROM tblTask_Comment C WHERE C.TaskID=T.TaskID),0) AS CommentCount,
-        ISNULL((SELECT COUNT(*) FROM tblTask_Attachment A WHERE A.TaskID=T.TaskID),0) AS AttachmentCount,
-        ISNULL(H.AssignPriority,T.Priority) AS AssignPriority,
-        -- Multi-assignee CSV
-        ISNULL((
-            SELECT STUFF((
-                SELECT ',' + ISNULL(H2.EmployeeID,'')
-                FROM tblTask_AssignHistory H2
-                WHERE H2.TaskID=T.TaskID AND H2.TaskParentID IS NULL
-                FOR XML PATH('')
-            ),1,1,'')
-        ),'') AS AssignedToEmployeeIDs,
-        (SELECT ParentTaskID FROM tblTask_Template WHERE ChildTaskID=T.TaskID) AS ParentTaskID
-    FROM tblTask_AssignHistory H
-    INNER JOIN tblTask T ON T.TaskID = H.TaskID
-        WHERE ',' + H.EmployeeID + ',' LIKE '%,' + @EmployeeID + ',%'
-            AND T.Status=1
-            AND H.TaskParentID IS NULL
-    ORDER BY IsOverdue DESC, ISNULL(H.EndDate,'9999-12-31') ASC, T.TaskName
 END
 GO
 --Begin script: sp_Task_UpdateSubtaskAssignees
@@ -847,57 +905,6 @@ BEGIN
     BEGIN CATCH
         SELECT 0 AS Success, ERROR_MESSAGE() AS Message;
     END CATCH
-END
-GO
---Begin script: sp_Task_GetAssignmentSetup
-USE Paradise_Beta_Tai2
-GO
-if object_id('[dbo].[sp_Task_GetAssignmentSetup]') is null
-	EXEC ('CREATE PROCEDURE [dbo].[sp_Task_GetAssignmentSetup] as select 1')
-GO
-
--- 1. Lấy dữ liệu khởi tạo cho form Giao việc
-ALTER PROCEDURE [dbo].[sp_Task_GetAssignmentSetup]
-    @LoginID INT = 59,
-    @LanguageID VARCHAR(2) = 'VN',
-    @ParentTaskID BIGINT = NULL
-AS
-BEGIN
-	-- Table 1: Danh sách Header (Đợt giao việc)
-    SELECT TaskParentID, HeaderTitle FROM tblTask_AssignHeader ORDER BY StartDate DESC;
-
-    -- Table 2: Danh sách Task (Chỉ lấy những task có thể làm cha hoặc độc lập)
-    SELECT
-        T.TaskID,
-        T.TaskName,
-        -- Description giả
-        '' AS Description,
-        (SELECT COUNT(*) FROM tblTask_Template WHERE ParentTaskID = T.TaskID) AS ChildCount,
-        CASE WHEN EXISTS(SELECT 1 FROM tblTask_Template WHERE ParentTaskID = T.TaskID) THEN 1 ELSE 0 END AS HasChildren
-    FROM tblTask T
-    WHERE T.Status = 1;
-
-        -- Table 03: Danh sách nhân viên
-        DECLARE @getdate DATE = GETDATE();
-        -- Lấy thông tin nhân viên hiện tại (giữ nguyên)
-        -- Nếu truyền @ParentTaskID thì loại trừ những nhân viên đã có task đó trong lịch sử
-        SELECT
-                EmployeeID,
-                FullName,
-                PositionID
-        INTO #infoEmp
-        FROM dbo.fn_vtblEmployeeList_Bydate(@getdate, '-1', NULL)
-        WHERE EmployeeStatusID <> 20
-            AND (
-                @ParentTaskID IS NULL
-                OR EmployeeID NOT IN (
-                        SELECT EmployeeID FROM tblTask_AssignHistory WHERE TaskID = @ParentTaskID
-                )
-            );
-
-        select * from #infoEmp
-
-        DROP TABLE #infoEmp
 END
 GO
 --Begin script: sp_Task_SaveTaskRelations
