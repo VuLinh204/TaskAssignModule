@@ -1018,7 +1018,7 @@ align-items: center;
                     `);
                 }
                 setTimeout(() => {
- const imgs = document.querySelectorAll(''.customer-avatar-birthday'');
+                    const imgs = document.querySelectorAll(''.customer-avatar-birthday'');
                     callImg_BirthDay(imgs);
                 }, 100);
             }
@@ -1044,7 +1044,7 @@ align-items: center;
                 });
                 for (let i = 0; i < a.length; i++) {
                     let img = a[i];
-img.src = "data:image/svg+xml;base64," + btoa(DEFAULT_AVATAR_SVG_BirthDay);
+                    img.src = "data:image/svg+xml;base64," + btoa(DEFAULT_AVATAR_SVG_BirthDay);
                     observer.observe(img);
                 }
             }
