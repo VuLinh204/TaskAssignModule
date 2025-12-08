@@ -1,7 +1,7 @@
 USE Paradise_Beta_Tai2
 GO
 if object_id('[dbo].[sp_Task_MyWork_html]') is null
-	EXEC ('CREATE PROCEDURE [dbo].[sp_Task_MyWork_html] as select 1')
+ EXEC ('CREATE PROCEDURE [dbo].[sp_Task_MyWork_html] as select 1')
 GO
 
 ALTER PROCEDURE [dbo].[sp_Task_MyWork_html]
@@ -893,6 +893,7 @@ BEGIN
             }
 
             #sp_Task_MyWork_html .row-kpi,
+
           #sp_Task_MyWork_html .row-status,
             #sp_Task_MyWork_html .row-meta {
                 width: 100%;
@@ -1260,7 +1261,7 @@ BEGIN
             to {
                 opacity: 1;
                 transform: translateY(0);
-            }
+       }
         }
 
         #sp_Task_MyWork_html .subtask-row {
@@ -1696,7 +1697,7 @@ BEGIN
                 selectBoxOptions: {} // {optionKey: [...options]} - cache options từ config
             };
 
-            
+
 
             // Helper: Normalize string cho search (remove diacritics, lowercase)
             function normalizeForSearch(str) {
@@ -2401,7 +2402,7 @@ BEGIN
             }
             function renderAttachments(attachments) {
                 if (attachments.length === 0) {
-                    $("#attachmentsList").html(`<p class="text-muted small">Chưa có tài liệu nào</p>`);
+              $("#attachmentsList").html(`<p class="text-muted small">Chưa có tài liệu nào</p>`);
                     return;
                 }
 
@@ -2723,7 +2724,7 @@ BEGIN
                 var overdueCount = allTasks.filter(t => t.IsOverdue == 1).length;
                 $("#stat-todo").text(todoCount);
                 $("#stat-doing").text(doingCount);
-                $("#stat-done").text(doneCount);
+            $("#stat-done").text(doneCount);
                 $("#stat-overdue").text(overdueCount);
             }
             function renderKanbanView(data) {
@@ -2803,7 +2804,7 @@ BEGIN
                         });
                     });
 
-                    // 5. Xử lý giới hạn hiển thị và "+X"
+                   // 5. Xử lý giới hạn hiển thị và "+X"
                     var visible = chips.slice(0, maxVisible).join("");
                     var remaining = Math.max(0, chips.length - maxVisible);
                     if (remaining > 0) {
@@ -2941,7 +2942,7 @@ BEGIN
                     <div class="cu-row task-row" data-recordid="${t.TaskID}">
                         <div class="row-check">
                             <i class="bi bi-flag-fill priority-icon ${prioClass}"></i>
-                        </div>
+                 </div>
                         <div class="row-main">
                             <div class="task-title" title="${escapeHtml(t.TaskName)}">${t.TaskName}</div>
                             <div class="task-sub">
@@ -3526,7 +3527,7 @@ BEGIN
                     });
 
                     if ($("#attachmentsSection").length > 0) {
-                        
+
                     }
                 }, 80);
             }
@@ -4508,7 +4509,7 @@ BEGIN
                 var empObjects = selectedEmpIds.map(empId => {
                     var emp = (employees || []).find(e => String(e.EmployeeID) === String(empId));
                     if (emp) {
-                        return emp;
+                      return emp;
                     } else {
                         // fallback: tạo object tối thiểu để render icon-chip
                         return { EmployeeID: empId, FullName: empId };
@@ -4675,7 +4676,7 @@ BEGIN
                                 }
                             }
                         } catch(e) {
-                        }  
+                        }
                     },
                     error: function(err) {
                             uiManager.showAlert({
@@ -4876,7 +4877,7 @@ BEGIN
                 });
             }
 
-            // Linh xử lý các control
+          // Linh xử lý các control
             var DEFAULT_AVATAR_SVG_Employee = `
                 <svg class="avatar" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Default user avatar">
                     <rect width="200" height="200" fill="#ebf6ff"/>
@@ -5043,7 +5044,7 @@ BEGIN
                     cache: true,
                     success: success,
                     error: error
-                });
+               });
             }
 
             // Linh: Hàm control chọn nhân viên (đơn hoặc đa chọn)
@@ -5057,9 +5058,9 @@ BEGIN
                 const $el = $(el);
                 const defaults = {
                     type: "employeesMulti",  // employeeMulti | employee
-                    displayId: null,         // 
+                    displayId: null,         //
                     selectedIds: [],
-                    multi: true,              
+                    multi: true,
                     ajaxListName: null,      // sp load dữ liệu
                     silent: true,            // mode thông báo
                     placeholder: "Tìm...",
@@ -5468,473 +5469,202 @@ BEGIN
                 }
             }
 
-            // Linh: Hàm control chọn các select
-            function hpaControlSelectBox(el, config) {
+            function hpaControlField(el, config) {
                 const $el = $(el);
-                const elementId = "hsb_" + Math.random().toString(36).substr(2, 9);
+                if (!$el.length) return null;
 
-                // ============================
-                // DEFAULT CONFIG
-                // ============================
+                // =============== 1. XÁC ĐỊNH CHẾ ĐỘ ===============
+                const isEditable = !config.options && !config.ajaxListName && !config.staticOptions;
+                if (isEditable) {
+                    // ➤ DÙNG LẠI HÀM EDITABLE ĐÃ CÓ
+                    return hpaControlEditableRow(el, config);
+                }
+
+                // =============== 2. CẤU HÌNH CHO SELECT/COMBO ===============
+                const mode = config.ajaxListName ? "combobox" : "select";
                 const cfg = {
-                    type: config.type || "single",
-                    search: config.search !== false, // Default: enable search
-                    placeholder: config.placeholder || "Chọn...",
-                    options: config.options || [],
-
-                    selected: config.selected || null,
-
-                    // DB save configs
-                    tableName: config.tableName || null,
-                    columnName: config.columnName || null,
-                    idColumnName: config.idColumnName || null,
-                    idValue: config.idValue || null,
+                    mode: mode,
+                    placeholder: config.placeholder || (mode === "combobox" ? "Tìm kiếm..." : "Chọn..."),
+                    options: config.options || config.staticOptions || [],
+                    selectedValue: config.selected !== undefined ? config.selected : null,
+                    selectedText: config.selectedText || null,
+                    // DB
+                    tableName: config.tableName,
+                    columnName: config.columnName || config.field,
+                    idColumnName: config.idColumnName,
+                    idValue: config.idValue,
                     language: config.language || "VN",
-                    silent: config.silent || false,
-
+                    silent: config.silent !== false,
+                    // Combobox only
+                    ajaxListName: config.ajaxListName,
+                    minChars: config.minChars || (mode === "combobox" ? 1 : 0),
+                    delay: config.delay || 300,
+                    onCreateNew: config.onCreateNew,
+                    // Callback
                     onChange: config.onChange || null,
-                    onBeforeOpen: config.onBeforeOpen || null,
-                    onAfterClose: config.onAfterClose || null,
-
-                    ajax: config.ajax || null,
-                    template: config.template || function (item) {
-                        return `<div>${item.text}</div>`;
-                    }
+                    // Search
+                    searchable: config.searchable !== false
                 };
 
-                // ================================================
-                //   COMPATIBILITY MODE
-                // ================================================
-                if (config.field && !cfg.columnName) cfg.columnName = config.field;
-                if (config.displayId && !cfg.selected) cfg.selected = config.displayId;
-
-                if (!cfg.selected) {
-                    const v = $el.data("value");
-                    if (v !== undefined && v !== null && v !== "") {
-                        cfg.selected = v;
-                    } else {
-                        const txt = $el.text().trim();
-                        const opt = cfg.options.find(o => (o.text + "").trim() === txt);
-                        if (opt) cfg.selected = opt.value;
-                    }
+                // Kiểm tra bắt buộc
+                if (!cfg.columnName || !cfg.tableName || !cfg.idColumnName) {
+                    console.error("[hpaControlField] Thiếu cấu hình DB: columnName, tableName, idColumnName");
+                    return null;
                 }
 
-                if (cfg.selected && cfg.selected.toString().match(/^\d+$/)) {
-                    cfg.selected = Number(cfg.selected);
+                // =============== 3. CSS (CHỈ INJECT 1 LẦN) ===============
+                if (!window.__hpaControlFieldCSS) {
+                    window.__hpaControlFieldCSS = true;
+                    const style = document.createElement("style");
+                    style.textContent = `
+                        .hpa-field-wrapper { position: relative; width: 100%; font-family: inherit; }
+                        .hpa-field-display {
+                            padding: 8px 32px 8px 12px;
+                            border: 1px solid #ced4da;
+                            border-radius: 6px;
+                            background: white;
+                            cursor: pointer;
+                            min-height: 36px;
+                            display: flex;
+                            align-items: center;
+                            transition: border-color 0.2s, box-shadow 0.2s;
+                        }
+                        .hpa-field-display:hover { border-color: #999; }
+                        .hpa-field-display.focused { border-color: #2E7D32; box-shadow: 0 0 0 2px rgba(46,125,50,0.1); }
+                        .hpa-field-placeholder { color: #999; }
+                        .hpa-field-icon { position: absolute; right: 10px; color: #999; pointer-events: none; font-size: 14px; }
+                        .hpa-field-clear { position: absolute; right: 32px; color: #999; cursor: pointer; display: none; font-size: 14px; }
+                        .hpa-field-clear:hover { color: #E53935; }
+                        .hpa-field-dropdown {
+                            position: absolute; top: 105%; left: 0; right: 0;
+                            background: white; border: 1px solid rgba(0,0,0,0.15);
+                            border-radius: 6px;
+                            max-height: 280px; overflow-y: auto;
+                            z-index: 2000;
+                            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                            display: none;
+                            animation: fadeIn 0.1s ease-out;
+                        }
+                        .hpa-field-search { padding: 8px; border-bottom: 1px solid #eee; }
+                        .hpa-field-search input {
+                            width: 100%; padding: 6px 8px;
+                            border: 1px solid #ddd; border-radius: 4px;
+                            font-size: 14px;
+                        }
+                        .hpa-field-item {
+                            padding: 8px 12px; cursor: pointer;
+                            border-bottom: 1px solid #f8f9fa;
+                            transition: background 0.15s;
+                        }
+                        .hpa-field-item:last-child { border-bottom: none; }
+                        .hpa-field-item:hover { background: #f8f8f8; }
+                        .hpa-field-item.selected { background: #e8f5e9; color: #2E7D32; font-weight: 500; }
+                        .hpa-field-empty { padding: 12px; text-align: center; color: #6c757d; font-size: 0.9em; }
+                        .hpa-field-create { background: #e8f5e9; color: #2E7D32; font-weight: 500; cursor: pointer; border-top: 1px solid #c8e6c9; }
+                        @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+                    `;
+                    document.head.appendChild(style);
                 }
 
-                // ============================
-                //   CSS (CHỈ TẢI 1 LẦN)
-                // ============================
-                if (!window.__hpaSelectBoxCSS) {
-                    window.__hpaSelectBoxCSS = true;
-                    $("head").append(`
-                        <style>
-                            .hpa-select-box { position: relative; width: 100%; }
-                            .hpa-select-display {
-                                padding: 8px 10px;
-                                border: 1px solid #ccc;
-                                border-radius: 6px;
-                                background: white;
-                                cursor: pointer;
-                                min-height: 36px;
-                                display: flex;
-                                align-items: center;
-                                justify-content: space-between;
-                                transition: border-color 0.2s, box-shadow 0.2s;
-                            }
-                            .hpa-select-display:hover { border-color: #999; }
-                            .hpa-select-display.focused { border-color: #2E7D32; box-shadow: 0 0 0 2px rgba(46,125,50,0.1); }
-                 .hpa-select-placeholder { color: #999; }
-                            .hpa-select-search {
-                                padding: 6px 10px;
-                                border-bottom: 1px solid #eee;
-                            }
-                            .hpa-select-search input {
-                                width: 100%;
-                                padding: 6px 8px;
-                                border: 1px solid #ddd;
-                                border-radius: 4px;
-                                font-size: 14px;
-                            }
-                            .hpa-select-dropdown {
-                                position: absolute;
-                                top: 110%; left: 0;
-                                width: 100%;
-                                background: white;
-                                border: 1px solid #ccc;
-                                border-radius: 6px;
-                                max-height: 280px;
-                                overflow-y: auto;
-                                z-index: 2000;
-                                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-                                display: none;
-                            }
-                            .hpa-select-option {
-                                padding: 8px 10px;
-                                cursor: pointer;
-                                border-bottom: 1px solid #f5f5f5;
-                                transition: background 0.15s;
-                            }
-                            .hpa-select-option:hover { background: #f8f8f8; }
-                            .hpa-select-option.selected { background: #e8f5e9; font-weight: 500; color: #2E7D32; }
-                            .hpa-select-no-match { padding: 10px; color: #999; text-align: center; }
-                        </style>
-                    `);
+                // =============== 4. RENDER GIAO DIỆN ===============
+                const wrapper = $(`<div class="hpa-field-wrapper"></div>`);
+                const display = $(`<div class="hpa-field-display">
+                    <span class="hpa-field-text">${cfg.placeholder}</span>
+                </div>`);
+                const icon = $(`<i class="bi ${mode === "combobox" ? "bi-search" : "bi-chevron-down"} hpa-field-icon"></i>`);
+                const clearBtn = $(`<i class="bi bi-x-lg hpa-field-clear" title="Xóa"></i>`);
+                const dropdown = $(`<div class="hpa-field-dropdown"></div>`);
+                wrapper.append(display).append(icon).append(clearBtn).append(dropdown);
+                $el.empty().append(wrapper);
+
+                // =============== 5. STATE ===============
+                let currentOptions = [...cfg.options];
+                let selectedValue = cfg.selectedValue;
+                let selectedText = cfg.selectedText;
+
+                // Nếu có value nhưng chưa có text → tìm trong options
+                if (selectedValue !== null && selectedText === null) {
+                    const found = currentOptions.find(o => String(o.value) === String(selectedValue));
+                    if (found) selectedText = found.text;
                 }
 
-                // ============================
-                //   BUILD HTML
-                // ============================
-                $el.html(`
-                    <div class="hpa-select-box" data-hsb-id="${elementId}">
-                        <div class="hpa-select-display">
-                            <span class="sel-text">${cfg.placeholder}</span>
-                            <i class="bi bi-chevron-down"></i>
-                        </div>
-                        <div class="hpa-select-dropdown">
-                            ${cfg.search ? `<div class="hpa-select-search">
-                                <input type="text" class="hpa-select-input" placeholder="Tìm kiếm...">
-                            </div>` : ""}
-                            <div class="hpa-select-options-wrapper"></div>
-                        </div>
-                    </div>
-                `);
-
-                const $box = $el.find(".hpa-select-box");
-                const $display = $el.find(".sel-text");
-                const $dropdown = $el.find(".hpa-select-dropdown");
-                const $wrapper = $el.find(".hpa-select-options-wrapper");
-                const $searchInput = $el.find(".hpa-select-input");
-
-                // ============================
-                //   CACHE SELECTION
-                // ============================
-                globalCacheStorage.selectBoxState[elementId] = {
-                    value: cfg.selected,
-                    text: null,
-                    dirty: false
-                };
-
-                // ============================
-                //   RENDER OPTIONS
-                // ============================
-                function renderOptions(filteredOptions = null) {
-                    const opts = filteredOptions !== null ? filteredOptions : cfg.options;
-                    $wrapper.html("");
-
-                    if (opts.length === 0) {
-                        $wrapper.html(`<div class="hpa-select-no-match">Không có dữ liệu</div>`);
-                        return;
-                    }
-
-                    opts.forEach(op => {
-                        const isSel = (cfg.selected == op.value);
-
-                        const $opt = $(`<div class="hpa-select-option ${isSel ? "selected" : ""}" data-value="${op.value}"></div>`);
-                        $opt.html(cfg.template(op));
-
-                        $opt.on("click", function () {
-                            cfg.selected = op.value;
-                            globalCacheStorage.selectBoxState[elementId].value = op.value;
-                            globalCacheStorage.selectBoxState[elementId].text = op.text;
-                            globalCacheStorage.selectBoxState[elementId].dirty = true;
-                            updateDisplay();
-                            $dropdown.hide();
-                            $searchInput.val(""); // Clear search after selection
-                            saveToDB();
-
-                            if (cfg.onChange) cfg.onChange(cfg.selected, op);
-                        });
-
-                        $wrapper.append($opt);
-                    });
+                // =============== 6. HÀM HỖ TRỢ ===============
+                function escapeHtml(text) {
+                    if (!text) return "";
+                    return String(text)
+                        .replace(/&/g, "&amp;")
+                        .replace(/</g, "&lt;")
+                        .replace(/>/g, "&gt;")
+                        .replace(/""/g, "&quot;")
+                        .replace(/"/g, "&#039;");
                 }
 
-                // ============================
-                //   SEARCH/FILTER
-                // ============================
-                // Helper: Search/Filter options (case-insensitive, accent-insensitive)
-                function filterSelectBoxOptions(options, query) {
-                    if (!query || query.trim() === "") return options;
-                    const q = normalizeForSearch(query);
-                    return (options || []).filter(opt => {
-                        const text = normalizeForSearch(opt.text || "");
-                        return text.indexOf(q) !== -1;
-                    });
-                }
-                function handleSearch(query) {
-                    const filtered = filterSelectBoxOptions(cfg.options, query);
-                    renderOptions(filtered);
+                function normalize(str) {
+                    return str ? str.toString().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") : "";
                 }
 
-                if ($searchInput.length > 0) {
-                    $searchInput.on("input", function() {
-                        handleSearch($(this).val());
-                    });
-                    $searchInput.on("keydown", function(e) {
-                        if (e.key === "Enter") e.preventDefault();
-                    });
-                }
-
-                // ============================
-                //   DISPLAY SELECTED TEXT
-                // ============================
                 function updateDisplay() {
-                    let item = cfg.options.find(o => o.value == cfg.selected);
-                    if (!item) {
-                        $display.html(`<span class="hpa-select-placeholder">${cfg.placeholder}</span>`);
+                    if (selectedValue === null) {
+                        display.find(".hpa-field-text").html(`<span class="hpa-field-placeholder">${cfg.placeholder}</span>`);
+                        clearBtn.hide();
                     } else {
-                        $display.html(item.text);
-                        $display.attr("title", item.text);
+                        display.find(".hpa-field-text").text(selectedText || selectedValue);
+                        clearBtn.show();
                     }
                 }
 
-                // ============================
-                //   SAVE TO DATABASE
-                // ============================
-                function saveToDB() {
-                    if (!cfg.tableName || !cfg.columnName || !cfg.idColumnName) return;
-
+                function saveToDB(value) {
                     AjaxHPAParadise({
                         data: {
                             name: "sp_Common_SaveDataTable",
                             param: [
-                                "LoginID", LoginID,
+                                "LoginID", window.LoginID || 0,
                                 "LanguageID", cfg.language,
                                 "TableName", cfg.tableName,
                                 "ColumnName", cfg.columnName,
                                 "IDColumnName", cfg.idColumnName,
-                                "ColumnValue", cfg.selected,
+                                "ColumnValue", value,
                                 "ID_Value", cfg.idValue
                             ]
                         },
                         success: () => {
-                            if (!cfg.silent)
-                                uiManager.showAlert({ type: "success", message: "%UpdateSuccess%" });
+                            if (!cfg.silent) uiManager?.showAlert?.({ type: "success", message: "%UpdateSuccess%" });
                         }
                     });
                 }
 
-                // ============================
-                // EVENTS
-                // ============================
-                $el.find(".hpa-select-display").on("click", function () {
-                    $(".hpa-select-dropdown").not($dropdown).hide();
-                    const isOpen = $dropdown.is(":visible");
-                    $dropdown.toggle();
-
-                    if (!isOpen) {
-                        // Opening
-                        if ($searchInput.length > 0) {
-                            $searchInput.focus();
-                        }
-                        if (cfg.onBeforeOpen) cfg.onBeforeOpen();
-                    } else {
-                        // Closing
-                        if (cfg.onAfterClose) cfg.onAfterClose();
-                    }
-                });
-
-                $(document).on("click", function (e) {
-                    if (!$(e.target).closest($box).length) {
-                        if ($dropdown.is(":visible")) {
-                            $dropdown.hide();
-                            if (cfg.onAfterClose) cfg.onAfterClose();
-                        }
-                    }
-                });
-
-                // ============================
-                // INIT
-                // ============================
-                renderOptions();
-                updateDisplay();
-
-                return {
-                    setValue(v) {
-                        cfg.selected = v;
-                        globalCacheStorage.selectBoxState[elementId].value = v;
-                        globalCacheStorage.selectBoxState[elementId].dirty = true;
-                        updateDisplay();
-                        renderOptions();
-                    },
-                    getValue() {
-                        return cfg.selected;
-                    },
-                    getState() {
-                        return globalCacheStorage.selectBoxState[elementId];
-                    }
-                };
-            }
-
-            // Linh: Hàm control chọn các combobox
-            function hpaControlCombobox(selector, config) {
-                const $el = $(selector);
-                if ($el.length === 0) return;
-
-                // Ngăn khởi tạo lại nếu đã có
-                if ($el.hasClass("hpa-combobox-initialized")) return;
-                $el.addClass("hpa-combobox-initialized");
-
-                // ============================
-                // 1. CONFIG DEFAULTS
-                // ============================
-                const cfg = {
-                    placeholder: config.placeholder || "Tìm kiếm...",
-                    ajaxListName: config.ajaxListName || null, // Tên SP để gọi API
-                    options: config.options || [],             // Mảng static [{value, text}]
-
-                    // Cấu hình lưu DB (nếu có)
-                    field: config.field || null,
-                    tableName: config.tableName || null,
-                    idColumnName: config.idColumnName || null,
-                    idValue: config.idValue || null,
-
-                    // Giá trị ban đầu
-                    initialValue: config.value || config.idValue || null,
-                    initialText: config.text || null,
-
-                    language: config.language || "VN",
-                    minChars: config.minChars || 0, // 0: click là hiện, >0: gõ mới hiện
-                    delay: config.delay || 300,
-
-                    // Callbacks
-                    onSave: config.onSave || null,     // Callback khi chọn (legacy)
-                    onChange: config.onChange || null  // Callback chuẩn
-                };
-
-                let timer = null;
-                let currentRequest = null;
-
-                // ============================
-                // 2. INJECT CSS (Chỉ 1 lần)
-                // ============================
-                if (!window.__hpaComboBoxCSS_V2) {
-                    window.__hpaComboBoxCSS_V2 = true;
-                    $("<style>").text(`
-                        .hpa-cb-wrapper { position: relative; width: 100%; font-family: inherit; }
-                        .hpa-cb-input-group { position: relative; display: flex; align-items: center; }
-                        .hpa-cb-input {
-                            width: 100%; padding: 8px 32px 8px 12px;
-                            border: 1px solid #ced4da; border-radius: 6px;
-                            transition: border-color .15s ease-in-out,box-shadow .15s ease-in-out;
-                        }
-                        .hpa-cb-input:focus { border-color: var(--task-primary, #2E7D32); outline: 0; box-shadow: 0 0 0 0.25rem rgba(46, 125, 50, 0.25); }
-                        .hpa-cb-icon { position: absolute; right: 10px; color: #999; pointer-events: none; }
-                        .hpa-cb-clear {
-                            position: absolute; right: 10px; color: #999; cursor: pointer; display: none;
-                            font-size: 14px; padding: 4px; z-index: 2;
-                        }
-                        .hpa-cb-clear:hover { color: #dc3545; }
-
-                        .hpa-cb-dropdown {
-                            position: absolute; top: 105%; left: 0; right: 0;
-                            background: #fff; border: 1px solid rgba(0,0,0,.15); border-radius: 6px;
-                            max-height: 250px; overflow-y: auto; z-index: 10000;
-                            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
-                            display: none; animation: fadeIn 0.1s ease-out;
-                        }
-                        .hpa-cb-item { padding: 8px 12px; cursor: pointer; border-bottom: 1px solid #f8f9fa; color: #333; }
-                        .hpa-cb-item:last-child { border-bottom: none; }
-                        .hpa-cb-item:hover, .hpa-cb-item.active { background-color: #f1f3f5; color: var(--task-primary, #2E7D32); font-weight: 500; }
-                        .hpa-cb-empty { padding: 12px; text-align: center; color: #6c757d; font-size: 0.9em; }
-                        .hpa-cb-loading { padding: 10px; text-align: center; color: var(--task-primary, #2E7D32); }
-
-                        @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
-                    `).appendTo("head");
-                }
-
-                // ============================
-                // 3. RENDER DOM STRUCTURE
-                // ============================
-                // Tạo cấu trúc mới thay thế element cũ hoặc append vào trong
-                const wrapper = $(`<div class="hpa-cb-wrapper"></div>`);
-                const inputGroup = $(`<div class="hpa-cb-input-group"></div>`);
-
-                // Input hiển thị Text
-                const inputDisplay = $(`<input type="text" class="hpa-cb-input form-control" placeholder="${cfg.placeholder}" autocomplete="off">`);
-                // Input ẩn chứa ID (Value)
-                const inputHidden = $(`<input type="hidden" class="hpa-cb-value">`);
-
-                const iconSearch = $(`<i class="bi bi-search hpa-cb-icon"></i>`);
-                const iconClear = $(`<i class="bi bi-x-lg hpa-cb-clear" title="Xóa"></i>`);
-                const dropdown = $(`<div class="hpa-cb-dropdown"></div>`);
-
-                // Lắp ráp
-                inputGroup.append(inputDisplay).append(inputHidden).append(iconSearch).append(iconClear);
-                wrapper.append(inputGroup).append(dropdown);
-
-                // Thay thế nội dung của element được truyền vào bằng wrapper mới
-                $el.empty().append(wrapper);
-
-                // Set giá trị ban đầu (nếu có)
-                if (cfg.initialValue) {
-                    inputHidden.val(cfg.initialValue);
-                    // Nếu có text đi kèm thì set luôn, ko thì phải tìm trong options
-                    if (cfg.initialText) {
-                        inputDisplay.val(cfg.initialText);
-                        iconSearch.hide();
-                        iconClear.show();
-                    } else {
-                        // Thử tìm trong options static
-                        const opt = cfg.options.find(o => o.value == cfg.initialValue);
-                        if (opt) {
-                    inputDisplay.val(opt.text);
-                            iconSearch.hide();
-                            iconClear.show();
-                        }
-                    }
-                }
-
-                // ============================
-                // 4. LOGIC FUNCTIONS
-                // ============================
-
-                function showDropdown() {
-                    $(".hpa-cb-dropdown").not(dropdown).hide(); // Đóng các dropdown khác
-                    dropdown.show();
-                }
-
-                function hideDropdown() {
-                    setTimeout(() => dropdown.hide(), 150); // Delay nhỏ để bắt sự kiện click item
-                }
-
-                function renderItems(items, searchKeyword) {
+                function renderDropdown(items, keyword = "") {
                     dropdown.empty();
 
+                    // Hiển thị ô tìm kiếm nếu cần
+                    if ((cfg.mode === "combobox" && cfg.minChars <= (keyword?.length || 0)) || (cfg.mode === "select" && cfg.searchable)) {
+                        const searchInput = $(`<input type="text" class="hpa-field-search-input" placeholder="Tìm...">`);
+                        if (keyword) searchInput.val(keyword);
+                        const searchBox = $(`<div class="hpa-field-search"></div>`).append(searchInput);
+                        dropdown.append(searchBox);
+                    }
+
                     if (!items || items.length === 0) {
-                        // ✅ Nếu không tìm thấy nhưng có keyword, hiển thị nút "Thêm mới"
-                        if (searchKeyword && searchKeyword.trim() !== "") {
-                            const $emptyContainer = $(`<div></div>`);
-                            $emptyContainer.append(`<div class="hpa-cb-empty">Không tìm thấy: <strong>${escapeHtml(searchKeyword)}</strong></div>`);
-                            $emptyContainer.append(`
-                                <div class="hpa-cb-item hpa-cb-create-item" style="background: #e8f5e9; color: #2E7D32; font-weight: 500; cursor: pointer; border-top: 1px solid #c8e6c9; margin-top: 4px;">
-                                    <i class="bi bi-plus-circle"></i> Thêm mới: <strong>${escapeHtml(searchKeyword)}</strong>
-                                </div>
-                            `);
-
-                            $emptyContainer.find(".hpa-cb-create-item").on("click", function(e) {
+                        if (cfg.mode === "combobox" && keyword) {
+                            const $create = $(`<div class="hpa-field-item hpa-field-create">
+                                <i class="bi bi-plus-circle"></i> Thêm mới: <strong>${escapeHtml(keyword)}</strong>
+                            </div>`);
+                            $create.on("click", e => {
                                 e.stopPropagation();
-                                // Trigger callback để tạo task mới
-                                if (cfg.onCreateNew) {
-                                    cfg.onCreateNew(searchKeyword);
-                                }
-                                hideDropdown();
+                                if (cfg.onCreateNew) cfg.onCreateNew(keyword);
+                                closeDropdown();
                             });
-
-                            dropdown.append($emptyContainer.html());
+                            dropdown.append($create);
                         } else {
-                            dropdown.append(`<div class="hpa-cb-empty">Không có dữ liệu</div>`);
+                            dropdown.append(`<div class="hpa-field-empty">Không có dữ liệu</div>`);
                         }
                         return;
                     }
 
                     items.forEach(item => {
-                        const isActive = item.value == inputHidden.val();
-                        const $item = $(`<div class="hpa-cb-item ${isActive ? "active" : ""}" data-val="${item.value}">${escapeHtml(item.text)}</div>`);
-
-                        $item.on("click", function(e) {
+                        const isSelected = String(item.value) === String(selectedValue);
+                        const $item = $(`<div class="hpa-field-item ${isSelected ? "selected" : ""}" data-value="${item.value}">${escapeHtml(item.text)}</div>`);
+                        $item.on("click", e => {
                             e.stopPropagation();
                             selectItem(item);
                         });
@@ -5943,203 +5673,126 @@ BEGIN
                 }
 
                 function selectItem(item) {
-                    inputDisplay.val(item.text);
-                    inputHidden.val(item.value);
-
-                    iconSearch.hide();
-                    iconClear.show();
-                    hideDropdown();
-
-                    // Trigger callbacks
-                    if (cfg.onSave) cfg.onSave(item.value, item.text);
+                    selectedValue = item.value;
+                    selectedText = item.text;
+                    updateDisplay();
+                    closeDropdown();
+                    saveToDB(item.value);
                     if (cfg.onChange) cfg.onChange(item.value, item.text);
-
-                    // Save DB nếu cấu hình
-                    if (cfg.tableName && cfg.field) {
-                        saveToDatabase(item.value);
-                    }
                 }
 
                 function clearSelection() {
-                    inputDisplay.val("").focus();
-                    inputHidden.val("");
-                    iconSearch.show();
-                    iconClear.hide();
-                    hideDropdown();
-
-                    if (cfg.onSave) cfg.onSave(null, null);
+                    selectedValue = null;
+                    selectedText = null;
+                    updateDisplay();
+                    saveToDB(null);
                     if (cfg.onChange) cfg.onChange(null, null);
                 }
 
-                function fetchData(keyword) {
-                    // ✅ Search trong allTasks (đã cache) thay vì gọi API
+                function openDropdown() {
+                    $(".hpa-field-dropdown").not(dropdown).hide();
+                    dropdown.show();
+                    const searchInput = dropdown.find(".hpa-field-search-input");
+                    if (searchInput.length) searchInput.focus();
+                }
+
+                function closeDropdown() {
+                    setTimeout(() => dropdown.hide(), 150);
+                }
+
+                // =============== 7. XỬ LÝ DỮ LIỆU (SELECT vs COMBOBOX) ===============
+                function fetchData(keyword = "") {
+                    if (cfg.mode === "select") {
+                        const filtered = currentOptions.filter(o =>
+                            !keyword || normalize(o.text).includes(normalize(keyword))
+                        );
+                        renderDropdown(filtered, keyword);
+                        return;
+                    }
+
+                    // Combobox: ưu tiên cache (allTasks), fallback API
                     if (cfg.ajaxListName && typeof allTasks !== "undefined" && allTasks.length > 0) {
-                        // Cách mới: Search trong dữ liệu đã có (không gọi API)
-                        const searchTerm = normalizeForSearch(keyword);
-                        const filtered = allTasks.filter(task => {
-                            const taskName = normalizeForSearch(task.TaskName || "");
-                            return !searchTerm || taskName.indexOf(searchTerm) !== -1;
-                        });
-
-                        // Map dữ liệu về chuẩn {value, text}
-                        const mappedData = filtered.map(x => ({
-                            value: x.TaskID,
-                            text: x.TaskName
-                        }));
-
-                        renderItems(mappedData, keyword); // ✅ Truyền keyword để hiển thị nút thêm
+                        const term = normalize(keyword);
+                        const filtered = allTasks
+                            .filter(t => !term || normalize(t.TaskName).includes(term))
+                            .map(t => ({ value: t.TaskID, text: t.TaskName }));
+                        renderDropdown(filtered, keyword);
                         return;
                     }
 
-                    // Fallback: Nếu không có allTasks hoặc không có ajaxListName, dùng static options
                     if (cfg.options && cfg.options.length > 0) {
-                        const searchTerm = normalizeForSearch(keyword);
-                        const filtered = cfg.options.filter(opt => {
-                            const text = normalizeForSearch(opt.text || "");
-                            return !searchTerm || text.indexOf(searchTerm) !== -1;
-                        });
-                        renderItems(filtered, keyword); // ✅ Truyền keyword
+                        const term = normalize(keyword);
+                        const filtered = cfg.options.filter(o => !term || normalize(o.text).includes(term));
+                        renderDropdown(filtered, keyword);
                         return;
                     }
 
-                    // Nếu vẫn cần gọi API (legacy support - không dùng nữa)
-                    if (typeof AjaxHPAParadise === "undefined") {
-                        return;
-                    }
-
-                    dropdown.show().html(`<div class="hpa-cb-loading"><i class="bi bi-arrow-clockwise fa-spin"></i> Đang tải...</div>`);
-
+                    // Gọi API (legacy)
+                    dropdown.html(`<div class="hpa-field-empty">Đang tải...</div>`);
                     AjaxHPAParadise({
-                        data: {
-                            name: cfg.ajaxListName,
-                            param: ["Keyword", keyword, "LanguageID", cfg.language]
-                        },
-                        success: function(res) {
+                        data: { name: cfg.ajaxListName, param: ["Keyword", keyword, "LanguageID", cfg.language] },
+                        success: res => {
                             try {
-                                const response = JSON.parse(res);
-                                const data = response.data && response.data[0] ? response.data[0] : [];
-
-                                const mappedData = data.map(x => ({
-                                    value: x.ID || x.value || x.TaskID || x.EmployeeID,
-                                    text: x.Name || x.text || x.TaskName || x.FullName
+                                const data = JSON.parse(res).data?.[0] || [];
+                                const mapped = data.map(x => ({
+                                    value: x.TaskID || x.EmployeeID || x.ID || x.value,
+                                    text: x.TaskName || x.FullName || x.Name || x.text
                                 }));
-
-                                renderItems(mappedData, keyword); // ✅ Truyền keyword
+                                renderDropdown(mapped, keyword);
                             } catch (e) {
-                                dropdown.html(`<div class="hpa-cb-empty">Lỗi dữ liệu</div>`);
+                                dropdown.html(`<div class="hpa-field-empty">Lỗi dữ liệu</div>`);
                             }
                         },
-                        error: function() {
-                            dropdown.html(`<div class="hpa-cb-empty">Lỗi kết nối</div>`);
-                        }
+                        error: () => dropdown.html(`<div class="hpa-field-empty">Lỗi kết nối</div>`)
                     });
                 }
 
-                function saveToDatabase(value) {
-                    // Hàm lưu DB cũ
-                    if (!cfg.idValue) return; // Chỉ lưu khi có ID dòng cần update
-                    AjaxHPAParadise({
-                        data: {
-                            name: "sp_Common_SaveDataTable",
-                            param: [
-                                "LoginID", window.LoginID || 0,
-                                "LanguageID", cfg.language,
-                                "TableName", cfg.tableName,
-                                "ColumnName", cfg.field,
-                                "IDColumnName", cfg.idColumnName,
-                                "ColumnValue", value,
-                                "ID_Value", cfg.idValue
-                            ]
-                        },
-                        success: () => {
-                        }
-                    });
-                }
+                // =============== 8. SỰ KIỆN ===============
+                display.on("click", () => {
+                    if (cfg.mode === "combobox") {
+                        fetchData(""); // Mở dropdown với dữ liệu ban đầu
+                    } else {
+                        renderDropdown(currentOptions);
+                    }
+                    openDropdown();
+                });
 
-                function escapeHtml(text) {
-                    if (!text) return "";
-                    return text.toString()
-                        .replace(/&/g, "&amp;")
-                        .replace(/</g, "&lt;")
-                        .replace(/>/g, "&gt;")
-                        .replace(/""/g, "&quot;")
-                        .replace(/"/g, "&#039;");
-                }
-
-                // ============================
-                // 5. EVENT LISTENERS
-                // ============================
-
-                // Nút Clear
-                iconClear.on("click", function(e) {
+                clearBtn.on("click", e => {
                     e.stopPropagation();
                     clearSelection();
                 });
 
-                // Input Typing (Debounce)
-                inputDisplay.on("input", function() {
-                    const val = $(this).val();
-                    if (val === "") {
-                        iconSearch.show();
-                        iconClear.hide();
-                    } else {
-                        iconSearch.hide();
-                        iconClear.show();
-                    }
-
-                    clearTimeout(timer);
-                    timer = setTimeout(() => {
-                        if (cfg.ajaxListName) {
-                            if (val.length >= cfg.minChars) fetchData(val);
-                        } else {
-                            // Filter static options
-                            const filtered = cfg.options.filter(o =>
-                                !val || normalizeForSearch(o.text).indexOf(normalizeForSearch(val)) !== -1
-                            );
-                            showDropdown();
-                            renderItems(filtered);
-                        }
-                    }, cfg.delay);
+                // Search trong dropdown
+                dropdown.on("input", ".hpa-field-search-input", function() {
+                    const q = $(this).val();
+                    fetchData(q);
                 });
 
-                // Input Focus / Click
-                inputDisplay.on("focus click", function() {
-                    const val = $(this).val();
-                    // Nếu minChars = 0 hoặc đã có nội dung thì hiện luôn
-                    if (cfg.minChars === 0 || val.length >= cfg.minChars) {
-                        if (cfg.ajaxListName) {
-                            // Nếu chưa có data thì gọi, có rồi thì hiện
-                            if(dropdown.children().length === 0) fetchData(val);
-                            else showDropdown();
-                        } else {
-                            renderItems(cfg.options); // Show full static list
-                            showDropdown();
-                        }
-                    }
-                });
-
-                // Click outside to close
-                $(document).on("click", function(e) {
+                // Đóng khi click ngoài
+                $(document).on("click", e => {
                     if (!wrapper.is(e.target) && wrapper.has(e.target).length === 0) {
-                        hideDropdown();
+                        closeDropdown();
                     }
                 });
 
-                // Return object để có thể thao tác từ bên ngoài
+                // =============== 9. KHỞI TẠO ===============
+                updateDisplay();
+
+                // =============== 10. API CÔNG KHAI ===============
                 return {
-                    setValue: function(val, text) {
-                        inputHidden.val(val);
-                        inputDisplay.val(text);
-                        if(val) { iconSearch.hide(); iconClear.show(); }
+                    setValue(value, text) {
+                        selectedValue = value;
+                        selectedText = text;
+                        updateDisplay();
                     },
-                    getValue: function() {
-                        return inputHidden.val();
+                    getValue() {
+                        return selectedValue;
                     },
-                    getText: function() {
-                        return inputDisplay.val();
+                    getText() {
+                        return selectedText;
                     }
                 };
-            };
+            }
         })();
     </script>
     ';
