@@ -710,7 +710,7 @@ BEGIN
         #sp_Task_MyWork_html .status-select {
             min-width: 200px;
             padding: 10px 16px;
-            border: 2px solid var(--border-color);
+        border: 2px solid var(--border-color);
             border-radius: var(--radius-md);
             font-weight: 600;
             font-size: 14px;
@@ -893,7 +893,7 @@ BEGIN
             }
 
             #sp_Task_MyWork_html .row-kpi,
-            #sp_Task_MyWork_html .row-status,
+          #sp_Task_MyWork_html .row-status,
             #sp_Task_MyWork_html .row-meta {
                 width: 100%;
             }
@@ -1260,7 +1260,7 @@ BEGIN
             to {
                 opacity: 1;
                 transform: translateY(0);
-            }
+  }
         }
 
         #sp_Task_MyWork_html .subtask-row {
@@ -1481,7 +1481,7 @@ BEGIN
                 </div>
                 <div class="kanban-column">
                     <div class="column-header">
-                        <div class="column-title">
+        <div class="column-title">
                             <i class="bi bi-arrow-repeat"></i> Đang làm
                         </div>
                         <span class="column-count" id="count-doing">0</span>
@@ -1687,10 +1687,45 @@ BEGIN
             var attachmentMode = ""; // "file"
             var avatarLoadStatus = {}; // employeeId → "loading" | "loaded" | "failed"
 
+            // ============================================
+            // CACHE GLOBALS - Tối ưu API calls
+            // ============================================
+            var globalCacheStorage = {
+                allTasksLoaded: false,
+                selectBoxState: {}, // {elementId: {value, text, dirty}}
+                selectBoxOptions: {} // {optionKey: [...options]} - cache options từ config
+            };
+
+            // Helper: Generate cache key từ config
+            function generateSelectBoxCacheKey(config) {
+                if (config.tableName && config.columnName && config.idColumnName) {
+                    return `${config.tableName}_${config.columnName}_${config.idColumnName}`;
+                }
+                return null;
+            }
+
+            // Helper: Search/Filter options (case-insensitive, accent-insensitive)
+            function filterSelectBoxOptions(options, query) {
+                if (!query || query.trim() === "") return options;
+                const q = normalizeForSearch(query);
+                return (options || []).filter(opt => {
+                    const text = normalizeForSearch(opt.text || "");
+                    return text.indexOf(q) !== -1;
+                });
+            }
+
+            // Helper: Normalize string cho search (remove diacritics, lowercase)
+            function normalizeForSearch(str) {
+                if (!str) return "";
+                return String(str)
+                    .toLowerCase()
+                    .normalize("NFD")
+                    .replace(/[\u0300-\u036f]/g, "")
+                    .trim();
+            }
+
             // Expose only specific APIs intentionally
             window.toggleHeaderExpand = toggleHeaderExpand;
-            window.downloadAttachment = downloadAttachment;
-            window.deleteAttachment = deleteAttachment;
             window.updateTaskStatus = updateTaskStatus;
             $(document).ready(function() {
                 attachUIHandlers();
@@ -1698,19 +1733,28 @@ BEGIN
             });
 
             function attachUIHandlers() {
+                // Cache jQuery selectors
+                const $btnAssign = $("#btnAssign");
+                const $btnRefresh = $("#btnRefresh");
+                const $btnUpdateKPI = $("#btnUpdateKPI");
+                const $btnAddParentOpen = $("#btnAddParentOpen");
+                const $btnQuickAddSubtask = $("#btnQuickAddSubtask");
+                const $btnReloadChecklist = $("#btnReloadChecklist");
+                const $btnSubmitAssignment = $("#btnSubmitAssignment");
+                const $doc = $(document);
+
                 // Static buttons
-                $("#btnAssign").on("click", openAssignModal);
-                $("#btnRefresh").on("click", loadTasks);
-                $("#btnUpdateKPI").on("click", updateKPI);
-                $("#btnAddParentOpen").on("click", openAddParentModal);
-                $("#btnQuickAddSubtask").on("click", showQuickSubtaskInput);
-                $("#btnReloadChecklist").on("click", reloadChecklist);
-                $("#btnSubmitAssignment").on("click", submitAssignment);
+                $btnAssign.on("click", openAssignModal);
+                $btnRefresh.on("click", loadTasks);
+                $btnUpdateKPI.on("click", updateKPI);
+                $btnAddParentOpen.on("click", openAddParentModal);
+                $btnQuickAddSubtask.on("click", showQuickSubtaskInput);
+                $btnReloadChecklist.on("click", reloadChecklist);
+                $btnSubmitAssignment.on("click", submitAssignment);
+
                 // Delegated handlers for dynamic elements
-                // Open detail only when clicking the detail icon — row clicks no longer open modal
-                $(document).off("click", ".task-row:not(.header-row)");
-                $(document).on("click", ".task-row .detail-icon", function(e) {
-                    console.log("detail-icon click");
+                $doc.off("click", ".task-row:not(.header-row)");
+                $doc.on("click", ".task-row .detail-icon", function(e) {
                     e.stopPropagation();
                     e.preventDefault();
                     var id = $(this).data("recordid") || $(this).closest(".task-row").data("recordid");
@@ -1718,28 +1762,26 @@ BEGIN
                 });
 
                 // Riêng cho header row - không mở detail
-                $(document).on("click", ".header-row", function(e) {
-                    // Chỉ toggle expand, không mở detail
+                $doc.on("click", ".header-row", function(e) {
                     e.stopPropagation();
                     var headerId = $(this).data("headerid");
                     if(headerId) toggleHeaderExpand(headerId);
                 });
-                $(document).on("click", ".badge-toggle-status", function(e) {
-                    e.stopPropagation();
-                  e.preventDefault();
 
+               $doc.on("click", ".badge-toggle-status", function(e) {
+                    e.stopPropagation();
+                    e.preventDefault();
                     var id = $(this).data("recordid");
                     var code = parseInt($(this).data("status")) || 1;
-
-                    if(id) {
-                        toggleStatus(id, code);
-                    }
+                    if(id) toggleStatus(id, code);
                 });
-                $(document).on("click", ".btn-temp-remove", function() {
+
+                $doc.on("click", ".btn-temp-remove", function() {
                     $(this).closest(".temp-subtask").remove();
                 });
+
                 // Toggle subtask status (in detail table)
-                $(document).on("click", ".subtask-toggle-status", function(e) {
+                $doc.on("click", ".subtask-toggle-status", function(e) {
                     e.stopPropagation();
                     var $el = $(this);
                     var childId = $el.data("childid");
@@ -1753,112 +1795,45 @@ BEGIN
                         success: function() { loadSubtasksForDetail(currentTaskID); }
                     });
                 });
+
                 // Create parent modal button may be appended dynamically
-                $(document).on("click", "#btnCreateParent", function() {
+                $doc.on("click", "#btnCreateParent", function() {
                     createParentFromModal();
                 });
+
                 // When hidden parent select changes, hide subtasks if cleared
-                $(document).on("change", "#selParent", function() {
+                $doc.on("change", "#selParent", function() {
                     if(!$(this).val()) {
-                        $("#subtask-assign-container").html(`<div class="empty-state" style="grid-column: 1 / -1;"><i class="bi bi-inbox"></i><p>Vui lòng chọn Công việc chính ở trên</p></div>`);
+                       $("#subtask-assign-container").html(`<div class="empty-state" style="grid-column: 1 / -1;"><i class="bi bi-inbox"></i><p>Vui lòng chọn Công việc chính ở trên</p></div>`);
                     }
                 });
 
-                // Row assignee: toggle dropdown, search and select
+                // Row assignee: toggle dropdown, search and select (uses helper ensureRowAssigneeControl)
                 $(document).on("click", ".row-assignee-toggle", function(e) {
-                    hpaControlCombobox("#listCreateParentSearch", {
-                        field: "ParentTaskID",
-                        tableName: "tblTask",
-                        idColumnName: "TaskID",
-                        idValue: currentTaskID,
-                        displayId: currentTaskID,
-                        ajaxListName: "sp_Task_GetListForParent",
-                        options: (tasks || []).map(t => ({ value: t.TaskID, text: t.TaskName })),
-                        placeholder: "Nhập tên công việc hoặc chọn...",
-                        silent: true,
-                        onSave: function(value, text) {
-                            try { $("#listCreateParentSelect").val(value); $("#listCreateParentSearch").val(text).addClass("search-valid"); } catch(e){}
-                        }
-                    });
-
                     e.stopPropagation();
-
                     var $btn = $(this);
-
                     var $wrap = $btn.closest(".row-assignee");
 
-                    // close other dropdowns
-                    $(".row-assignee-dropdown").not($wrap.find(".row-assignee-dropdown")).hide();
+                    // Đóng tất cả dropdown khác TRƯỚC (bất kể dropdown này có tồn tại hay chưa)
+                    $(".row-assignee-dropdown:visible").not($wrap.find(".row-assignee-dropdown")).hide();
 
                     var $dd = $wrap.find(".row-assignee-dropdown");
-                    var $list = $dd.find(".row-assignee-list");
-                    console.log("test", $list);
 
-                    // populate list if empty
-                    var populateList = function() {
-                        if ($list.children().length === 0) {
-                            // Determine already-assigned employee IDs
-                            var assignedIds = [];
-                            try {
-                                var tid = $wrap.data("recordid");
+                    // Nếu dropdown này đã mở thì chỉ đóng nó
+                    if($dd.is(":visible")) {
+                        $dd.hide();
+                        return;
+                    }
 
-                                var t = allTasks?.find(function(x){
-                                    return String(x.TaskID) === String(tid);
-                                });
+                    // Ensure dropdown control exists and is populated
+                    try { ensureRowAssigneeControl($wrap); } catch(err) {
+}
 
-                                console.log("task object found =", t);
-
-                                var idsCsv = t?.AssignedToEmployeeIDs || "";
-
-                                if (idsCsv) {
-                                    assignedIds = String(idsCsv)
-                                        .split(",")
-                                        .map(s => s.trim())
-                                        .filter(Boolean);
-                                }
-                            } catch (err) {
-                                console.error("ERROR when parsing assigned IDs:", err);
-                                assignedIds = [];
-                            }
-
-                            var items = (employees || []).map(function(e){
-                                var isSel = assignedIds.indexOf(String(e.EmployeeID)) !== -1;
-                                return `
-                                    <div class="control-row-assignee-item ${isSel? "selected":""}"
-                                        data-empid="${e.EmployeeID}"
-                                        data-empname="${escapeHtml(e.FullName)}"
-                                        style="padding:8px 10px;cursor:pointer;display:flex;align-items:center;gap:8px;border-bottom:1px solid #f0f2f5;">
-
-                                        <div style="width:28px;flex-shrink:0;">
-                                            <input type="checkbox" class="row-assignee-checkbox" ${isSel? "checked":""} />
-                                        </div>
-
-                                        <div class="icon-chip"
-                                            style="width:32px;height:32px;border-radius:50%;background:#f1f5f9;display:flex;align-items:center;justify-content:center;font-size:12px;">
-                                            ${escapeHtml(getInitials(e.FullName))}
-                                        </div>
-
-                                        <div style="flex:1;min-width:0;">
-                                            <div style="font-weight:600">${escapeHtml(e.FullName)}</div>
-                                            <div style="font-size:12px;color:var(--text-muted)">${escapeHtml(e.EmployeeID)}</div>
-                                        </div>
-                                    </div>`;
-                            }).join("");
-
-                            $list.html(items);
-                            console.log("List populated, items count =", employees.length);
-                        } else {
-                            console.log("List already populated, skip");
-                        }
-                    };
-
-                    if (employees && employees.length !== 0) {
-                        populateList();
-                        $dd.toggle();
-
+                    // Mở dropdown hiện tại
+                    $dd = $wrap.find(".row-assignee-dropdown");
+                    if($dd.length) {
+                        $dd.show();
                         $dd.find(".row-assignee-search").val("").focus();
-                    } else {
-                        console.warn("⚠ employees is empty → cannot load list");
                     }
                 });
 
@@ -1866,21 +1841,29 @@ BEGIN
                 // Filter assignee list
                 $(document).on("input", ".row-assignee-search", function(e){
                     e.stopPropagation();
-                    var q = ($(this).val() || "").toLowerCase();
+                    var q = normalizeForSearch($(this).val() || "");
                     var $list = $(this).closest(".row-assignee-dropdown").find(".row-assignee-list");
                     $list.children().each(function(){
                         var $it = $(this);
                         var name = ($it.find("div").first().text() || "") + " " + ($it.find("div").last().text() || "");
-                        if(name.toLowerCase().indexOf(q) !== -1) $it.show(); else $it.hide();
+                        if(!q || normalizeForSearch(name).indexOf(q) !== -1) $it.show(); else $it.hide();
                     });
                 });
 
-                // Toggle selection on click (checkbox) inside assignee dropdown
+                // Checkbox click: prevent bubbling to parent and reflect visual state
+                $(document).on("click", ".row-assignee-checkbox", function(e){
+                    e.stopPropagation();
+                    var $chk = $(this);
+                    var $it = $chk.closest(".control-row-assignee-item");
+                    $it.toggleClass("selected", $chk.prop("checked"));
+                });
+
+                // Click on row item toggles selection (when clicking outside the checkbox)
                 $(document).on("click", ".control-row-assignee-item", function(e){
                     e.stopPropagation();
-                    var $it = $(this);  
+                    if ($(e.target).is(".row-assignee-checkbox")) return; // already handled
+                    var $it = $(this);
                     var $chk = $it.find(".row-assignee-checkbox");
-                    // toggle
                     var now = !$chk.prop("checked");
                     $chk.prop("checked", now);
                     $it.toggleClass("selected", now);
@@ -1956,8 +1939,7 @@ BEGIN
                             filterTempOptions(this);
                         }
                     } catch(e) {
-                        console.warn("temp-sub-filter error:", e);
-                    }
+}
                 });
                 $(document).on("input", ".st-user-filter", function() {
                     try {
@@ -1966,15 +1948,14 @@ BEGIN
                             filterMultiOptions(idx, $(this).val());
                         }
                     } catch(e) {
-                        console.warn("st-user-filter error:", e);
-                    }
+}
                 });
                 // When user focuses/clicks the st-user-filter, show options and focus the select
                 $(document).on("focus click", ".st-user-filter", function(e) {
                     e.stopPropagation();
                     var idx = $(this).data("idx");
                   try { filterMultiOptions(idx, ""); } catch(e) {}
-                    var $sel = $(`.st-user-select[data-idx="${idx}"]`);
+       var $sel = $(`.st-user-select[data-idx="${idx}"]`);
                     if($sel.length) {
                         $sel.show();
                         try { $sel.focus(); } catch(e) {}
@@ -2003,7 +1984,7 @@ BEGIN
                         if($to.length) { $to.prop("disabled", false); }
                         if($note.length) { $note.prop("disabled", false); }
                         if($prio.length) { $prio.prop("disabled", false); }
-                        if($filter.length) { $filter.prop("disabled", false); }
+             if($filter.length) { $filter.prop("disabled", false); }
                     }
                 });
                 // Click on dropdown items
@@ -2050,7 +2031,8 @@ BEGIN
                     $it.toggleClass("selected", !currently);
 
                     // Refresh visible selected names (render chips)
-                    try { refreshSelectedUsersDisplay(idx); } catch(err) { console.warn(err); }
+                    try { refreshSelectedUsersDisplay(idx); } catch(err) {
+}
                 });
                 $(document).on("click", function(e) {
                     if(!$(e.target).closest(".search-select").length) {
@@ -2069,8 +2051,7 @@ BEGIN
                                 var $inp = $(this);
 
                                 if ($sel.length === 0) {
-                                    console.warn("Select not found for base:", base);
-                                    return; // Skip this iteration
+return; // Skip this iteration
                                 }
 
                                 var selText = ($sel.find("option:selected").text()||"").trim();
@@ -2087,12 +2068,11 @@ BEGIN
                                     $inp.addClass("search-valid").removeClass("search-invalid");
                                 }
                             } catch(err) {
-                                console.warn("Error processing search-select input:", err);
-                            }
+}
                         });
 
                         // Close all dropdowns
-                        $(".search-select-dropdown").hide();
+  $(".search-select-dropdown").hide();
                     }
                 });
                 $(document).on("hidden.bs.modal", "#mdlAssign", function() {
@@ -2107,8 +2087,7 @@ BEGIN
                             </div>
                         `);
                     } catch(err) {
-                        console.warn("Modal cleanup error:", err);
-                    }
+}
                 });
                 $("#btnEditDescription").on("click", function() {
                     $("#descriptionDisplay").hide();
@@ -2129,7 +2108,7 @@ BEGIN
                         },
                         success: function() {
                             $("#descriptionDisplay").text(desc || "Chưa có mô tả...");
-                            $("#descriptionEdit").hide();
+             $("#descriptionEdit").hide();
 
                       $("#descriptionDisplay").show();
                             uiManager.showAlert({
@@ -2267,7 +2246,7 @@ BEGIN
                     hpaControlEditableRow("#detailTaskName", {
                         type: "input",
                         tableName: "tblTask",
-                        columnName: "TaskName",
+       columnName: "TaskName",
                         idColumnName: "TaskID",
                         idValue: currentTaskID
                     });
@@ -2304,7 +2283,7 @@ BEGIN
                 };
                 $(document).on("click", ".task-title", function(e) {
                     var taskId = $(this).closest(".cu-row").data("recordid");
-                    if (!taskId) return;
+        if (!taskId) return;
 
                     e.stopPropagation(); // Chặn sự kiện click row để không mở modal ngay lập tức nếu đang sửa
 
@@ -2315,8 +2294,7 @@ BEGIN
                         idColumnName: "TaskID",
                         idValue: taskId,
                         onSave: function(val) {
-                            console.log("Đã lưu tên mới:", val);
-                            loadTasks(); // Reload lại list sau khi sửa
+loadTasks(); // Reload lại list sau khi sửa
                         }
                     });
                 });
@@ -2347,7 +2325,7 @@ BEGIN
                         data: { name: "sp_Task_SaveTaskRelations", param: ["ParentTaskID", pid, "ChildTaskIDs", String(tid)] },
                         success: function() { removeQuickAdd(); fetchAssignTemplate(pid); uiManager.showAlert({ type: "success", message: "Đã thêm task con." }); },
                         error: function(){ uiManager.showAlert({ type: "error", message: "Thêm task con thất bại." }); }
-                    });
+ });
                 });
                 $(document).on("input", "#quickSubtaskInput", function(e){
                     var q = ($(this).val()||"").trim();
@@ -2366,6 +2344,13 @@ BEGIN
                 });
             }
             function loadTasks() {
+                // Nếu đã tải → dùng cache, không gọi lại
+                if (globalCacheStorage.allTasksLoaded && allTasks.length > 0) {
+                    updateStatistics();
+                    updateView("list");
+                    return;
+                }
+
                 AjaxHPAParadise({
                     data: { name: "sp_Task_GetMyTasks", param: ["LoginID", LoginID] },
                     success: function(response) {
@@ -2390,13 +2375,17 @@ BEGIN
                             // Gộp tất cả tasks để tính statistics
                             allTasks = [...headerTasks, ...standaloneTasks];
 
+                            // ✅ Mark cache as loaded
+                            globalCacheStorage.allTasksLoaded = true;
+
                             AjaxHPAParadise({
                                 data: { name: "EmployeeListAll_DataSetting_Custom", param: [] },
                                 success: function(setupRes) {
                                     try {
                                         var setupData = JSON.parse(setupRes).data || [];
                                         employees = setupData[0] || employees || [];
-                                    } catch (ex) { console.warn(ex); }
+                                    } catch (ex) {
+}
                                     // Now we have employees (or empty) -> proceed to render
                                     updateStatistics();
                                     updateView("list");
@@ -2408,8 +2397,7 @@ BEGIN
                                 }
                             });
                         } catch(e) {
-                            console.error(e);
-                        }
+}
                     }
                 });
             }
@@ -2422,8 +2410,7 @@ BEGIN
                             var attachments = data[4] || []; // data[4]: Attachments
                             renderAttachments(attachments);
                         } catch(e) {
-                            console.error(e);
-                            renderAttachments([]);
+renderAttachments([]);
                         }
                     }
                 });
@@ -2550,8 +2537,7 @@ BEGIN
                 });
             }
             function filterOptionsForSearch(selectId, text, dropdownSelector) {
-                console.log("filterOptionsForSearch", selectId);
-                var rawText = (text || "").trim();
+var rawText = (text || "").trim();
                 var q = normalizeForSearch(rawText || "");
                 var $select = $("#" + selectId);
                 var $dropdown = $(dropdownSelector);
@@ -2592,11 +2578,10 @@ BEGIN
                 try { $("#selParentSearch").val(n).addClass("search-valid"); } catch(e) {}
                 // load template (likely empty)
                 loadAssignTemplate();
+
             }
             function updateView(view) {
-                console.log("run updateView");
-
-                // 1. Cập nhật view nếu có truyền tham số view
+// 1. Cập nhật view nếu có truyền tham số view
                 if (view) {
                     $(".view-btn").removeClass("active");
                     if (view === "list") {
@@ -2670,7 +2655,7 @@ BEGIN
                                 </div>
                             </div>
                         `;
-                    }
+                }
 
                     if (type === "commentItem") {
                         var c = props.comment || {};
@@ -2701,7 +2686,7 @@ BEGIN
                             <select class="form-select row-priority-select"${idAttr} style="width:110px;">
                                 <option value="1" ${val==1?"selected":""}>Cao</option>
                                 <option value="2" ${val==2?"selected":""}>Trung bình</option>
-                                <option value="3" ${val==3?"selected":""}>Thấp</option>
+                    <option value="3" ${val==3?"selected":""}>Thấp</option>
                             </select>
                         `;
                     }
@@ -2709,18 +2694,42 @@ BEGIN
                     // Fallback: return empty string
                     return "";
                 } catch (e) {
-                    console.error("renderComponent error", e);
-                    return "";
+return "";
                 }
             }
             function normalizeForSearch(s) {
                 if (!s && s !== "") return "";
                 try {
-                    var str = String(s || "");
-                    // decompose accents, remove combining marks, lower-case
-                return str.normalize ? str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase() : str.toLowerCase();
+                    var str = String(s || "").toLowerCase();
+
+                    // Bản đồ ký tự tiếng Việt đầy đủ (bao gồm tất cả dấu và biến thể)
+                    var vietnameseMap = {
+                        "à": "a", "á": "a", "ả": "a", "ã": "a", "ạ": "a",
+                        "ă": "a", "ằ": "a", "ắ": "a", "ẳ": "a", "ẵ": "a", "ặ": "a",
+                        "â": "a", "ầ": "a", "ấ": "a", "ẩ": "a", "ẫ": "a", "ậ": "a",
+                        "è": "e", "é": "e", "ẻ": "e", "ẽ": "e", "ẹ": "e",
+                        "ê": "e", "ề": "e", "ế": "e", "ễ": "e", "ệ": "e",
+                        "ì": "i", "í": "i", "ỉ": "i", "ĩ": "i", "ị": "i",
+                        "ò": "o", "ó": "o", "ỏ": "o", "õ": "o", "ọ": "o",
+                        "ô": "o", "ồ": "o", "ố": "o", "ổ": "o", "ỗ": "o", "ộ": "o",
+                        "ơ": "o", "ờ": "o", "ớ": "o", "ở": "o", "ỡ": "o", "ợ": "o",
+                        "ù": "u", "ú": "u", "ủ": "u", "ũ": "u", "ụ": "u",
+                        "ư": "u", "ừ": "u", "ứ": "u", "ử": "u", "ữ": "u", "ự": "u",
+                        "ỳ": "y", "ý": "y", "ỷ": "y", "ỹ": "y", "ỵ": "y",
+                        "đ": "d"
+                    };
+
+                    // Áp dụng bản đồ ký tự
+                    var result = "";
+                    for (var i = 0; i < str.length; i++) {
+                        var char = str[i];
+                        result += vietnameseMap[char] || char;
+                    }
+
+                    // Fallback: NFD normalization cho các ký tự khác
+                    return result.normalize ? result.normalize("NFD").replace(/[\u0300-\u036f]/g, "") : result;
                 } catch (e) {
-                    return String(s || "").toLowerCase();
+                  return String(s || "").toLowerCase();
                 }
             }
             function updateStatistics() {
@@ -2824,13 +2833,80 @@ BEGIN
 
                     return visible;
                 } catch (e) {
-                    console.error("Error in buildAssigneeIcons:", e);
-                    return `<div class="icon-chip">?</div>`;
+return `<div class="icon-chip">?</div>`;
                 }
             }
-            function refreshTaskRowInList(taskId) {
-                console.log("run refreshTaskRowInList");
+            // Helper: ensure row-assignee dropdown exists and is populated
+            function ensureRowAssigneeControl($wrap) {
                 try {
+                    if (!$wrap || $wrap.length === 0) return;
+                    var $dd = $wrap.find(".row-assignee-dropdown");
+                    if ($dd.length === 0) {
+                        var html = `
+                            <div class="row-assignee-dropdown" style="position:absolute; z-index:1060; display:none; width:320px; max-width:calc(100% - 16px); box-shadow:0 6px 18px rgba(0,0,0,0.08); background:#fff; border:1px solid #e9ecef; border-radius:6px; overflow:hidden;">
+                                <div style="padding:8px; border-bottom:1px solid #f1f3f5;"><input class="row-assignee-search form-control" placeholder="Tìm nhân viên..." autocomplete="off" /></div>
+                                <div class="row-assignee-list" style="max-height:260px; overflow:auto;"></div>
+                            </div>`;
+                        $wrap.append(html);
+                        $dd = $wrap.find(".row-assignee-dropdown");
+                    }
+                    buildRowAssigneeList($wrap, true);
+                } catch (e) {
+}
+            }
+
+            // Build / refresh the list inside a row-assignee dropdown
+            function buildRowAssigneeList($wrap, forceRefresh) {
+                try {
+                    var $list = $wrap.find(".row-assignee-list");
+                    if (!$list.length) return;
+                    if (!forceRefresh && $list.children().length > 0) return; // already built
+
+                    var assignedIds = [];
+                    try {
+                        var tid = $wrap.data("recordid");
+                        var taskObj = findTaskById(tid) || {};
+                        var idsCsv = taskObj.AssignedToEmployeeIDs || "";
+                        if (idsCsv) assignedIds = String(idsCsv).split(",").map(function(s){ return s.trim(); }).filter(Boolean);
+                    } catch (err) {
+                        assignedIds = [];
+                    }
+
+                    var items = (employees || []).map(function(e){
+                        var isSel = assignedIds.indexOf(String(e.EmployeeID)) !== -1;
+                        var avatarHtml = renderEmployeeAvatarOrChip(e, { showAvatar: true, size: "small", className: "" });
+                        return `
+                            <div class="control-row-assignee-item ${isSel? "selected":""}"
+                                data-empid="${escapeHtml(e.EmployeeID)}"
+                   data-empname="${escapeHtml(e.FullName)}"
+                                style="padding:8px 10px;cursor:pointer;display:flex;align-items:center;gap:8px;border-bottom:1px solid #f1f2f5;">
+                                <div style="width:28px;flex-shrink:0;">
+                                    <input type="checkbox" class="row-assignee-checkbox" ${isSel? "checked":""} />
+                                </div>
+                                <div style="width:32px;flex-shrink:0;display:flex;align-items:center;justify-content:center;">
+                                    ${avatarHtml}
+                                </div>
+                                <div style="flex:1;min-width:0;">
+                                    <div style="font-weight:600">${escapeHtml(e.FullName)}</div>
+                                    <div style="font-size:12px;color:var(--text-muted)">${escapeHtml(e.EmployeeID)}</div>
+                                </div>
+                            </div>`;
+                    }).join("");
+
+                    $list.html(items);
+                    // Trigger lazy-load for any avatar images rendered inside the dropdown
+                    try {
+                        var imgs = $list.find(".customer-avatar-employee");
+                        if (typeof callImg_EmployeeSelector === "function" && imgs.length) {
+                            setTimeout(function(){ callImg_EmployeeSelector(imgs); }, 50);
+                        }
+                    } catch(e) {
+}
+                } catch (e) {
+}
+            }
+            function refreshTaskRowInList(taskId) {
+try {
                     var t = findTaskById(taskId);
                     if (!t) return;
 
@@ -2853,13 +2929,14 @@ BEGIN
 
                     // Re-init drag & drop since rows may have been replaced
                     try { initListDragDrop(); } catch (e) { /* ignore */ }
-                } catch (e) { console.warn(e); }
+                } catch (e) {
+}
             }
             function renderTaskCards(container, tasks) {
                 if(tasks.length === 0) {
                     $(container).html(`<div class="empty-state"><i class="bi bi-inbox"></i><p>Không có công việc</p></div>`);
                     return;
-                }
+     }
                 var html = tasks.map(function(t) {
                     // DÙNG AssignPriority thay vì Priority
                     var prioClass = "prio-" + (t.AssignPriority || 3);
@@ -2872,7 +2949,7 @@ BEGIN
                     if (t.TargetKPI > 0) {
                         kpiDisplayText = `${t.ActualKPI} / ${t.TargetKPI} ${t.Unit || ""}`;
                     } else if (t.TotalSubtasks > 0) {
-                        kpiDisplayText = `${t.CompletedSubtasks || 0} / ${t.TotalSubtasks} task`;
+          kpiDisplayText = `${t.CompletedSubtasks || 0} / ${t.TotalSubtasks} task`;
                     } else {
                         kpiDisplayText = "Chưa có tiến độ";
                     }
@@ -2906,8 +2983,7 @@ BEGIN
                 $(container).html(html);
             }
             function renderListView(data) {
-                console.log("run renderListView");
-                if (data.length === 0 && (!window.taskHeaders || window.taskHeaders.length === 0)) {
+if (data.length === 0 && (!window.taskHeaders || window.taskHeaders.length === 0)) {
                     $("#list-container").html(`<div class="empty-state"><i class="bi bi-inbox"></i><p>Không có công việc nào</p></div>`);
                     return;
                 }
@@ -2945,7 +3021,7 @@ BEGIN
 
                     const childMap = {};
                     standaloneTasks.forEach(t => {
-                        if (t.ParentTaskID && tasksById[t.ParentTaskID]) {
+         if (t.ParentTaskID && tasksById[t.ParentTaskID]) {
                             childMap[t.ParentTaskID] = childMap[t.ParentTaskID] || [];
                             childMap[t.ParentTaskID].push(t);
                         }
@@ -3000,7 +3076,7 @@ BEGIN
 
                 // When user clicks the "+" toggle, replace the minimal footer with the expanded create HTML
                 $(document).on("click", ".temp-subtask:not(.expanded)", function(e) {
-                    // Chỉ xử lý nếu chưa ở trạng thái expanded
+         // Chỉ xử lý nếu chưa ở trạng thái expanded
                     e.stopPropagation();
                     // Thay thế toàn bộ dòng footer bằng form mở rộng
                     $(this).replaceWith(expandedCreateHtml);
@@ -3017,7 +3093,7 @@ BEGIN
                             hpaControlCombobox("#listCreateParentSearch", {
                                 field: "ParentTaskID",
                                 tableName: "tblTask",
-                                idColumnName: "TaskID",
+                    idColumnName: "TaskID",
                                 idValue: currentTaskID,
                                 displayId: currentTaskID,
                                 options: (tasks || []).map(t => ({ value: t.TaskID, text: t.TaskName })),
@@ -3027,16 +3103,19 @@ BEGIN
                                     try { $("#listCreateParentSelect").val(value); $("#listCreateParentSearch").val(text).addClass("search-valid"); } catch(e){}
                                 }
                             });
-                        } catch(initErr) { console.warn("init listCreateParent combobox error", initErr); }
+                        } catch(initErr) {
+}
 
-                    } catch(e) { console.warn(e); }
+                    } catch(e) {
+}
                 });
 
                 // populate hidden select with tasks
                 try {
                     var opts = `<option value=""></option>` + (tasks || []).map(t => `<option value="${t.TaskID}">${escapeHtml(t.TaskName)}</option>`).join("");
                     $("#listCreateParentSelect").html(opts);
-                } catch(e) { console.warn(e); }
+                } catch(e) {
+}
 
                 $(document).on("click", "#btnListCreateSave", function() {
                     var sel = $("#listCreateParentSelect").val();
@@ -3060,8 +3139,10 @@ BEGIN
                             if ($block.length && typeof footerHtml !== "undefined") {
                                 $block.replaceWith(footerHtml);
                             }
-                        } catch(e) { console.warn(e); }
-                    } catch(e) { console.warn(e); }
+                        } catch(e) {
+}
+                    } catch(e) {
+}
                 });
                 setTimeout(function() {
                     for (var headerId in expandedHeadersState) {
@@ -3159,13 +3240,12 @@ BEGIN
                     // Initialize dropdown after render
                     setTimeout(async function() {
                         if ($(`#${assigneeContainerId}`).length === 0) {
-                            console.warn("DOM chưa sẵn sàng:", assigneeContainerId);
-                            return;
+return;
                         }
                         try {
                             var currentIds = [];
                             if (t.AssignedToEmployeeIDs) {
-                                currentIds = String(t.AssignedToEmployeeIDs).split(",").map(s => s.trim()).filter(Boolean);
+                             currentIds = String(t.AssignedToEmployeeIDs).split(",").map(s => s.trim()).filter(Boolean);
                             }
                             if ((!currentIds || currentIds.length === 0) && (window.EmployeeID_Login || LoginID)) {
                                 currentIds = [String(window.EmployeeID_Login || LoginID)];
@@ -3209,14 +3289,24 @@ BEGIN
                                                 return emp || { EmployeeID: id, FullName: id }; // fallback nếu không tìm thấy
                                             });
 
-                                            // Render từng avatar với quyền & lazy-load
-                                            var avatarHtml = selectedEmployees.map(emp => 
+                                            // Render từng avatar với quyền & lazy-load (giới hạn theo maxVisible)
+                                            const maxVisibleChips = Math.max(1, parseInt(3) || 3); // maxVisible = 3
+                                            const visibleEmps = selectedEmployees.slice(0, maxVisibleChips);
+                                            const remainingCount = selectedEmployees.length - maxVisibleChips;
+
+                                            var avatarHtml = visibleEmps.map(emp =>
                                                 renderEmployeeAvatarOrChip(emp, {
                                                     showAvatar: true,  // ← quan trọng: bật avatar
                                                     size: "small",
                                                     className: "emp-selected-chip"
                                                 })
                                             ).join("");
+
+           // Thêm badge +N nếu có còn lại
+                                            if (remainingCount > 0) {
+                                                const allNames = selectedEmployees.map(e => e.FullName + (e.EmployeeID ? ` (${e.EmployeeID})` : "")).join(", ");
+                                                avatarHtml += `<div class="icon-more" title="${escapeHtml(allNames)}" style="display:inline-flex; align-items:center; justify-content:center; min-width:32px; height:32px; padding:0 8px; border-radius:50%; background:var(--task-primary); color:white; font-weight:700; font-size:12px;">+${remainingCount}</div>`;
+                                            }
 
                                             // Cập nhật vào DOM
                                             $(`#${assigneeContainerId} .assignee-icons`).html(avatarHtml);
@@ -3236,8 +3326,7 @@ BEGIN
                                 }
                             });
                         } catch(e) {
-                            console.warn("Error initializing assignee dropdown:", e);
-                        }
+}
                     }, 100);
 
                     // status for subtask
@@ -3307,12 +3396,10 @@ BEGIN
                 </div>`;
             }
             function openTaskDetail(taskID) {
-                console.log(taskID);
-                // Tìm task từ tất cả các nguồn
+// Tìm task từ tất cả các nguồn
                 let task = findTaskById(taskID);
                 if (!task) {
-                    console.error("Task not found:", taskID);
-                    uiManager.showAlert({ type: "error",  message: "Không tìm thấy thông tin công việc!",});
+uiManager.showAlert({ type: "error",  message: "Không tìm thấy thông tin công việc!",});
                     return;
                 }
                 currentTaskID = taskID;
@@ -3354,8 +3441,7 @@ BEGIN
                         document.activeElement.blur();
                     }
                 } catch(e) {
-                    console.warn(e);
-                }
+}
 
                 var mdl = new bootstrap.Modal(document.getElementById("mdlTaskDetail"));
                 mdl.show();
@@ -3434,7 +3520,7 @@ BEGIN
                             options: [
                                 {value: 1, text: "Mới"},
                                 {value: 2, text: "Đang làm"},
-                                {value: 3, text: "Hoàn thành"}
+                              {value: 3, text: "Hoàn thành"}
                             ]
                         });
                     });
@@ -3570,13 +3656,11 @@ BEGIN
                             // Reload tasks
                             loadTasks();
                         } catch(e) {
-                            console.error("Error after updating KPI:", e);
-                            loadTasks();
+loadTasks();
                         }
                     },
                     error: function(err) {
-                        console.error("Error updating KPI:", err);
-                        uiManager.showAlert({ type: "error",  message: "Cập nhật KPI thất bại!", });
+uiManager.showAlert({ type: "error",  message: "Cập nhật KPI thất bại!", });
                     }
                 });
             }
@@ -3607,13 +3691,12 @@ BEGIN
                             .data("status", nextCode);
 
                         // Reload toàn bộ sau 500ms (để người dùng thấy update ngay lập tức)
-                        setTimeout(function() {
+              setTimeout(function() {
                             loadTasks();
                         }, 500);
                     },
                     error: function(err) {
-                        console.error("Error updating status:", err);
-                        uiManager.showAlert({ type: "error",  message: "Cập nhật trạng thái thất bại!", });
+uiManager.showAlert({ type: "error",  message: "Cập nhật trạng thái thất bại!", });
                     }
                 });
             }
@@ -3621,7 +3704,7 @@ BEGIN
                 if (tasks && tasks.length > 0) {
                     // Đã có → render luôn
                     initAssignModal();
-                } else {
+               } else {
                     // Chưa có → gọi API nạp tasks
                     AjaxHPAParadise({
                         data: { name: "sp_Task_GetAssignmentSetup", param: ["ParentTaskID", 0] },
@@ -3644,7 +3727,7 @@ BEGIN
                 $("#mdlAssign").on("shown.bs.modal", function () {
                     // Chỉ khởi tạo 1 lần
                     if ($("#parentTaskCombobox").hasClass("hpa-combobox-initialized")) return;
-                    
+
                     hpaControlCombobox($("#parentTaskCombobox")[0], {
                         placeholder: "Tìm công việc cha (Task chính)...",
                         ajaxListName: "sp_Task_GetListForAssign",  // <-- Bạn cần tạo SP này (xem dưới)
@@ -3659,8 +3742,7 @@ BEGIN
                         minChars: 0, // cho phép hiện toàn bộ khi click
                         delay: 300,
                         onSave: function(selectedValue, selectedText) {
-                            console.log("Đã chọn task cha:", selectedValue, selectedText);
-                            // Có thể lưu tạm vào biến global hoặc input ẩn
+// Có thể lưu tạm vào biến global hoặc input ẩn
                             $("#selParent").val(selectedValue); // nếu vẫn cần đồng bộ
                         }
                     });
@@ -3673,9 +3755,9 @@ BEGIN
                 currentTemplate = [];
                 currentChildTasks = [];
                 $("#subtask-assign-container").html(`<div class="empty-state" style="grid-column: 1 / -1;"><i class="bi bi-inbox"></i><p>Vui lòng chọn Công việc chính ở trên</p></div>`);
-                
+
                 renderAssignDropdowns();
-                
+
                 // Khởi tạo employee selectors
                 var defaultEmp = (window.EmployeeID_Login || LoginID);
                 hpaControlEmployeeSelector("#assignedBySelector", {
@@ -3694,7 +3776,7 @@ BEGIN
                     multi: false,
                     onChange: (ids) => { $("#selMainUser").val(ids[0]); }
                 });
-                
+
                 showAssignModal();
             }
             function showAssignModal() {
@@ -3714,8 +3796,7 @@ BEGIN
                 }, 80);
             }
             function renderAssignDropdowns() {
-                console.log("renderAssignDropdowns");
-                // 1. Render danh sách công việc chính
+// 1. Render danh sách công việc chính
                 $("#selParent").html(`<option value=""></option>` +
                     (tasks || []).map(t =>
                         `<option value="${t.TaskID}">${escapeHtml(t.TaskName)}</option>`
@@ -3760,7 +3841,8 @@ BEGIN
                             } catch(e) {}
                         }
                     });
-                } catch(e) { console.warn("init error", e); }
+                } catch(e) {
+}
 
                 // 5. Đặt ngày mặc định là hôm nay
                 const today = new Date().toISOString().split("T")[0];
@@ -3771,13 +3853,13 @@ BEGIN
                     if ($("#attachFileControl").length) {
                     hpaControlAttachFile("#attachFileControl", {
                             taskId: currentTaskID || 0,
+
                             field: "Attachments",
                             tableName: "tblTask"
                         });
                     }
                 } catch (e) {
-                    console.warn("init attachFileControl error", e);
-                }
+}
             }
             function syncSearchInputs() {
                 try {
@@ -3789,13 +3871,11 @@ BEGIN
 
                     const pText = $("#selParent option:selected").text().trim() || "";
                     $("#selParentSearch").val(pText).toggleClass("search-valid", !!$("#selParent").val());
-                } catch(e) {
-                    console.warn("syncSearchInputs error:", e);
-                }
+             } catch(e) {
+}
             }
             function loadAssignTemplate() {
-                console.log("loadAssignTemplate");
-                let pid = $("#selParent").val();
+let pid = $("#selParent").val();
                 if(!pid) {
                     $("#subtask-assign-container").html(`<div class="empty-state" style="grid-column: 1 / -1;"><i class="bi bi-inbox"></i><p>Vui lòng chọn Công việc chính ở trên</p></div>`);
                     return;
@@ -3808,7 +3888,8 @@ BEGIN
                     success: function(res) {
                         try {
                             let data = JSON.parse(res).data;
-                        } catch(e) { console.warn(e); }
+                        } catch(e) {
+}
                         fetchAssignTemplate(pid);
                     },
                     error: function() {
@@ -3854,8 +3935,9 @@ BEGIN
                             var rows = JSON.parse(res).data[0] || [];
                    var ids = rows.map(function(r) { return r.ChildTaskID; });
                             var childTasks = tasks.filter(function(t) { return ids.indexOf(t.TaskID) !== -1; });
-                            cb(childTasks);
-                        } catch(e) { console.warn(e); cb([]); }
+                     cb(childTasks);
+                        } catch(e) {
+cb([]); }
                     },
                     error: function() { cb([]); }
                 });
@@ -3871,6 +3953,7 @@ BEGIN
                                 <i class="bi bi-inbox"></i>
                                 <p>Không có hàng tạm nào. Bấm "Thêm hàng" để thêm.</p>
                             </div>
+
                         </div>`;
                     $("#subtask-assign-container").html(html);
                 });
@@ -3955,7 +4038,7 @@ BEGIN
                 $("#quickSubtaskInput").focus();
             }
             function renderQuickSubtaskDropdown(q) {
-                q = (q||"").toLowerCase();
+                q = normalizeForSearch(q || "");
                 var pid = $("#selParent").val();
                 var candidates = (allTasks || []).filter(function(t){
                     if(!t || !t.TaskName) return false;
@@ -3964,7 +4047,7 @@ BEGIN
                     if(t.Status === 5) return false; // skip disabled
                     if(t.PositionID && String(t.PositionID).trim() !== "") return false; // skip fixed tasks
 
-                    return t.TaskName.toLowerCase().indexOf(q) !== -1;
+                    return !q || normalizeForSearch(t.TaskName).indexOf(q) !== -1;
                 }).slice(0,50);
 
                 var $dd = $("#quickSubtaskDropdown");
@@ -4020,8 +4103,7 @@ BEGIN
                                 }
                             });
                         } catch(e) {
-                            console.warn(e);
-                            uiManager.showAlert({ type: "error", message: "Tạo task thất bại." });
+uiManager.showAlert({ type: "error", message: "Tạo task thất bại." });
                         }
                     },
                     error: function() { uiManager.showAlert({ type: "error", message: "Tạo task thất bại." }); }
@@ -4204,7 +4286,7 @@ BEGIN
                                 EmployeeID: emp,
                                 Priority: parseInt(assignPriority),
                                 Notes: note,
-                                StartDate: from,
+                      StartDate: from,
                                 EndDate: to
                             });
                         });
@@ -4260,7 +4342,7 @@ BEGIN
                         data: {
                             name: "sp_Task_AssignWithDetails",
                             param: [
-                                "ParentTaskID", parent,
+                           "ParentTaskID", parent,
                                 "MainResponsibleID", mainUser,
                                 "AssignmentDetails", JSON.stringify(finalDetails),
                                 "AssignmentDate", dDate,
@@ -4279,15 +4361,14 @@ BEGIN
                         }
                     });
                 } catch(err) {
-                    console.error("submitAssignment grouping error:", err);
-                    uiManager.showAlert({ type: "danger", message: "Lỗi khi chuẩn bị dữ liệu giao việc" });
+uiManager.showAlert({ type: "danger", message: "Lỗi khi chuẩn bị dữ liệu giao việc" });
                 }
             }
             function filterSelectOptions(selectId, text) {
-                var q = (text||"").toLowerCase();
-                var $sel = $("#" + selectId);
+                var q = normalizeForSearch(text || "");
+             var $sel = $("#" + selectId);
                 $sel.find("option").each(function(){
-                    var txt = ($(this).text()||"").toLowerCase();
+                    var txt = normalizeForSearch($(this).text() || "");
                     if(!q || txt.indexOf(q) !== -1) $(this).show(); else $(this).hide();
                 });
             }
@@ -4295,16 +4376,14 @@ BEGIN
                 try {
                     // Validate idx
                     if(idx === undefined || idx === null || idx === "" || !Number.isInteger(Number(idx))) {
-                        console.warn("Invalid idx:", idx);
-                        return;
+return;
                     }
 
                     var q = normalizeForSearch(text || "");
                     var $dropdown = $(`#stUserDropdown-${idx}`);
 
                     if($dropdown.length === 0) {
-                        console.warn("Dropdown not found for idx:", idx);
-                        return;
+return;
                     }
 
                     var html = "";
@@ -4337,8 +4416,7 @@ BEGIN
                     $dropdown.html(html).show();
 
                 } catch(err) {
-                    console.error("filterMultiOptions error:", err);
-                }
+}
             }
             function filterTempOptions(inp) {
                 try {
@@ -4357,8 +4435,7 @@ BEGIN
                         $(this).toggle(!q || norm.indexOf(q) !== -1);
                     });
                 } catch (e) {
-                    console.error(e)
-                }
+}
             }
             function openAddParentModal() {
                 // create modal if not exists
@@ -4587,14 +4664,12 @@ BEGIN
 
                 // Kiểm tra có dữ liệu không
                 if (orderedIds.length === 0) {
-                    console.warn("Không có subtask nào để lưu thứ tự");
-                    return;
+return;
                 }
 
                 // Kiểm tra currentTaskID (parent task)
                 if (!currentTaskID) {
-                    console.error("Không xác định được task cha");
-                    return;
+return;
                 }
 
                 // Chuyển mảng thành chuỗi CSV
@@ -4622,22 +4697,19 @@ BEGIN
                                         message: "Đã lưu thứ tự subtask thành công!"
                                     });
                                 } else {
-                                    console.error("Lỗi:", data.ErrorMessage);
-                                    uiManager.showAlert({
+uiManager.showAlert({
                                         type: "error",
                                         message: "Không thể lưu thứ tự subtask: " + data.ErrorMessage
                                     });
                                 }
                             }
                         } catch(e) {
-                            console.error("Parse error:", e);
-                        }
+}
                     },
                     error: function(err) {
-                        console.error("Lỗi khi lưu thứ tự:", err);
-                        uiManager.showAlert({
+uiManager.showAlert({
                             type: "error",
-                            message: "Không thể lưu thứ tự subtask do lỗi hệ thống."
+                        message: "Không thể lưu thứ tự subtask do lỗi hệ thống."
                         });
                     }
                 });
@@ -4682,6 +4754,7 @@ BEGIN
 
                     // Thả xuống
                     row.addEventListener("drop", function(e) {
+
                         if (e.stopPropagation) {
                             e.stopPropagation();
                         }
@@ -4731,7 +4804,7 @@ BEGIN
                     // Drag events
                     row.addEventListener("dragstart", function(e) {
                         if (row.getAttribute("draggable") !== "true") {
-                            e.preventDefault();
+                      e.preventDefault();
                             return;
                         }
                         this.classList.add("dragging");
@@ -4773,7 +4846,7 @@ BEGIN
                             var dropIndex = allRows.indexOf(this);
 
                             if (dragIndex < dropIndex) {
-                                this.parentNode.insertBefore(dragging, this.nextSibling);
+                 this.parentNode.insertBefore(dragging, this.nextSibling);
                             } else {
                         this.parentNode.insertBefore(dragging, this);
                             }
@@ -4821,7 +4894,7 @@ BEGIN
                             "HeaderID", headerId,           // BÂY GIỜ ĐÃ CÓ GIÁ TRỊ
                             "OrderedTaskIDs", orderedIds.join(",")
                         ]
-                    },
+       },
                     success: function(res) {
                         uiManager.showAlert({ type: "success", message: "Đã lưu thứ tự công việc!" });
                     },
@@ -4831,7 +4904,7 @@ BEGIN
                     }
                 });
             }
-            
+
             // Linh: Hàm control chọn nhân viên (đơn hoặc đa chọn)
             function renderEmployeeAvatarOrChip(employee, options = {}) {
                 if (!employee) return `<div class="icon-chip">?</div>`;
@@ -4897,7 +4970,7 @@ BEGIN
                 let observer = new IntersectionObserver((entries) => {
                     entries.forEach(entry => {
                         if (entry.isIntersecting) {
-                            let img = entry.target;
+               let img = entry.target;
                             observer.unobserve(img);
                             loadSingleImage_Employee(img);
                         }
@@ -4982,8 +5055,7 @@ BEGIN
                             }, 5 * 60 * 1000);
 
                         } catch(e) {
-                            console.warn("Lỗi createObjectURL:", e);
-                            avatarLoadStatus[employeeId] = "failed";
+avatarLoadStatus[employeeId] = "failed";
                         }
                     } else {
                         avatarLoadStatus[employeeId] = "failed";
@@ -5022,11 +5094,18 @@ BEGIN
                     position: "right",
                     maxVisible: 3,
                     onChange: null,
-                    showAvatar: false,
+                    showAvatar: true,  // THAY ĐỔI: default thành true để hiển thị avatar
                     showId: true,
-                    showName: true
+                    showName: true,
+                    // auto-save to server when selection changes (requires ajaxSaveName)
+                    autoSave: false,
+                    ajaxSaveName: null
                 };
                 const cfg = { ...defaults, ...config };
+                // normalize selectedIds to strings for consistent comparisons
+                cfg.selectedIds = (cfg.selectedIds || []).map(x => String(x));
+                // MẢNG TẠM để lưu selectedIds khi load và xử lý trong mảng tạm
+                let tempSelectedIds = [...cfg.selectedIds];
                 const displayId = cfg.displayId || cfg.recordId || null;
 
                 function selIdsToCsv(arr) {
@@ -5040,8 +5119,7 @@ BEGIN
                             try {
                                 const data = JSON.parse(res).data || [];
                                 employees = data[0] || [];
-                                console.log("run2 employees",employees);
-                            } catch (e) {
+} catch (e) {
                                 employees = [];
                             }
                         }
@@ -5063,19 +5141,22 @@ BEGIN
                         }
                     }
 
-                    // SỬA: GỌI HÀM CHUNG ĐỂ ĐẢM BẢO NHẤT QUÁN
+                    // GỌI HÀM CHUNG ĐỂ ĐẢM BẢO NHẤT QUÁN
                     let avatarHtml = renderEmployeeAvatarOrChip(e, {
                         showAvatar: cfg.showAvatar,
                         size: "medium",
                         className: ""
                     });
 
+                    // BG highlight khi selected
+                    const bgStyle = isSelected ? "background-color: #e3f2fd; border-left: 3px solid var(--task-primary);" : "";
+
                     return `
                         <div class="control-row-assignee-item ${isSelected ? "selected" : ""}"
                             data-empid="${empId}"
                             data-empname="${escapeHtml(fullName)}"
-                            style="padding:8px 10px; cursor:pointer; display:flex; align-items:center; gap:8px; border-bottom:1px solid #f0f2f5;">
-                            ${cfg.multi ? `<div style="width:28px; flex-shrink:0;"><input type="checkbox" class="row-assignee-checkbox" ${isSelected ? "checked" : ""} /></div>` : `<div style="width:28px; flex-shrink:0;"></div>`}
+                            style="padding:8px 10px; cursor:pointer; display:flex; align-items:center; gap:8px; border-bottom:1px solid #f0f2f5; ${bgStyle}">
+                            ${cfg.multi ? `<div style="width:28px; flex-shrink:0;"><input type="checkbox" class="row-assignee-checkbox" ${isSelected ? "checked" : ""} style="cursor:pointer;" /></div>` : `<div style="width:28px; flex-shrink:0;"></div>`}
                             ${avatarHtml}
                             ${labelHtml ? `<div style="flex:1; min-width:0; font-weight:600; font-size:14px;">${labelHtml}</div>` : ""}
                         </div>
@@ -5084,13 +5165,20 @@ BEGIN
 
                 function renderSelectedChips(selectedIds) {
                     if (!selectedIds || selectedIds.length === 0) {
-                        return `<div class="icon-chip" title="Chưa chọn">?</div>`;
+                        return `<div class="icon-chip" title="Chưa chọn" style="display:inline-flex; align-items:center; justify-content:center; width:32px; height:32px; border-radius:50%; background:#f0f2f5; color:#676879; font-weight:700; font-size:14px;">?</div>`;
                     }
+
+                    // Đảm bảo maxVisible là số dương
+                    const maxVisible = Math.max(1, parseInt(cfg.maxVisible) || 3);
 
                     const empMap = {};
                     (employees || []).forEach(e => { empMap[String(e.EmployeeID)] = e; });
 
-                    const chips = selectedIds.map(empId => {
+                    // Lấy chỉ maxVisible items đầu tiên để render chip
+                    const visibleIds = selectedIds.slice(0, maxVisible);
+                    const remaining = selectedIds.length - maxVisible;
+
+                    const chips = visibleIds.map(empId => {
                         const e = empMap[empId];
                         return renderEmployeeAvatarOrChip(e, {
                             showAvatar: cfg.showAvatar,
@@ -5099,8 +5187,9 @@ BEGIN
                         });
                     });
 
-                    let visible = chips.slice(0, cfg.maxVisible).join("");
-                    const remaining = chips.length - cfg.maxVisible;
+                    let visible = chips.join("");
+
+                    // Nếu có còn lại, thêm badge +N
                     if (remaining > 0) {
                         const allNames = selectedIds.map(id => {
                             const e = empMap[id];
@@ -5108,7 +5197,8 @@ BEGIN
                                 (cfg.showId && e?.EmployeeID ? ` (${e.EmployeeID})` : "") ||
                                 id;
                         }).join(", ");
-                        visible += `<div class="icon-more" title="${escapeHtml(allNames)}">+${remaining}</div>`;
+                        // Chip hiển thị +N với style badge
+                        visible += `<div class="icon-more" title="${escapeHtml(allNames)}" style="display:inline-flex; align-items:center; justify-content:center; min-width:32px; height:32px; padding:0 8px; border-radius:50%; background:var(--task-primary); color:white; font-weight:700; font-size:12px;">+${remaining}</div>`;
                     }
                     return visible;
                 }
@@ -5144,7 +5234,8 @@ BEGIN
                             const label = `${e.FullName || ""} (${e.EmployeeID || ""})`;
                             if (!q || normalizeForSearch(label).indexOf(q) !== -1) {
                                 const empIdStr = String(e.EmployeeID);
-                                const isSelected = (cfg.selectedIds || []).includes(empIdStr);
+                                // SỬ DỤNG mảng tạm tempSelectedIds để kiểm tra trạng thái
+                                const isSelected = (tempSelectedIds || []).includes(empIdStr);
                                 const itemHtml = renderEmployeeItem(e, isSelected);
                                 if (isSelected) {
                                     selectedItems.push(itemHtml);
@@ -5154,32 +5245,121 @@ BEGIN
                             }
                         });
 
+                        // Sắp xếp: selected lên đầu, unselected phía sau
                         const items = [...selectedItems, ...unselectedItems];
-                        $el.find(".row-assignee-list").html(items.length ? items.join("") : `<div style="padding:8px 12px;color:#777;">KhÃ´ng tÃ¬m tháº¥y</div>`);
+                        $el.find(".row-assignee-list").html(items.length ? items.join("") : `<div style="padding:8px 12px;color:#777;">Không tìm thấy</div>`);
+
+                        // Trigger lazy-load cho avatars trong dropdown
+                        setTimeout(() => {
+                            const imgs = $el.find(".row-assignee-list .customer-avatar-employee");
+                            if (imgs.length && typeof callImg_EmployeeSelector === "function") {
+                                callImg_EmployeeSelector(imgs);
+                            }
+                        }, 0);
                     };
 
+                    // Gọi renderList lần đầu để populate danh sách khi khởi tạo
                     renderList("");
+
+                    // Xử lý click nút toggle để mở/đóng dropdown và render list
+                    $el.find(".row-assignee-toggle").on("click", function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        const $dropdown = $el.find(".row-assignee-dropdown");
+                        const isVisible = $dropdown.is(":visible");
+
+                        if (!isVisible) {
+                            // Mở dropdown: render list lại để đảm bảo checkbox đúng trạng thái
+                            renderList($el.find(".row-assignee-search").val() || "");
+                            $dropdown.show();
+                            $el.find(".row-assignee-search").focus();
+                        } else {
+                            // Đóng dropdown
+                            $dropdown.hide();
+                        }
+                    });
+
                     $el.find(".row-assignee-search").on("input", (e) => renderList($(e.target).val()));
 
                     $el.on("click", ".control-row-assignee-item", (e) => {
                         e.stopPropagation();
                         const $it = $(e.currentTarget);
                         const empId = String($it.data("empid"));
-                        let newSelected = [...cfg.selectedIds];
+                        const isCheckboxClick = $(e.target).hasClass("row-assignee-checkbox") || $(e.target).closest(".row-assignee-checkbox").length > 0;
+
+                        // Lưu trạng thái cũ để rollback nếu cần
+                        const prevSelected = [...tempSelectedIds];
+                        let newSelected = [...tempSelectedIds];
 
                         if (cfg.multi) {
                             const idx = newSelected.indexOf(empId);
-                            if (idx === -1) newSelected.push(empId);
-                            else newSelected.splice(idx, 1);
-                            $it.toggleClass("selected", idx === -1);
-                            $it.find(".row-assignee-checkbox").prop("checked", idx === -1);
+                            if (idx === -1) {
+                                // Thêm mới: đưa lên đầu để ảnh hiển thị đầu tiên
+                                newSelected = [empId, ...newSelected];
+                            } else {
+                                // Bỏ chọn: xóa khỏi mảng
+                                newSelected.splice(idx, 1);
+                            }
                         } else {
-                            newSelected = [empId];
+                            newSelected = newSelected.includes(empId) ? [] : [empId];
                             $el.find(".row-assignee-dropdown").hide();
                         }
 
-                        $el.find(".assignee-icons").html(renderSelectedChips(newSelected));
-                        if (typeof cfg.onChange === "function") cfg.onChange(newSelected, displayId);
+                        // CẬP NHẬT mảy tạm tempSelectedIds
+                        tempSelectedIds = newSelected.map(x => String(x));
+                        cfg.selectedIds = [...tempSelectedIds];
+
+                        // Render lại danh sách: selected lên đầu, checkbox đánh dấu đúng
+                        const currentFilter = $el.find(".row-assignee-search").val() || "";
+                        renderList(currentFilter);
+
+                        // Cập nhật chip hiển thị với số lượng tăng dần
+                        $el.find(".assignee-icons").html(renderSelectedChips(tempSelectedIds));
+
+                        // Lazy load ảnh trong chips
+                        try {
+                            const imgs = $el.find(".assignee-icons .customer-avatar-employee");
+                            if (imgs.length && typeof callImg_EmployeeSelector === "function") callImg_EmployeeSelector(imgs);
+                        } catch (err) {
+}
+
+                        // Gọi onChange callback
+                        if (typeof cfg.onChange === "function") cfg.onChange(tempSelectedIds, displayId);
+
+                        // Optional auto-save
+                        if (cfg.autoSave && cfg.ajaxSaveName) {
+                            const csv = selIdsToCsv(tempSelectedIds);
+                            AjaxHPAParadise({
+                                data: { name: cfg.ajaxSaveName, param: [displayId, csv] },
+                                success: function(res) {
+                                    // Success - mảy tạm đã được lưu
+                                },
+                                error: function() {
+                                    // Rollback: khôi phục mảy tạm về trạng thái cũ
+                                    tempSelectedIds = prevSelected;
+                                    cfg.selectedIds = [...tempSelectedIds];
+                                    renderList(currentFilter);
+                                    $el.find(".assignee-icons").html(renderSelectedChips(tempSelectedIds));
+                                    if (!cfg.silent) alert("Lưu người được giao thất bại.");
+                                }
+                            });
+                        }
+                    });
+
+                    // Xử lý click ra ngoài control để tắt dropdown
+                    $(document).on("click.assignee-dropdown-" + displayId, (e) => {
+                        const $target = $(e.target);
+                        // Nếu click không phải trên control này → đóng dropdown
+                        if (!$el.find(".row-assignee").is(e.target) &&
+                            !$el.find(".row-assignee").has(e.target).length &&
+                            !$target.closest($el.find(".row-assignee")).length) {
+                            $el.find(".row-assignee-dropdown").hide();
+                        }
+                    });
+
+                    // Cleanup event khi destroy
+                    $el.data("destroy", () => {
+                        $(document).off("click.assignee-dropdown-" + displayId);
                     });
 
                     return $el.find(".row-assignee");
@@ -5220,7 +5400,7 @@ BEGIN
                             }
                         });
                         $type.find(".emp-sel-list").html(html || `<div style="padding:20px;text-align:center;color:#999;">Không tìm thấy</div>`);
-                        
+
                         // Thêm dòng này: Kích hoạt lazy load cho các avatar mới trong dropdown
                         setTimeout(() => {
                             const newImgs = $type.find(".emp-sel-list .customer-avatar-employee");
@@ -5242,11 +5422,11 @@ BEGIN
 
                     $type.on("click", ".control-row-assignee-item, .row-assignee-checkbox", function(e) {
                         e.stopPropagation();
-                        
+
                         const $item = $(this).closest(".control-row-assignee-item");
                         const empId = String($item.data("empid"));
                         const isCheckboxClick = e.target.type === "checkbox";
-                        
+
                         // Nếu là single select và click vào item đã chọn → không làm gì cả (tránh gọi onChange vô ích)
                         if (!cfg.multi && $item.hasClass("selected") && !isCheckboxClick) {
                             $type.find(".emp-sel-dropdown").hide();
@@ -5268,6 +5448,12 @@ BEGIN
 
                         // Cập nhật UI
                         $type.find(".control-row-assignee-item").removeClass("selected").find(".row-assignee-checkbox").prop("checked", false);
+                        // ensure order: put newly selected at front
+                        if (cfg.multi) {
+                            // keep newSelected order as-is (already managed above)
+                        } else {
+                            // single: newSelected contains only the chosen id
+                        }
                         newSelected.forEach(id => {
                             $type.find(`.control-row-assignee-item[data-empid="${id}"]`)
                                 .addClass("selected")
@@ -5276,36 +5462,16 @@ BEGIN
 
                         // Cập nhật chip hiển thị
                         $type.find(".emp-sel-icons").html(renderSelectedChips(newSelected));
+                        // lazy-load avatars inside the display
+                        try {
+                            const newImgs = $type.find(".emp-sel-icons .customer-avatar-employee");
+                            if (newImgs.length && typeof callImg_EmployeeSelector === "function") callImg_EmployeeSelector(newImgs);
+                        } catch (err) {
+}
 
                         // GỌI onChange DUY NHẤT 1 LẦN
                         if (typeof cfg.onChange === "function") {
                             cfg.onChange(newSelected, displayId);
-                        }
-
-                        if (cfg.tableName && cfg.columnName && cfg.idColumnName && displayId) {
-                            const csv = newSelected.join(",");
-                            AjaxHPAParadise({
-                                data: {
-                                    name: "sp_Common_SaveDataTable",
-                                    param: [
-                                        "LoginID", LoginID,
-                                        "LanguageID", "VN",
-                                        "TableName", cfg.tableName,
-                                        "ColumnName", cfg.columnName,
-                                        "IDColumnName", cfg.idColumnName,
-                                        "ColumnValue", csv,
-                                        "ID_Value", displayId
-                                    ]
-                                },
-                                success: function() {
-                                    if (!cfg.silent) {
-                                        uiManager.showAlert({ type: "success", message: "Đã cập nhật nhân viên!" });
-                                    }
-                                },
-                                error: function() {
-                                    uiManager.showAlert({ type: "error", message: "Lưu nhân viên thất bại!" });
-                                }
-                            });
                         }
 
                         // Đóng dropdown nếu là single select
@@ -5320,7 +5486,7 @@ BEGIN
                             if ($dropdown.is(":visible")) {
                                 $dropdown.hide();
                             }
-                        }
+                       }
                     });
 
                     $type.data("destroy", () => {
@@ -5330,19 +5496,20 @@ BEGIN
                     return $type;
                 }
             }
-            
+
             // ĐANG LÀM
             function hpaControlSelectBox(el, config) {
                 const $el = $(el);
+                const elementId = "hsb_" + Math.random().toString(36).substr(2, 9);
 
                 // ============================
                 // DEFAULT CONFIG
                 // ============================
                 const cfg = {
                     type: config.type || "single",
-                    search: config.search || false,
+                    search: config.search !== false, // Default: enable search
                     placeholder: config.placeholder || "Chọn...",
-                    options: config.options || [],   
+                    options: config.options || [],
 
                     selected: config.selected || null,
 
@@ -5365,28 +5532,22 @@ BEGIN
                 };
 
                 // ================================================
-                //   COMPATIBILITY MODE (HỖ TRỢ CÁCH GỌI CODE CŨ)
+                //   COMPATIBILITY MODE
                 // ================================================
-                // field → columnName
                 if (config.field && !cfg.columnName) cfg.columnName = config.field;
-
-                // displayId → selected
                 if (config.displayId && !cfg.selected) cfg.selected = config.displayId;
 
-                // Nếu HTML có data-value → ưu tiên lấy
                 if (!cfg.selected) {
                     const v = $el.data("value");
                     if (v !== undefined && v !== null && v !== "") {
                         cfg.selected = v;
                     } else {
-                        // Nếu không có data-value → lấy text hiện tại (match với option.text)
                         const txt = $el.text().trim();
                         const opt = cfg.options.find(o => (o.text + "").trim() === txt);
                         if (opt) cfg.selected = opt.value;
                     }
                 }
 
-                // Convert string số -> số
                 if (cfg.selected && cfg.selected.toString().match(/^\d+$/)) {
                     cfg.selected = Number(cfg.selected);
                 }
@@ -5409,8 +5570,22 @@ BEGIN
                                 display: flex;
                                 align-items: center;
                                 justify-content: space-between;
+                                transition: border-color 0.2s, box-shadow 0.2s;
                             }
-                            .hpa-select-placeholder { color: #999; }
+                            .hpa-select-display:hover { border-color: #999; }
+                            .hpa-select-display.focused { border-color: #2E7D32; box-shadow: 0 0 0 2px rgba(46,125,50,0.1); }
+                 .hpa-select-placeholder { color: #999; }
+                            .hpa-select-search {
+                                padding: 6px 10px;
+                                border-bottom: 1px solid #eee;
+                            }
+                            .hpa-select-search input {
+                                width: 100%;
+                                padding: 6px 8px;
+                                border: 1px solid #ddd;
+                                border-radius: 4px;
+                                font-size: 14px;
+                            }
                             .hpa-select-dropdown {
                                 position: absolute;
                                 top: 110%; left: 0;
@@ -5418,7 +5593,7 @@ BEGIN
                                 background: white;
                                 border: 1px solid #ccc;
                                 border-radius: 6px;
-                                max-height: 240px;
+                                max-height: 280px;
                                 overflow-y: auto;
                                 z-index: 2000;
                                 box-shadow: 0 4px 12px rgba(0,0,0,0.15);
@@ -5427,9 +5602,12 @@ BEGIN
                             .hpa-select-option {
                                 padding: 8px 10px;
                                 cursor: pointer;
+                                border-bottom: 1px solid #f5f5f5;
+                                transition: background 0.15s;
                             }
-                            .hpa-select-option:hover { background: #f0f0f0; }
-                            .hpa-select-option.selected { background: #e9f5e9; }
+                            .hpa-select-option:hover { background: #f8f8f8; }
+                            .hpa-select-option.selected { background: #e8f5e9; font-weight: 500; color: #2E7D32; }
+                            .hpa-select-no-match { padding: 10px; color: #999; text-align: center; }
                         </style>
                     `);
                 }
@@ -5438,26 +5616,48 @@ BEGIN
                 //   BUILD HTML
                 // ============================
                 $el.html(`
-                    <div class="hpa-select-box">
+                    <div class="hpa-select-box" data-hsb-id="${elementId}">
                         <div class="hpa-select-display">
                             <span class="sel-text">${cfg.placeholder}</span>
                             <i class="bi bi-chevron-down"></i>
                         </div>
-                        <div class="hpa-select-dropdown"></div>
+                        <div class="hpa-select-dropdown">
+                            ${cfg.search ? `<div class="hpa-select-search">
+                                <input type="text" class="hpa-select-input" placeholder="Tìm kiếm...">
+                            </div>` : ""}
+                            <div class="hpa-select-options-wrapper"></div>
+                        </div>
                     </div>
                 `);
 
                 const $box = $el.find(".hpa-select-box");
                 const $display = $el.find(".sel-text");
                 const $dropdown = $el.find(".hpa-select-dropdown");
+                const $wrapper = $el.find(".hpa-select-options-wrapper");
+                const $searchInput = $el.find(".hpa-select-input");
+
+                // ============================
+                //   CACHE SELECTION
+                // ============================
+                globalCacheStorage.selectBoxState[elementId] = {
+                    value: cfg.selected,
+                    text: null,
+                    dirty: false
+                };
 
                 // ============================
                 //   RENDER OPTIONS
                 // ============================
-                function renderOptions() {
-                    $dropdown.html("");
+                function renderOptions(filteredOptions = null) {
+                    const opts = filteredOptions !== null ? filteredOptions : cfg.options;
+                    $wrapper.html("");
 
-                    cfg.options.forEach(op => {
+                    if (opts.length === 0) {
+                        $wrapper.html(`<div class="hpa-select-no-match">Không có dữ liệu</div>`);
+                        return;
+                    }
+
+                    opts.forEach(op => {
                         const isSel = (cfg.selected == op.value);
 
                         const $opt = $(`<div class="hpa-select-option ${isSel ? "selected" : ""}" data-value="${op.value}"></div>`);
@@ -5465,14 +5665,35 @@ BEGIN
 
                         $opt.on("click", function () {
                             cfg.selected = op.value;
+                            globalCacheStorage.selectBoxState[elementId].value = op.value;
+                            globalCacheStorage.selectBoxState[elementId].text = op.text;
+                            globalCacheStorage.selectBoxState[elementId].dirty = true;
                             updateDisplay();
                             $dropdown.hide();
+                            $searchInput.val(""); // Clear search after selection
                             saveToDB();
 
                             if (cfg.onChange) cfg.onChange(cfg.selected, op);
                         });
 
-                        $dropdown.append($opt);
+                        $wrapper.append($opt);
+                    });
+                }
+
+                // ============================
+                //   SEARCH/FILTER
+                // ============================
+                function handleSearch(query) {
+                    const filtered = filterSelectBoxOptions(cfg.options, query);
+                    renderOptions(filtered);
+                }
+
+                if ($searchInput.length > 0) {
+                    $searchInput.on("input", function() {
+                        handleSearch($(this).val());
+                    });
+                    $searchInput.on("keydown", function(e) {
+                        if (e.key === "Enter") e.preventDefault();
                     });
                 }
 
@@ -5485,6 +5706,7 @@ BEGIN
                         $display.html(`<span class="hpa-select-placeholder">${cfg.placeholder}</span>`);
                     } else {
                         $display.html(item.text);
+                        $display.attr("title", item.text);
                     }
                 }
 
@@ -5518,11 +5740,20 @@ BEGIN
                 // EVENTS
                 // ============================
                 $el.find(".hpa-select-display").on("click", function () {
-                    $(".hpa-select-dropdown").not($dropdown).hide(); 
+                    $(".hpa-select-dropdown").not($dropdown).hide();
+                    const isOpen = $dropdown.is(":visible");
                     $dropdown.toggle();
 
-                    if ($dropdown.is(":visible") && cfg.onBeforeOpen) cfg.onBeforeOpen();
-                    else if (!($dropdown.is(":visible")) && cfg.onAfterClose) cfg.onAfterClose();
+                    if (!isOpen) {
+                        // Opening
+                        if ($searchInput.length > 0) {
+                            $searchInput.focus();
+                        }
+                        if (cfg.onBeforeOpen) cfg.onBeforeOpen();
+                    } else {
+                        // Closing
+                        if (cfg.onAfterClose) cfg.onAfterClose();
+                    }
                 });
 
                 $(document).on("click", function (e) {
@@ -5543,11 +5774,16 @@ BEGIN
                 return {
                     setValue(v) {
                         cfg.selected = v;
+                        globalCacheStorage.selectBoxState[elementId].value = v;
+                        globalCacheStorage.selectBoxState[elementId].dirty = true;
                         updateDisplay();
                         renderOptions();
                     },
                     getValue() {
                         return cfg.selected;
+                    },
+                    getState() {
+                        return globalCacheStorage.selectBoxState[elementId];
                     }
                 };
             }
@@ -5568,13 +5804,13 @@ BEGIN
                     placeholder: config.placeholder || "Tìm kiếm...",
                     ajaxListName: config.ajaxListName || null, // Tên SP để gọi API
                     options: config.options || [],             // Mảng static [{value, text}]
-                    
+
                     // Cấu hình lưu DB (nếu có)
                     field: config.field || null,
                     tableName: config.tableName || null,
                     idColumnName: config.idColumnName || null,
                     idValue: config.idValue || null,
-                    
+
                     // Giá trị ban đầu
                     initialValue: config.value || config.idValue || null,
                     initialText: config.text || null,
@@ -5582,7 +5818,7 @@ BEGIN
                     language: config.language || "VN",
                     minChars: config.minChars || 0, // 0: click là hiện, >0: gõ mới hiện
                     delay: config.delay || 300,
-                    
+
                     // Callbacks
                     onSave: config.onSave || null,     // Callback khi chọn (legacy)
                     onChange: config.onChange || null  // Callback chuẩn
@@ -5599,19 +5835,19 @@ BEGIN
                     $("<style>").text(`
                         .hpa-cb-wrapper { position: relative; width: 100%; font-family: inherit; }
                         .hpa-cb-input-group { position: relative; display: flex; align-items: center; }
-                        .hpa-cb-input { 
-                            width: 100%; padding: 8px 32px 8px 12px; 
-                            border: 1px solid #ced4da; border-radius: 6px; 
+                        .hpa-cb-input {
+                            width: 100%; padding: 8px 32px 8px 12px;
+                            border: 1px solid #ced4da; border-radius: 6px;
                             transition: border-color .15s ease-in-out,box-shadow .15s ease-in-out;
                         }
                         .hpa-cb-input:focus { border-color: var(--task-primary, #2E7D32); outline: 0; box-shadow: 0 0 0 0.25rem rgba(46, 125, 50, 0.25); }
                         .hpa-cb-icon { position: absolute; right: 10px; color: #999; pointer-events: none; }
-                        .hpa-cb-clear { 
-                            position: absolute; right: 10px; color: #999; cursor: pointer; display: none; 
+                        .hpa-cb-clear {
+                            position: absolute; right: 10px; color: #999; cursor: pointer; display: none;
                             font-size: 14px; padding: 4px; z-index: 2;
                         }
                         .hpa-cb-clear:hover { color: #dc3545; }
-                        
+
                         .hpa-cb-dropdown {
                             position: absolute; top: 105%; left: 0; right: 0;
                             background: #fff; border: 1px solid rgba(0,0,0,.15); border-radius: 6px;
@@ -5624,7 +5860,7 @@ BEGIN
                         .hpa-cb-item:hover, .hpa-cb-item.active { background-color: #f1f3f5; color: var(--task-primary, #2E7D32); font-weight: 500; }
                         .hpa-cb-empty { padding: 12px; text-align: center; color: #6c757d; font-size: 0.9em; }
                         .hpa-cb-loading { padding: 10px; text-align: center; color: var(--task-primary, #2E7D32); }
-                        
+
                         @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
                     `).appendTo("head");
                 }
@@ -5635,12 +5871,12 @@ BEGIN
                 // Tạo cấu trúc mới thay thế element cũ hoặc append vào trong
                 const wrapper = $(`<div class="hpa-cb-wrapper"></div>`);
                 const inputGroup = $(`<div class="hpa-cb-input-group"></div>`);
-                
+
                 // Input hiển thị Text
                 const inputDisplay = $(`<input type="text" class="hpa-cb-input form-control" placeholder="${cfg.placeholder}" autocomplete="off">`);
                 // Input ẩn chứa ID (Value)
                 const inputHidden = $(`<input type="hidden" class="hpa-cb-value">`);
-                
+
                 const iconSearch = $(`<i class="bi bi-search hpa-cb-icon"></i>`);
                 const iconClear = $(`<i class="bi bi-x-lg hpa-cb-clear" title="Xóa"></i>`);
                 const dropdown = $(`<div class="hpa-cb-dropdown"></div>`);
@@ -5648,7 +5884,7 @@ BEGIN
                 // Lắp ráp
                 inputGroup.append(inputDisplay).append(inputHidden).append(iconSearch).append(iconClear);
                 wrapper.append(inputGroup).append(dropdown);
-                
+
                 // Thay thế nội dung của element được truyền vào bằng wrapper mới
                 $el.empty().append(wrapper);
 
@@ -5664,7 +5900,7 @@ BEGIN
                         // Thử tìm trong options static
                         const opt = cfg.options.find(o => o.value == cfg.initialValue);
                         if (opt) {
-                            inputDisplay.val(opt.text);
+                    inputDisplay.val(opt.text);
                             iconSearch.hide();
                             iconClear.show();
                         }
@@ -5684,18 +5920,40 @@ BEGIN
                     setTimeout(() => dropdown.hide(), 150); // Delay nhỏ để bắt sự kiện click item
                 }
 
-                function renderItems(items) {
-                    console.log("renderItems");
-                    dropdown.empty();
+                function renderItems(items, searchKeyword) {
+dropdown.empty();
+
                     if (!items || items.length === 0) {
-                        dropdown.append(`<div class="hpa-cb-empty">Không tìm thấy dữ liệu</div>`);
+                        // ✅ Nếu không tìm thấy nhưng có keyword, hiển thị nút "Thêm mới"
+                        if (searchKeyword && searchKeyword.trim() !== "") {
+                            const $emptyContainer = $(`<div></div>`);
+                            $emptyContainer.append(`<div class="hpa-cb-empty">Không tìm thấy: <strong>${escapeHtml(searchKeyword)}</strong></div>`);
+                            $emptyContainer.append(`
+                                <div class="hpa-cb-item hpa-cb-create-item" style="background: #e8f5e9; color: #2E7D32; font-weight: 500; cursor: pointer; border-top: 1px solid #c8e6c9; margin-top: 4px;">
+                                    <i class="bi bi-plus-circle"></i> Thêm mới: <strong>${escapeHtml(searchKeyword)}</strong>
+                                </div>
+                            `);
+
+                            $emptyContainer.find(".hpa-cb-create-item").on("click", function(e) {
+                                e.stopPropagation();
+                                // Trigger callback để tạo task mới
+                                if (cfg.onCreateNew) {
+                                    cfg.onCreateNew(searchKeyword);
+                                }
+                                hideDropdown();
+                            });
+
+                            dropdown.append($emptyContainer.html());
+                        } else {
+                            dropdown.append(`<div class="hpa-cb-empty">Không có dữ liệu</div>`);
+                        }
                         return;
                     }
 
                     items.forEach(item => {
                         const isActive = item.value == inputHidden.val();
                         const $item = $(`<div class="hpa-cb-item ${isActive ? "active" : ""}" data-val="${item.value}">${escapeHtml(item.text)}</div>`);
-                        
+
                         $item.on("click", function(e) {
                             e.stopPropagation();
                             selectItem(item);
@@ -5705,10 +5963,9 @@ BEGIN
                 }
 
                 function selectItem(item) {
-                    console.log("run selectItem");
-                    inputDisplay.val(item.text);
+inputDisplay.val(item.text);
                     inputHidden.val(item.value);
-                    
+
                     iconSearch.hide();
                     iconClear.show();
                     hideDropdown();
@@ -5729,40 +5986,66 @@ BEGIN
                     iconSearch.show();
                     iconClear.hide();
                     hideDropdown();
-                    
+
                     if (cfg.onSave) cfg.onSave(null, null);
                     if (cfg.onChange) cfg.onChange(null, null);
                 }
 
                 function fetchData(keyword) {
-                    dropdown.show().html(`<div class="hpa-cb-loading"><i class="bi bi-arrow-clockwise fa-spin"></i> Đang tải...</div>`);
-                    
-                    // Cách gọi API cũ của hệ thống bạn
-                    if (typeof AjaxHPAParadise === "undefined") {
-                        console.error("Hàm AjaxHPAParadise không tồn tại!");
+                    // ✅ Search trong allTasks (đã cache) thay vì gọi API
+                    if (cfg.ajaxListName && typeof allTasks !== "undefined" && allTasks.length > 0) {
+                        // Cách mới: Search trong dữ liệu đã có (không gọi API)
+                        const searchTerm = normalizeForSearch(keyword);
+                        const filtered = allTasks.filter(task => {
+                            const taskName = normalizeForSearch(task.TaskName || "");
+                            return !searchTerm || taskName.indexOf(searchTerm) !== -1;
+                        });
+
+                        // Map dữ liệu về chuẩn {value, text}
+                        const mappedData = filtered.map(x => ({
+                            value: x.TaskID,
+                            text: x.TaskName
+                        }));
+
+                        renderItems(mappedData, keyword); // ✅ Truyền keyword để hiển thị nút thêm
                         return;
                     }
 
+                    // Fallback: Nếu không có allTasks hoặc không có ajaxListName, dùng static options
+                    if (cfg.options && cfg.options.length > 0) {
+                        const searchTerm = normalizeForSearch(keyword);
+                        const filtered = cfg.options.filter(opt => {
+                            const text = normalizeForSearch(opt.text || "");
+                            return !searchTerm || text.indexOf(searchTerm) !== -1;
+                        });
+                        renderItems(filtered, keyword); // ✅ Truyền keyword
+                        return;
+                    }
+
+                    // Nếu vẫn cần gọi API (legacy support - không dùng nữa)
+                    if (typeof AjaxHPAParadise === "undefined") {
+return;
+                    }
+
+                    dropdown.show().html(`<div class="hpa-cb-loading"><i class="bi bi-arrow-clockwise fa-spin"></i> Đang tải...</div>`);
+
                     AjaxHPAParadise({
-                        data: { 
-                            name: cfg.ajaxListName, 
-                            param: ["Keyword", keyword, "LanguageID", cfg.language] 
+                        data: {
+                            name: cfg.ajaxListName,
+                            param: ["Keyword", keyword, "LanguageID", cfg.language]
                         },
                         success: function(res) {
-                            console.log("run api fetchdata");
                             try {
                                 const response = JSON.parse(res);
                                 const data = response.data && response.data[0] ? response.data[0] : [];
-                                
-                                // Map dữ liệu về chuẩn {value, text}
+
                                 const mappedData = data.map(x => ({
                                     value: x.ID || x.value || x.TaskID || x.EmployeeID,
                                     text: x.Name || x.text || x.TaskName || x.FullName
                                 }));
-                                
-                                renderItems(mappedData);
+
+                                renderItems(mappedData, keyword); // ✅ Truyền keyword
                             } catch (e) {
-                                console.error("Lỗi parse JSON combo:", e);
                                 dropdown.html(`<div class="hpa-cb-empty">Lỗi dữ liệu</div>`);
                             }
                         },
@@ -5773,7 +6056,6 @@ BEGIN
                 }
 
                 function saveToDatabase(value) {
-                    console.log("run saveToDatabase");
                     // Hàm lưu DB cũ
                     if (!cfg.idValue) return; // Chỉ lưu khi có ID dòng cần update
                     AjaxHPAParadise({
@@ -5789,7 +6071,8 @@ BEGIN
                                 "ID_Value", cfg.idValue
                             ]
                         },
-                        success: () => { console.log("Auto save success"); }
+                        success: () => {
+                        }
                     });
                 }
 
@@ -5806,7 +6089,7 @@ BEGIN
                 // ============================
                 // 5. EVENT LISTENERS
                 // ============================
-                
+
                 // Nút Clear
                 iconClear.on("click", function(e) {
                     e.stopPropagation();
@@ -5815,7 +6098,6 @@ BEGIN
 
                 // Input Typing (Debounce)
                 inputDisplay.on("input", function() {
-                    console.log("input focus");
                     const val = $(this).val();
                     if (val === "") {
                         iconSearch.show();
@@ -5831,8 +6113,8 @@ BEGIN
                             if (val.length >= cfg.minChars) fetchData(val);
                         } else {
                             // Filter static options
-                            const filtered = cfg.options.filter(o => 
-                                o.text.toLowerCase().includes(val.toLowerCase())
+                            const filtered = cfg.options.filter(o =>
+                                !val || normalizeForSearch(o.text).indexOf(normalizeForSearch(val)) !== -1
                             );
                             showDropdown();
                             renderItems(filtered);
@@ -5842,7 +6124,6 @@ BEGIN
 
                 // Input Focus / Click
                 inputDisplay.on("focus click", function() {
-                    console.log("input focus");
                     const val = $(this).val();
                     // Nếu minChars = 0 hoặc đã có nội dung thì hiện luôn
                     if (cfg.minChars === 0 || val.length >= cfg.minChars) {
@@ -6000,7 +6281,6 @@ BEGIN
                         }
                     }).catch(err => {
                         uiManager.showAlert({ type: "error", message: "Lỗi upload!" });
-                        console.error(err);
                     });
                 }
             }
@@ -6008,6 +6288,7 @@ BEGIN
     </script>
     ';
     SELECT @html AS html;
+    --EXEC sp_GenerateHTMLScript 'sp_Task_MyWork_html'
 END
 GO
 
