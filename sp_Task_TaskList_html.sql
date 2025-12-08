@@ -270,9 +270,9 @@ GO
                         return deferred.promise();
                     }
                     
-                    // Nếu đã load toàn bộ data hoặc đang load, return data hiện tại
-                    if (allEmployees.length > 0 && allEmployees.length >= totalCount) {
-                        console.log(`✓ [EmployeeSelector] Using cached data (${allEmployees.length}/${totalCount} records)`);
+                    // Nếu đã load toàn bộ data, không cần load thêm
+                    if (allEmployees.length >= totalCount && totalCount > 0) {
+                        console.log(`✓ [EmployeeSelector] All data loaded (${allEmployees.length}/${totalCount} records)`);
                         deferred.resolve(allEmployees);
                         return deferred.promise();
                     }
@@ -280,6 +280,8 @@ GO
                     // Nếu đang load, chờ
                     if (isLoadingApiData) {
                         console.log("⏳ [EmployeeSelector] Loading in progress, waiting...");
+                        // Vẫn resolve với data hiện tại để grid không bị block
+                        deferred.resolve(allEmployees);
                         return deferred.promise();
                     }
                     
@@ -563,51 +565,63 @@ GO
                         load: function(loadOptions) {
                             const deferred = $.Deferred();
                             
-                            // Nếu dùng API, load thêm dữ liệu
+                            const skip = (loadOptions.skip || 0);
+                            const take = loadOptions.take || config.take;
+                            
+                            console.log(`📄 [Grid] Load page: skip=${skip}, take=${take}, cached=${allEmployees.length}/${totalCount}`);
+                            
+                            // Luôn load toàn bộ dữ liệu nếu đang dùng API
                             if (config.useApi && !config.apiData) {
-                                const skip = (loadOptions.skip || 0);
-                                const take = loadOptions.take || config.take;
-                                
-                                console.log(`📄 [Grid] Load page: skip=${skip}, take=${take}, cached=${allEmployees.length}/${totalCount}`);
-                                
-                                // Load dữ liệu nếu cần
-                                loadEmployeeList(skip, take).then((data) => {
-                                    // Lấy records theo skip/take từ toàn bộ data
-                                    const pageData = data.slice(skip, skip + take);
-                                    
-                                    // Sort: Selected employees ở đầu
-                                    const sorted = [...pageData].sort((a, b) => {
-                                        const aSelected = selectedIds.includes(String(a.EmployeeID));
-                                        const bSelected = selectedIds.includes(String(b.EmployeeID));
-                                        if (aSelected && !bSelected) return -1;
-                                        if (!aSelected && bSelected) return 1;
-                                        return 0;
+                                // Nếu chưa load dữ liệu nào, load từ đầu
+                                if (allEmployees.length === 0) {
+                                    console.log(`📡 [Grid] First load - fetching from API`);
+                                    // Load batch đầu tiên
+                                    loadEmployeeListRecursive(0, take).then(() => {
+                                        // Sau khi load xong, sort và return data
+                                        const sorted = getSortedEmployees();
+                                        const pageData = sorted.slice(skip, skip + take);
+                                        
+                                        deferred.resolve({
+                                            data: pageData,
+                                            totalCount: totalCount
+                                        });
+                                    }).catch(err => {
+                                        deferred.reject(err);
                                     });
-                                    
-                                    deferred.resolve({
-                                        data: sorted,
-                                        totalCount: totalCount
-                                    });
-                                }).catch(err => {
-                                    console.error("Error loading page:", err);
-                                    deferred.reject(err);
-                                });
+                                } else {
+                                    // Nếu đã có dữ liệu, kiểm tra xem cần load thêm không
+                                    if (allEmployees.length < totalCount && skip + take > allEmployees.length - 5) {
+                                        // Khi gần hết dữ liệu, load thêm
+                                        console.log(`📡 [Grid] Near end of data, fetching more: current=${allEmployees.length}, requested=${skip + take}`);
+                                        loadEmployeeListRecursive(allEmployees.length, take).then(() => {
+                                            const sorted = getSortedEmployees();
+                                            const pageData = sorted.slice(skip, skip + take);
+                                            
+                                            deferred.resolve({
+                                                data: pageData,
+                                                totalCount: totalCount
+                                            });
+                                        }).catch(err => {
+                                            deferred.reject(err);
+                                        });
+                                    } else {
+                                        // Có đủ dữ liệu, chỉ cần sort
+                                        const sorted = getSortedEmployees();
+                                        const pageData = sorted.slice(skip, skip + take);
+                                        
+                                        deferred.resolve({
+                                            data: pageData,
+                                            totalCount: totalCount
+                                        });
+                                    }
+                                }
                             } else {
                                 // Dùng local data
-                                const skip = (loadOptions.skip || 0);
-                                const take = loadOptions.take || config.take;
-                                const pageData = allEmployees.slice(skip, skip + take);
-                                
-                                const sorted = [...pageData].sort((a, b) => {
-                                    const aSelected = selectedIds.includes(String(a.EmployeeID));
-                                    const bSelected = selectedIds.includes(String(b.EmployeeID));
-                                    if (aSelected && !bSelected) return -1;
-                                    if (!aSelected && bSelected) return 1;
-                                    return 0;
-                                });
+                                const sorted = getSortedEmployees();
+                                const pageData = sorted.slice(skip, skip + take);
                                 
                                 deferred.resolve({
-                                    data: sorted,
+                                    data: pageData,
                                     totalCount: allEmployees.length
                                 });
                             }
@@ -615,6 +629,52 @@ GO
                             return deferred.promise();
                         }
                     });
+                    
+                    // Helper function: Load dữ liệu từ API một cách recursive
+                    function loadEmployeeListRecursive(skip, take) {
+                        const deferred = $.Deferred();
+                        
+                        // Kiểm tra nếu đã load toàn bộ
+                        if (allEmployees.length >= totalCount && totalCount > 0) {
+                            console.log(`✓ [Grid] All data already loaded`);
+                            deferred.resolve(allEmployees);
+                            return deferred.promise();
+                        }
+                        
+                        // Nếu đang load, chờ
+                        if (isLoadingApiData) {
+                            console.log("⏳ [Grid] Loading in progress, waiting...");
+                            setTimeout(() => {
+                                loadEmployeeListRecursive(skip, take).then(
+                                    () => deferred.resolve(allEmployees),
+                                    (err) => deferred.reject(err)
+                                );
+                            }, 500);
+                            return deferred.promise();
+                        }
+                        
+                        loadEmployeeList(skip, take).then((data) => {
+                            deferred.resolve(data);
+                        }).catch(err => {
+                            deferred.reject(err);
+                        });
+                        
+                        return deferred.promise();
+                    }
+                    
+                    // Helper function: Sort employees (selected lên đầu)
+                    function getSortedEmployees() {
+                        return [...allEmployees].sort((a, b) => {
+                            const aSelected = selectedIds.includes(String(a.EmployeeID));
+                            const bSelected = selectedIds.includes(String(b.EmployeeID));
+                            
+                            // Nhân viên được chọn lên trước
+                            if (aSelected && !bSelected) return -1;
+                            if (!aSelected && bSelected) return 1;
+                            
+                            return 0;
+                        });
+                    }
                     
                     const gridColumns = [{
                         type: "selection",
@@ -666,22 +726,61 @@ GO
                             selectedIds = config.multi ? selectedItems.selectedRowKeys : [selectedItems.selectedRowKeys[0]];
                             if (config.onChange) config.onChange(selectedIds);
                             renderSelectorButton();
+                            
+                            // Refresh grid để sắp xếp lại theo selected employees
+                            setTimeout(() => {
+                                if (dataGridInstance) {
+                                    dataGridInstance.refresh();
+                                }
+                            }, 50);
                         }
                     };
                     
                     $(`#${config.dropdownId} #employeeGridInner`).dxDataGrid(gridConfig);
                     dataGridInstance = $(`#${config.dropdownId} #employeeGridInner`).dxDataGrid("instance");
                     
+                    // Refresh grid khi selection thay đổi để update sort order
+                    const originalOnSelectionChanged = gridConfig.onSelectionChanged;
+                    const refreshGrid = () => {
+                        setTimeout(() => {
+                            if (dataGridInstance) {
+                                dataGridInstance.refresh();
+                            }
+                        }, 100);
+                    };
+                    
                     // Set selection
                     setTimeout(() => {
                         if (dataGridInstance) {
                             dataGridInstance.selectRows(selectedIds);
+                            // Scroll to top to show selected employees
+                            dataGridInstance.navigateToRow(0);
                         }
                     }, 100);
                     
                     // Search handler
                     $(`#${config.dropdownId} #employeeSearchInput`).off("keyup").on("keyup", function() {
                         filterEmployees($(this).val());
+                    });
+                    
+                    // Monitor scroll event để load thêm dữ liệu
+                    $(`#${config.dropdownId} .employee-dropdown-body`).off("scroll").on("scroll", function() {
+                        const $this = $(this);
+                        const scrollTop = $this.scrollTop();
+                        const scrollHeight = this.scrollHeight;
+                        const clientHeight = this.clientHeight;
+                        
+                        // Khi scroll gần hết (còn 100px), load thêm dữ liệu
+                        if (scrollHeight - (scrollTop + clientHeight) < 100) {
+                            console.log(`⬇️ [Scroll] Near bottom, current loaded=${allEmployees.length}, total=${totalCount}`);
+                            
+                            if (allEmployees.length < totalCount && !isLoadingApiData) {
+                                // Trigger grid refresh để load thêm dữ liệu
+                                if (dataGridInstance) {
+                                    dataGridInstance.refresh();
+                                }
+                            }
+                        }
                     });
                 }
 
