@@ -450,7 +450,7 @@ BEGIN
             50% { opacity: 0.7; }
         }
         /* Empty State */
-      #sp_Task_MyWork_html .empty-state {
+        #sp_Task_MyWork_html .empty-state {
             text-align: center;
             padding: 60px 20px;
             color: var(--text-muted);
@@ -592,7 +592,7 @@ BEGIN
             font-size: 14px;
             color: var(--text-secondary);
             margin-top: 8px;
-     }
+        }
         #sp_Task_MyWork_html .kpi-target strong {
             color: var(--text-primary);
         }
@@ -1260,7 +1260,7 @@ BEGIN
             to {
                 opacity: 1;
                 transform: translateY(0);
-  }
+            }
         }
 
         #sp_Task_MyWork_html .subtask-row {
@@ -1696,23 +1696,7 @@ BEGIN
                 selectBoxOptions: {} // {optionKey: [...options]} - cache options từ config
             };
 
-            // Helper: Generate cache key từ config
-            function generateSelectBoxCacheKey(config) {
-                if (config.tableName && config.columnName && config.idColumnName) {
-                    return `${config.tableName}_${config.columnName}_${config.idColumnName}`;
-                }
-                return null;
-            }
-
-            // Helper: Search/Filter options (case-insensitive, accent-insensitive)
-            function filterSelectBoxOptions(options, query) {
-                if (!query || query.trim() === "") return options;
-                const q = normalizeForSearch(query);
-                return (options || []).filter(opt => {
-                    const text = normalizeForSearch(opt.text || "");
-                    return text.indexOf(q) !== -1;
-                });
-            }
+            
 
             // Helper: Normalize string cho search (remove diacritics, lowercase)
             function normalizeForSearch(str) {
@@ -1827,7 +1811,7 @@ BEGIN
 
                     // Ensure dropdown control exists and is populated
                     try { ensureRowAssigneeControl($wrap); } catch(err) {
-}
+                    }
 
                     // Mở dropdown hiện tại
                     $dd = $wrap.find(".row-assignee-dropdown");
@@ -1939,7 +1923,7 @@ BEGIN
                             filterTempOptions(this);
                         }
                     } catch(e) {
-}
+                    }
                 });
                 $(document).on("input", ".st-user-filter", function() {
                     try {
@@ -1948,14 +1932,14 @@ BEGIN
                             filterMultiOptions(idx, $(this).val());
                         }
                     } catch(e) {
-}
+                    }
                 });
                 // When user focuses/clicks the st-user-filter, show options and focus the select
                 $(document).on("focus click", ".st-user-filter", function(e) {
                     e.stopPropagation();
                     var idx = $(this).data("idx");
-                  try { filterMultiOptions(idx, ""); } catch(e) {}
-       var $sel = $(`.st-user-select[data-idx="${idx}"]`);
+                    try { filterMultiOptions(idx, ""); } catch(e) {}
+                    var $sel = $(`.st-user-select[data-idx="${idx}"]`);
                     if($sel.length) {
                         $sel.show();
                         try { $sel.focus(); } catch(e) {}
@@ -2032,7 +2016,7 @@ BEGIN
 
                     // Refresh visible selected names (render chips)
                     try { refreshSelectedUsersDisplay(idx); } catch(err) {
-}
+                    }
                 });
                 $(document).on("click", function(e) {
                     if(!$(e.target).closest(".search-select").length) {
@@ -2051,7 +2035,7 @@ BEGIN
                                 var $inp = $(this);
 
                                 if ($sel.length === 0) {
-return; // Skip this iteration
+                                    return; // Skip this iteration
                                 }
 
                                 var selText = ($sel.find("option:selected").text()||"").trim();
@@ -2068,11 +2052,11 @@ return; // Skip this iteration
                                     $inp.addClass("search-valid").removeClass("search-invalid");
                                 }
                             } catch(err) {
-}
+                            }
                         });
 
                         // Close all dropdowns
-  $(".search-select-dropdown").hide();
+                        $(".search-select-dropdown").hide();
                     }
                 });
                 $(document).on("hidden.bs.modal", "#mdlAssign", function() {
@@ -2087,7 +2071,7 @@ return; // Skip this iteration
                             </div>
                         `);
                     } catch(err) {
-}
+                    }
                 });
                 $("#btnEditDescription").on("click", function() {
                     $("#descriptionDisplay").hide();
@@ -2246,7 +2230,7 @@ return; // Skip this iteration
                     hpaControlEditableRow("#detailTaskName", {
                         type: "input",
                         tableName: "tblTask",
-       columnName: "TaskName",
+                        columnName: "TaskName",
                         idColumnName: "TaskID",
                         idValue: currentTaskID
                     });
@@ -2283,7 +2267,7 @@ return; // Skip this iteration
                 };
                 $(document).on("click", ".task-title", function(e) {
                     var taskId = $(this).closest(".cu-row").data("recordid");
-        if (!taskId) return;
+                    if (!taskId) return;
 
                     e.stopPropagation(); // Chặn sự kiện click row để không mở modal ngay lập tức nếu đang sửa
 
@@ -2294,7 +2278,7 @@ return; // Skip this iteration
                         idColumnName: "TaskID",
                         idValue: taskId,
                         onSave: function(val) {
-loadTasks(); // Reload lại list sau khi sửa
+                            loadTasks(); // Reload lại list sau khi sửa
                         }
                     });
                 });
@@ -2325,7 +2309,7 @@ loadTasks(); // Reload lại list sau khi sửa
                         data: { name: "sp_Task_SaveTaskRelations", param: ["ParentTaskID", pid, "ChildTaskIDs", String(tid)] },
                         success: function() { removeQuickAdd(); fetchAssignTemplate(pid); uiManager.showAlert({ type: "success", message: "Đã thêm task con." }); },
                         error: function(){ uiManager.showAlert({ type: "error", message: "Thêm task con thất bại." }); }
- });
+                    });
                 });
                 $(document).on("input", "#quickSubtaskInput", function(e){
                     var q = ($(this).val()||"").trim();
@@ -2385,7 +2369,7 @@ loadTasks(); // Reload lại list sau khi sửa
                                         var setupData = JSON.parse(setupRes).data || [];
                                         employees = setupData[0] || employees || [];
                                     } catch (ex) {
-}
+                                    }
                                     // Now we have employees (or empty) -> proceed to render
                                     updateStatistics();
                                     updateView("list");
@@ -2397,7 +2381,7 @@ loadTasks(); // Reload lại list sau khi sửa
                                 }
                             });
                         } catch(e) {
-}
+                        }
                     }
                 });
             }
@@ -2410,7 +2394,7 @@ loadTasks(); // Reload lại list sau khi sửa
                             var attachments = data[4] || []; // data[4]: Attachments
                             renderAttachments(attachments);
                         } catch(e) {
-renderAttachments([]);
+                            renderAttachments([]);
                         }
                     }
                 });
@@ -2537,7 +2521,7 @@ renderAttachments([]);
                 });
             }
             function filterOptionsForSearch(selectId, text, dropdownSelector) {
-var rawText = (text || "").trim();
+                var rawText = (text || "").trim();
                 var q = normalizeForSearch(rawText || "");
                 var $select = $("#" + selectId);
                 var $dropdown = $(dropdownSelector);
@@ -2581,7 +2565,7 @@ var rawText = (text || "").trim();
 
             }
             function updateView(view) {
-// 1. Cập nhật view nếu có truyền tham số view
+                // 1. Cập nhật view nếu có truyền tham số view
                 if (view) {
                     $(".view-btn").removeClass("active");
                     if (view === "list") {
@@ -2694,7 +2678,7 @@ var rawText = (text || "").trim();
                     // Fallback: return empty string
                     return "";
                 } catch (e) {
-return "";
+                    return "";
                 }
             }
             function normalizeForSearch(s) {
@@ -2833,7 +2817,7 @@ return "";
 
                     return visible;
                 } catch (e) {
-return `<div class="icon-chip">?</div>`;
+                    return `<div class="icon-chip">?</div>`;
                 }
             }
             // Helper: ensure row-assignee dropdown exists and is populated
@@ -2852,7 +2836,7 @@ return `<div class="icon-chip">?</div>`;
                     }
                     buildRowAssigneeList($wrap, true);
                 } catch (e) {
-}
+                }
             }
 
             // Build / refresh the list inside a row-assignee dropdown
@@ -2878,7 +2862,7 @@ return `<div class="icon-chip">?</div>`;
                         return `
                             <div class="control-row-assignee-item ${isSel? "selected":""}"
                                 data-empid="${escapeHtml(e.EmployeeID)}"
-                   data-empname="${escapeHtml(e.FullName)}"
+                                data-empname="${escapeHtml(e.FullName)}"
                                 style="padding:8px 10px;cursor:pointer;display:flex;align-items:center;gap:8px;border-bottom:1px solid #f1f2f5;">
                                 <div style="width:28px;flex-shrink:0;">
                                     <input type="checkbox" class="row-assignee-checkbox" ${isSel? "checked":""} />
@@ -2901,12 +2885,12 @@ return `<div class="icon-chip">?</div>`;
                             setTimeout(function(){ callImg_EmployeeSelector(imgs); }, 50);
                         }
                     } catch(e) {
-}
+                    }
                 } catch (e) {
-}
+                }
             }
             function refreshTaskRowInList(taskId) {
-try {
+                try {
                     var t = findTaskById(taskId);
                     if (!t) return;
 
@@ -2930,13 +2914,13 @@ try {
                     // Re-init drag & drop since rows may have been replaced
                     try { initListDragDrop(); } catch (e) { /* ignore */ }
                 } catch (e) {
-}
+                }
             }
             function renderTaskCards(container, tasks) {
                 if(tasks.length === 0) {
                     $(container).html(`<div class="empty-state"><i class="bi bi-inbox"></i><p>Không có công việc</p></div>`);
                     return;
-     }
+                }
                 var html = tasks.map(function(t) {
                     // DÙNG AssignPriority thay vì Priority
                     var prioClass = "prio-" + (t.AssignPriority || 3);
@@ -2949,7 +2933,7 @@ try {
                     if (t.TargetKPI > 0) {
                         kpiDisplayText = `${t.ActualKPI} / ${t.TargetKPI} ${t.Unit || ""}`;
                     } else if (t.TotalSubtasks > 0) {
-          kpiDisplayText = `${t.CompletedSubtasks || 0} / ${t.TotalSubtasks} task`;
+                        kpiDisplayText = `${t.CompletedSubtasks || 0} / ${t.TotalSubtasks} task`;
                     } else {
                         kpiDisplayText = "Chưa có tiến độ";
                     }
@@ -2983,7 +2967,7 @@ try {
                 $(container).html(html);
             }
             function renderListView(data) {
-if (data.length === 0 && (!window.taskHeaders || window.taskHeaders.length === 0)) {
+                if (data.length === 0 && (!window.taskHeaders || window.taskHeaders.length === 0)) {
                     $("#list-container").html(`<div class="empty-state"><i class="bi bi-inbox"></i><p>Không có công việc nào</p></div>`);
                     return;
                 }
@@ -3021,7 +3005,7 @@ if (data.length === 0 && (!window.taskHeaders || window.taskHeaders.length === 0
 
                     const childMap = {};
                     standaloneTasks.forEach(t => {
-         if (t.ParentTaskID && tasksById[t.ParentTaskID]) {
+                        if (t.ParentTaskID && tasksById[t.ParentTaskID]) {
                             childMap[t.ParentTaskID] = childMap[t.ParentTaskID] || [];
                             childMap[t.ParentTaskID].push(t);
                         }
@@ -3076,7 +3060,7 @@ if (data.length === 0 && (!window.taskHeaders || window.taskHeaders.length === 0
 
                 // When user clicks the "+" toggle, replace the minimal footer with the expanded create HTML
                 $(document).on("click", ".temp-subtask:not(.expanded)", function(e) {
-         // Chỉ xử lý nếu chưa ở trạng thái expanded
+                    // Chỉ xử lý nếu chưa ở trạng thái expanded
                     e.stopPropagation();
                     // Thay thế toàn bộ dòng footer bằng form mở rộng
                     $(this).replaceWith(expandedCreateHtml);
@@ -3104,10 +3088,10 @@ if (data.length === 0 && (!window.taskHeaders || window.taskHeaders.length === 0
                                 }
                             });
                         } catch(initErr) {
-}
+                        }
 
                     } catch(e) {
-}
+                    }
                 });
 
                 // populate hidden select with tasks
@@ -3115,7 +3099,7 @@ if (data.length === 0 && (!window.taskHeaders || window.taskHeaders.length === 0
                     var opts = `<option value=""></option>` + (tasks || []).map(t => `<option value="${t.TaskID}">${escapeHtml(t.TaskName)}</option>`).join("");
                     $("#listCreateParentSelect").html(opts);
                 } catch(e) {
-}
+                }
 
                 $(document).on("click", "#btnListCreateSave", function() {
                     var sel = $("#listCreateParentSelect").val();
@@ -3140,9 +3124,9 @@ if (data.length === 0 && (!window.taskHeaders || window.taskHeaders.length === 0
                                 $block.replaceWith(footerHtml);
                             }
                         } catch(e) {
-}
+                        }
                     } catch(e) {
-}
+                    }
                 });
                 setTimeout(function() {
                     for (var headerId in expandedHeadersState) {
@@ -3240,12 +3224,12 @@ if (data.length === 0 && (!window.taskHeaders || window.taskHeaders.length === 0
                     // Initialize dropdown after render
                     setTimeout(async function() {
                         if ($(`#${assigneeContainerId}`).length === 0) {
-return;
+                            return;
                         }
                         try {
                             var currentIds = [];
                             if (t.AssignedToEmployeeIDs) {
-                             currentIds = String(t.AssignedToEmployeeIDs).split(",").map(s => s.trim()).filter(Boolean);
+                                currentIds = String(t.AssignedToEmployeeIDs).split(",").map(s => s.trim()).filter(Boolean);
                             }
                             if ((!currentIds || currentIds.length === 0) && (window.EmployeeID_Login || LoginID)) {
                                 currentIds = [String(window.EmployeeID_Login || LoginID)];
@@ -3302,7 +3286,7 @@ return;
                                                 })
                                             ).join("");
 
-           // Thêm badge +N nếu có còn lại
+                                            // Thêm badge +N nếu có còn lại
                                             if (remainingCount > 0) {
                                                 const allNames = selectedEmployees.map(e => e.FullName + (e.EmployeeID ? ` (${e.EmployeeID})` : "")).join(", ");
                                                 avatarHtml += `<div class="icon-more" title="${escapeHtml(allNames)}" style="display:inline-flex; align-items:center; justify-content:center; min-width:32px; height:32px; padding:0 8px; border-radius:50%; background:var(--task-primary); color:white; font-weight:700; font-size:12px;">+${remainingCount}</div>`;
@@ -3326,7 +3310,7 @@ return;
                                 }
                             });
                         } catch(e) {
-}
+                        }
                     }, 100);
 
                     // status for subtask
@@ -3396,10 +3380,10 @@ return;
                 </div>`;
             }
             function openTaskDetail(taskID) {
-// Tìm task từ tất cả các nguồn
+                // Tìm task từ tất cả các nguồn
                 let task = findTaskById(taskID);
                 if (!task) {
-uiManager.showAlert({ type: "error",  message: "Không tìm thấy thông tin công việc!",});
+                    uiManager.showAlert({ type: "error",  message: "Không tìm thấy thông tin công việc!",});
                     return;
                 }
                 currentTaskID = taskID;
@@ -3441,7 +3425,7 @@ uiManager.showAlert({ type: "error",  message: "Không tìm thấy thông tin c�
                         document.activeElement.blur();
                     }
                 } catch(e) {
-}
+                }
 
                 var mdl = new bootstrap.Modal(document.getElementById("mdlTaskDetail"));
                 mdl.show();
@@ -3541,16 +3525,8 @@ uiManager.showAlert({ type: "error",  message: "Không tìm thấy thông tin c�
                         });
                     });
 
-
-                    // USE hpaControlAttachFile
                     if ($("#attachmentsSection").length > 0) {
-                        hpaControlAttachFile("#attachmentsSection", {
-                            taskId: taskID,
-                            field: "Attachments",
-                            tableName: "tblTask",
-                            maxSize: 10485760,
-                            allowedTypes: ["pdf", "doc", "docx", "xls", "xlsx", "jpg", "png", "gif", "txt"]
-                        });
+                        
                     }
                 }, 80);
             }
@@ -3656,11 +3632,11 @@ uiManager.showAlert({ type: "error",  message: "Không tìm thấy thông tin c�
                             // Reload tasks
                             loadTasks();
                         } catch(e) {
-loadTasks();
+                            loadTasks();
                         }
                     },
                     error: function(err) {
-uiManager.showAlert({ type: "error",  message: "Cập nhật KPI thất bại!", });
+                        uiManager.showAlert({ type: "error",  message: "Cập nhật KPI thất bại!", });
                     }
                 });
             }
@@ -3691,12 +3667,12 @@ uiManager.showAlert({ type: "error",  message: "Cập nhật KPI thất bại!",
                             .data("status", nextCode);
 
                         // Reload toàn bộ sau 500ms (để người dùng thấy update ngay lập tức)
-              setTimeout(function() {
+                        setTimeout(function() {
                             loadTasks();
                         }, 500);
                     },
                     error: function(err) {
-uiManager.showAlert({ type: "error",  message: "Cập nhật trạng thái thất bại!", });
+                        uiManager.showAlert({ type: "error",  message: "Cập nhật trạng thái thất bại!", });
                     }
                 });
             }
@@ -3704,7 +3680,7 @@ uiManager.showAlert({ type: "error",  message: "Cập nhật trạng thái thấ
                 if (tasks && tasks.length > 0) {
                     // Đã có → render luôn
                     initAssignModal();
-               } else {
+                } else {
                     // Chưa có → gọi API nạp tasks
                     AjaxHPAParadise({
                         data: { name: "sp_Task_GetAssignmentSetup", param: ["ParentTaskID", 0] },
@@ -3742,7 +3718,7 @@ uiManager.showAlert({ type: "error",  message: "Cập nhật trạng thái thấ
                         minChars: 0, // cho phép hiện toàn bộ khi click
                         delay: 300,
                         onSave: function(selectedValue, selectedText) {
-// Có thể lưu tạm vào biến global hoặc input ẩn
+                            // Có thể lưu tạm vào biến global hoặc input ẩn
                             $("#selParent").val(selectedValue); // nếu vẫn cần đồng bộ
                         }
                     });
@@ -3796,7 +3772,7 @@ uiManager.showAlert({ type: "error",  message: "Cập nhật trạng thái thấ
                 }, 80);
             }
             function renderAssignDropdowns() {
-// 1. Render danh sách công việc chính
+                // 1. Render danh sách công việc chính
                 $("#selParent").html(`<option value=""></option>` +
                     (tasks || []).map(t =>
                         `<option value="${t.TaskID}">${escapeHtml(t.TaskName)}</option>`
@@ -3842,7 +3818,7 @@ uiManager.showAlert({ type: "error",  message: "Cập nhật trạng thái thấ
                         }
                     });
                 } catch(e) {
-}
+                }
 
                 // 5. Đặt ngày mặc định là hôm nay
                 const today = new Date().toISOString().split("T")[0];
@@ -3851,15 +3827,9 @@ uiManager.showAlert({ type: "error",  message: "Cập nhật trạng thái thấ
                 // 5.5 Initialize attachment control for assign modal (kept in main script)
                 try {
                     if ($("#attachFileControl").length) {
-                    hpaControlAttachFile("#attachFileControl", {
-                            taskId: currentTaskID || 0,
-
-                            field: "Attachments",
-                            tableName: "tblTask"
-                        });
                     }
                 } catch (e) {
-}
+                }
             }
             function syncSearchInputs() {
                 try {
@@ -3871,11 +3841,11 @@ uiManager.showAlert({ type: "error",  message: "Cập nhật trạng thái thấ
 
                     const pText = $("#selParent option:selected").text().trim() || "";
                     $("#selParentSearch").val(pText).toggleClass("search-valid", !!$("#selParent").val());
-             } catch(e) {
-}
+                } catch(e) {
+                }
             }
             function loadAssignTemplate() {
-let pid = $("#selParent").val();
+                let pid = $("#selParent").val();
                 if(!pid) {
                     $("#subtask-assign-container").html(`<div class="empty-state" style="grid-column: 1 / -1;"><i class="bi bi-inbox"></i><p>Vui lòng chọn Công việc chính ở trên</p></div>`);
                     return;
@@ -3889,7 +3859,7 @@ let pid = $("#selParent").val();
                         try {
                             let data = JSON.parse(res).data;
                         } catch(e) {
-}
+                        }
                         fetchAssignTemplate(pid);
                     },
                     error: function() {
@@ -3937,7 +3907,8 @@ let pid = $("#selParent").val();
                             var childTasks = tasks.filter(function(t) { return ids.indexOf(t.TaskID) !== -1; });
                      cb(childTasks);
                         } catch(e) {
-cb([]); }
+                            cb([]);
+                        }
                     },
                     error: function() { cb([]); }
                 });
@@ -4103,7 +4074,7 @@ cb([]); }
                                 }
                             });
                         } catch(e) {
-uiManager.showAlert({ type: "error", message: "Tạo task thất bại." });
+                        uiManager.showAlert({ type: "error", message: "Tạo task thất bại." });
                         }
                     },
                     error: function() { uiManager.showAlert({ type: "error", message: "Tạo task thất bại." }); }
@@ -4361,12 +4332,12 @@ uiManager.showAlert({ type: "error", message: "Tạo task thất bại." });
                         }
                     });
                 } catch(err) {
-uiManager.showAlert({ type: "danger", message: "Lỗi khi chuẩn bị dữ liệu giao việc" });
+                    uiManager.showAlert({ type: "danger", message: "Lỗi khi chuẩn bị dữ liệu giao việc" });
                 }
             }
             function filterSelectOptions(selectId, text) {
                 var q = normalizeForSearch(text || "");
-             var $sel = $("#" + selectId);
+                var $sel = $("#" + selectId);
                 $sel.find("option").each(function(){
                     var txt = normalizeForSearch($(this).text() || "");
                     if(!q || txt.indexOf(q) !== -1) $(this).show(); else $(this).hide();
@@ -4376,14 +4347,14 @@ uiManager.showAlert({ type: "danger", message: "Lỗi khi chuẩn bị dữ li�
                 try {
                     // Validate idx
                     if(idx === undefined || idx === null || idx === "" || !Number.isInteger(Number(idx))) {
-return;
+                        return;
                     }
 
                     var q = normalizeForSearch(text || "");
                     var $dropdown = $(`#stUserDropdown-${idx}`);
 
                     if($dropdown.length === 0) {
-return;
+                        return;
                     }
 
                     var html = "";
@@ -4416,7 +4387,7 @@ return;
                     $dropdown.html(html).show();
 
                 } catch(err) {
-}
+                }
             }
             function filterTempOptions(inp) {
                 try {
@@ -4435,7 +4406,7 @@ return;
                         $(this).toggle(!q || norm.indexOf(q) !== -1);
                     });
                 } catch (e) {
-}
+                }
             }
             function openAddParentModal() {
                 // create modal if not exists
@@ -4664,12 +4635,12 @@ return;
 
                 // Kiểm tra có dữ liệu không
                 if (orderedIds.length === 0) {
-return;
+                    return;
                 }
 
                 // Kiểm tra currentTaskID (parent task)
                 if (!currentTaskID) {
-return;
+                    return;
                 }
 
                 // Chuyển mảng thành chuỗi CSV
@@ -4680,7 +4651,7 @@ return;
                     data: {
                         name: "sp_Task_UpdateSubtaskOrder",
                         param: [
-                    "ParentTaskID", currentTaskID,
+                            "ParentTaskID", currentTaskID,
                             "OrderedChildIDs", orderedIdsCSV,
                             "LoginID", LoginID
                         ]
@@ -4697,17 +4668,17 @@ return;
                                         message: "Đã lưu thứ tự subtask thành công!"
                                     });
                                 } else {
-uiManager.showAlert({
+                                        uiManager.showAlert({
                                         type: "error",
                                         message: "Không thể lưu thứ tự subtask: " + data.ErrorMessage
                                     });
                                 }
                             }
                         } catch(e) {
-}
+                        }  
                     },
                     error: function(err) {
-uiManager.showAlert({
+                            uiManager.showAlert({
                             type: "error",
                         message: "Không thể lưu thứ tự subtask do lỗi hệ thống."
                         });
@@ -4894,7 +4865,7 @@ uiManager.showAlert({
                             "HeaderID", headerId,           // BÂY GIỜ ĐÃ CÓ GIÁ TRỊ
                             "OrderedTaskIDs", orderedIds.join(",")
                         ]
-       },
+                    },
                     success: function(res) {
                         uiManager.showAlert({ type: "success", message: "Đã lưu thứ tự công việc!" });
                     },
@@ -4905,7 +4876,14 @@ uiManager.showAlert({
                 });
             }
 
-            // Linh: Hàm control chọn nhân viên (đơn hoặc đa chọn)
+            // Linh xử lý các control
+            var DEFAULT_AVATAR_SVG_Employee = `
+                <svg class="avatar" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Default user avatar">
+                    <rect width="200" height="200" fill="#ebf6ff"/>
+                    <circle cx="100" cy="235" r="100" fill="#a4c3f5" stroke="#7192c7" stroke-width="6"/>
+                    <circle cx="100" cy="76" r="43" fill="#fde69a" stroke="#e0b958" stroke-width="6"/>
+                </svg>
+            `;
             function renderEmployeeAvatarOrChip(employee, options = {}) {
                 if (!employee) return `<div class="icon-chip">?</div>`;
 
@@ -4953,13 +4931,6 @@ uiManager.showAlert({
                     />
                 `;
             }
-            var DEFAULT_AVATAR_SVG_Employee = `
-                <svg class="avatar" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Default user avatar">
-                    <rect width="200" height="200" fill="#ebf6ff"/>
-                    <circle cx="100" cy="235" r="100" fill="#a4c3f5" stroke="#7192c7" stroke-width="6"/>
-                    <circle cx="100" cy="76" r="43" fill="#fde69a" stroke="#e0b958" stroke-width="6"/>
-                </svg>
-            `;
             function callImg_EmployeeSelector(a) {
                 if (window.pendingImageRequests) {
                     window.pendingImageRequests.forEach(xhr => {
@@ -4986,9 +4957,9 @@ uiManager.showAlert({
                     observer.observe(img);
                 }
             }
+
             // Thêm biến toàn cục để cache URL đã tạo
             window.employeeAvatarCache = window.employeeAvatarCache || {};
-
             function loadSingleImage_Employee(imgElement) {
                 let self = $(imgElement);
                 let employeeId = self.attr("data-employee-id");
@@ -5055,7 +5026,7 @@ uiManager.showAlert({
                             }, 5 * 60 * 1000);
 
                         } catch(e) {
-avatarLoadStatus[employeeId] = "failed";
+                            avatarLoadStatus[employeeId] = "failed";
                         }
                     } else {
                         avatarLoadStatus[employeeId] = "failed";
@@ -5074,7 +5045,8 @@ avatarLoadStatus[employeeId] = "failed";
                     error: error
                 });
             }
-            // ĐANG SỬA
+
+            // Linh: Hàm control chọn nhân viên (đơn hoặc đa chọn)
             function hpaControlEmployeeSelector(el, config) {
                 setTimeout(() => {
                     const imgs = document.querySelectorAll(".customer-avatar-employee");
@@ -5084,20 +5056,19 @@ avatarLoadStatus[employeeId] = "failed";
                 }, 100);
                 const $el = $(el);
                 const defaults = {
-                    type: "employeesMulti",
-                    displayId: null,
+                    type: "employeesMulti",  // employeeMulti | employee
+                    displayId: null,         // 
                     selectedIds: [],
-                    multi: true,
-                    ajaxListName: null,
-                    silent: true,
+                    multi: true,              
+                    ajaxListName: null,      // sp load dữ liệu
+                    silent: true,            // mode thông báo
                     placeholder: "Tìm...",
                     position: "right",
                     maxVisible: 3,
                     onChange: null,
-                    showAvatar: true,  // THAY ĐỔI: default thành true để hiển thị avatar
+                    showAvatar: false,
                     showId: true,
                     showName: true,
-                    // auto-save to server when selection changes (requires ajaxSaveName)
                     autoSave: false,
                     ajaxSaveName: null
                 };
@@ -5119,7 +5090,7 @@ avatarLoadStatus[employeeId] = "failed";
                             try {
                                 const data = JSON.parse(res).data || [];
                                 employees = data[0] || [];
-} catch (e) {
+                            } catch (e) {
                                 employees = [];
                             }
                         }
@@ -5321,7 +5292,7 @@ avatarLoadStatus[employeeId] = "failed";
                             const imgs = $el.find(".assignee-icons .customer-avatar-employee");
                             if (imgs.length && typeof callImg_EmployeeSelector === "function") callImg_EmployeeSelector(imgs);
                         } catch (err) {
-}
+                        }
 
                         // Gọi onChange callback
                         if (typeof cfg.onChange === "function") cfg.onChange(tempSelectedIds, displayId);
@@ -5467,7 +5438,7 @@ avatarLoadStatus[employeeId] = "failed";
                             const newImgs = $type.find(".emp-sel-icons .customer-avatar-employee");
                             if (newImgs.length && typeof callImg_EmployeeSelector === "function") callImg_EmployeeSelector(newImgs);
                         } catch (err) {
-}
+                        }
 
                         // GỌI onChange DUY NHẤT 1 LẦN
                         if (typeof cfg.onChange === "function") {
@@ -5497,7 +5468,7 @@ avatarLoadStatus[employeeId] = "failed";
                 }
             }
 
-            // ĐANG LÀM
+            // Linh: Hàm control chọn các select
             function hpaControlSelectBox(el, config) {
                 const $el = $(el);
                 const elementId = "hsb_" + Math.random().toString(36).substr(2, 9);
@@ -5683,6 +5654,15 @@ avatarLoadStatus[employeeId] = "failed";
                 // ============================
                 //   SEARCH/FILTER
                 // ============================
+                // Helper: Search/Filter options (case-insensitive, accent-insensitive)
+                function filterSelectBoxOptions(options, query) {
+                    if (!query || query.trim() === "") return options;
+                    const q = normalizeForSearch(query);
+                    return (options || []).filter(opt => {
+                        const text = normalizeForSearch(opt.text || "");
+                        return text.indexOf(q) !== -1;
+                    });
+                }
                 function handleSearch(query) {
                     const filtered = filterSelectBoxOptions(cfg.options, query);
                     renderOptions(filtered);
@@ -5788,7 +5768,7 @@ avatarLoadStatus[employeeId] = "failed";
                 };
             }
 
-            // ĐANG LÀM
+            // Linh: Hàm control chọn các combobox
             function hpaControlCombobox(selector, config) {
                 const $el = $(selector);
                 if ($el.length === 0) return;
@@ -5921,7 +5901,7 @@ avatarLoadStatus[employeeId] = "failed";
                 }
 
                 function renderItems(items, searchKeyword) {
-dropdown.empty();
+                    dropdown.empty();
 
                     if (!items || items.length === 0) {
                         // ✅ Nếu không tìm thấy nhưng có keyword, hiển thị nút "Thêm mới"
@@ -5963,7 +5943,7 @@ dropdown.empty();
                 }
 
                 function selectItem(item) {
-inputDisplay.val(item.text);
+                    inputDisplay.val(item.text);
                     inputHidden.val(item.value);
 
                     iconSearch.hide();
@@ -6024,7 +6004,7 @@ inputDisplay.val(item.text);
 
                     // Nếu vẫn cần gọi API (legacy support - không dùng nữa)
                     if (typeof AjaxHPAParadise === "undefined") {
-return;
+                        return;
                     }
 
                     dropdown.show().html(`<div class="hpa-cb-loading"><i class="bi bi-arrow-clockwise fa-spin"></i> Đang tải...</div>`);
@@ -6160,130 +6140,6 @@ return;
                     }
                 };
             };
-
-            // CHƯA LÀM TỚI
-            function hpaControlAttachFile(el, config) {
-                const $el = $(el);
-                const defaults = {
-                    taskId: currentTaskID,
-                    field: "Attachments",
-                    tableName: "tblTask",
-                    maxSize: 10485760, // 10MB
-                    allowedTypes: ["pdf", "doc", "docx", "xls", "xlsx", "jpg", "png", "gif"],
-                    onChange: null,
-                    silent: false
-                };
-                const cfg = { ...defaults, ...config };
-
-                // Resolve ID used for uploads/display: prefer explicit displayId or recordId, fallback to global currentTaskID
-                const resolvedId = cfg.displayId || cfg.recordId || currentTaskID;
-
-                // Create upload UI
-                const uploadId = `upload-${resolvedId}-${Date.now()}`;
-                const html = `
-                    <div class="hpa-form-controls upload-container" style="border:2px dashed var(--border-color);border-radius:8px;padding:20px;text-align:center;cursor:pointer;transition:all 0.3s;">
-                        <div style="font-size:32px;margin-bottom:10px;"><i class="bi bi-cloud-upload"></i></div>
-                        <div style="font-weight:600;margin-bottom:4px;">Kéo file vào hoặc bấm để chọn</div>
-                        <div style="font-size:12px;color:var(--text-muted);">Tối đa ${(cfg.maxSize / 1024 / 1024).toFixed(0)}MB</div>
-                        <input type="file" id="${uploadId}" class="file-input" style="display:none;" multiple />
-                    </div>
-                    <div class="file-list" style="margin-top:16px;"></div>
-                `;
-                $el.html(html);
-
-                const $upload = $el.find(".upload-container");
-                const $fileInput = $el.find(".file-input");
-                const $fileList = $el.find(".file-list");
-
-                // Drag & drop
-                $upload.on("dragover", (e) => {
-                    e.preventDefault();
-                    $upload.css("background", "rgba(46,125,50,0.05)").css("border-color", "var(--task-primary)");
-                });
-
-                $upload.on("dragleave", () => {
-                    $upload.css("background", "").css("border-color", "var(--border-color)");
-                });
-
-                $upload.on("drop", (e) => {
-                    e.preventDefault();
-                    $upload.css("background", "").css("border-color", "var(--border-color)");
-                    handleFiles(e.originalEvent.dataTransfer.files);
-                });
-
-                $upload.on("click", () => $fileInput.click());
-                $fileInput.on("change", function() { handleFiles(this.files); });
-
-                function handleFiles(files) {
-                    const fileArray = Array.from(files);
-                    let validFiles = [];
-
-                    fileArray.forEach(file => {
-                        const ext = file.name.split(".").pop().toLowerCase();
-                        if (!cfg.allowedTypes.includes(ext)) {
-                            if (!cfg.silent) uiManager.showAlert({ type: "error", message: `File ${file.name}: loại không được phép` });
-                            return;
-                        }
-                        if (file.size > cfg.maxSize) {
-                            if (!cfg.silent) uiManager.showAlert({ type: "error", message: `File ${file.name}: vượt quá dung lượng tối đa` });
-                            return;
-                        }
-                        validFiles.push(file);
-                    });
-
-                    if (validFiles.length === 0) return;
-
-                    // Show uploading status
-                    let html = "";
-                    validFiles.forEach((file, idx) => {
-                        const fileId = `file-${Date.now()}-${idx}`;
-                        html += `
-                            <div class="file-item" data-fileid="${fileId}" style="display:flex;align-items:center;gap:10px;padding:10px;background:#f9f9f9;border-radius:6px;margin-bottom:8px;border:1px solid var(--border-color);">
-                                <i class="bi bi-file-earmark" style="font-size:20px;color:var(--task-primary);"></i>
-                                <div style="flex:1;min-width:0;">
-                                    <div style="font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(file.name)}</div>
-                                    <div style="font-size:12px;color:var(--text-muted);">${(file.size / 1024).toFixed(1)}KB</div>
-                                </div>
-                                <div style="display:flex;gap:6px;">
-                                    <button class="btn-file-download" style="padding:4px 8px;border:1px solid var(--border-color);border-radius:4px;background:white;cursor:pointer;font-size:12px;display:none;">Tải</button>
-                                    <button class="btn-file-delete" style="padding:4px 8px;border:1px solid var(--border-color);border-radius:4px;background:#fee;color:var(--danger-color);cursor:pointer;font-size:12px;"><i class="bi bi-trash"></i></button>
-                                </div>
-                            </div>
-                        `;
-                    });
-                    $fileList.html(html);
-
-                    // Handle delete button
-                    $el.on("click", ".btn-file-delete", function() {
-                        $(this).closest(".file-item").remove();
-                    });
-
-                    // Auto upload via API
-                    const formData = new FormData();
-                    formData.append("LoginID", LoginID);
-                    formData.append("TaskID", resolvedId);
-                    formData.append("TableName", cfg.tableName);
-
-                    validFiles.forEach(file => {
-                        formData.append("files", file);
-                    });
-
-                    // Call upload API
-                    fetch("/api/upload", {
-                        method: "POST",
-                        body: formData
-                    }).then(res => res.json()).then(data => {
-                        if (data.success) {
-                            if (!cfg.silent) uiManager.showAlert({ type: "success", message: "Đã upload file!" });
-                            if (cfg.onChange) cfg.onChange(data.files);
-                        } else {
-                            uiManager.showAlert({ type: "error", message: "Upload thất bại!" });
-                        }
-                    }).catch(err => {
-                        uiManager.showAlert({ type: "error", message: "Lỗi upload!" });
-                    });
-                }
-            }
         })();
     </script>
     ';

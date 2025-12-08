@@ -1,0 +1,123 @@
+// CHƯA LÀM TỚI
+            function hpaControlAttachFile(el, config) {
+                const $el = $(el);
+                const defaults = {
+                    taskId: currentTaskID,
+                    field: "Attachments",
+                    tableName: "tblTask",
+                    maxSize: 10485760, // 10MB
+                    allowedTypes: ["pdf", "doc", "docx", "xls", "xlsx", "jpg", "png", "gif"],
+                    onChange: null,
+                    silent: false
+                };
+                const cfg = { ...defaults, ...config };
+
+                // Resolve ID used for uploads/display: prefer explicit displayId or recordId, fallback to global currentTaskID
+                const resolvedId = cfg.displayId || cfg.recordId || currentTaskID;
+
+                // Create upload UI
+                const uploadId = `upload-${resolvedId}-${Date.now()}`;
+                const html = `
+                    <div class="hpa-form-controls upload-container" style="border:2px dashed var(--border-color);border-radius:8px;padding:20px;text-align:center;cursor:pointer;transition:all 0.3s;">
+                        <div style="font-size:32px;margin-bottom:10px;"><i class="bi bi-cloud-upload"></i></div>
+                        <div style="font-weight:600;margin-bottom:4px;">Kéo file vào hoặc bấm để chọn</div>
+                        <div style="font-size:12px;color:var(--text-muted);">Tối đa ${(cfg.maxSize / 1024 / 1024).toFixed(0)}MB</div>
+                        <input type="file" id="${uploadId}" class="file-input" style="display:none;" multiple />
+                    </div>
+                    <div class="file-list" style="margin-top:16px;"></div>
+                `;
+                $el.html(html);
+
+                const $upload = $el.find(".upload-container");
+                const $fileInput = $el.find(".file-input");
+                const $fileList = $el.find(".file-list");
+
+                // Drag & drop
+                $upload.on("dragover", (e) => {
+                    e.preventDefault();
+                    $upload.css("background", "rgba(46,125,50,0.05)").css("border-color", "var(--task-primary)");
+                });
+
+                $upload.on("dragleave", () => {
+                    $upload.css("background", "").css("border-color", "var(--border-color)");
+                });
+
+                $upload.on("drop", (e) => {
+                    e.preventDefault();
+                    $upload.css("background", "").css("border-color", "var(--border-color)");
+                    handleFiles(e.originalEvent.dataTransfer.files);
+                });
+
+                $upload.on("click", () => $fileInput.click());
+                $fileInput.on("change", function() { handleFiles(this.files); });
+
+                function handleFiles(files) {
+                    const fileArray = Array.from(files);
+                    let validFiles = [];
+
+                    fileArray.forEach(file => {
+                        const ext = file.name.split(".").pop().toLowerCase();
+                        if (!cfg.allowedTypes.includes(ext)) {
+                            if (!cfg.silent) uiManager.showAlert({ type: "error", message: `File ${file.name}: loại không được phép` });
+                            return;
+                        }
+                        if (file.size > cfg.maxSize) {
+                            if (!cfg.silent) uiManager.showAlert({ type: "error", message: `File ${file.name}: vượt quá dung lượng tối đa` });
+                            return;
+                        }
+                        validFiles.push(file);
+                    });
+
+                    if (validFiles.length === 0) return;
+
+                    // Show uploading status
+                    let html = "";
+                    validFiles.forEach((file, idx) => {
+                        const fileId = `file-${Date.now()}-${idx}`;
+                        html += `
+                            <div class="file-item" data-fileid="${fileId}" style="display:flex;align-items:center;gap:10px;padding:10px;background:#f9f9f9;border-radius:6px;margin-bottom:8px;border:1px solid var(--border-color);">
+                                <i class="bi bi-file-earmark" style="font-size:20px;color:var(--task-primary);"></i>
+                                <div style="flex:1;min-width:0;">
+                                    <div style="font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(file.name)}</div>
+                                    <div style="font-size:12px;color:var(--text-muted);">${(file.size / 1024).toFixed(1)}KB</div>
+                                </div>
+                                <div style="display:flex;gap:6px;">
+                                    <button class="btn-file-download" style="padding:4px 8px;border:1px solid var(--border-color);border-radius:4px;background:white;cursor:pointer;font-size:12px;display:none;">Tải</button>
+                                    <button class="btn-file-delete" style="padding:4px 8px;border:1px solid var(--border-color);border-radius:4px;background:#fee;color:var(--danger-color);cursor:pointer;font-size:12px;"><i class="bi bi-trash"></i></button>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    $fileList.html(html);
+
+                    // Handle delete button
+                    $el.on("click", ".btn-file-delete", function() {
+                        $(this).closest(".file-item").remove();
+                    });
+
+                    // Auto upload via API
+                    const formData = new FormData();
+                    formData.append("LoginID", LoginID);
+                    formData.append("TaskID", resolvedId);
+                    formData.append("TableName", cfg.tableName);
+
+                    validFiles.forEach(file => {
+                        formData.append("files", file);
+                    });
+
+                    // Call upload API
+                    fetch("/api/upload", {
+                        method: "POST",
+                        body: formData
+                    }).then(res => res.json()).then(data => {
+                        if (data.success) {
+                            if (!cfg.silent) uiManager.showAlert({ type: "success", message: "Đã upload file!" });
+                            if (cfg.onChange) cfg.onChange(data.files);
+                        } else {
+                            uiManager.showAlert({ type: "error", message: "Upload thất bại!" });
+                        }
+                    }).catch(err => {
+                        uiManager.showAlert({ type: "error", message: "Lỗi upload!" });
+                    });
+                }
+            }
