@@ -522,11 +522,11 @@ GO
                     } else {
                         $dropdown.show();
                         
+                        // Nếu grid chưa tạo, tạo mới
                         if (!dataGridInstance) {
                             createDataGrid();
-                        } else {
-                            dataGridInstance.refresh();
                         }
+                        // Nếu đã có grid, chỉ focus input, không refresh (tránh load lại API)
                         
                         setTimeout(() => {
                             $(`#${config.dropdownId} #employeeSearchInput`).focus();
@@ -568,55 +568,47 @@ GO
                             const skip = (loadOptions.skip || 0);
                             const take = loadOptions.take || config.take;
                             
-                            console.log(`📄 [Grid] Load page: skip=${skip}, take=${take}, cached=${allEmployees.length}/${totalCount}`);
+                            console.log(`📄 [Grid.load] skip=${skip}, take=${take}, cached=${allEmployees.length}/${totalCount}`);
                             
-                            // Luôn load toàn bộ dữ liệu nếu đang dùng API
                             if (config.useApi && !config.apiData) {
-                                // Nếu chưa load dữ liệu nào, load từ đầu
-                                if (allEmployees.length === 0) {
-                                    console.log(`📡 [Grid] First load - fetching from API`);
-                                    // Load batch đầu tiên
-                                    loadEmployeeListRecursive(0, take).then(() => {
-                                        // Sau khi load xong, sort và return data
+                                // Tính API skip từ số records đã load
+                                const apiSkip = allEmployees.length;
+                                
+                                // Nếu cần load thêm dữ liệu từ API
+                                // Chỉ load nếu: chưa load bất kì record nào, hoặc còn record chưa load
+                                const needLoadApi = allEmployees.length === 0 || (totalCount > 0 && allEmployees.length < totalCount);
+                                
+                                if (needLoadApi) {
+                                    console.log(`📡 [Grid.load] Fetching from API: apiSkip=${apiSkip}, take=${take}, totalCount=${totalCount}`);
+                                    
+                                    // Gọi API từ vị trí hiện tại (tự động merge vào allEmployees)
+                                    loadEmployeeList(apiSkip, take).then(() => {
                                         const sorted = getSortedEmployees();
                                         const pageData = sorted.slice(skip, skip + take);
+                                        
+                                        console.log(`✓ [Grid.load] Resolved: skip=${skip}, returning ${pageData.length} items from sorted ${sorted.length} total`);
                                         
                                         deferred.resolve({
                                             data: pageData,
                                             totalCount: totalCount
                                         });
                                     }).catch(err => {
+                                        console.error("Error loading:", err);
                                         deferred.reject(err);
                                     });
                                 } else {
-                                    // Nếu đã có dữ liệu, kiểm tra xem cần load thêm không
-                                    if (allEmployees.length < totalCount && skip + take > allEmployees.length - 5) {
-                                        // Khi gần hết dữ liệu, load thêm
-                                        console.log(`📡 [Grid] Near end of data, fetching more: current=${allEmployees.length}, requested=${skip + take}`);
-                                        loadEmployeeListRecursive(allEmployees.length, take).then(() => {
-                                            const sorted = getSortedEmployees();
-                                            const pageData = sorted.slice(skip, skip + take);
-                                            
-                                            deferred.resolve({
-                                                data: pageData,
-                                                totalCount: totalCount
-                                            });
-                                        }).catch(err => {
-                                            deferred.reject(err);
-                                        });
-                                    } else {
-                                        // Có đủ dữ liệu, chỉ cần sort
-                                        const sorted = getSortedEmployees();
-                                        const pageData = sorted.slice(skip, skip + take);
-                                        
-                                        deferred.resolve({
-                                            data: pageData,
-                                            totalCount: totalCount
-                                        });
-                                    }
+                                    // Đã có dữ liệu, chỉ sort
+                                    console.log(`✓ [Grid.load] Using cached data (${allEmployees.length} records)`);
+                                    const sorted = getSortedEmployees();
+                                    const pageData = sorted.slice(skip, skip + take);
+                                    
+                                    deferred.resolve({
+                                        data: pageData,
+                                        totalCount: totalCount || allEmployees.length
+                                    });
                                 }
                             } else {
-                                // Dùng local data
+                                // Local data
                                 const sorted = getSortedEmployees();
                                 const pageData = sorted.slice(skip, skip + take);
                                 
@@ -629,38 +621,6 @@ GO
                             return deferred.promise();
                         }
                     });
-                    
-                    // Helper function: Load dữ liệu từ API một cách recursive
-                    function loadEmployeeListRecursive(skip, take) {
-                        const deferred = $.Deferred();
-                        
-                        // Kiểm tra nếu đã load toàn bộ
-                        if (allEmployees.length >= totalCount && totalCount > 0) {
-                            console.log(`✓ [Grid] All data already loaded`);
-                            deferred.resolve(allEmployees);
-                            return deferred.promise();
-                        }
-                        
-                        // Nếu đang load, chờ
-                        if (isLoadingApiData) {
-                            console.log("⏳ [Grid] Loading in progress, waiting...");
-                            setTimeout(() => {
-                                loadEmployeeListRecursive(skip, take).then(
-                                    () => deferred.resolve(allEmployees),
-                                    (err) => deferred.reject(err)
-                                );
-                            }, 500);
-                            return deferred.promise();
-                        }
-                        
-                        loadEmployeeList(skip, take).then((data) => {
-                            deferred.resolve(data);
-                        }).catch(err => {
-                            deferred.reject(err);
-                        });
-                        
-                        return deferred.promise();
-                    }
                     
                     // Helper function: Sort employees (selected lên đầu)
                     function getSortedEmployees() {
@@ -711,11 +671,12 @@ GO
                         dataSource: gridStore,
                         keyExpr: "EmployeeID",
                         columns: gridColumns,
+                        remoteOperations: true,  // ← Quan trọng: cho phép grid tự động gọi load khi scroll
                         paging: { 
                             enabled: true, 
-                            pageSize: config.take  // pageSize = take
+                            pageSize: config.take
                         },
-                        scrolling: { mode: "virtual" },
+                        scrolling: { mode: "virtual" },  // ← Virtual scroll sẽ trigger load() tự động
                         height: 345,
                         selection: { 
                             mode: config.multi ? "multiple" : "single", 
@@ -762,26 +723,6 @@ GO
                     $(`#${config.dropdownId} #employeeSearchInput`).off("keyup").on("keyup", function() {
                         filterEmployees($(this).val());
                     });
-                    
-                    // Monitor scroll event để load thêm dữ liệu
-                    $(`#${config.dropdownId} .employee-dropdown-body`).off("scroll").on("scroll", function() {
-                        const $this = $(this);
-                        const scrollTop = $this.scrollTop();
-                        const scrollHeight = this.scrollHeight;
-                        const clientHeight = this.clientHeight;
-                        
-                        // Khi scroll gần hết (còn 100px), load thêm dữ liệu
-                        if (scrollHeight - (scrollTop + clientHeight) < 100) {
-                            console.log(`⬇️ [Scroll] Near bottom, current loaded=${allEmployees.length}, total=${totalCount}`);
-                            
-                            if (allEmployees.length < totalCount && !isLoadingApiData) {
-                                // Trigger grid refresh để load thêm dữ liệu
-                                if (dataGridInstance) {
-                                    dataGridInstance.refresh();
-                                }
-                            }
-                        }
-                    });
                 }
 
                 // Close on outside click
@@ -792,9 +733,14 @@ GO
                 });
 
                 // Initialize
-                loadEmployeeList(config.skip, config.take).then(() => {
+                // Chỉ load lần đầu nếu cần (dùng API)
+                if (config.useApi && !config.apiData) {
+                    loadEmployeeList(0, config.take).then(() => {
+                        renderSelectorButton();
+                    });
+                } else {
                     renderSelectorButton();
-                });
+                }
                 
                 // Return public API
                 return {
