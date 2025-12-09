@@ -15,7 +15,7 @@ GO
     set @html += N'
     <div class="demo-container" style="position: relative;">
         <div id="employeeSelector" style="margin-bottom: 8px;"></div>
-        <div id="employeeDropdownGrid" style="display:none; position:absolute; z-index:1000; top: 100%; left: 0;"></div>
+        <div id="employeeDropdownGrid"></div>
     </div>
     <style>
         .demo-container {
@@ -27,54 +27,25 @@ GO
             align-items: center;
             gap: 8px;
         }
-        .employee-image {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 2px solid white;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
         .employee-name {
             font-weight: 500;
         }
-        
-        /* Employee Selector Control Style - giống hpaControlEmployeeSelector */
+
+        /* Employee Selector Control Style */
         .employee-selector-wrapper {
             position: relative;
             display: inline-block;
             width: auto;
         }
-        
-        .employee-selector-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 6px 12px;
-            border: 1px solid #dee2e6;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-size: 13px;
-            white-space: nowrap;
-            position: relative;
-            z-index: 100;
-        }
-        
-        .employee-selector-btn:hover {
-            border-color: #adb5bd;
-        }
-        
+
         .employee-selector-chips {
             display: flex;
             align-items: center;
             gap: 0;
             margin-right: 8px;
         }
-        
+
         .employee-selector-chip {
-            width: 28px;
-            height: 28px;
             border-radius: 50%;
             overflow: hidden;
             flex-shrink: 0;
@@ -83,25 +54,23 @@ GO
             margin-left: -8px;
             transition: all 0.2s;
         }
-        
+
         .employee-selector-chip:first-child {
             margin-left: 0;
         }
-        
+
         .employee-selector-chip:hover {
             transform: scale(1.1);
             z-index: 10;
         }
-        
+
         .employee-selector-chip img {
             width: 100%;
             height: 100%;
             object-fit: cover;
         }
-        
+
         .employee-selector-chip-text {
-            width: 28px;
-            height: 28px;
             border-radius: 50%;
             overflow: hidden;
             flex-shrink: 0;
@@ -112,43 +81,46 @@ GO
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 11px;
             font-weight: 600;
+            background: #e9ecef;
         }
-        
+
         .employee-selector-chip-text:first-child {
             margin-left: 0;
         }
-        
+
         .employee-selector-chip-text:hover {
             transform: scale(1.1);
             z-index: 10;
         }
-        
+
         .employee-selector-count {
             font-weight: 600;
             color: #495057;
         }
-        
+
         .employee-selector-icon {
             margin-left: 4px;
             color: #6c757d;
         }
-        
-        /* Dropdown Grid */
-        #employeeDropdownGrid {
+
+        /* Dropdown Grid - base styles */
+        .employee-dropdown-container {
+            display: none;
+            position: absolute;
+            z-index: 1000;
             border: 1px solid #dee2e6;
             border-radius: 4px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
             overflow: hidden;
-            width: 300px;
+            background: #fff;
         }
-        
+
         .employee-dropdown-header {
             padding: 12px;
             border-bottom: 1px solid #dee2e6;
         }
-        
+
         .employee-dropdown-search {
             width: 100%;
             padding: 8px 12px;
@@ -156,55 +128,76 @@ GO
             border-radius: 4px;
             font-size: 13px;
             outline: none;
+            box-sizing: border-box;
         }
-        
+
         .employee-dropdown-search:focus {
             border-color: #2E7D32;
             box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.1);
         }
-        
+
         .employee-dropdown-body {
-            max-height: 400px;
             overflow-y: auto;
         }
-        
-        #employeeGridInner {
-            width: 100% !important;
-        }
-        
-        #employeeDropdownGrid .dx-datagrid {
+
+        .employee-dropdown-container .dx-datagrid {
             border: none !important;
         }
-        
-        #employeeDropdownGrid .dx-datagrid-headers {
-            border-bottom: 1px solid #dee2e6;
+
+        .employee-dropdown-container .dx-datagrid-headers {
+            display: none;
         }
-        
-        #employeeDropdownGrid .dx-checkbox {
+
+        .employee-dropdown-container .dx-checkbox {
             margin: 0;
         }
-        
+
         .grid-employee-cell {
             display: flex !important;
             align-items: center;
             gap: 8px;
             padding: 4px 0;
         }
-        
+
         .grid-employee-image {
-            width: 28px;
-            height: 28px;
             border-radius: 50%;
             object-fit: cover;
             flex-shrink: 0;
         }
-        
+
         .selected-count {
             margin-left: auto;
             font-size: 12px;
             color: #676879;
             font-weight: 600;
         }
+
+        .employee-selector-wrapper { position: relative; }
+        .employee-selector-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 8px;
+            border: 1px solid #e6edf3;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.12s ease;
+            font-size: 13px;
+            white-space: nowrap;
+            background: #fff;
+            box-shadow: 0 1px 2px rgba(16,24,40,0.04);
+        }
+
+        .employee-selector-btn:hover { border-color: #c7d2da; transform: translateY(-1px); }
+
+        /* Right-aligned overlapping icon chips similar to MyWork */
+        .selected-icons { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); display: flex; align-items: center; }
+        .icon-chip { width:28px; height:28px; border-radius:50%; background:#f1f5f9; display:flex; align-items:center; justify-content:center; font-size:12px; color:#23303b; border:2px solid #fff; box-shadow:0 1px 0 rgba(0,0,0,0.04); margin-left:-8px; overflow:hidden; }
+        .icon-chip:first-child { margin-left:0; }
+        .icon-more { width:28px; height:28px; border-radius:50%; background:#e6edf3; display:flex; align-items:center; justify-content:center; font-size:12px; color:#23303b; border:2px solid #fff; margin-left:-8px; }
+
+        /* Provide space on the left for label/placeholder when chips are present */
+        .employee-selector-chips { padding-right: 90px; }
     </style>
     <script>
         $(() => {
@@ -225,13 +218,17 @@ GO
                     apiData: null,
                     pageSize: 10,
                     take: 10,
-                    skip: 0
+                    skip: 0,
+                    avatarWidth: 32,
+                    avatarHeight: 32,
+                    width: 350,
+                    height: 400
                 };
                 const config = { ...defaults, ...options };
-                const SVG_PLACEHOLDER = "data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 10 hpaControlEmployeeSelector0%22%3E%3Ccircle cx=%2250%22 cy=%2250%22 r=%2250%22 fill=%22%23e0e0e0%22/%3E%3C/svg%3E";
+                const SVG_PLACEHOLDER = "data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Ccircle cx=%2250%22 cy=%2250%22 r=%2250%22 fill=%22%23e0e0e0%22/%3E%3C/svg%3E";
                 const avatarCache = {};
                 let allEmployees = [];
-                let selectedIds = config.selectedIds;
+                let selectedIds = [...config.selectedIds];
                 let dataGridInstance = null;
                 let totalCount = 0;
                 let currentSkip = 0;
@@ -239,6 +236,15 @@ GO
                 let currentSearchText = "";
                 let snapshotEmployees = [];
                 let isGridInitializing = true;
+
+                function initDropdownContainer() {
+                    const $dropdown = $(`#${config.dropdownId}`);
+                    $dropdown.addClass("employee-dropdown-container");
+                    $dropdown.css({
+                        width: config.width + "px",
+                        display: "none"
+                    });
+                }
 
                 function loadEmployeeList(skip, take) {
                     const deferred = $.Deferred();
@@ -255,6 +261,7 @@ GO
                         return deferred.promise();
                     }
                     if (allEmployees.length >= totalCount && totalCount > 0) {
+
                         deferred.resolve(allEmployees);
                         return deferred.promise();
                     }
@@ -356,10 +363,19 @@ GO
                     return (fullName.substring(0, 2)).toUpperCase();
                 }
 
+                function getAvatarStyle() {
+                    return `width:${config.avatarWidth}px;height:${config.avatarHeight}px;`;
+                }
+
+                function getChipFontSize() {
+                    const size = Math.min(config.avatarWidth, config.avatarHeight);
+                    return Math.max(8, Math.floor(size * 0.4));
+                }
+
                 function renderSelectorButton() {
                     let html = `
                         <div class="employee-selector-wrapper">
-                            <button type="button" class="employee-selector-btn" id="employeeSelectorBtn">
+                            <button type="button" class="employee-selector-btn" id="employeeSelectorBtn_${config.containerId}">
                                 <div class="employee-selector-chips">
                     `;
                     const selectedEmps = selectedIds
@@ -376,7 +392,7 @@ GO
                             visibleEmps.forEach(emp => {
                                 const imgUrl = avatarCache[emp.EmployeeID] || loadEmployeeImage(emp);
                                 html += `
-                                    <div class="employee-selector-chip" data-emp-id="${emp.EmployeeID}" title="${emp.FullName}">
+                                    <div class="employee-selector-chip" data-emp-id="${emp.EmployeeID}" title="${emp.FullName}" style="${getAvatarStyle()}">
                                         <img src="${imgUrl}" alt="${emp.FullName}" />
                                     </div>
                                 `;
@@ -385,24 +401,24 @@ GO
                             visibleEmps.forEach(emp => {
                                 const initials = getInitials(emp.FullName);
                                 html += `
-                                    <div class="employee-selector-chip-text" data-emp-id="${emp.EmployeeID}" title="${emp.FullName}">
+                                    <div class="employee-selector-chip-text" data-emp-id="${emp.EmployeeID}" title="${emp.FullName}" style="${getAvatarStyle()}font-size:${getChipFontSize()}px;">
                                         ${initials}
                                     </div>
                                 `;
                             });
                         }
                         if (remainingCount > 0) {
-                            html += `<span class="employee-selector-count">+${remainingCount}</span>`;
+                    html += `<span class="employee-selector-count">+${remainingCount}</span>`;
                         }
                     }
                     html += `
                                 </div>
-                                <span class="employee-selector-icon">▼</span>
+                                <span class="employee-selector-icon"><i class="bi bi-chevron-down"></i></span>
                             </button>
                         </div>
                     `;
                     $(`#${config.containerId}`).html(html);
-                    $(`#${config.containerId} #employeeSelectorBtn`).off("click").on("click", function(e) {
+                    $(`#employeeSelectorBtn_${config.containerId}`).off("click").on("click", function(e) {
                         e.stopPropagation();
                         toggleDropdown();
                     });
@@ -415,12 +431,33 @@ GO
                     }
                 }
 
+                function positionDropdown() {
+                    const $btn = $(`#employeeSelectorBtn_${config.containerId}`);
+                    const $dropdown = $(`#${config.dropdownId}`);
+
+                    if ($btn.length === 0) return;
+
+                    const btnOffset = $btn.offset();
+                    const btnHeight = $btn.outerHeight();
+                    const btnLeft = $btn.position().left;
+
+                    // Tính toán vị trí dropdown ngay dưới button
+                    const containerOffset = $(`#${config.containerId}`).parent().offset() || { top: 0, left: 0 };
+
+                    $dropdown.css({
+                        position: "absolute",
+                        top: ($btn.position().top + btnHeight + 4) + "px",
+                        left: btnLeft + "px"
+                    });
+                }
+
                 function toggleDropdown() {
                     const $dropdown = $(`#${config.dropdownId}`);
                     const isVisible = $dropdown.is(":visible");
                     if (isVisible) {
                         $dropdown.hide();
                     } else {
+                        positionDropdown();
                         $dropdown.show();
                         if (!dataGridInstance) {
                             loadEmployeeList(0, config.take).then(() => {
@@ -428,7 +465,7 @@ GO
                             });
                         }
                         setTimeout(() => {
-                            $(`#${config.dropdownId} #employeeSearchInput`).focus();
+                            $(`#${config.dropdownId} .employee-dropdown-search`).focus();
                         }, 100);
                     }
                 }
@@ -452,12 +489,15 @@ GO
                 }
 
                 function createDataGrid() {
+                    const headerHeight = 50;
+                    const bodyHeight = config.height - headerHeight;
+
                     const html = `
                         <div class="employee-dropdown-header">
-                            <input type="text" id="employeeSearchInput" class="employee-dropdown-search" placeholder="Tìm..." />
+                            <input type="text" class="employee-dropdown-search" placeholder="Tìm kiếm..." />
                         </div>
-                        <div class="employee-dropdown-body">
-                            <div id="employeeGridInner"></div>
+                        <div class="employee-dropdown-body" style="height:${bodyHeight}px;max-height:${bodyHeight}px;">
+                            <div class="employee-grid-inner"></div>
                         </div>
                     `;
                     $(`#${config.dropdownId}`).html(html);
@@ -519,33 +559,43 @@ GO
 
                     const gridColumns = [{ type: "selection", width: 40, alignment: "center" }];
 
+                    // Calculate fixed widths (selection + optional avatar column) so the
+                    // FullName column can occupy the remaining space and become full width
+                    // relative to the dropdown body.
+                    let fixedColumnsWidth = 40; // selection column width
+
                     if (config.showAvatar) {
                         gridColumns.push({
                             dataField: "storeImgName",
-                            caption: "Avatar",
-                            width: 60,
-                            cellTemplate: function(container, options) {
+                            caption: "",
+                            width: config.avatarWidth + 16,
+               cellTemplate: function(container, options) {
                                 const emp = options.data;
                                 let imgUrl = avatarCache[emp.EmployeeID] || loadEmployeeImage(emp);
-                                const $img = $(`<img class="grid-employee-image" data-emp-id="${emp.EmployeeID}" src="${imgUrl}" alt="${emp.FullName}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;" />`);
+                                const $img = $(`<img class="grid-employee-image" data-emp-id="${emp.EmployeeID}" src="${imgUrl}" alt="${emp.FullName}" style="${getAvatarStyle()}border-radius:50%;object-fit:cover;" />`);
                                 container.html($img);
                             }
                         });
+                        fixedColumnsWidth += (config.avatarWidth + 16);
                     }
 
-                    gridColumns.push({ dataField: "FullName", caption: "Tên nhân viên", width: "auto" });
+                    // Name column takes remaining width so rows appear full-width inside the dropdown body.
+                    const nameColumnWidth = `calc(100% - ${fixedColumnsWidth}px)`;
+                    gridColumns.push({ dataField: "FullName", caption: "Tên nhân viên", width: nameColumnWidth });
 
                     const gridConfig = {
                         dataSource: gridStore,
                         keyExpr: "EmployeeID",
                         columns: gridColumns,
+                        showColumnHeaders: false,
                         remoteOperations: true,
                         paging: { enabled: true, pageSize: config.take },
                         scrolling: { mode: "virtual" },
-                        height: 345,
-                        selection: { 
-                            mode: config.multi ? "multiple" : "single", 
-                            selectAllMode: config.multi ? "allPages" : "page" 
+                        height: bodyHeight,
+                        width: "100%",
+                        selection: {
+                            mode: config.multi ? "multiple" : "single",
+                            selectAllMode: config.multi ? "allPages" : "page"
                         },
                         selectedRowKeys: selectedIds,
                         onSelectionChanged: function(selectedItems) {
@@ -557,7 +607,7 @@ GO
                             snapshotEmployees = getSortedEmployees();
                             if (currentSearchText) {
                                 currentSearchText = "";
-                                $(`#${config.dropdownId} #employeeSearchInput`).val("");
+                                $(`#${config.dropdownId} .employee-dropdown-search`).val("");
                             }
                             setTimeout(() => {
                                 if (dataGridInstance) {
@@ -570,12 +620,12 @@ GO
                         }
                     };
 
-                    $(`#${config.dropdownId} #employeeGridInner`).dxDataGrid(gridConfig);
-                    dataGridInstance = $(`#${config.dropdownId} #employeeGridInner`).dxDataGrid("instance");
+                    $(`#${config.dropdownId} .employee-grid-inner`).dxDataGrid(gridConfig);
+                    dataGridInstance = $(`#${config.dropdownId} .employee-grid-inner`).dxDataGrid("instance");
 
                     setTimeout(() => {
                         if (dataGridInstance) {
-                            const foundSelectedEmps = selectedIds.filter(id => 
+                            const foundSelectedEmps = selectedIds.filter(id =>
                                 allEmployees.some(e => String(e.EmployeeID) === String(id))
                             );
                             if (foundSelectedEmps.length > 0) {
@@ -584,7 +634,7 @@ GO
                         }
                     }, 100);
 
-                    $(`#${config.dropdownId} #employeeSearchInput`).off("keyup").on("keyup", function() {
+                    $(`#${config.dropdownId} .employee-dropdown-search`).off("keyup").on("keyup", function() {
                         filterEmployees($(this).val());
                     });
 
@@ -611,12 +661,14 @@ GO
                     });
                 }
 
-                $(document).off("click.employeeSelector").on("click.employeeSelector", function(e) {
+                $(document).off(`click.employeeSelector_${config.containerId}`).on(`click.employeeSelector_${config.containerId}`, function(e) {
                     if (!$(e.target).closest(`#${config.containerId}, #${config.dropdownId}`).length) {
                         $(`#${config.dropdownId}`).hide();
                     }
                 });
 
+                // Initialize
+                initDropdownContainer();
                 renderSelectorButton();
                 if (config.useApi && !config.apiData) {
                     loadEmployeeList(0, config.take).then(() => {
@@ -627,16 +679,36 @@ GO
                 return {
                     getSelectedIds: () => selectedIds,
                     setSelectedIds: (ids) => {
-                        selectedIds = ids;
+                        selectedIds = [...ids];
                         renderSelectorButton();
+                        if (dataGridInstance) {
+                            dataGridInstance.option("selectedRowKeys", selectedIds);
+                        }
+                    },
+                    refresh: () => {
+                        if (dataGridInstance) {
+                            dataGridInstance.refresh();
+                        }
+                    },
+                    open: () => {
+                        positionDropdown();
+                        $(`#${config.dropdownId}`).show();
+                    },
+                    close: () => {
+                        $(`#${config.dropdownId}`).hide();
                     }
                 };
             }
 
+            // Example usage
             window.employeeSelector = hpaControlEmployeeSelector({
                 containerId: "employeeSelector",
                 dropdownId: "employeeDropdownGrid",
                 selectedIds: ["044", "045", "046"],
+                width: 350,
+                height: 400,
+                avatarWidth: 32,
+                avatarHeight: 32,
                 onChange: (selectedIds) => {
                     console.log("Selected employees changed:", selectedIds);
                 }
@@ -645,7 +717,6 @@ GO
     </script>
     ';
         SELECT @html AS html;
-        -- EXEC sp_GenerateHTMLScript 'sp_Task_TaskList_html'
     END
 GO
 

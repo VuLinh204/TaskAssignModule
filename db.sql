@@ -60,6 +60,7 @@ BEGIN
         HeaderID       INT IDENTITY(1,1) PRIMARY KEY,
         HeaderTitle    NVARCHAR(255),
         StartDate      DATETIME,
+        MainPersonInCharge  VARCHAR(100),
         PersonInCharge VARCHAR(100),
         Note           NVARCHAR(500),
         CommittedHours FLOAT NULL -- Thời gian cam kết hoàn thành (giờ)
@@ -74,7 +75,7 @@ IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name='tblTask_AssignHistory')
 BEGIN
     CREATE TABLE dbo.tblTask_AssignHistory (
         HistoryID   BIGINT IDENTITY(1,1) PRIMARY KEY,
-        HeaderID    INT,
+        
         EmployeeID  VARCHAR(20),
         TaskID      BIGINT,
         ActualKPI   DECIMAL(18,2),

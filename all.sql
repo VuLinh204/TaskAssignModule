@@ -1,3 +1,73 @@
+--Begin script: sp_Task_GetListChildCandidate
+USE Paradise_Beta_Tai2
+GO
+if object_id('[dbo].[sp_Task_GetListChildCandidate]') is null
+	EXEC ('CREATE PROCEDURE [dbo].[sp_Task_GetListChildCandidate] as select 1')
+GO
+
+ALTER PROCEDURE [dbo].[sp_Task_GetListChildCandidate]
+    @LoginID INT = 59,
+    @ParentTaskID BIGINT = 9
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    -------------------------------------------------------------
+    -- Lấy EmployeeID thực từ LoginID
+    -------------------------------------------------------------
+    DECLARE @EmployeeID VARCHAR(20);
+
+    SELECT @EmployeeID = EmployeeID
+    FROM tblSC_Login
+    WHERE LoginID = @LoginID;
+
+
+    -------------------------------------------------------------
+    -- LẤY TASK ỨNG VIÊN (KHÔNG HỀ CÓ ASSIGN HISTORY)
+    -------------------------------------------------------------
+    SELECT
+        T.TaskID AS value,
+        T.TaskName + ' (ID: ' + CAST(T.TaskID AS VARCHAR(20)) + ')' AS text
+    FROM tblTask T
+	
+    WHERE
+        T.Status = 1
+
+        -- LOẠI toàn bộ task xuất hiện trong tblTask_AssignHistory
+        AND NOT EXISTS (
+            SELECT 1
+            FROM tblTask_AssignHistory AH
+            WHERE AH.TaskID = T.TaskID
+        )
+
+        -- Không phải task cha của bất kỳ task nào
+        AND NOT EXISTS (
+            SELECT 1
+            FROM tblTask_Template TT
+            WHERE TT.ParentTaskID = T.TaskID
+        )
+
+        -- ❌ Không phải task con của bất kỳ task nào
+        AND NOT EXISTS (
+            SELECT 1
+            FROM tblTask_Template TT
+            WHERE TT.ChildTaskID = T.TaskID
+        )
+
+        -- ❌ Không phải task con của ParentTaskID hiện tại
+        AND NOT EXISTS (
+            SELECT 1
+            FROM tblTask_Template TT
+            WHERE TT.ParentTaskID = @ParentTaskID
+              AND TT.ChildTaskID = T.TaskID
+        )
+
+        -- ❌ Không lấy chính task cha
+        AND T.TaskID <> @ParentTaskID
+
+    ORDER BY T.TaskName;
+END
+GO
 --Begin script: sp_Task_GetListForParent
 USE Paradise_Beta_Tai2
 GO
@@ -6,7 +76,7 @@ if object_id('[dbo].[sp_Task_GetListForParent]') is null
 GO
 ALTER PROCEDURE [dbo].[sp_Task_GetListForParent]
     @Keyword NVARCHAR(100) = '',
-    @LoginID INT
+    @LoginID INT = 59
 AS
 BEGIN
     SET NOCOUNT ON;
