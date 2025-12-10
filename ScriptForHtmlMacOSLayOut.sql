@@ -2529,37 +2529,45 @@ $(`#shortcutWarning-${menuId}`).addClass("d-none");
 					});
 			}
 
-            // Linh: Hàm control Selectbox + Combobox - FIXED VERSION
+            // Linh: Hàm control Selectbox + Combobox
             function hpaControlField(el, config) {
                 const $el = $(el);
                 if (!$el.length) return null;
 
                 config = config || {};
                 const cfg = {
+                    // -- OPTION BẬT SEARCH INPUT
                     searchable: config.hasOwnProperty("searchable") ? !!config.searchable : (!!config.useApi === true),
                     placeholder: config.placeholder || "Chọn...",
-                    multi: !!config.multi,
-                    options: config.options || config.staticOptions || [],
-                    selected: config.selected,
-                    useApi: !!config.useApi,
-                    ajaxListName: config.ajaxListName || null,
-                    take: typeof config.take === "number" ? config.take : (config.useApi ? 20 : (config.take || 200)),
-                    skip: typeof config.skip === "number" ? config.skip : 0,
-                    dataSource: config.dataSource || null,
-                    silent: config.silent !== false,
+                    searchMode: config.searchMode || "local", // -- Mode tìm kiếm bằng api hay local  "api" | "local"
+
+                    multi: !!config.multi,  // -- OPTION bật checkbox để chọn nhiều
+                    options: config.options || config.staticOptions || [],  // -- Mảng các options mặc định có sẵn
+                    selected: config.selected,  // -- Selected vô item nào
+                    
+                    useApi: !!config.useApi,  // -- Có bật load dữ liệu bằng Api hay không
+                    ajaxListName: config.ajaxListName || null, // -- Thủ tục load lên dữ liệu (Phải xem các mẫu có sẵn)
+                    take: typeof config.take === "number" ? config.take : (config.useApi ? 20 : (config.take || 200)), // -- Lấy lên bao nhiêu item 1 lượt
+                    skip: typeof config.skip === "number" ? config.skip : 0, // -- Bỏ qua và lấy item từ vị trí thứ bnhieu
+                    dataSource: config.dataSource || null, // -- Mảng dữ liệu từ 1 nguồn có sẵn (Chưa thiết kế)
+
+                    silent: config.silent !== false, // -- Mode bật thông báo
+
+                    // -- CÁC OPTIONS cho việc lưu dữ liệu vào đâu
                     tableName: config.tableName || null,
                     columnName: config.columnName || config.field || null,
                     idColumnName: config.idColumnName || null,
                     idValue: config.idValue || null,
-                    onChange: config.onChange || null,
-                    maxVisible: config.maxVisible || 3,
-                    procParam: config.procParam || "",
-                    searchMode: config.searchMode || "local",
-                    ajaxGetCombobox: !!config.ajaxGetCombobox,
-                    sourceTableName: config.sourceTableName || null,
-                    sourceColumnName: config.sourceColumnName || null,
+
+                    onChange: config.onChange || null, // -- Action khi thay đổi (Tùy chỉnh)
+
+                    ajaxGetCombobox: !!config.ajaxGetCombobox, // -- Bật load dữ liệu từ bảng đã có
+                    sourceTableName: config.sourceTableName || null, // -- Tên bảng load dữ liệu và thêm sửa trực tiếp bảng đó
+                    sourceColumnName: config.sourceColumnName || null, // -- Tên cột cần thêm
                     sourceIdColumnName: config.sourceIdColumnName || null,
-                    whereClause: config.whereClause || "",
+                    whereClause: config.whereClause || "", // -- Vị trí lấy
+
+                    // -- CÁC OPTIONS HỖ TRỢ XỬ LÝ NHIỀU CỘT
                     columns: config.columns || null,
                     displayTemplate: config.displayTemplate || null,
                     searchColumns: config.searchColumns || null,
@@ -2638,29 +2646,21 @@ $(`#shortcutWarning-${menuId}`).addClass("d-none");
                         timer = setTimeout(() => { fn.apply(ctx, args); timer = null; }, wait);
                     };
                 }
-
-                // ===== HELPER: Determine actual search mode =====
                 function getActualSearchMode() {
                     if (cfg.searchMode === "local") return "local";
                     if (cfg.searchMode === "api") return "api";
                     if (cfg.useApi && (cfg.ajaxListName || cfg.ajaxGetCombobox)) return "api";
                     return "local";
                 }
-
-                // ===== HELPER: Get value from item =====
                 function getItemValue(item) {
                     if (cfg.valueField) return item[cfg.valueField];
                     return item.TaskID || item.EmployeeID || item.ID || item.value;
                 }
-
-                // ===== HELPER: Get text from item =====
                 function getItemText(item) {
                     if (cfg.displayTemplate && typeof cfg.displayTemplate === "function") return cfg.displayTemplate(item);
                     if (cfg.textField) return item[cfg.textField];
                     return item.TaskName || item.FullName || item.Name || item.text;
                 }
-
-                // ===== HELPER: Search in item (hỗ trợ tiếng Việt không dấu) =====
                 function itemMatchesSearch(item, searchText) {
                     if (!searchText) return true;
                     
@@ -2680,7 +2680,6 @@ $(`#shortcutWarning-${menuId}`).addClass("d-none");
                     
                     return textMatches(getItemText(item));
                 }
-
                 function renderDisplay() {
                     const $t = display.find(".hpa-field-text");
                     if (!cfg.multi) {
@@ -2703,20 +2702,17 @@ $(`#shortcutWarning-${menuId}`).addClass("d-none");
                         }
                     }
                 }
-
                 function openDropdown() {
                     $(".hpa-field-dropdown").not(dropdown).hide();
                     dropdown.show();
                     display.addClass("focused");
                     dropdown.scrollTop(0);
                 }
-
                 function closeDropdown() {
                     display.removeClass("focused searching");
                     renderDisplay();
                     setTimeout(() => dropdown.hide(), 120);
                 }
-
                 function toggleValue(val, keep) {
                     val = String(val);
                     const idx = selected.indexOf(val);
@@ -2732,7 +2728,6 @@ $(`#shortcutWarning-${menuId}`).addClass("d-none");
                     }
                     try { saveToDB(cfg.multi ? selected : selected[0] || null); } catch (e) {}
                 }
-
                 function selectSingle(val) {
                     selected = val === undefined || val === null ? [] : [String(val)];
                     renderDisplay();
@@ -2743,7 +2738,6 @@ $(`#shortcutWarning-${menuId}`).addClass("d-none");
                     try { saveToDB(cfg.multi ? selected : selected[0] || null); } catch (e) {}
                     closeDropdown();
                 }
-
                 function defaultCreateNew(keyword){
                     return new Promise(function(resolve, reject){
                         const kw = String(keyword||"").trim();
@@ -2784,7 +2778,6 @@ $(`#shortcutWarning-${menuId}`).addClass("d-none");
                         });
                     });
                 }
-
                 function handleNewItem(newItem) {
                     // Tạo object item chuẩn
                     const standardItem = cfg.columns ? newItem : {
@@ -2843,7 +2836,6 @@ $(`#shortcutWarning-${menuId}`).addClass("d-none");
                     
                     closeDropdown();
                 }
-
                 // ==================== FETCH PAGE ====================
                 function fetchPage(filterVal, skipVal, isAddFlag = false) {
                     return new Promise((resolve, reject) => {
@@ -2896,7 +2888,6 @@ $(`#shortcutWarning-${menuId}`).addClass("d-none");
                         
                         const p = [
                             "@ProcName", cfg.ajaxListName,
-                            "@ProcParam", cfg.procParam || "",
                             "@Take", cfg.take,
                             "@Skip", skipVal || 0,
                             "@SearchValue", filterVal || "",
@@ -2923,7 +2914,6 @@ $(`#shortcutWarning-${menuId}`).addClass("d-none");
                         });
                     });
                 }
-
                 function addToCache(list) {
                     list.forEach(it => {
                         const val = getItemValue(it);
@@ -2933,15 +2923,12 @@ $(`#shortcutWarning-${menuId}`).addClass("d-none");
                         }
                     });
                 }
-
                 function showLoading() {
                     itemsContainer.append(`<div class="hpa-field-item" style="color:var(--text-muted)">Đang tải...</div>`);
                 }
-
                 function showError(msg) {
                     itemsContainer.html(`<div class="hpa-field-item" style="color:var(--text-muted)">${msg}</div>`);
                 }
-
                 // ==================== BACKGROUND PRELOAD ALL DATA ====================
                 function backgroundPreloadAll() {
                     if (!cfg.useApi || (!cfg.ajaxListName && !cfg.ajaxGetCombobox)) return;
@@ -2996,7 +2983,6 @@ $(`#shortcutWarning-${menuId}`).addClass("d-none");
                     // Bắt đầu load sau 500ms (để UI render xong)
                     setTimeout(loadNextBatch, 500);
                 }
-
                 // ==================== INITIAL API LOAD ====================
                 function initialApiLoad(filter) {
                     showLoading();
@@ -3068,7 +3054,6 @@ $(`#shortcutWarning-${menuId}`).addClass("d-none");
                         }
                     }).catch(() => showError("Lỗi kết nối"));
                 }
-
                 // ==================== LOAD MORE (Render thêm items) ====================
                 function loadMoreRender(list) {
                     const BATCH_SIZE = 20;
@@ -3131,7 +3116,6 @@ $(`#shortcutWarning-${menuId}`).addClass("d-none");
                     
                     _renderedCount = endIdx;
                 }
-
                 // ==================== SCROLL HANDLER ====================
                 dropdown.on("scroll", function() {
                     const el = this;
@@ -3152,7 +3136,6 @@ $(`#shortcutWarning-${menuId}`).addClass("d-none");
                         }
                     }
                 });
-
                 // ==================== RENDER LIST ====================
                 function renderList(list, append) {
                     if (!append) {
@@ -3178,7 +3161,6 @@ $(`#shortcutWarning-${menuId}`).addClass("d-none");
                     // Render batch đầu tiên
                     loadMoreRender(list);
                 }
-
                 // ==================== RENDER CREATE ROW ====================
                 function renderCreateRow(filter) {
                     const keyword = String(filter || "").trim();
@@ -3201,7 +3183,6 @@ $(`#shortcutWarning-${menuId}`).addClass("d-none");
 
                     itemsContainer.prepend(row);
                 }
-
                 // ==================== RENDER DROPDOWN ====================
                 function renderDropdown(filter, appendMode) {
                     if (filter === undefined || filter === null) {
@@ -3310,7 +3291,6 @@ $(`#shortcutWarning-${menuId}`).addClass("d-none");
                         renderCreateRow(filter);
                     }
                 }
-
                 function saveToDB(val) {
                     if (!cfg.tableName || !cfg.idValue) return;
                     AjaxHPAParadise({
@@ -3331,7 +3311,6 @@ $(`#shortcutWarning-${menuId}`).addClass("d-none");
                         }
                     });
                 }
-
                 // ==================== CLICK HANDLER - INLINE SEARCH ====================
                 display.on("click", e => { 
                     e.stopPropagation(); 
@@ -3392,12 +3371,10 @@ $(`#shortcutWarning-${menuId}`).addClass("d-none");
                         }
                     });
                 });
-
                 // Close dropdown khi click bên ngoài
                 $(document).on("click.hpaField", e => {
                     if (!wrapper.is(e.target) && wrapper.has(e.target).length === 0) closeDropdown();
                 });
-
                 // Render display ban đầu
                 renderDisplay();
 
