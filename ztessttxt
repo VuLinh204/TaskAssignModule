@@ -1,0 +1,628 @@
+1. STATIC OPTIONS - Dữ liệu cố định
+1.1. Dropdown đơn giản (không search)
+javascripthpaControlField("#genderSelect", {
+    searchable: false,
+    placeholder: "Chọn giới tính...",
+    options: [
+        { value: "M", text: "Nam" },
+        { value: "F", text: "Nữ" },
+        { value: "O", text: "Khác" }
+    ]
+});
+1.2. Dropdown có search
+javascripthpaControlField("#countrySelect", {
+    searchable: true,
+    placeholder: "Chọn quốc gia...",
+    options: [
+        { value: "VN", text: "Việt Nam" },
+        { value: "US", text: "Hoa Kỳ" },
+        { value: "JP", text: "Nhật Bản" },
+        { value: "KR", text: "Hàn Quốc" }
+    ]
+});
+1.3. Có giá trị mặc định được chọn
+javascripthpaControlField("#prioritySelect", {
+    options: [
+        { value: 1, text: "Thấp" },
+        { value: 2, text: "Trung bình" },
+        { value: 3, text: "Cao" },
+        { value: 4, text: "Khẩn cấp" }
+    ],
+    selected: 2  // Mặc định chọn "Trung bình"
+});
+1.4. Có onChange callback
+javascripthpaControlField("#statusSelect", {
+    options: [
+        { value: "pending", text: "Chờ xử lý" },
+        { value: "processing", text: "Đang xử lý" },
+        { value: "completed", text: "Hoàn thành" }
+    ],
+    onChange: function(value) {
+        console.log("Status changed to:", value);
+        // Update UI or call API
+        updateTaskStatus(value);
+    }
+});
+
+2. DATASOURCE - Từ biến JavaScript
+2.1. Từ array có sẵn
+javascriptconst departments = [
+    { id: 1, name: "IT" },
+    { id: 2, name: "HR" },
+    { id: 3, name: "Finance" }
+];
+
+hpaControlField("#departmentSelect", {
+    searchable: true,
+    dataSource: departments,
+    valueField: "id",
+    textField: "name"
+});
+2.2. Từ API response
+javascript$.ajax({
+    url: "/api/categories",
+    success: function(response) {
+        hpaControlField("#categorySelect", {
+            searchable: true,
+            options: response.data.map(cat => ({
+                value: cat.CategoryID,
+                text: cat.CategoryName
+            }))
+        });
+    }
+});
+
+3. API - ajaxListName (Custom Stored Procedure)
+3.1. Cơ bản - Load từ SP
+javascripthpaControlField("#employeeSelect", {
+    searchable: true,
+    placeholder: "Chọn nhân viên...",
+    useApi: true,
+    take: 20,
+    ajaxListName: "sp_Employee_GetList",
+    
+    tableName: "tblTask",
+    columnName: "AssignedEmployeeID",
+    idColumnName: "TaskID",
+    idValue: currentTaskID
+});
+3.2. Với ProcParam
+javascripthpaControlField("#taskSelect", {
+    searchable: true,
+    useApi: true,
+    take: 20,
+    ajaxListName: "sp_Task_GetListByProject",
+    procParam: `@ProjectID=${currentProjectID}`,  // Truyền tham số vào SP
+    
+    tableName: "tblTaskDependency",
+    columnName: "DependentTaskID",
+    idColumnName: "TaskID",
+    idValue: currentTaskID
+});
+3.3. Parent Task (loại trừ chính nó)
+javascripthpaControlField("#parentTaskSelect", {
+    searchable: true,
+    placeholder: "Chọn công việc cha...",
+    useApi: true,
+    take: 20,
+    ajaxListName: "sp_Task_GetListForParent",
+    procParam: `@ExcludeTaskID=${currentTaskID}`,  // Loại trừ task hiện tại
+    
+    tableName: "tblTask",
+    columnName: "ParentTaskID",
+    idColumnName: "TaskID",
+    idValue: currentTaskID
+});
+3.4. Với onChange và full item data
+javascripthpaControlField("#projectSelect", {
+    searchable: true,
+    useApi: true,
+    ajaxListName: "sp_Project_GetList",
+    
+    onChange: function(value, item) {
+        console.log("Project ID:", value);
+        console.log("Project Name:", item.ProjectName);
+        console.log("Project Status:", item.Status);
+        console.log("Project Manager:", item.ManagerID);
+        
+        // Load related data
+        loadProjectTasks(value);
+        loadProjectTeam(item.ManagerID);
+    }
+});
+3.5. Silent mode (không hiện thông báo khi save)
+javascripthpaControlField("#quickStatusSelect", {
+    useApi: true,
+    ajaxListName: "sp_Status_GetList",
+    
+    tableName: "tblTask",
+    columnName: "StatusID",
+    idColumnName: "TaskID",
+    idValue: currentTaskID,
+    silent: true  // Không hiện alert khi save thành công
+});
+
+4. API - ajaxGetCombobox (Simple Table Query)
+4.1. Lấy toàn bộ bảng
+javascripthpaControlField("#statusSelect", {
+    searchable: true,
+    useApi: true,
+    ajaxGetCombobox: true,
+    take: 20,
+    
+    // GET DATA
+    sourceTableName: "tblStatus",
+    sourceColumnName: "StatusName",
+    sourceIdColumnName: "StatusID",
+    
+    // SAVE DATA
+    tableName: "tblTask",
+    columnName: "StatusID",
+    idColumnName: "TaskID",
+    idValue: currentTaskID
+});
+4.2. Với WHERE clause
+javascripthpaControlField("#activeEmployeeSelect", {
+    searchable: true,
+    useApi: true,
+    ajaxGetCombobox: true,
+    
+    // GET DATA - Chỉ nhân viên active
+    sourceTableName: "tblEmployee",
+    sourceColumnName: "FullName",
+    sourceIdColumnName: "EmployeeID",
+    whereClause: "IsActive = 1 AND DepartmentID IS NOT NULL",
+    
+    // SAVE DATA
+    tableName: "tblTask",
+    columnName: "AssignedEmployeeID",
+    idColumnName: "TaskID",
+    idValue: currentTaskID
+});
+4.3. WHERE động theo điều kiện
+javascriptfunction loadEmployeeByDepartment(departmentID) {
+    hpaControlField("#employeeSelect", {
+        searchable: true,
+        useApi: true,
+        ajaxGetCombobox: true,
+        
+        sourceTableName: "tblEmployee",
+        sourceColumnName: "FullName",
+        sourceIdColumnName: "EmployeeID",
+        whereClause: `DepartmentID = ${departmentID} AND IsActive = 1`,
+        
+        tableName: "tblTask",
+        columnName: "AssignedEmployeeID",
+        idColumnName: "TaskID",
+        idValue: currentTaskID
+    });
+}
+
+// Gọi khi thay đổi department
+$("#departmentSelect").on("change", function() {
+    loadEmployeeByDepartment($(this).val());
+});
+4.4. Nhiều điều kiện WHERE phức tạp
+javascripthpaControlField("#productSelect", {
+    searchable: true,
+    useApi: true,
+    ajaxGetCombobox: true,
+    
+    sourceTableName: "tblProduct",
+    sourceColumnName: "ProductName",
+    sourceIdColumnName: "ProductID",
+    whereClause: `
+        IsActive = 1 
+        AND Stock > 0 
+        AND CategoryID IN (1,2,3) 
+        AND Price BETWEEN 100000 AND 5000000
+    `,
+    
+    tableName: "tblOrderDetail",
+    columnName: "ProductID",
+    idColumnName: "OrderDetailID",
+    idValue: currentOrderDetailID
+});
+
+5. MULTI-SELECT - Chọn nhiều giá trị
+5.1. Multi-select cơ bản
+javascripthpaControlField("#tagsSelect", {
+    searchable: true,
+    multi: true,  // ⭐ Cho phép chọn nhiều
+    placeholder: "Chọn tags...",
+    options: [
+        { value: 1, text: "Urgent" },
+        { value: 2, text: "Bug" },
+        { value: 3, text: "Feature" },
+        { value: 4, text: "Enhancement" }
+    ]
+});
+5.2. Multi-select với giá trị mặc định
+javascripthpaControlField("#skillsSelect", {
+    searchable: true,
+    multi: true,
+    selectedValues: [2, 5, 7],  // ⭐ Chọn sẵn nhiều giá trị
+    options: [
+        { value: 1, text: "JavaScript" },
+        { value: 2, text: "Python" },
+        { value: 3, text: "Java" },
+        { value: 5, text: "SQL" },
+        { value: 7, text: "React" }
+    ]
+});
+5.3. Multi-select với API
+javascripthpaControlField("#assigneesSelect", {
+    searchable: true,
+    multi: true,
+    useApi: true,
+    ajaxGetCombobox: true,
+    
+    sourceTableName: "tblEmployee",
+    sourceColumnName: "FullName",
+    sourceIdColumnName: "EmployeeID",
+    whereClause: "IsActive = 1",
+    
+    tableName: "tblTask",
+    columnName: "AssignedEmployeeIDs",  // Lưu dạng "1,3,5,7"
+    idColumnName: "TaskID",
+    idValue: currentTaskID,
+    
+    onChange: function(selectedArray) {
+        console.log("Selected IDs:", selectedArray);  // [1, 3, 5, 7]
+        console.log("Count:", selectedArray.length);
+    }
+});
+5.4. Multi-select lấy data và text
+javascriptconst control = hpaControlField("#categoriesSelect", {
+    multi: true,
+    useApi: true,
+    ajaxListName: "sp_Category_GetList"
+});
+
+// Lấy giá trị đã chọn
+const selectedIDs = control.getValue();  // [1, 3, 5]
+console.log("Selected:", selectedIDs);
+
+6. MULTI-COLUMN - Hiển thị nhiều cột
+6.1. Multi-column cơ bản
+javascripthpaControlField("#employeeSelect", {
+    searchable: true,
+    useApi: true,
+    ajaxGetCombobox: true,
+    
+    sourceTableName: "tblEmployee",
+    sourceColumnName: "FullName",
+    sourceIdColumnName: "EmployeeID",
+    
+    // ⭐ Multi-column config
+    columns: [
+        { field: 'FullName', label: 'Họ tên', width: '40%' },
+        { field: 'Email', label: 'Email', width: '35%' },
+        { field: 'Department', label: 'Phòng ban', width: '25%' }
+    ],
+    
+    valueField: 'EmployeeID',
+    textField: 'FullName',
+    searchColumns: ['FullName', 'Email', 'Department'],
+    
+    tableName: "tblTask",
+    columnName: "AssignedEmployeeID",
+    idColumnName: "TaskID",
+    idValue: currentTaskID
+});
+6.2. Multi-column với custom display
+javascripthpaControlField("#taskSelect", {
+    searchable: true,
+    useApi: true,
+    ajaxListName: "sp_Task_GetList",
+    
+    columns: [
+        { field: 'TaskName', label: 'Tên task', width: '50%' },
+        { field: 'Status', label: 'Trạng thái', width: '20%' },
+        { field: 'Priority', label: 'Ưu tiên', width: '15%' },
+        { field: 'DueDate', label: 'Hạn', width: '15%' }
+    ],
+    
+    valueField: 'TaskID',
+    textField: 'TaskName',
+    searchColumns: ['TaskName', 'Status'],
+    
+    // ⭐ Custom display khi đã chọn
+    displayTemplate: (item) => {
+        return `${item.TaskName} [${item.Status}]`;
+    },
+    
+    onChange: function(value, item) {
+        console.log("Task:", item.TaskName);
+        console.log("Status:", item.Status);
+        console.log("Priority:", item.Priority);
+        console.log("Due:", item.DueDate);
+    }
+});
+6.3. Multi-column với ajaxListName
+javascripthpaControlField("#productSelect", {
+    searchable: true,
+    useApi: true,
+    ajaxListName: "sp_Product_GetListWithDetails",
+    
+    columns: [
+        { field: 'ProductName', label: 'Sản phẩm', width: '35%' },
+        { field: 'SKU', label: 'Mã SP', width: '15%' },
+        { field: 'Category', label: 'Danh mục', width: '20%' },
+        { field: 'Price', label: 'Giá', width: '15%' },
+        { field: 'Stock', label: 'Tồn', width: '15%' }
+    ],
+    
+    valueField: 'ProductID',
+    textField: 'ProductName',
+    searchColumns: ['ProductName', 'SKU', 'Category']
+});
+6.4. Multi-column + Multi-select
+javascripthpaControlField("#teamsSelect", {
+    searchable: true,
+    multi: true,  // ⭐ Chọn nhiều + nhiều cột
+    useApi: true,
+    ajaxGetCombobox: true,
+    
+    sourceTableName: "tblEmployee",
+    sourceColumnName: "FullName",
+    sourceIdColumnName: "EmployeeID",
+    whereClause: "IsActive = 1",
+    
+    columns: [
+        { field: 'FullName', label: 'Tên', width: '40%' },
+        { field: 'Position', label: 'Chức vụ', width: '30%' },
+        { field: 'Department', label: 'Phòng', width: '30%' }
+    ],
+    
+    valueField: 'EmployeeID',
+    textField: 'FullName',
+    searchColumns: ['FullName', 'Position', 'Department'],
+    
+    tableName: "tblProject",
+    columnName: "TeamMemberIDs",
+    idColumnName: "ProjectID",
+    idValue: currentProjectID
+});
+
+7. ADVANCED FEATURES - Tính năng nâng cao
+7.1. Programmatic control
+javascriptconst control = hpaControlField("#statusSelect", {
+    useApi: true,
+    ajaxListName: "sp_Status_GetList"
+});
+
+// Set giá trị
+control.setValue(3);
+
+// Lấy giá trị
+const currentValue = control.getValue();
+console.log("Current:", currentValue);
+
+// Lấy text hiển thị
+const currentText = control.getText();
+console.log("Text:", currentText);
+
+// Lấy full item object
+const selectedItem = control.getSelectedItem();
+console.log("Full item:", selectedItem);
+
+// Destroy control
+control.destroy();
+7.2. Dynamic reload
+javascriptlet employeeControl;
+
+function loadEmployeesByDepartment(deptID) {
+    // Destroy old control
+    if (employeeControl) {
+        employeeControl.destroy();
+    }
+    
+    // Create new control
+    employeeControl = hpaControlField("#employeeSelect", {
+        searchable: true,
+        useApi: true,
+        ajaxGetCombobox: true,
+        
+        sourceTableName: "tblEmployee",
+        sourceColumnName: "FullName",
+        sourceIdColumnName: "EmployeeID",
+        whereClause: `DepartmentID = ${deptID}`,
+        
+        tableName: "tblTask",
+        columnName: "AssignedEmployeeID",
+        idColumnName: "TaskID",
+        idValue: currentTaskID
+    });
+}
+
+$("#departmentSelect").on("change", function() {
+    loadEmployeesByDepartment($(this).val());
+});
+7.3. Cascading dropdowns
+javascript// Dropdown 1: Chọn tỉnh/thành
+hpaControlField("#provinceSelect", {
+    searchable: true,
+    useApi: true,
+    ajaxGetCombobox: true,
+    
+    sourceTableName: "tblProvince",
+    sourceColumnName: "ProvinceName",
+    sourceIdColumnName: "ProvinceID",
+    
+    onChange: function(provinceID) {
+        // Load districts khi chọn province
+        loadDistrictsByProvince(provinceID);
+    }
+});
+
+// Dropdown 2: Chọn quận/huyện
+function loadDistrictsByProvince(provinceID) {
+    hpaControlField("#districtSelect", {
+        searchable: true,
+        useApi: true,
+        ajaxGetCombobox: true,
+        
+        sourceTableName: "tblDistrict",
+        sourceColumnName: "DistrictName",
+        sourceIdColumnName: "DistrictID",
+        whereClause: `ProvinceID = ${provinceID}`,
+        
+        onChange: function(districtID) {
+            // Load wards khi chọn district
+            loadWardsByDistrict(districtID);
+        }
+    });
+}
+
+// Dropdown 3: Chọn phường/xã
+function loadWardsByDistrict(districtID) {
+    hpaControlField("#wardSelect", {
+        searchable: true,
+        useApi: true,
+        ajaxGetCombobox: true,
+        
+        sourceTableName: "tblWard",
+        sourceColumnName: "WardName",
+        sourceIdColumnName: "WardID",
+        whereClause: `DistrictID = ${districtID}`
+    });
+}
+7.4. Conditional options
+javascriptconst userRole = getCurrentUserRole();
+
+hpaControlField("#taskStatusSelect", {
+    searchable: true,
+    useApi: true,
+    ajaxGetCombobox: true,
+    
+    sourceTableName: "tblTaskStatus",
+    sourceColumnName: "StatusName",
+    sourceIdColumnName: "StatusID",
+    whereClause: userRole === "Admin" 
+        ? "1=1"  // Admin thấy tất cả
+        : "IsPublic = 1",  // User thường chỉ thấy public statuses
+    
+    tableName: "tblTask",
+    columnName: "StatusID",
+    idColumnName: "TaskID",
+    idValue: currentTaskID
+});
+7.5. Không auto-save (manual save)
+javascriptconst control = hpaControlField("#employeeSelect", {
+    searchable: true,
+    useApi: true,
+    ajaxListName: "sp_Employee_GetList",
+    
+    // ⭐ Không truyền tableName, columnName, idValue => Không auto-save
+    
+    onChange: function(value, item) {
+        // Xử lý thủ công
+        $("#selectedEmployeeID").val(value);
+        $("#selectedEmployeeName").text(item.FullName);
+    }
+});
+
+// Save thủ công khi cần
+$("#saveButton").on("click", function() {
+    const selectedID = control.getValue();
+    
+    $.ajax({
+        url: "/api/task/update",
+        method: "POST",
+        data: {
+            taskID: currentTaskID,
+            assignedEmployeeID: selectedID
+        },
+        success: function() {
+            alert("Saved!");
+        }
+    });
+});
+7.6. Read-only / Disabled state
+javascriptconst control = hpaControlField("#statusSelect", {
+    useApi: true,
+    ajaxListName: "sp_Status_GetList"
+});
+
+// Disable/Enable thủ công
+function setReadOnly(isReadOnly) {
+    if (isReadOnly) {
+        $("#statusSelect").find(".hpa-field-display").css({
+            "pointer-events": "none",
+            "opacity": "0.6",
+            "cursor": "not-allowed"
+        });
+    } else {
+        $("#statusSelect").find(".hpa-field-display").css({
+            "pointer-events": "auto",
+            "opacity": "1",
+            "cursor": "pointer"
+        });
+    }
+}
+
+// Dùng khi cần
+if (!canEdit) {
+    setReadOnly(true);
+}
+7.7. Custom "Create New" handler
+javascripthpaControlField("#categorySelect", {
+    searchable: true,
+    useApi: true,
+    ajaxGetCombobox: true,
+    
+    sourceTableName: "tblCategory",
+    sourceColumnName: "CategoryName",
+    sourceIdColumnName: "CategoryID",
+    
+    // ⭐ Custom create handler (mặc định đã có sẵn)
+    // Khi user gõ keyword mới và click "Thêm mới", hàm defaultCreateNew sẽ chạy
+    // Nó sẽ gọi sp_Common_SaveDataTable để tạo record mới
+});
+7.8. Pre-selected values from database
+javascript// Load task và set giá trị đã chọn
+$.ajax({
+    url: `/api/task/${taskID}`,
+    success: function(task) {
+        const control = hpaControlField("#employeeSelect", {
+            searchable: true,
+            useApi: true,
+            ajaxListName: "sp_Employee_GetList",
+            selected: task.AssignedEmployeeID,  // ⭐ Set giá trị đã chọn
+            
+            tableName: "tblTask",
+            columnName: "AssignedEmployeeID",
+            idColumnName: "TaskID",
+            idValue: taskID
+        });
+    }
+});
+7.9. Performance tuning
+javascripthpaControlField("#largeDataSelect", {
+    searchable: true,
+    useApi: true,
+    ajaxListName: "sp_HugeTable_GetList",
+    
+    take: 50,  // ⭐ Tăng số lượng load mỗi lần (default: 20)
+    
+    // Với ajaxGetCombobox mode, nên dùng ajaxListName cho bảng lớn
+    // vì ajaxGetCombobox load tất cả data về client
+});
+7.10. Debug mode
+javascript// Mở Console (F12) để xem logs khi development
+
+hpaControlField("#debugSelect", {
+    searchable: true,
+    useApi: true,
+    ajaxListName: "sp_Test_GetList"
+});
+
+// Các logs sẽ hiện:
+// 🔵 fetchPage called with skip: 0
+// ✅ fetchPage returned: 20 items
+// 🟢 initialApiLoad - filter: ""
+// ✅ initialApiLoad done - skip now: 20, hasMore: true
+// 📜 Scroll triggered loadMore
+// 🟡 loadMore called
+// 📦 loadMore received: 20 items

@@ -323,7 +323,7 @@ GO
                     }
                     const cacheKey = employee.EmployeeID;
                     if (avatarCache[cacheKey]) {
-                        return avatarCache[cacheKey];
+      return avatarCache[cacheKey];
                     }
                     try {
                         const decoded = decodeURIComponent(employee.paramImg);
@@ -615,7 +615,7 @@ GO
                                     dataGridInstance.getDataSource().reload();
                                     dataGridInstance.endUpdate();
                                     renderSelectorButton();
-                                }
+  }
                             }, 50);
                         }
                     };

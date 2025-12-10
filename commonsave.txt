@@ -1,0 +1,119 @@
+USE Paradise_Beta_Tai2
+GO
+if object_id('[dbo].[sp_Common_SaveDataTable]') is null
+	EXEC ('CREATE PROCEDURE [dbo].[sp_Common_SaveDataTable] as select 1')
+GO
+
+ALTER PROCEDURE [dbo].[sp_Common_SaveDataTable]
+    @LoginID INT = 3,
+    @LanguageID VARCHAR(2) = 'VN',
+    @TableName NVARCHAR(100),
+    @ColumnName NVARCHAR(100), -- cot can update
+    @IDColumnName NVARCHAR(100), -- ten cot primary
+    @ColumnValue NVARCHAR(500), -- gt update
+    @ID_Value NVARCHAR(200) = null, -- value cot primary
+    @DataType NVARCHAR(50) = null
+AS
+BEGIN
+    SET NOCOUNT ON;
+    DECLARE @SQL NVARCHAR(MAX);
+    DECLARE @IsIdentity BIT = 0;
+
+    IF @DataType IS NULL OR LTRIM(RTRIM(@DataType)) = ''
+    SET @DataType = 'text';
+
+    SELECT @IsIdentity = COLUMNPROPERTY(OBJECT_ID(@TableName), @IDColumnName, 'IsIdentity');
+    -- Xử lý
+    SET @ColumnValue = REPLACE(@ColumnValue, '&lt;', '<');
+    SET @ColumnValue = REPLACE(@ColumnValue, '&gt;', '>');
+    SET @ColumnValue = REPLACE(@ColumnValue, '&amp;', '&');
+
+    IF @IsIdentity = 0 AND LEN(ISNULL(@ID_Value, '')) = 0
+    BEGIN
+        DECLARE @SQL_GetMax NVARCHAR(MAX);
+        DECLARE @NewID INT;
+
+        -- Tạo câu lệnh động để lấy Max ID
+        SET @SQL_GetMax = N'SELECT @MaxVal = ISNULL(MAX(CAST(' + QUOTENAME(@IDColumnName) + ' AS INT)), 0) + 1 FROM ' + QUOTENAME(@TableName);
+
+        -- Thực thi và lấy giá trị ra biến @NewID
+        EXEC sp_executesql @SQL_GetMax, N'@MaxVal INT OUTPUT', @MaxVal = @NewID OUTPUT;
+
+        -- Gán lại vào @ID_Value để sử dụng cho các bước sau
+        SET @ID_Value = CAST(@NewID AS NVARCHAR(200));
+    END
+
+    IF OBJECT_ID('tempdb..##tmpTableInner') IS NOT NULL
+    DROP TABLE ##tmpTableInner;
+/*
+ SET @SQL = N'
+        -- Tạo bảng tạm global có cấu trúc giống bảng gốc
+        SELECT TOP 0 ' +  case when len (isnull(@ID_Value,'')) > 0 then +' cast('''' as nvarchar(max))'+ QUOTENAME(@IDColumnName) + ', ' else '' end +' cast('''' as nvarchar(max))'+ QUOTENAME(@ColumnName) +'
+		--SELECT TOP 0 cast('' as nvarchar(max)) [TaskID],  cast('' as nvarchar(max)) [TaskName]
+        INTO ##tmpTableInner
+        --FROM ' + QUOTENAME(@TableName) + ' where 1=0;
+        -- Insert dữ liệu vào bảng global
+        INSERT INTO ##tmpTableInner (' +  case when len (isnull(@ID_Value,'')) > 0 then QUOTENAME(@IDColumnName) + ', ' else '' end + QUOTENAME(@ColumnName) + ')
+        VALUES (' +  case when len (isnull(@ID_Value,'')) > 0 then '@ID_Value,' else '' end +' @ColumnValue);
+    ';
+    EXEC sys.sp_executesql
+          @SQL,
+          N'@ID_Value NVARCHAR(200), @ColumnValue NVARCHAR(500)',
+          @ID_Value = @ID_Value,
+          @ColumnValue = @ColumnValue;
+
+*/
+
+    IF @DataType = 'date'
+        BEGIN
+            SET @SQL = 'SELECT
+                    ' + ISNULL(@ID_Value,'''''') + ' AS ' + QUOTENAME(@IDColumnName) + ',
+                    TRY_CONVERT(date, ''' + @ColumnValue + ''', 105) AS ' + QUOTENAME(@ColumnName) + '
+                INTO ##tmpTableInner;';
+        END
+        ELSE
+        BEGIN
+            SET @SQL = 'SELECT ' + ISNULL(@ID_Value,'''''') + ' AS ' + @IDColumnName + ', N''' + ISNULL(@ColumnValue,'') +''' AS '+ @ColumnName  +' INTO ##tmpTableInner '
+        END
+
+    EXECUTE (@SQL)
+    -- Copy dữ liệu từ bảng global sang bảng local
+    SELECT * INTO #tmpTableOuter FROM ##tmpTableInner;
+    -- Cleanup bảng global
+    DROP TABLE ##tmpTableInner;
+    -- Lưu dữ liệu trường hợp bảng tự tăng
+    IF @IsIdentity = 1
+        BEGIN
+            IF LEN(ISNULL(@ID_Value, '')) > 0
+            BEGIN
+                -- Có ID thì UPDATE
+                EXEC sp_SaveData
+                     @TableNameTmp = '#tmpTableOuter',
+                     @TableName    = @TableName,
+                     @Command      = 'update',
+                     @IsDropTableTmp = 0,
+                     @IsPrint      = 0;
+            END
+            ELSE
+            BEGIN
+                -- Không ID thì INSERT
+                EXEC sp_SaveData
+                     @TableNameTmp = '#tmpTableOuter',
+                     @TableName    = @TableName,
+                     @Command      = 'insert',
+                     @IsDropTableTmp = 0,
+                     @IsPrint      = 0;
+            END
+        END
+    ELSE
+        BEGIN
+            -- Cột ID không phải tự tăng thì chạy gộp insert,update
+            EXEC sp_SaveData
+                 @TableNameTmp  = '#tmpTableOuter',
+                 @TableName     = @TableName,
+                 @Command       = 'insert,update',
+                 @IsDropTableTmp = 0,
+                 @IsPrint       = 0;
+        END
+END
+GO

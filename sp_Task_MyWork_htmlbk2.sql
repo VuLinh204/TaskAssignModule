@@ -710,7 +710,7 @@ BEGIN
             border-radius: var(--radius-md);
             font-weight: 600;
             font-size: 14px;
-            cursor: pointer;
+   cursor: pointer;
             transition: all var(--transition-base);
         }
 
@@ -1249,7 +1249,7 @@ BEGIN
             color: var(--sts-doing-text);
         }
         #sp_Task_MyWork_html .subtask-table .badge-sts.sts-3 {
-            background: var(--sts-done);
+   background: var(--sts-done);
             color: var(--sts-done-text);
         }
         #sp_Task_MyWork_html .subtask-table .progress-bar-bg {
@@ -1380,7 +1380,7 @@ BEGIN
 
         #sp_Task_MyWork_html .subtask-row-draggable:hover {
             background: var(--bg-light);
-        }
+ }
 
         #sp_Task_MyWork_html .subtask-row-draggable.dragging {
             opacity: 0.5;
@@ -1645,7 +1645,7 @@ BEGIN
                                 Chưa có mô tả...
                             </div>
                             <div id="descriptionEdit" style="display:none;">
-                                <textarea class="description-edit" id="txtDescription" placeholder="Nhập mô tả chi tiết..."></textarea>
+                     <textarea class="description-edit" id="txtDescription" placeholder="Nhập mô tả chi tiết..."></textarea>
                                 <div class="mt-2" style="display:flex; gap:8px; justify-content:flex-end;">
                                     <button class="btn btn-sm btn-white border" id="btnCancelDescription">Hủy</button>
                                     <button class="btn btn-sm btn-cu" id="btnSaveDescription">
@@ -1711,7 +1711,7 @@ BEGIN
                         </div>
                         <!-- Step 2: Phân bổ chi tiết -->
                         <div class="assign-step">
-                            <div class="step-header">
+          <div class="step-header">
                                 <div class="step-number">2</div>
                                 <div class="step-title">Phân bổ chi tiết (Subtasks)</div>
                                 <div style="margin-left:auto; display:flex; gap:8px; align-items:center;">
@@ -1872,6 +1872,7 @@ BEGIN
                     if($dd.length) {
                         $dd.show();
                         $dd.find(".row-assignee-search").val("").focus();
+
                     }
                 });
 
@@ -1948,7 +1949,7 @@ BEGIN
                     var $prio = $(`.st-priority[data-idx="${idx}"]`);
                     var $filter = $(`.st-user-filter[data-idx="${idx}"]`);
                     if(!checked) {
-                        if($sel.length) { $sel.val([]); }
+          if($sel.length) { $sel.val([]); }
                         if($from.length) { $from.prop("disabled", true); }
                         if($to.length) { $to.prop("disabled", true); }
                         if($note.length) { $note.prop("disabled", true); }
@@ -2258,7 +2259,7 @@ BEGIN
                     }, 200);
                 };
 
-                
+
                 $(document).on("click", ".task-title", function(e) {
                     var taskId = $(this).closest(".cu-row").data("recordid");
                     if (!taskId) return;
@@ -2361,7 +2362,7 @@ BEGIN
                                 success: function(setupRes) {
                                     try {
                                         var setupData = JSON.parse(setupRes).data || [];
-                                        employees = setupData[0] || employees || [];
+                             employees = setupData[0] || employees || [];
                                     } catch (ex) {
                                     }
                                     // Now we have employees (or empty) -> proceed to render
@@ -2615,7 +2616,7 @@ BEGIN
                                 <div class="comment-header">
                                     <span class="comment-author">${escapeHtml(author)}</span>
                                     <span class="comment-date text-muted small">${escapeHtml(date)}</span>
-                                </div>
+                         </div>
                                 <div class="comment-content">${escapeHtml(c.Content || "")}</div>
                             </div>
                         `;
@@ -2765,7 +2766,7 @@ BEGIN
                 // 1. Render Headers và các task thuộc header
                 if (window.taskHeaders && window.taskHeaders.length > 0) {
                     window.taskHeaders.forEach(function(header) {
-                        const headerTasks = window.headerTasksMap[header.HeaderID] || [];
+          const headerTasks = window.headerTasksMap[header.HeaderID] || [];
                         const visibleTasks = headerTasks.filter(t => data.some(d => d.TaskID === t.TaskID));
 
                         if (visibleTasks.length === 0) return; // Skip header không có task nào visible
@@ -2841,7 +2842,7 @@ BEGIN
                                 <select id="listCreateParentSelect" class="form-select d-none"></select>
                             </div>
                         </div>
-                        <div class="d-flex flex-column align-items-end" style="gap:6px;">
+          <div class="d-flex flex-column align-items-end" style="gap:6px;">
                             <small class="text-muted">Nhập xong nhấn Enter hoặc chọn để lưu</small>
                         </div>
                     </div>
@@ -2871,17 +2872,15 @@ BEGIN
                                 columnName: "TaskID",
                                 idColumnName: "TaskID",
                                 idValue: currentTaskID,
-                                onCreateNew: function(inputVal) {
-                                },
                                 onChange: function(value, text) {
                                     try {
                                         $("#listCreateParentSelect").val(value);
-                                        try { $("#listCreateParentSearch").find(''.hpa-field-text'').addClass(''search-valid''); } catch(e) {}
+                                        try { $("#listCreateParentSearch").find(".hpa-field-text").addClass("search-valid"); } catch(e) {}
                                     } catch(e) {}
                                 }
                             });
                             // open dropdown to allow immediate typing/search
-                            try { $("#listCreateParentSearch .hpa-field-display").first().trigger(''click''); } catch(e) {}
+                            try { $("#listCreateParentSearch .hpa-field-display").first().trigger("click"); } catch(e) {}
                         } catch(initErr) {}
                     } catch(e) {}
                 });
@@ -2889,7 +2888,7 @@ BEGIN
                 // Auto-save when user presses Enter in the internal hpa-field search input
                 $(document).on("keyup", "#listCreateParentSearch .hpa-field-search-input", function(e) {
                     try {
-                        if (e.key === ''Enter'' || e.keyCode === 13) {
+                        if (e.key === "Enter" || e.keyCode === 13) {
                             var sel = $("#listCreateParentSelect").val();
                             var txt = $(this).val().trim();
                             if (sel) {
@@ -2923,22 +2922,20 @@ BEGIN
                     try { initRowPriorityControls(); } catch(e) {}
                 }, 50);
             }
-            
+
             // Initialize priority controls in a deterministic way.
             // Call this after the list HTML is rendered so elements exist in the DOM.
             function initRowPriorityControls(context) {
                 var $root = context ? $(context) : $(document);
-                $root.find(''.row-priority-select, .row-priority-field'').each(function () {
-                    console.log(''Initializing priority control for:'', this);
+                $root.find(".row-priority-select, .row-priority-field").each(function () {
                     const $el = $(this);
-                    const historyId = $el.data(''recordid'') || $el.closest(''.cu-row'').data(''historyid'') || $el.closest(''.cu-row'').data(''taskid'');
-                    const currentPriority = parseInt($el.data(''priority'') || $el.data(''current-priority'') || $el.val() || 3);
+                    const historyId = $el.data("recordid") || $el.closest(".cu-row").data("historyid") || $el.closest(".cu-row").data("taskid");
+                    const currentPriority = parseInt($el.data("priority") || $el.data("current-priority") || $el.val() || 3);
 
                     // Avoid double-init: if already initialized (wrapper present), skip
-                    if ($el.hasClass(''hpa-field-wrapper'') || $el.closest(''.hpa-field-wrapper'').length) return;
+                    if ($el.hasClass("hpa-field-wrapper") || $el.closest(".hpa-field-wrapper").length) return;
 
                     try {
-                        console.log("running hpaControlField for priority select", historyId, currentPriority);
                         hpaControlField(this, {
                             options: [
                                 { value: 1, text: "Cao" },
@@ -2980,7 +2977,7 @@ BEGIN
                         <div class="task-title">
                             ${escapeHtml(header.HeaderTitle)}
                         </div>
-                    </div>
+           </div>
                     <div class="row-progress" style="width:220px;">
                         <div class="kpi-text">
                             <span>${completedCount}/${totalCount} hoàn thành</span>
@@ -3167,7 +3164,7 @@ BEGIN
                 <div class="cu-row task-row draggable"
                     style="${isChild ? "padding-left:30px;" : ""}"
                     data-recordid="${t.TaskID}"
-                    draggable="true">
+                draggable="true">
                     <div class="row-check">
                         <i class="bi bi-grip-vertical row-drag-handle"></i>
                         <i class="bi bi-flag-fill priority-icon ${prioClass}"></i>
@@ -3298,7 +3295,7 @@ BEGIN
                                 try {
                                     var newStatus = parseInt(value, 10);
                                     if (!isNaN(newStatus)) updateTaskStatus(newStatus);
-                                } catch (e) { console.warn(''updateTaskStatus failed'', e); }
+                                } catch (e) { console.warn("updateTaskStatus failed", e); }
                             }
                         });
                     }
@@ -3529,16 +3526,16 @@ BEGIN
                         placeholder: "Chọn Công việc chính...",
                         useApi: true,
                         take: 20,
+                        searchMode: "local",
                         ajaxListName: "sp_Task_GetListForParent",
+                        
                         tableName: "tblTask",
-                        columnName: "ParentTaskID",
+                        columnName: "TaskName",
                         idColumnName: "TaskID",
                         idValue: currentTaskID,
+                        
                         onChange: function(value, text) {
                             loadAssignTemplate();
-                        },
-                        onCreateNew: function(inputValue) {
-                            uiManager.showAlert({ type: "info", message: `Tạo mới Công việc chính: ${inputValue} (chức năng chưa được hỗ trợ).` });
                         }
                     });
                 } catch(e) {
@@ -3671,7 +3668,7 @@ BEGIN
                 if(!pid) { uiManager.showAlert({ type: "warning",  message: "Vui lòng chọn Công việc chính trước khi thêm hàng",}); return; }
 
                 // ensure assign container exists
-                if($("#subtask-assign-container").length === 0) return;
+    if($("#subtask-assign-container").length === 0) return;
 
                 var count = $("#subtask-assign-container .temp-subtask").length;
                 var empOpts = (employees || []).map(e => `<option value="${e.EmployeeID}">${escapeHtml(e.FullName)} (${e.EmployeeID})</option>`).join("");
@@ -3787,6 +3784,7 @@ BEGIN
                             "Unit", "",
                             "Status", 1
                         ]
+
                     },
                     success: function(res) {
                         try {
@@ -3931,7 +3929,7 @@ BEGIN
                             <label class="form-label">Kết thúc</label>
                             <input type="datetime-local" class="form-control st-to" data-idx="${validIdx}" value="${def.end}" />
                         </div>
-                        <div style="flex: 1.5; min-width: 200px;">
+                       <div style="flex: 1.5; min-width: 200px;">
                             <label class="form-label">Ghi chú</label>
                             <input type="text" class="form-control st-note" data-idx="${validIdx}" placeholder="Ghi chú..." />
                         </div>
@@ -4164,7 +4162,7 @@ BEGIN
                                         <label class="form-label">Ghi chú</label>
                                         <input type="text" id="newParentNote" class="form-control" />
                                     </div>
-                                </div>
+                            </div>
                                 <div class="modal-footer">
                                     <button class="btn btn-white border" data-bs-dismiss="modal">Đóng</button>
                                     <button class="btn-assign" id="btnCreateParent">Tạo</button>
@@ -4241,7 +4239,7 @@ BEGIN
 
                 $wrap.html("");
                 var selectedEmpIds = $hidden.val() || [];
-                var empObjects = selectedEmpIds.map(empId => {
+          var empObjects = selectedEmpIds.map(empId => {
                     var emp = (employees || []).find(e => String(e.EmployeeID) === String(empId));
                     if (emp) {
                       return emp;
@@ -4861,7 +4859,7 @@ BEGIN
                     return `
                         <div class="control-row-assignee-item ${isSelected ? "selected" : ""}"
                             data-empid="${empId}"
-                            data-empname="${escapeHtml(fullName)}"
+                       data-empname="${escapeHtml(fullName)}"
                             style="padding:8px 10px; cursor:pointer; display:flex; align-items:center; gap:8px; border-bottom:1px solid #f0f2f5; ${bgStyle}">
                             ${cfg.multi ? `<div style="width:28px; flex-shrink:0;"><input type="checkbox" class="row-assignee-checkbox" ${isSelected ? "checked" : ""} style="cursor:pointer;" /></div>` : `<div style="width:28px; flex-shrink:0;"></div>`}
                             ${avatarHtml}
@@ -4921,7 +4919,7 @@ BEGIN
                                     ${renderSelectedChips(cfg.selectedIds)}
                                 </div>
                                 <i class="bi bi-chevron-down" style="font-size:12px;color:var(--text-muted);margin-left:auto;"></i>
-                            </button>
+               </button>
                             <div class="row-assignee-dropdown" style="display:none;position:absolute;${cfg.position}:0;top:36px;z-index:2000;width:320px;backdrop-filter:blur(50px);border:1px solid var(--border-color);border-radius:6px;box-shadow:var(--shadow-md);">
                                 <div style="padding:8px;border-bottom:1px solid var(--border-color);">
                                     <input id="selMultiEmployee" type="text" class="form-control form-control-sm row-assignee-search" placeholder="${escapeHtml(cfg.placeholder)}" />
@@ -5203,403 +5201,7 @@ BEGIN
                     return $type;
                 }
             }
-
-            function hpaControlField(el, config) {
-                const $el = $(el);
-                if (!$el.length) return null;
-
-                // Backward-compatible, option-driven configuration
-                config = config || {};
-                const cfg = {
-                    // whether the dropdown has a search input
-                    // default: only show search for API-backed lists unless explicitly specified
-                    searchable: config.hasOwnProperty("searchable") ? !!config.searchable : (!!config.useApi === true),
-                    // placeholder text when nothing selected
-                    placeholder: config.placeholder || "Chọn...",
-                    // allow multiple selection (shows checkboxes)
-                    multi: !!config.multi,
-                    // static options: array of { value, text }
-                    options: config.options || config.staticOptions || [],
-                    // initial selected value(s): single value or array
-                    selected: config.selected,
-                    // whether to load data via API (AjaxHPAParadise + ajaxListName)
-                    useApi: !!config.useApi,
-                    // name of stored-proc / ajax endpoint to call when useApi is true
-                    ajaxListName: config.ajaxListName || null,
-                    // paging: number of items per page when using API
-                    take: typeof config.take === ''number'' ? config.take : (config.useApi ? 20 : (config.take || 200)),
-                    // current skip/offset for paging
-                    skip: typeof config.skip === ''number'' ? config.skip : 0,
-                    // preloaded data (array) or function that returns array or Promise
-                    dataSource: config.dataSource || null,
-                    // whether to show success notifications when saving
-                    silent: config.silent !== false,
-                    // save to DB via common save table (optional)
-                    tableName: config.tableName || null,
-                    columnName: config.columnName || config.field || null,
-                    idColumnName: config.idColumnName || null,
-                    idValue: config.idValue || null,
-                    // callbacks
-                    onCreateNew: config.onCreateNew || null,
-                    onChange: config.onChange || null,
-                    // visual
-                    maxVisible: config.maxVisible || 3
-                };
-
-                // internal paging/cache state for API-backed lists
-                let _fetchedItems = [];
-                let _fetchedMap = Object.create(null); // map value->true
-                let _hasMore = true;
-                let _lastFilter = null;
-
-                // internal state
-                let selected = Array.isArray(config.selectedValues) ? config.selectedValues.map(String) : (config.selected !== undefined ? (Array.isArray(config.selected)? config.selected.map(String) : [String(config.selected)]) : []);
-
-                // If no options provided, try to read from an existing <select> or child <option> elements
-                try {
-                    if((!cfg.options || cfg.options.length === 0) && $el.length) {
-                        if ($el.is("select")) {
-                            const domOpts = [];
-                            $el.find("option").each(function() { domOpts.push({ value: $(this).attr("value"), text: $(this).text() }); });
-                            if (domOpts.length) cfg.options = domOpts;
-                            if ((!selected || selected.length === 0) && $el.val() !== undefined && $el.val() !== null) {
-                                const val = $el.val();
-                                selected = Array.isArray(val) ? val.map(String) : (val ? [String(val)] : []);
-                            }
-                        } else {
-                            const $opts = $el.find("option");
-                            if ($opts.length) {
-                                const domOpts = [];
-                                $opts.each(function() { domOpts.push({ value: $(this).attr("value"), text: $(this).text() }); });
-                                if (domOpts.length) cfg.options = domOpts;
-                            }
-                        }
-                    }
-                } catch (e) {}
-
-                // Inject minimal CSS once
-                if (!window.__hpaControlFieldCSS) {
-                    window.__hpaControlFieldCSS = true;
-                    const style = document.createElement("style");
-                    style.textContent = `
-                        .hpa-field-wrapper{position:relative;width:100%}
-                        .hpa-field-display{display:flex;align-items:center;gap:8px;padding:8px 12px;border:1px solid var(--border-color);border-radius:6px;cursor:pointer}
-                        .hpa-field-display.focused{border-color:var(--task-primary);box-shadow:0 0 0 4px rgba(46,125,94,0.06)}
-                        .hpa-field-placeholder{color:var(--text-muted)}
-                        .hpa-field-dropdown{position:absolute;top:calc(100% + 8px);left:0;right:0;backdrop-filter:blur(50px);border:1px solid var(--border-color);border-radius:6px;box-shadow:var(--shadow-sm);max-height:320px;overflow:auto;display:none;z-index:3000;padding:8px}
-                        .hpa-field-search-input{width:100%;box-sizing:border-box;padding:8px;border:1px solid var(--border-color);border-radius:6px;margin-bottom:8px}
-                        .hpa-field-item{padding:8px;border-radius:4px;cursor:pointer;display:flex;align-items:center;gap:8px}
-                        .hpa-field-item:hover{background:#f6fbff}
-                        .hpa-field-item.selected{background:var(--task-primary);color:#fff;font-weight:600}
-                        .hpa-field-item.selected:hover{background:var(--task-primary)}
-                        .hpa-field-chip{display:inline-flex;align-items:center;padding:4px 8px;border-radius:16px;background:#f1f5f9;margin-right:6px}
-                    `;
-                    document.head.appendChild(style);
-                }
-
-                // Build DOM
-                const wrapper = $(`<div class="hpa-field-wrapper"></div>`);
-                const display = $(`<div class="hpa-field-display"><div class="hpa-field-text"></div><i class="bi bi-chevron-down" style="margin-left:auto"></i></div>`);
-                const dropdown = $(`<div class="hpa-field-dropdown"></div>`);
-                wrapper.append(display).append(dropdown);
-                $el.empty().append(wrapper);
-
-                function escapeHtml(s){ if(s===null||s===undefined) return ""; return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\""/g,"&quot;").replace(/"/g,"&#039;"); }
-
-                // Debounce helper: delays invocation until `wait` ms have elapsed since last call
-                function debounce(fn, wait) {
-                    let timer = null;
-                    return function() {
-                        const ctx = this;
-                        const args = arguments;
-                        if (timer) clearTimeout(timer);
-                        timer = setTimeout(function() { fn.apply(ctx, args); timer = null; }, wait);
-                    };
-                }
-
-                function renderDisplay(){
-                    const $t = display.find(".hpa-field-text");
-                    if (!cfg.multi){
-                        const v = selected[0];
-                        if (!v) {
-                            $t.html(`<span class="hpa-field-placeholder">${escapeHtml(cfg.placeholder)}</span>`);
-                        } else {
-                            const opt = (cfg.options||[]).find(o=>String(o.value)===String(v));
-                            $t.text(opt?opt.text:v);
-                        }
-                    } else {
-                        if (!selected || selected.length===0){
-                            $t.html(`<span class="hpa-field-placeholder">${escapeHtml(cfg.placeholder)}</span>`);
-                        } else {
-                            // Show plain comma-separated text for selected values (no chip icons)
-                            const texts = (selected||[]).map(id=>{ const o = (cfg.options||[]).find(x=>String(x.value)===String(id)); return escapeHtml(o?o.text:id); });
-                            const joined = texts.join(", ");
-                            $t.text(joined);
-                        }
-                    }
-                }
-
-                function openDropdown(){ $(".hpa-field-dropdown").not(dropdown).hide(); dropdown.show(); try{ display.addClass(''focused''); }catch(e){} if(cfg.searchable) dropdown.find(".hpa-field-search-input").first().focus(); }
-                function closeDropdown(){ try{ display.removeClass(''focused''); }catch(e){} setTimeout(()=>dropdown.hide(),120); }
-
-                function toggleValue(val, keep){ val=String(val); const idx = selected.indexOf(val); if(keep){ if(idx===-1) selected.push(val); } else { if(idx!==-1) selected.splice(idx,1); } renderDisplay(); // notify
-                    if(typeof cfg.onChange==="function") cfg.onChange(cfg.multi?selected.slice(): (selected[0]||null));
-                    // persist
-                    try{ saveToDB(cfg.multi?selected:selected[0]||null); }catch(e){}
-                }
-
-                function selectSingle(val){ selected = val===undefined||val===null?[]:[String(val)]; renderDisplay(); if(typeof cfg.onChange==="function") cfg.onChange(selected[0]||null); try{ saveToDB(cfg.multi?selected:selected[0]||null); }catch(e){} closeDropdown(); }
-
-                let itemsContainer = $(`<div class="hpa-field-items"></div>`);
-                let searchInput = null;
-                if (cfg.searchable) {
-                    searchInput = $(`<input type="text" class="hpa-field-search-input" placeholder="Tìm...">`);
-                    // debounce user input: only trigger search 1000ms after typing stops
-                    const debouncedRender = debounce(function(val) { renderDropdown(val); }, 500);
-                    searchInput.on("input", function () { debouncedRender($(this).val()); });
-                    dropdown.append(searchInput);
-                }
-                dropdown.append(itemsContainer);
-
-                // paging/load-more state
-                let loadingMore = false;
-                // Dropdown (.hpa-field-dropdown) has `max-height` and `overflow:auto`, so listen on it for scroll events
-                function onScrollHandler(e){
-                    try {
-                        if (!cfg.useApi || !cfg.ajaxListName) return;
-                        const el = this;
-                        if (el.scrollTop + el.clientHeight >= el.scrollHeight - 8) {
-                            if (loadingMore) return;
-                            loadingMore = true;
-                            const curFilter = searchInput ? (searchInput.val() || "") : "";
-                            // append next page
-                            renderDropdown(curFilter, true);
-                        }
-                    } catch(e) { loadingMore = false; }
-                }
-
-                dropdown.on("scroll", onScrollHandler);
-                // also attach to inner items container in case it is the actual scrollable element in some layouts
-                itemsContainer.on("scroll", onScrollHandler);
-
-                // appendMode: when true, new items will be appended to existing list (for infinite scroll)
-                function renderDropdown(filter, appendMode){
-                    const q = (filter||"").toString().toLowerCase();
-                    if (searchInput) searchInput.val(filter||"");
-
-                    // obtain items with precedence:
-                    // 1. cfg.options (static)
-                    // 2. cfg.dataSource (preloaded array or function)
-                    // 3. ajax via cfg.useApi && cfg.ajaxListName
-                    if (!appendMode) itemsContainer.empty();
-
-                    // render from cache instead of re-calling the API
-                    if (!appendMode && cfg.useApi && cfg.ajaxListName && _fetchedItems.length && _lastFilter === filter) {
-                        appendItems(_fetchedItems, false);
-                        return;
-                    }
-
-                    const tryAppend = function(list, append){ if(q) list = (list||[]).filter(o=>(String(o.text||"")+String(o.value||"")).toLowerCase().indexOf(q)!==-1); appendItems(list, append); };
-
-                    // 1. if static options exist
-                    if (cfg.options && cfg.options.length > 0) { tryAppend(cfg.options); return; }
-
-                    // 2. dataSource handling
-                    if (cfg.dataSource) {
-                        try {
-                            if (Array.isArray(cfg.dataSource)) { tryAppend(cfg.dataSource); return; }
-                            if (typeof cfg.dataSource === "function") {
-                                const res = cfg.dataSource(filter);
-                                if (res && typeof res.then === "function") {
-                                    itemsContainer.append(`<div class="hpa-field-item" style="color:var(--text-muted)">Đang tải...</div>`);
-                                    res.then(data=>{ itemsContainer.empty(); tryAppend(data || []); }).catch(()=>{ itemsContainer.html(`<div class="hpa-field-item" style="color:var(--text-muted)">Lỗi dữ liệu</div>`); });
-                                    return;
-                                } else {
-                                    tryAppend(res || []); return;
-                                }
-                            }
-                        } catch(e) { /* fallthrough to ajax if enabled */ }
-                    }
-
-                    // 3. ajax load when configured
-                    if (cfg.useApi && cfg.ajaxListName) {
-                        // If not appending, show loading indicator
-                        if (!appendMode) itemsContainer.append(`<div class="hpa-field-item" style="color:var(--text-muted)">Đang tải...</div>`);
-
-                        const fetchPage = function(filterVal, skipVal){
-                            return new Promise(function(resolve, reject){
-                                try{
-                                    const extraparam = [];
-                                    extraparam.push("@ProcName");
-                                    extraparam.push(cfg.ajaxListName);
-                                    extraparam.push("@ProcParam");
-                                    extraparam.push(cfg.procParam || "");
-                                    extraparam.push("@Take");
-                                    extraparam.push(cfg.take);
-                                    extraparam.push("@Skip");
-                                    extraparam.push(skipVal || 0);
-                                    extraparam.push("@SearchValue");
-                                    extraparam.push(filterVal || "");
-                                    extraparam.push("@ColumnSearch");
-                                    extraparam.push("");
-                                    extraparam.push("@LanguageID");
-                                    extraparam.push(typeof LanguageID !== ''undefined'' ? LanguageID : "VN");
-
-                                    AjaxHPAParadise({
-                                        data: { name: "sp_LoadGridUsingAPI", param: extraparam },
-                                        success: function(res){
-                                            try{
-                                                const json = typeof res === ''string'' ? JSON.parse(res) : res;
-                                                const data = json && json.data && json.data[0] ? json.data[0] : [];
-                                                const mapped = (data || []).map(x => ({ value: x.TaskID || x.EmployeeID || x.ID || x.value, text: x.TaskName || x.FullName || x.Name || x.text }));
-                                                resolve(mapped || []);
-                                            }catch(err){console.log(err); reject(err); }
-                                        },
-                                        error: function(){ reject(new Error(''Ajax Error'')); }
-                                    });
-                                }catch(e){ reject(e); }
-                            });
-                        };
-
-                        // If appendMode: fetch next page and append (only if server still has more)
-                        if (appendMode) {
-                            if (!_hasMore) { loadingMore = false; return; }
-                            fetchPage(filter, cfg.skip).then(function(mapped){
-                                if ((mapped||[]).length) {
-                                    // compute only-new items (do not mark cache yet)
-                                    const newItems = (mapped||[]).filter(it => !_fetchedMap[String(it.value)]);
-                                    if ((newItems||[]).length) {
-                                        appendItems(newItems, true);
-                                        // after DOM append, update fetched cache/map
-                                        newItems.forEach(it => { _fetchedItems.push(it); _fetchedMap[String(it.value)] = true; });
-                                    }
-                                    // advance skip by number of records returned from server (mapped length)
-                                    cfg.skip = (cfg.skip || 0) + (mapped||[]).length;
-                                    if ((mapped||[]).length < cfg.take) _hasMore = false;
-                                } else {
-                                    _hasMore = false;
-                                }
-                                loadingMore = false;
-                            }).catch(function(){ loadingMore = false; /* ignore errors on load-more */ });
-                            return;
-                        }
-
-                        // Otherwise initial load or search: reset paging/cache and load first page
-                        cfg.skip = 0;
-                        _hasMore = true;
-                        _fetchedItems = [];
-                        _fetchedMap = Object.create(null);
-                        _lastFilter = filter;
-                        fetchPage(filter, 0).then(function(mapped){
-                            const unique = (mapped||[]).filter(it => !_fetchedMap[String(it.value)]);
-                            unique.forEach(it => { _fetchedItems.push(it); _fetchedMap[String(it.value)] = true; });
-                            cfg.skip = _fetchedItems.length;
-                            if ((mapped||[]).length < cfg.take) _hasMore = false;
-                            itemsContainer.empty(); appendItems(_fetchedItems, false); loadingMore = false;
-                        }).catch(function(){ itemsContainer.html(`<div class="hpa-field-item" style="color:var(--text-muted)">Lỗi kết nối</div>`); loadingMore = false; });
-
-                        return;
-                    }
-
-                    // nothing -> show empty and possible create-new
-                    appendItems([]);
-
-                    function appendItems(list, append){
-                        append = !!append;
-                        if(!list||list.length===0){
-                            if (append) {
-                                // nothing new to append
-                                return;
-                            }
-                            itemsContainer.append(`<div class="hpa-field-item" style="color:var(--text-muted)">Không có dữ liệu</div>`);
-                            if (typeof cfg.onCreateNew === "function"){
-                                const createRow = $(`<div class="hpa-field-item" style="justify-content:flex-end"><button class="hpa-field-create btn btn-sm btn-primary">Tạo mới</button></div>`);
-                                createRow.find(".hpa-field-create").on("click", function(){
-                                    const kw = (searchInput? (searchInput.val()||"") : (filter||""));
-                                    try{
-                                        const res = cfg.onCreateNew(kw);
-                                        if (res && typeof res.then === "function"){
-                                            const $btn = $(this).prop("disabled", true).text("Đang tạo...");
-                                            res.then(newItem=>{ $btn.prop("disabled", false).text("Tạo mới"); handleNewItem(newItem); }).catch(()=>{ $btn.prop("disabled", false).text("Tạo mới"); uiManager?.showAlert?.({ type: "error", message: "Tạo thất bại" }); });
-                                        } else {
-                                            handleNewItem(res);
-                                        }
-                                    }catch(e){ uiManager?.showAlert?.({ type: "error", message: "Tạo thất bại" }); }
-                                });
-                                itemsContainer.append(createRow);
-                            }
-                            return;
-                        }
-                        list.forEach(o=>{
-                            // dedupe: skip if already present in fetched map
-                            if (_fetchedMap[String(o.value)]) {
-                                // if not in append mode, still render it from fetchedItems; skip duplicate append
-                                if (append) return;
-                            } else if (append) {
-                                _fetchedMap[String(o.value)] = true;
-                            }
-                            const isSel = selected.indexOf(String(o.value))!==-1;
-                            if(cfg.multi){
-                                const row = $(`<div class="hpa-field-item"><label style="display:flex;align-items:center;gap:8px;width:100%"><input type="checkbox" ${isSel?"checked":""}/> <span style="flex:1">${escapeHtml(o.text)}</span></label></div>`);
-                                row.find("input").on("change", function(){ toggleValue(o.value, $(this).is(":checked")); });
-                                itemsContainer.append(row);
-                            } else {
-                                const row = $(`<div class="hpa-field-item ${isSel?"selected":""}" data-value="${o.value}">${escapeHtml(o.text)}</div>`);
-                                row.on("click", ()=>selectSingle(o.value));
-                                itemsContainer.append(row);
-                            }
-                        });
-
-                        function handleNewItem(newItem){
-                            if(!newItem) return;
-                            // normalize to {value,text} or simple value
-                            let ni = null;
-                            if(typeof newItem === "object") ni = { value: newItem.value!==undefined? newItem.value : (newItem.id||newItem.Value||newItem.ID), text: newItem.text || newItem.textName || newItem.Name || String(newItem.value||newItem.id||newItem) };
-                            else ni = { value: newItem, text: String(newItem) };
-                            // add to static options so it appears later
-                            cfg.options = cfg.options || [];
-                            cfg.options.unshift(ni);
-                            // select it
-                            if(cfg.multi){ if(selected.indexOf(String(ni.value))===-1) selected.push(String(ni.value)); }
-                            else selected = [String(ni.value)];
-                            renderDisplay();
-                            if(typeof cfg.onChange === "function") cfg.onChange(cfg.multi? selected.slice() : (selected[0]||null));
-                            try{ saveToDB(cfg.multi?selected:selected[0]||null); }catch(e){}
-                            closeDropdown();
-                        }
-                    }
-                }
-
-                // Save to DB helper (optional)
-                function saveToDB(val){ if(!cfg.tableName || !cfg.idValue) return; AjaxHPAParadise({ data:{ name: "sp_Common_SaveDataTable", param:[ "LoginID", window.LoginID||0, "LanguageID", LanguageID, "TableName", cfg.tableName, "ColumnName", cfg.columnName, "IDColumnName", cfg.idColumnName||"ID", "ColumnValue", cfg.multi? (val||[]).join(",") : (val||""), "ID_Value", cfg.idValue ] }, success: ()=>{ if(!cfg.silent) uiManager?.showAlert?.({ type:"success", message: "%UpdateSuccess%" }); } }); }
-
-                // events
-                display.on("click", function(e){ e.stopPropagation(); renderDropdown(""); openDropdown(); });
-                $(document).on("click.hpaField", function(e){ if(!wrapper.is(e.target) && wrapper.has(e.target).length===0) closeDropdown(); });
-
-                // initialize
-                renderDisplay();
-
-                // Preload dropdown items so options are present in the DOM immediately.
-                // This helps when the control replaces a <select> so the user can open it and see items.
-                try {
-                    // Only preload once per instance
-                    if (!cfg._preloaded) {
-                        cfg._preloaded = true;
-                        // Non-blocking: attempt to render items (static options, dataSource or API as configured)
-                        setTimeout(function() {
-                            try { renderDropdown(""); } catch(e) {}
-                        }, 0);
-                    }
-                } catch(e) {}
-
-                return {
-                    setValue(v){ if(cfg.multi){ selected = Array.isArray(v)? v.map(String) : (v? [String(v)] : []); } else { selected = v? [String(v)] : []; } renderDisplay(); saveToDB(cfg.multi?selected:selected[0]||null); },
-                    getValue(){ return cfg.multi? selected.slice(): (selected[0]||null); },
-                    getText(){ if(!selected.length) return null; const id = selected[0]; const o = cfg.options.find(x=>String(x.value)===String(id)); return o? o.text : id; },
-                    destroy(){ $(document).off("click.hpaField"); wrapper.remove(); }
-                };
-            }
+            
         })();
     </script>
     ';

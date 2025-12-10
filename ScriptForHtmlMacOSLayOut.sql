@@ -122,8 +122,6 @@ BEGIN
 	 '+ISNULL(@FullRightObject, '')+N'
 	 ];
 
-	// console.log(''Render firsttime'');
-
     </script>
 		'
 		+
@@ -633,7 +631,6 @@ ${app.img}
 			appsContainerParent.appendChild(appsContainer);
 			carouselContainer.appendChild(appsContainerParent);
         });
-         //console.log(apps.length);
 		insertStyle(''appHoverStyles'',styleApp,true);
        // prevButton.style.display = currentPage === 1 ? ''none'' : ''block'';
        // nextButton.style.display = currentPage === totalPages ? ''none'' : ''block'';
@@ -801,7 +798,6 @@ ${app.img}
 
        style.innerHTML = styleDock;
        document.head.append(style);
-      // console.log(styleDock);
 
 
 
@@ -1392,7 +1388,7 @@ function UpdateLayOutApi(typeSetting, valueSetting){
 			document.addEventListener(''keydown'', function (event) {
 
     if (event.ctrlKey && event.key === ''f'') {
-     event.preventDefault();
+  event.preventDefault();
 	
 		  setTimeout(function () {
 		$(''#launchpad'').fadeIn();
@@ -1659,7 +1655,7 @@ function showLoadingByClassOrID(target, text = "Loading...", spinnerColor = "bla
 
       .modal-dialog {
              z-index: 1 !important;
-                    }
+     }
 
                      .modal-content {
                         z-index: 1 !important;
@@ -2235,8 +2231,9 @@ $(`#shortcutWarning-${menuId}`).addClass("d-none");
     shortcutDisplay.text("CHƯA THIẾT LẬP PHÍM TẮT")
                return
              }
-                }
-                AjaxHPAParadise({
+}
+  AjaxHPAParadise({
+
                     data: {
                 name: "api_saveShortKeys",
            param: [
@@ -2292,66 +2289,1563 @@ $(`#shortcutWarning-${menuId}`).addClass("d-none");
 
 			if(UserID != 23)
 			{
-				
-					$(''#launchpad'').fadeIn();
-				
+				$(''#launchpad'').fadeIn();
 			}
 
 			// Linh: Hàm control sửa input và textarea
 			function hpaControlEditableRow(el, config) {
-                const $el = $(el);
-                // Simplified config: only requires tableName, columnName, idColumnName, idValue, displayId
-                const cfg = {
-                    type: config.type || "input",                             // "input" | "textarea"
-                    tableName: config.tableName,                              // table to update
-                    columnName: config.columnName,                            // column name to update
-                    idColumnName: config.idColumnName,                        // ID column name (e.g., "TaskID")
-                    idValue: config.idValue,                                  // ID value (e.g., taskId)
-                    silent: config.silent || false,                           // suppress toast
-                    allowAdd: config.allowAdd || false,                       // Có cho phép xóa hết text chuyển từ 
-                    onSave: config.onSave || null,     // callback after save
-                    language: config.language || "VN"
-                };
-                if (!cfg.columnName || !cfg.tableName || !cfg.idColumnName) return console.error("thiếu columnName, tableName, idColumnName");
+				const $el = $(el);
+				// Simplified config
+				const cfg = {
+					type: config.type || "input",
+					tableName: config.tableName,
+					columnName: config.columnName,
+					idColumnName: config.idColumnName,
+					idValue: config.idValue,
+					silent: config.silent || false,
+					allowAdd: config.allowAdd || false,
+					onSave: config.onSave || null,
+					language: config.language || "VN",
+					width: config.width
+				};
 
-                // Kiểm tra đã inject CSS chưa
-                if (!window.__hpaEditableRowCSSInjected) {
+				if (!cfg.columnName || !cfg.tableName || !cfg.idColumnName) return console.error("thiếu columnName, tableName, idColumnName");
+
+				// Kiểm tra đã inject CSS chưa
+				if (!window.__hpaEditableRowCSSInjected) {
+					const style = document.createElement("style");
+					style.textContent = `
+						.hpa-editable-row.control-editable {
+							cursor: pointer;
+							padding: 8px 4px;
+							border-radius: 4px;
+							transition: all 0.2s;
+							display: inline-block;
+							vertical-align: middle;
+							box-sizing: border-box;
+						}
+						.hpa-editable-row.control-editable.editing {
+							padding: 4px 8px;
+							z-index: 100 !important;
+						}
+						.hpa-editable-row.control-editable.editing input,
+						.hpa-editable-row.control-editable.editing textarea,
+						.hpa-editable-row.control-editable.editing select {
+							width: 100% !important;
+							font-size: inherit;
+							font-weight: inherit;
+							padding: 6px 10px;
+							border: 1px solid #1c975e !important;
+							box-sizing: border-box;
+						}
+						.hpa-editable-row.control-editable .edit-actions {
+							position: absolute;
+							top: 110%;
+							display: inline-flex;
+							gap: 4px;
+							margin-left: 6px;
+							align-items: center;
+							z-index: 100 !important;
+							right: 0;
+						}
+						.hpa-editable-row.control-editable .btn-edit {
+							width: 28px;
+							height: 28px;
+							padding: 0;
+							display: inline-flex;
+							align-items: center;
+							justify-content: center;
+							border-radius: 4px;
+							border: 1px solid #e8eaed;
+							background: white;
+							cursor: pointer;
+							transition: all 0.2s;
+							font-size: 14px;
+						}
+						.hpa-editable-row.control-editable .btn-edit:hover {
+							transform: scale(1.1);
+						}
+						.hpa-editable-row.control-editable .btn-edit.btn-save {
+							background: #2E7D32;
+							color: white;
+							border-color: #2E7D32;
+						}
+						.hpa-editable-row.control-editable .btn-edit.btn-save:hover {
+							background: #1c975e;
+						}
+						.hpa-editable-row.control-editable .btn-edit.btn-cancel {
+							background: #fff;
+							color: #676879;
+						}
+						.hpa-editable-row.control-editable .btn-edit.btn-cancel:hover {
+							background: #f5f5f5;
+							color: #E53935;
+						}
+					`;
+					document.head.appendChild(style);
+					window.__hpaEditableRowCSSInjected = true;
+				}
+
+				$el.addClass("hpa-editable-row control-editable");
+
+				if (cfg.width) {
+					$el.css({
+						"width": cfg.width,
+						"min-width": cfg.width
+					});
+
+					// Nếu là view mode (không phải textarea), có thể thêm cắt dòng nếu muốn gọn
+					if (cfg.type !== "textarea") {
+						$el.css({
+							"white-space": "nowrap",
+							"overflow": "hidden",
+							"text-overflow": "ellipsis"
+						});
+					}
+				}
+
+				$el.off("click.control-editable")
+					.on("click.control-editable", function (e) {
+						$(".hpa-editable-row.editing, .hpa-editable-row-number.editing").not($el).find(".btn-save").trigger("click");
+						if ($(".hpa-editable-row-date.editing-date, .hpa-editable-row-time.editing-time").not($el).length > 0) {
+							$("body").trigger("click");
+						}
+						e.stopPropagation();
+						e.preventDefault();
+
+						// Đóng các ô đang sửa khác
+						$(".hpa-editable-row.control-editable.editing").each(function () {
+							if (this !== $el[0]) {
+								$(this).find(".btn-save").trigger("click");
+							}
+						});
+
+						if ($el.hasClass("editing")) return false;
+
+						const curVal = $el.text().trim();
+
+						// Khi vào chế độ sửa, tạm thời bỏ overflow hidden để nút bấm không bị che
+						if (cfg.width) $el.css("overflow", "visible");
+
+						let $input;
+
+						// [NOTE] Sử dụng ngoặc kép " " cho attribute HTML để tránh lỗi SQL
+						if (cfg.type === "textarea") {
+							$input = $("<textarea class=\"form-control form-control-sm\" rows=\"3\">").val(curVal);
+						} else {
+							$input = $("<input type=\"text\" class=\"form-control form-control-sm\">").val(curVal);
+						}
+
+						let isAddMode = false;
+						let recordId = cfg.idValue;
+
+						const $save = $("<button class=\"btn-edit btn-save\" title=\"Lưu\"><i class=\"bi bi-check-lg\"></i></button>");
+						const $cancel = $("<button class=\"btn-edit btn-cancel\" title=\"Hủy\"><i class=\"bi bi-x-lg\"></i></button>");
+
+						const updateButtonState = () => {
+							const isEmpty = !$input.val() || $input.val().trim().length === 0;
+
+							if (cfg.allowAdd && isEmpty && !isAddMode) {
+								isAddMode = true;
+								recordId = null;
+								$save.html("<i class=\"bi bi-plus-lg\"></i>").attr("title", "Thêm");
+							}
+						};
+
+						const $actions = $("<div class=\"edit-actions\"></div>").append($save).append($cancel);
+						// position-relative để nút bấm bám theo div cha
+						const $wrap = $("<div class=\"d-flex align-items-end gap-1 w-100 flex-column position-relative\"></div>").append($input).append($actions);
+
+						$el.addClass("editing").html("").append($wrap);
+
+						setTimeout(() => {
+							const el = $input[0];
+							el.focus();
+							const len = el.value.length;
+							el.setSelectionRange(len, len);
+						}, 50);
+
+						const finish = (saveIt) => {
+							const newVal = $input.val().trim();
+
+							$save.off("click");
+							$cancel.off("click");
+							$input.off("click keydown input");
+							$(document).off("click.hpaEditable");
+
+							$el.removeClass("editing").off("keydown");
+
+							// [UPDATE 3] Trả lại style overflow nếu có width sau khi sửa xong
+							if (cfg.width && cfg.type !== "textarea") {
+								$el.css("overflow", "hidden");
+							}
+
+							if (!saveIt || (newVal === curVal && !isAddMode)) {
+								$el.text(curVal);
+								return;
+							}
+
+							const params = [
+								"LoginID", LoginID,
+								"LanguageID", cfg.language,
+								"TableName", cfg.tableName,
+								"ColumnName", cfg.columnName,
+								"IDColumnName", cfg.idColumnName,
+								"ColumnValue", newVal,
+								"ID_Value", recordId
+							];
+
+							// [NOTE] AjaxHPAParadise call
+							AjaxHPAParadise({
+								data: { name: "sp_Common_SaveDataTable", param: params },
+								success: () => {
+									const display = newVal;
+									$el.text(display);
+									if (cfg.silent) uiManager.showAlert({ type: "success", message: isAddMode ? "%AddSuccess%" : "%UpdateSuccess%" });
+									if (cfg.onSave) cfg.onSave(newVal, isAddMode, recordId);
+								},
+								error: () => {
+									uiManager.showAlert({ type: "error", message: "Lưu thất bại!" });
+									$el.text(curVal);
+								}
+							});
+						};
+
+						$save.on("click", function(e) {
+							e.stopPropagation();
+							$(document).off("click.hpaEditable");
+							finish(true);
+						});
+
+						$cancel.on("click", (e) => { e.stopPropagation(); e.preventDefault(); finish(false); return false; });
+						$input.on("input", updateButtonState);
+						$input.on("keydown", (e) => {
+							if (e.key === "Enter" && cfg.type !== "textarea") { e.preventDefault(); finish(true); }
+							if (e.key === "Escape") finish(false);
+						});
+						$(document).one("click.hpaEditable", (e) => {
+							if (!$(e.target).closest($el).length) finish(true);
+						});
+					});
+			}
+
+            // Linh: Hàm control Selectbox + Combobox - FIXED VERSION
+            function hpaControlField(el, config) {
+                const $el = $(el);
+                if (!$el.length) return null;
+
+                config = config || {};
+                const cfg = {
+                    searchable: config.hasOwnProperty("searchable") ? !!config.searchable : (!!config.useApi === true),
+                    placeholder: config.placeholder || "Chọn...",
+                    multi: !!config.multi,
+                    options: config.options || config.staticOptions || [],
+                    selected: config.selected,
+                    useApi: !!config.useApi,
+                    ajaxListName: config.ajaxListName || null,
+                    take: typeof config.take === "number" ? config.take : (config.useApi ? 20 : (config.take || 200)),
+                    skip: typeof config.skip === "number" ? config.skip : 0,
+                    dataSource: config.dataSource || null,
+                    silent: config.silent !== false,
+                    tableName: config.tableName || null,
+                    columnName: config.columnName || config.field || null,
+                    idColumnName: config.idColumnName || null,
+                    idValue: config.idValue || null,
+                    onChange: config.onChange || null,
+                    maxVisible: config.maxVisible || 3,
+                    procParam: config.procParam || "",
+                    searchMode: config.searchMode || "local",
+                    ajaxGetCombobox: !!config.ajaxGetCombobox,
+                    sourceTableName: config.sourceTableName || null,
+                    sourceColumnName: config.sourceColumnName || null,
+                    sourceIdColumnName: config.sourceIdColumnName || null,
+                    whereClause: config.whereClause || "",
+                    columns: config.columns || null,
+                    displayTemplate: config.displayTemplate || null,
+                    searchColumns: config.searchColumns || null,
+                    valueField: config.valueField || null,
+                    textField: config.textField || null
+                };
+
+                // ===== STATE VARIABLES =====
+                let _fetchedItems = [];
+                let _fetchedMap = Object.create(null);
+                let _hasMore = true;
+                let _lastFilter = null;
+                let _currentSkip = 0;
+                let loadingMore = false;
+                let _initialized = false;
+                let _renderedCount = 0; // Số items đã render
+                
+                let selected = Array.isArray(config.selectedValues) ? config.selectedValues.map(String) : (config.selected !== undefined ? (Array.isArray(config.selected) ? config.selected.map(String) : [String(config.selected)]) : []);
+
+                // Đọc option từ <select> cũ nếu có
+                try {
+                    if ((!cfg.options || cfg.options.length === 0) && $el.length) {
+                        if ($el.is("select")) {
+                            const domOpts = [];
+                            $el.find("option").each(function () { domOpts.push({ value: $(this).attr("value"), text: $(this).text() }); });
+                            if (domOpts.length) cfg.options = domOpts;
+                            if ((!selected || selected.length === 0) && $el.val() !== undefined && $el.val() !== null) {
+                                const val = $el.val();
+                                selected = Array.isArray(val) ? val.map(String) : (val ? [String(val)] : []);
+                            }
+                        }
+                    }
+                } catch (e) {}
+
+                // CSS
+                if (!window.__hpaControlFieldCSS) {
+                    window.__hpaControlFieldCSS = true;
                     const style = document.createElement("style");
                     style.textContent = `
-                        .hpa-editable-row.control-editable {
+                        .hpa-field-wrapper{position:relative;width:100%}
+                        .hpa-field-display{display:flex;align-items:center;gap:8px;padding:8px 12px;border:1px solid var(--border-color);border-radius:6px;cursor:pointer;transition:all 0.2s}
+                        .hpa-field-display.focused{border-color:var(--task-primary);box-shadow:0 0 0 4px rgba(46,125,94,0.06)}
+                        .hpa-field-display.searching{padding:0 !important}
+                        .hpa-field-display.searching .hpa-field-inline-search{width:100%;padding:8px 12px;border:none;outline:none;background:transparent;font-size:inherit}
+                        .hpa-field-display.searching .bi-chevron-down{display:none}
+                        .hpa-field-placeholder{color:var(--text-muted)}
+                        .hpa-field-dropdown{position:absolute;top:calc(100% + 8px);left:0;right:0;backdrop-filter:blur(50px);border:1px solid var(--border-color);border-radius:6px;box-shadow:var(--shadow-sm);max-height:320px;overflow:auto;display:none;z-index:3000;padding:8px}
+                        .hpa-field-item{padding:8px;border-radius:4px;cursor:pointer;display:flex;align-items:center;gap:8px}
+                        .hpa-field-item:hover{background:#f6fbff}
+                        .hpa-field-item.selected{background:var(--task-primary);color:#fff;font-weight:600}
+                        .hpa-field-item.selected:hover{background:var(--task-primary)}
+                        .hpa-field-chip{display:inline-flex;align-items:center;padding:4px 8px;border-radius:16px;background:#f1f5f9;margin-right:6px}
+                        .hpa-field-column-header{display:flex;gap:8px;padding:8px;border-bottom:1px solid var(--border-color);margin-bottom:4px;font-weight:600;font-size:12px;color:var(--text-muted)}
+                        .hpa-field-column-row{display:flex;gap:8px;align-items:center}
+                        .hpa-field-column-cell{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+                    `;
+                    document.head.appendChild(style);
+                }
+
+                const wrapper = $(`<div class="hpa-field-wrapper"></div>`);
+                const display = $(`<div class="hpa-field-display"><div class="hpa-field-text"></div><i class="bi bi-chevron-down" style="margin-left:auto"></i></div>`);
+                const dropdown = $(`<div class="hpa-field-dropdown"></div>`);
+                const itemsContainer = $(`<div class="hpa-field-items"></div>`);
+                
+                wrapper.append(display).append(dropdown);
+                dropdown.append(itemsContainer);
+                $el.empty().append(wrapper);
+
+                function escapeHtml(s) { if (s === null || s === undefined) return ""; return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/""/g, "&quot;").replace(/"/g, "&#039;"); }
+
+                function debounce(fn, wait) {
+                    let timer = null;
+                    return function () {
+                        const ctx = this, args = arguments;
+                        if (timer) clearTimeout(timer);
+                        timer = setTimeout(() => { fn.apply(ctx, args); timer = null; }, wait);
+                    };
+                }
+
+                // ===== HELPER: Determine actual search mode =====
+                function getActualSearchMode() {
+                    if (cfg.searchMode === "local") return "local";
+                    if (cfg.searchMode === "api") return "api";
+                    if (cfg.useApi && (cfg.ajaxListName || cfg.ajaxGetCombobox)) return "api";
+                    return "local";
+                }
+
+                // ===== HELPER: Get value from item =====
+                function getItemValue(item) {
+                    if (cfg.valueField) return item[cfg.valueField];
+                    return item.TaskID || item.EmployeeID || item.ID || item.value;
+                }
+
+                // ===== HELPER: Get text from item =====
+                function getItemText(item) {
+                    if (cfg.displayTemplate && typeof cfg.displayTemplate === "function") return cfg.displayTemplate(item);
+                    if (cfg.textField) return item[cfg.textField];
+                    return item.TaskName || item.FullName || item.Name || item.text;
+                }
+
+                // ===== HELPER: Search in item (hỗ trợ tiếng Việt không dấu) =====
+                function itemMatchesSearch(item, searchText) {
+                    if (!searchText) return true;
+                    
+                    const search = searchText.toLowerCase();
+                    const searchNoTone = typeof RemoveToneMarks === "function" ? RemoveToneMarks(search) : search;
+                    
+                    const textMatches = (text) => {
+                        if (!text) return false;
+                        const textLower = String(text).toLowerCase();
+                        const textNoTone = typeof RemoveToneMarks === "function" ? RemoveToneMarks(textLower) : textLower;
+                        return textLower.includes(search) || textNoTone.includes(searchNoTone);
+                    };
+                    
+                    if (cfg.searchColumns && cfg.searchColumns.length) {
+                        return cfg.searchColumns.some(col => textMatches(item[col]));
+                    }
+                    
+                    return textMatches(getItemText(item));
+                }
+
+                function renderDisplay() {
+                    const $t = display.find(".hpa-field-text");
+                    if (!cfg.multi) {
+                        const v = selected[0];
+                        if (!v) {
+                            $t.html(`<span class="hpa-field-placeholder">${escapeHtml(cfg.placeholder)}</span>`);
+                        } else {
+                            const opt = _fetchedItems.find(o => String(getItemValue(o)) === String(v)) || (cfg.options || []).find(o => String(o.value) === String(v));
+                            $t.text(opt ? getItemText(opt) : v);
+                        }
+                    } else {
+                        if (!selected || selected.length === 0) {
+                            $t.html(`<span class="hpa-field-placeholder">${escapeHtml(cfg.placeholder)}</span>`);
+                        } else {
+                            const texts = selected.map(id => {
+                                const o = _fetchedItems.find(x => String(getItemValue(x)) === String(id)) || (cfg.options || []).find(x => String(x.value) === String(id));
+                                return escapeHtml(o ? getItemText(o) : id);
+                            });
+                            $t.text(texts.join(", "));
+                        }
+                    }
+                }
+
+                function openDropdown() {
+                    $(".hpa-field-dropdown").not(dropdown).hide();
+                    dropdown.show();
+                    display.addClass("focused");
+                    dropdown.scrollTop(0);
+                }
+
+                function closeDropdown() {
+                    display.removeClass("focused searching");
+                    renderDisplay();
+                    setTimeout(() => dropdown.hide(), 120);
+                }
+
+                function toggleValue(val, keep) {
+                    val = String(val);
+                    const idx = selected.indexOf(val);
+                    if (keep) {
+                        if (idx === -1) selected.push(val);
+                    } else {
+                        if (idx !== -1) selected.splice(idx, 1);
+                    }
+                    renderDisplay();
+                    if (typeof cfg.onChange === "function") {
+                        const item = _fetchedItems.find(x => String(getItemValue(x)) === val);
+                        cfg.onChange(cfg.multi ? selected.slice() : (selected[0] || null), item);
+                    }
+                    try { saveToDB(cfg.multi ? selected : selected[0] || null); } catch (e) {}
+                }
+
+                function selectSingle(val) {
+                    selected = val === undefined || val === null ? [] : [String(val)];
+                    renderDisplay();
+                    if (typeof cfg.onChange === "function") {
+                        const item = _fetchedItems.find(x => String(getItemValue(x)) === val);
+                        cfg.onChange(selected[0] || null, item);
+                    }
+                    try { saveToDB(cfg.multi ? selected : selected[0] || null); } catch (e) {}
+                    closeDropdown();
+                }
+
+                function defaultCreateNew(keyword){
+                    return new Promise(function(resolve, reject){
+                        const kw = String(keyword||"").trim();
+                        if (!kw) return reject(new Error("Empty keyword"));
+                        const params = [];
+                        params.push("LoginID"); params.push(window.LoginID||0);
+                        params.push("LanguageID"); params.push(typeof LanguageID !== "undefined" ? LanguageID : "VN");
+                        params.push("TableName"); params.push(cfg.sourceTableName || cfg.tableName || "");
+                        params.push("ColumnName"); params.push(cfg.sourceColumnName || cfg.columnName || cfg.field || "");
+                        params.push("IDColumnName"); params.push(cfg.sourceIdColumnName || cfg.idColumnName || "ID");
+                        params.push("ColumnValue"); params.push(kw);
+                        AjaxHPAParadise({
+                            data: { name: "sp_Common_SaveDataTable", param: params },
+                            success: function(res){
+                                try{
+                                    const json = typeof res === "string" ? JSON.parse(res) : res;
+                                    let newId = null;
+                                    if (json && json.data && Array.isArray(json.data) && json.data.length > 0) {
+                                        let firstRow = json.data[0];
+                                        if (Array.isArray(firstRow) && firstRow.length > 0) {
+                                            const firstItem = firstRow[0];
+                                            if (typeof firstItem === "object" && firstItem !== null) {
+                                                newId = firstItem.ID || firstItem.NewID || firstItem.IDValue || null;
+                                            } else {
+                                                newId = firstItem; // fallback cho mảng thô
+                                            }
+                                        } else if (typeof firstRow === "object" && firstRow !== null) {
+                                            newId = firstRow.ID || firstRow.NewID || firstRow.IDValue || null;
+                                        }
+                                    }
+                                    resolve({ value: newId || null, text: kw });
+                                }catch(e){
+                                    console.error("Parse ID error:", e);
+                                    resolve({ value: null, text: kw });
+                                }
+                            },
+                            error: function(){ reject(new Error("Ajax Error")); }
+                        });
+                    });
+                }
+
+                function handleNewItem(newItem) {
+                    // Tạo object item chuẩn
+                    const standardItem = cfg.columns ? newItem : {
+                        value: newItem.value,
+                        text: newItem.text,
+                        ID: newItem.value,
+                        Name: newItem.text,
+                        ...newItem
+                    };
+                    
+                    const itemValue = String(getItemValue(standardItem));
+                    
+                    // Thêm vào đầu cache
+                    if (!_fetchedMap[itemValue]) {
+                        _fetchedMap[itemValue] = true;
+                        _fetchedItems.unshift(standardItem); // unshift = thêm vào đầu
+                    }
+                    
+                    // Thêm vào static options (khởi tạo nếu chưa có)
+                    if (!cfg.options) cfg.options = [];
+                    cfg.options.unshift(standardItem);
+                    
+                    // Selected item mới
+                    if (cfg.multi) {
+                        if (!selected.includes(itemValue)) {
+                            selected.push(itemValue);
+                        }
+                    } else {
+                        selected = [itemValue];
+                    }
+                    
+                    // Render lại display
+                    renderDisplay();
+                    
+                    // Gọi onChange callback
+                    if (typeof cfg.onChange === "function") {
+                        cfg.onChange(cfg.multi ? selected.slice() : (selected[0] || null), standardItem);
+                    }
+                    
+                    // Lưu vào DB
+                    try { 
+                        saveToDB(cfg.multi ? selected : selected[0] || null); 
+                    } catch (e) {}
+                    
+                    // Clear cache API nếu cần
+                    if (cfg.useApi && cfg.ajaxListName) {
+                        AjaxHPAParadise({
+                            data: {
+                                name: "sp_ClearTableCacheForControlField",
+                                param: ["@ProcName", cfg.ajaxListName, "@LoginID", window.LoginID || 0, "@LanguageID", typeof LanguageID !== "undefined" ? LanguageID : "VN"]
+                            },
+                            success: () => {
+                            }
+                        });
+                    }
+                    
+                    closeDropdown();
+                }
+
+                // ==================== FETCH PAGE ====================
+                function fetchPage(filterVal, skipVal, isAddFlag = false) {
+                    return new Promise((resolve, reject) => {
+                        if (cfg.ajaxGetCombobox) {
+                            const p = [
+                                "@LoginID", window.LoginID || 0,
+                                "@LanguageID", typeof LanguageID !== "undefined" ? LanguageID : "VN",
+                                "@TableName", cfg.sourceTableName || cfg.tableName || "",
+                                "@ColumnName", cfg.sourceColumnName || cfg.textField || "Name",
+                                "@IDColumnName", cfg.sourceIdColumnName || cfg.valueField || "ID",
+                                "@WhereClause", cfg.whereClause || ""
+                            ];
+
+                            AjaxHPAParadise({
+                                data: { name: "sp_Common_GetComboBox", param: p },
+                                success: res => {
+                                    try {
+                                        const json = typeof res === "string" ? JSON.parse(res) : res;
+                                        let rows = json?.data?.[0] || [];
+                                        
+                                        if (filterVal) {
+                                            const search = filterVal.toLowerCase();
+                                            rows = rows.filter(x => {
+                                                const name = x.Name || x[cfg.textField] || "";
+                                                return String(name).toLowerCase().includes(search);
+                                            });
+                                        }
+                                        
+                                        const start = skipVal || 0;
+                                        const end = start + cfg.take;
+                                        const paginatedRows = rows.slice(start, end);
+                                        
+                                        const mapped = paginatedRows.map(x => {
+                                            if (cfg.columns) return x;
+                                            return {
+                                                value: x.ID || x[cfg.valueField],
+                                                text: x.Name || x[cfg.textField],
+                                                ...x
+                                            };
+                                        });
+                                        
+                                        mapped._totalCount = rows.length;
+                                        resolve(mapped);
+                                    } catch (err) { reject(err); }
+                                },
+                                error: () => reject(new Error("Ajax Error"))
+                            });
+                            return;
+                        }
+                        
+                        const p = [
+                            "@ProcName", cfg.ajaxListName,
+                            "@ProcParam", cfg.procParam || "",
+                            "@Take", cfg.take,
+                            "@Skip", skipVal || 0,
+                            "@SearchValue", filterVal || "",
+                            "@ColumnSearch", cfg.searchColumns ? cfg.searchColumns.join(",") : "",
+                            "@LanguageID", typeof LanguageID !== "undefined" ? LanguageID : "VN",
+                            "@IsAdd", isAddFlag ? 1 : 0
+                        ];
+
+                        AjaxHPAParadise({
+                            data: { name: "sp_LoadGridUsingAPI", param: p },
+                            success: res => {
+                                try {
+                                    const json = typeof res === "string" ? JSON.parse(res) : res;
+                                    const rows = json?.data?.[0] || [];
+                                    const mapped = cfg.columns ? rows : rows.map(x => ({
+                                        value: x.TaskID || x.EmployeeID || x.ID || x.value,
+                                        text: x.TaskName || x.FullName || x.Name || x.text,
+                                        ...x
+                                    }));
+                                    resolve(mapped);
+                                } catch (err) { reject(err); }
+                            },
+                            error: () => reject(new Error("Ajax Error"))
+                        });
+                    });
+                }
+
+                function addToCache(list) {
+                    list.forEach(it => {
+                        const val = getItemValue(it);
+                        if (!_fetchedMap[val]) {
+                            _fetchedMap[val] = true;
+                            _fetchedItems.push(it);
+                        }
+                    });
+                }
+
+                function showLoading() {
+                    itemsContainer.append(`<div class="hpa-field-item" style="color:var(--text-muted)">Đang tải...</div>`);
+                }
+
+                function showError(msg) {
+                    itemsContainer.html(`<div class="hpa-field-item" style="color:var(--text-muted)">${msg}</div>`);
+                }
+
+                // ==================== BACKGROUND PRELOAD ALL DATA ====================
+                function backgroundPreloadAll() {
+                    if (!cfg.useApi || (!cfg.ajaxListName && !cfg.ajaxGetCombobox)) return;
+                    if (cfg.searchMode === "api") return; // Không preload nếu dùng API search
+                    
+                    let skipCount = _currentSkip;
+                    
+                    function loadNextBatch() {
+                        if (!_hasMore) {
+                            return;
+                        }
+                        
+                        fetchPage("", skipCount).then(data => {
+                            const totalCount = data._totalCount;
+                            delete data._totalCount;
+                            
+                            if (!data.length) {
+                                _hasMore = false;
+                                return;
+                            }
+                            
+                            // Merge vào cache (không render)
+                            let newCount = 0;
+                            data.forEach(it => {
+                                const val = getItemValue(it);
+                                if (!_fetchedMap[val]) {
+                                    _fetchedMap[val] = true;
+                                    _fetchedItems.push(it);
+                                    newCount++;
+                                }
+                            });
+                            
+                            skipCount += data.length;
+                            
+                            // Check hasMore
+                            if (cfg.ajaxGetCombobox && totalCount !== undefined) {
+                                _hasMore = skipCount < totalCount;
+                            } else {
+                                _hasMore = data.length >= cfg.take;
+                            }
+                            
+                            // Load tiếp batch sau 200ms
+                            if (_hasMore) {
+                                setTimeout(loadNextBatch, 200);
+                            } else {
+                            }
+                        }).catch(err => {
+                            console.error("Background preload error:", err);
+                        });
+                    }
+                    
+                    // Bắt đầu load sau 500ms (để UI render xong)
+                    setTimeout(loadNextBatch, 500);
+                }
+
+                // ==================== INITIAL API LOAD ====================
+                function initialApiLoad(filter) {
+                    showLoading();
+
+                    fetchPage(filter, 0).then(data => {
+                        const totalCount = data._totalCount;
+                        delete data._totalCount;
+                        
+                        const actualSearchMode = getActualSearchMode();
+                        let renderItems;
+
+                        if (actualSearchMode === "local") {
+                            data.forEach(it => {
+                                const val = getItemValue(it);
+                                if (!_fetchedMap[val]) {
+                                    _fetchedMap[val] = true;
+                                    _fetchedItems.push(it);
+                                }
+                            });
+                            
+                            let filteredItems = _fetchedItems;
+                            if (filter) {
+                                filteredItems = _fetchedItems.filter(item => itemMatchesSearch(item, filter));
+                            }
+
+                            // Sắp xếp: Đưa selected lên đầu
+                            const selectedSet = new Set(selected.map(String));
+                            const selectedItems = [];
+                            const otherItems = [];
+                            filteredItems.forEach(item => {
+                                const val = String(getItemValue(item));
+                                if (selectedSet.has(val)) {
+                                    selectedItems.push(item);
+                                } else {
+                                    otherItems.push(item);
+                                }
+                            });
+                            renderItems = [...selectedItems, ...otherItems];
+
+                            renderList(renderItems, false);
+                            backgroundPreloadAll();
+                        } else {
+                            _fetchedItems = data.slice();
+                            _fetchedMap = Object.create(null);
+                            _fetchedItems.forEach(it => _fetchedMap[getItemValue(it)] = true);
+
+                            // Sắp xếp: Đưa selected lên đầu
+                            const selectedSet = new Set(selected.map(String));
+                            const selectedItems = [];
+                            const otherItems = [];
+                            _fetchedItems.forEach(item => {
+                                const val = String(getItemValue(item));
+                                if (selectedSet.has(val)) {
+                                    selectedItems.push(item);
+                                } else {
+                                    otherItems.push(item);
+                                }
+                            });
+                            renderItems = [...selectedItems, ...otherItems];
+
+                            renderList(renderItems, false);
+                        }
+                        
+                        _currentSkip = data.length;
+                        if (cfg.ajaxGetCombobox && totalCount !== undefined) {
+                            _hasMore = _currentSkip < totalCount;
+                        } else {
+                            _hasMore = data.length >= cfg.take;
+                        }
+                    }).catch(() => showError("Lỗi kết nối"));
+                }
+
+                // ==================== LOAD MORE (Render thêm items) ====================
+                function loadMoreRender(list) {
+                    const BATCH_SIZE = 20;
+                    const startIdx = _renderedCount;
+                    const endIdx = Math.min(startIdx + BATCH_SIZE, list.length);
+                    const batch = list.slice(startIdx, endIdx);
+                    
+                    if (batch.length === 0) return;
+                    
+                    batch.forEach(o => {
+                        const val = getItemValue(o);
+                        const isSel = selected.includes(String(val));
+                        
+                        if (cfg.columns && cfg.columns.length) {
+                            if (cfg.multi) {
+                                const row = $(`<div class="hpa-field-item">
+                                    <label style="display:flex;align-items:center;gap:8px;width:100%">
+                                        <input type="checkbox" ${isSel ? "checked" : ""}/>
+                                        <div class="hpa-field-column-row" style="flex:1;"></div>
+                                    </label>
+                                </div>`);
+                                
+                                const colRow = row.find(".hpa-field-column-row");
+                                cfg.columns.forEach(col => {
+                                    colRow.append(`<div class="hpa-field-column-cell" style="width:${col.width || "auto"}">${escapeHtml(o[col.field] || "")}</div>`);
+                                });
+                                
+                                row.find("input").on("change", () => toggleValue(val, row.find("input").is(":checked")));
+                                itemsContainer.append(row);
+                            } else {
+                                const row = $(`<div class="hpa-field-item ${isSel ? "selected" : ""}" data-value="${val}">
+                                    <div class="hpa-field-column-row" style="width:100%;"></div>
+                                </div>`);
+                                
+                                const colRow = row.find(".hpa-field-column-row");
+                                cfg.columns.forEach(col => {
+                                    colRow.append(`<div class="hpa-field-column-cell" style="width:${col.width || "auto"}">${escapeHtml(o[col.field] || "")}</div>`);
+                                });
+                                
+                                row.on("click", () => selectSingle(val));
+                                itemsContainer.append(row);
+                            }
+                        } else {
+                            if (cfg.multi) {
+                                const row = $(`<div class="hpa-field-item">
+                                    <label style="display:flex;align-items:center;gap:8px;width:100%">
+                                        <input type="checkbox" ${isSel ? "checked" : ""}/>
+                                        <span style="flex:1">${escapeHtml(getItemText(o))}</span>
+                                    </label>
+                                </div>`);
+                                row.find("input").on("change", () => toggleValue(val, row.find("input").is(":checked")));
+                                itemsContainer.append(row);
+                            } else {
+                                const row = $(`<div class="hpa-field-item ${isSel ? "selected" : ""}" data-value="${val}">${escapeHtml(getItemText(o))}</div>`);
+                                row.on("click", () => selectSingle(val));
+                                itemsContainer.append(row);
+                            }
+                        }
+                    });
+                    
+                    _renderedCount = endIdx;
+                }
+
+                // ==================== SCROLL HANDLER ====================
+                dropdown.on("scroll", function() {
+                    const el = this;
+                    if (el.scrollHeight - (el.scrollTop + el.clientHeight) <= 100) {
+                        // Lấy filter từ inline search
+                        const $inlineSearch = display.find(".hpa-field-inline-search");
+                        const curFilter = $inlineSearch.length ? ($inlineSearch.val() || "") : "";
+                        
+                        // Tìm list hiện tại đang hiển thị
+                        let currentList = _fetchedItems;
+                        if (curFilter) {
+                            currentList = _fetchedItems.filter(item => itemMatchesSearch(item, curFilter));
+                        }
+                        
+                        // Nếu còn items chưa render thì render tiếp
+                        if (_renderedCount < currentList.length) {
+                            loadMoreRender(currentList);
+                        }
+                    }
+                });
+
+                // ==================== RENDER LIST ====================
+                function renderList(list, append) {
+                    if (!append) {
+                        itemsContainer.empty();
+                        _renderedCount = 0;
+                        
+                        if (cfg.columns && cfg.columns.length) {
+                            const headerRow = $(`<div class="hpa-field-column-header"></div>`);
+                            cfg.columns.forEach(col => {
+                                headerRow.append(`<div class="hpa-field-column-cell" style="width:${col.width || "auto"}">${escapeHtml(col.label || col.field)}</div>`);
+                            });
+                            itemsContainer.append(headerRow);
+                        }
+                    }
+
+                    if (!list || list.length === 0) {
+                        if (!append) {
+                            itemsContainer.append(`<div class="hpa-field-item" style="color:var(--text-muted)">Không có dữ liệu</div>`);
+                        }
+                        return;
+                    }
+
+                    // Render batch đầu tiên
+                    loadMoreRender(list);
+                }
+
+                // ==================== RENDER CREATE ROW ====================
+                function renderCreateRow(filter) {
+                    const keyword = String(filter || "").trim();
+                    if (!keyword) return;
+
+                    const row = $(`<div class="hpa-field-item hpa-field-create-row" style="font-weight:600;color:var(--task-primary);cursor:pointer;">
+                        Thêm mới: <span style="margin-left:6px;opacity:0.95;">${escapeHtml(keyword)}</span>
+                    </div>`);
+
+                    row.on("click", () => {
+                        row.css("opacity", 0.6).text("Đang tạo...");
+                        defaultCreateNew(keyword).then(newItem => {
+                            row.css("opacity", 1).text("Thêm mới: " + keyword);
+                            handleNewItem(newItem);
+                        }).catch(() => {
+                            row.css("opacity", 1).text("Thêm mới: " + keyword);
+                            uiManager?.showAlert?.({ type: "error", message: "Tạo thất bại" });
+                        });
+                    });
+
+                    itemsContainer.prepend(row);
+                }
+
+                // ==================== RENDER DROPDOWN ====================
+                function renderDropdown(filter, appendMode) {
+                    if (filter === undefined || filter === null) {
+                        const $inlineSearch = display.find(".hpa-field-inline-search");
+                        filter = $inlineSearch.length ? ($inlineSearch.val() || "") : "";
+                    }
+                    
+                    const q = (filter || "").toLowerCase();
+                    const actualSearchMode = getActualSearchMode();
+
+                    // ===== LOCAL SEARCH MODE =====
+                    if (actualSearchMode === "local") {
+                        if (!appendMode) itemsContainer.empty();
+
+                        // Merge cả _fetchedItems (items được tạo mới) và cfg.options
+                        let allItems = [..._fetchedItems];
+                        (cfg.options || []).forEach(opt => {
+                            const val = getItemValue(opt);
+                            if (!_fetchedMap[val]) {
+                                allItems.push(opt);
+                            }
+                        });
+
+                        let filteredOpts = allItems;
+                        if (q) {
+                            filteredOpts = allItems.filter(o => itemMatchesSearch(o, q));
+                        }
+
+                        // ĐƯA SELECTED LÊN ĐẦU
+                        const selectedSet = new Set(selected.map(String));
+                        const selectedItems = [];
+                        const otherItems = [];
+                        filteredOpts.forEach(item => {
+                            const val = String(getItemValue(item));
+                            if (selectedSet.has(val)) {
+                                selectedItems.push(item);
+                            } else {
+                                otherItems.push(item);
+                            }
+                        });
+                        const sortedItems = [...selectedItems, ...otherItems];
+
+                        renderList(sortedItems, false);
+                        
+                        if (q) {
+                            renderCreateRow(filter);
+                        }
+                        
+                        return;
+                    }
+
+                    // ===== API SEARCH MODE =====
+                    if (cfg.useApi && (cfg.ajaxListName || cfg.ajaxGetCombobox)) {
+                        if (appendMode) {
+                            return;
+                        }
+                        if (_lastFilter !== filter) {
+                            _currentSkip = 0;
+                            _hasMore = true;
+                            if (actualSearchMode === "api") {
+                                _fetchedItems = [];
+                                _fetchedMap = Object.create(null);
+                            }
+                            loadingMore = false;
+                        }
+                        _lastFilter = filter;
+                        if (actualSearchMode === "api" || _fetchedItems.length === 0) {
+                            initialApiLoad(filter);
+                        } else {
+                            let filteredItems = _fetchedItems;
+                            if (q) {
+                                filteredItems = _fetchedItems.filter(item => itemMatchesSearch(item, q));
+                            }
+
+                            // ĐƯA SELECTED LÊN ĐẦU — giống như trong initialApiLoad
+                            const selectedSet = new Set(selected.map(String));
+                            const selectedItems = [];
+                            const otherItems = [];
+                            filteredItems.forEach(item => {
+                                const val = String(getItemValue(item));
+                                if (selectedSet.has(val)) {
+                                    selectedItems.push(item);
+                                } else {
+                                    otherItems.push(item);
+                                }
+                            });
+                            const sortedItems = [...selectedItems, ...otherItems];
+
+                            itemsContainer.empty();
+                            renderList(sortedItems, false);
+                        }
+                        return;
+                    }
+
+                    // ===== STATIC/DATASOURCE MODE =====
+                    if (!appendMode) itemsContainer.empty();
+                    
+                    let filteredOpts = cfg.options || [];
+                    if (q) {
+                        filteredOpts = filteredOpts.filter(o => itemMatchesSearch(o, q));
+                    }
+                    
+                    renderList(filteredOpts, false);
+                    
+                    if (q) {
+                        renderCreateRow(filter);
+                    }
+                }
+
+                function saveToDB(val) {
+                    if (!cfg.tableName || !cfg.idValue) return;
+                    AjaxHPAParadise({
+                        data: {
+                            name: "sp_Common_SaveDataTable",
+                            param: [
+                                "LoginID", window.LoginID || 0,
+                                "LanguageID", typeof LanguageID !== "undefined" ? LanguageID : "VN",
+                                "TableName", cfg.tableName,
+                                "ColumnName", cfg.columnName,
+                                "IDColumnName", cfg.idColumnName || "ID",
+                                "ColumnValue", cfg.multi ? (val || []).join(",") : (val || ""),
+                                "ID_Value", cfg.idValue
+                            ]
+                        },
+                        success: () => {
+                            if (!cfg.silent) uiManager?.showAlert?.({ type: "success", message: "%UpdateSuccess%" });
+                        }
+                    });
+                }
+
+                // ==================== CLICK HANDLER - INLINE SEARCH ====================
+                display.on("click", e => { 
+                    e.stopPropagation(); 
+                    if (display.hasClass("searching")) return;
+
+                    // === RESET STATE (giữ lại `selected`) ===
+                    _initialized = false;
+                    _fetchedItems = [];
+                    _fetchedMap = Object.create(null);
+                    _hasMore = true;
+                    _currentSkip = 0;
+                    _renderedCount = 0;
+                    _lastFilter = null;
+                    loadingMore = false;
+                    // =======================================
+
+                    display.addClass("searching");
+                    const $inlineSearch = $(`<input type="text" class="hpa-field-inline-search" placeholder="${cfg.placeholder}" />`);
+                    display.find(".hpa-field-text").html("").append($inlineSearch);
+                    setTimeout(() => $inlineSearch.focus(), 10);
+
+                    openDropdown();
+
+                    // KHÔNG GỌI renderDropdown ở đây nếu dùng API
+                    if (cfg.useApi && (cfg.ajaxListName || cfg.ajaxGetCombobox)) {
+                        initialApiLoad(""); // → sẽ tự gọi renderList khi xong
+                    } else {
+                        // Với local/static → có thể render ngay
+                        renderDropdown("", false);
+                    }
+
+                    // Xử lý input
+                    const actualMode = getActualSearchMode();
+                    if (actualMode === "local") {
+                        $inlineSearch.on("input", function () {
+                            const val = $(this).val() || "";
+                            renderDropdown(val, false);
+                        });
+                    } else {
+                        const debouncedRender = debounce(val => renderDropdown(val, false), 500);
+                        $inlineSearch.on("input", function () {
+                            debouncedRender($(this).val() || "");
+                        });
+                    }
+
+                    // Xử lý phím tắt
+                    $inlineSearch.on("keydown", function(e) {
+                        if (e.key === "Escape") {
+                            closeDropdown();
+                        }
+                        if (e.key === "ArrowDown") {
+                            e.preventDefault();
+                            itemsContainer.find(".hpa-field-item:not(.hpa-field-create-row)").first().trigger("click");
+                        }
+                        if (e.key === "Enter" && !cfg.multi) {
+                            e.preventDefault();
+                            itemsContainer.find(".hpa-field-item:not(.hpa-field-create-row)").first().trigger("click");
+                        }
+                    });
+                });
+
+                // Close dropdown khi click bên ngoài
+                $(document).on("click.hpaField", e => {
+                    if (!wrapper.is(e.target) && wrapper.has(e.target).length === 0) closeDropdown();
+                });
+
+                // Render display ban đầu
+                renderDisplay();
+
+                // ==================== PUBLIC API ====================
+                return {
+                    setValue(v) {
+                        selected = cfg.multi ? (Array.isArray(v) ? v.map(String) : (v ? [String(v)] : [])) : (v ? [String(v)] : []);
+                        renderDisplay();
+                        saveToDB(cfg.multi ? selected : selected[0] || null);
+                    },
+                    getValue() { 
+                        return cfg.multi ? selected.slice() : (selected[0] || null); 
+                    },
+                    getSelectedItem() {
+                        if (!selected.length) return null;
+                        const id = selected[0];
+                        return _fetchedItems.find(x => String(getItemValue(x)) === String(id));
+                    },
+                    getText() {
+                        if (!selected.length) return null;
+                        const id = selected[0];
+                        const o = _fetchedItems.find(x => String(getItemValue(x)) === String(id)) || (cfg.options || []).find(x => String(x.value) === String(id));
+                        return o ? getItemText(o) : id;
+                    },
+                    destroy() {
+                        $(document).off("click.hpaField");
+                        wrapper.remove();
+                    },
+                    reload() {
+                        _initialized = false;
+                        _fetchedItems = [];
+                        _fetchedMap = Object.create(null);
+                        _hasMore = true;
+                        _currentSkip = 0;
+                        _renderedCount = 0;
+                        renderDisplay();
+                    }
+                };
+            }
+
+            //Thắng: Hàm control date
+            function hpaControlDateBox(el, config) {
+                const $el = $(el);
+                const defaults = {
+                    type: "date",
+                    field: null,
+                    tableName: null,
+                    idColumnName: null,
+                    idValue: null,
+                    getValue: () => $el.text().trim(),
+                    setValue: (val) => $el.text(val),
+                    silent: config.silent || false,
+                    onSave: null,
+                    language: "VN",
+                    width: config.width
+                };
+                const cfg = { ...defaults, ...config };
+
+                if (!cfg.field || !cfg.tableName || !cfg.idColumnName) return console.error("thiếu field, tableName hoặc idColumnName");
+
+                if (!window.__hpaEditableRowDateCSSInjected) {
+                    const style = document.createElement("style");
+                    style.textContent = `
+                        .hpa-editable-row-date.control-editable-date { cursor: pointer; padding: 8px 4px; border-radius: 4px; transition: all 0.2s; display: inline-block; min-height: 1.2em; vertical-align: middle; box-sizing: border-box; }
+                        .hpa-editable-row-date.control-editable-date.editing-date { border-radius: 6px; padding: 0; box-shadow: none; z-index: 100;}
+                        .hpa-editable-row-date.control-editable-date.editing-date input { width: 100% !important; min-width: 120px; font-size: 14px; padding: 4px 8px; height: 30px; }
+                        .hpa-editable-row-date.control-editable-date.editing-date input[type="datetime-local"] { min-width: 200px; }
+                        .dx-button.dx-button-default { background-color: none; }
+                    `;
+                    document.head.appendChild(style);
+                    window.__hpaEditableRowDateCSSInjected = true;
+                }
+
+                if (cfg.width) {
+                    $el.css({
+                        "width": cfg.width,
+                        "min-width": cfg.width,
+                        "white-space": "nowrap",
+                        "overflow": "hidden",
+                        "text-overflow": "ellipsis"
+                    });
+                }
+
+                const parseDate = (str) => {
+                    if (!str || str.trim() === "") return null;
+
+                    if (str.indexOf("/") !== -1) {
+                        const parts = str.split("/");
+                        if (parts.length === 3) {
+                            return new Date(parts[2], parts[1] - 1, parts[0]);
+                        }
+                    }
+
+                    const d = new Date(str);
+                    return isNaN(d.getTime()) ? new Date() : d;
+                };
+
+                const formatDateToVN = (dateObj) => {
+                    if (!dateObj || isNaN(dateObj.getTime())) return "";
+                    const day = ("0" + dateObj.getDate()).slice(-2);
+                    const month = ("0" + (dateObj.getMonth() + 1)).slice(-2);
+                    const year = dateObj.getFullYear();
+                    if (cfg.type === "datetime") {
+                        const h = ("0" + dateObj.getHours()).slice(-2);
+                        const m = ("0" + dateObj.getMinutes()).slice(-2);
+                        return `${day}/${month}/${year} ${h}:${m}`;
+                    }
+                    return `${day}/${month}/${year}`;
+                };
+
+                const initialText = $el.text().trim();
+                if (initialText && initialText.indexOf("-") > -1 && initialText.indexOf("/") === -1) {
+                    const initDate = new Date(initialText);
+                    if (!isNaN(initDate.getTime())) {
+                        $el.text(formatDateToVN(initDate));
+                    }
+                }
+
+                let inputType = cfg.type === "datetime" ? "datetime-local" : "date";
+                const resolvedId = cfg.idValue || (typeof currentTaskID !== "undefined" ? currentTaskID : null);
+
+                $el.addClass("hpa-editable-row-date control-editable-date")
+                    .off("click.datebox")
+                    .removeClass("editable editing-date");
+
+                $el.on("click.datebox", function(e) {
+                    $(".hpa-editable-row.editing, .hpa-editable-row-number.editing").not($el).find(".btn-save").trigger("click");
+                    if ($(".hpa-editable-row-date.editing-date, .hpa-editable-row-time.editing-time").not($el).length > 0) {
+                        $("body").trigger("click");
+                    }
+                    e.stopPropagation(); e.preventDefault();
+                    if ($el.hasClass("editing-date")) return false;
+
+                    if (cfg.width) $el.css("overflow", "visible");
+
+                    const rawText = typeof cfg.getValue === "function" ? cfg.getValue() : cfg.getValue;
+                    const dateValue = parseDate(rawText);
+
+                    const $editorContainer = $("<div class=\"dx-field-value\" style=\"width:100%; height:100%\"></div>");
+
+                    $el.addClass("editing-date").html("").append($editorContainer);
+
+                    let currentIdValue = resolvedId;
+                    let isSaved = false;
+
+                    const finish = (saveIt) => {
+                        if (isSaved) return;
+
+                        const dxInstance = $editorContainer.dxDateBox("instance");
+                        const vnResult = dxInstance ? dxInstance.option("text") : rawText;
+                        const rawInput = dxInstance ? dxInstance.option("value") : null;
+
+                        isSaved = true;
+                        $el.removeClass("editing-date");
+
+                        if (cfg.width) $el.css("overflow", "hidden");
+
+                        if (dxInstance) dxInstance.dispose();
+                        $editorContainer.remove();
+
+                        if (!saveIt || vnResult === rawText) {
+                            typeof cfg.setValue === "function" ? cfg.setValue(rawText) : $el.text(rawText);
+                            return;
+                        }
+
+                        typeof cfg.setValue === "function" ? cfg.setValue(vnResult) : $el.text(vnResult);
+                        if (!rawInput) currentIdValue = null;
+
+                        let spDataType = cfg.type === "datetime" ? "datetime" : "date";
+
+                        const params = [
+                            "LoginID", (typeof LoginID !== "undefined" ? LoginID : 0),
+                            "LanguageID", cfg.language,
+                            "TableName", cfg.tableName,
+                            "ColumnName", cfg.field,
+                            "IDColumnName", cfg.idColumnName,
+                            "ColumnValue", vnResult,
+                            "ID_Value", currentIdValue,
+                            "DataType", spDataType
+                        ];
+
+                        AjaxHPAParadise({
+                            data: { name: "sp_Common_SaveDataTable", param: params },
+                            success: () => {
+                                if (cfg.silent) uiManager.showAlert({ type: "success", message: typeof isAddMode !== "undefined" && isAddMode ? "%AddSuccess%" : "%UpdateSuccess%" });
+                                if (cfg.onSave) cfg.onSave(vnResult, true);
+                            },
+                            error: () => {
+                                if (typeof uiManager !== "undefined") uiManager.showAlert({ type: "error", message: "Lỗi lưu!" });
+                                typeof cfg.setValue === "function" ? cfg.setValue(rawText) : $el.text(rawText);
+                            }
+                        });
+                    };
+
+                    const dxBox = $editorContainer.dxDateBox({
+                        value: dateValue,
+                        type: cfg.type === "datetime" ? "datetime" : "date",
+                        displayFormat: cfg.type === "datetime" ? "dd/MM/yyyy HH:mm" : "dd/MM/yyyy",
+                        useMaskBehavior: true,
+                        placeholder: "dd/mm/yyyy",
+                        openOnFieldClick: true,
+                        showClearButton: false,
+                        dateSerializationFormat: "yyyy-MM-dd",
+                        width: "100%",
+                        elementAttr: { class: "hpa-dx-datebox-inline" },
+                        onOpened: function(e) {
+                            setTimeout(() => { e.component.focus(); }, 100);
+                        },
+                        onClosed: function(e) {
+                            setTimeout(() => finish(true), 50);
+                        },
+                        onKeyDown: function(e) {
+                            if (e.event.key === "Enter") {
+                                e.event.preventDefault();
+                                e.component.close();
+                            }
+                            if (e.event.key === "Escape") {
+                                e.event.preventDefault();
+                                finish(false);
+                            }
+                        }
+                    }).dxDateBox("instance");
+
+                    dxBox.open();
+                });
+            }
+
+            //Thắng: Hàm control hour
+            function hpaControlTimeBox(el, config) {
+                const $el = $(el);
+                const defaults = {
+                    field: null,
+                    tableName: null,
+                    idColumnName: null,
+                    idValue: null,
+                    getValue: () => $el.text().trim(),
+                    setValue: (val) => $el.text(val),
+                    silent: config.silent || false,
+                    onSave: null,
+                    language: "VN",
+                    width: config.width
+                };
+                const cfg = { ...defaults, ...config };
+
+                if (!cfg.field || !cfg.tableName || !cfg.idColumnName) return console.error("thiếu field, tableName hoặc idColumnName");
+
+                if (!window.__hpaEditableRowTimeCSSInjected) {
+                    const style = document.createElement("style");
+                    style.textContent = `
+                        .hpa-editable-row-time.control-editable-time { cursor: pointer; padding: 8px 4px; border-radius: 4px; transition: all 0.2s; display: inline-block; min-height: 1.2em; vertical-align: middle; box-sizing: border-box; }
+                        .hpa-editable-row-time.control-editable-time.editing-time { border-radius: 6px; padding: 0; box-shadow: none; z-index: 100; min-width: 90%; }
+                        .hpa-editable-row-time.control-editable-time.editing-time .dx-datebox { width: 100% !important; }
+                        .dx-popup-wrapper .dx-popup-content { min-width: 300px !important; }
+                        .dx-popup-wrapper .dx-timeview { min-width: 300px !important; }
+                        .dx-button.dx-button-default { background-color: #00673b; }
+                        .dx-button-content { color: #fff; }
+                    `;
+                    document.head.appendChild(style);
+                    window.__hpaEditableRowTimeCSSInjected = true;
+                }
+
+                if (cfg.width) {
+                    $el.css({
+                        "width": cfg.width,
+                        "min-width": cfg.width,
+                        "white-space": "nowrap",
+                        "overflow": "hidden",
+                        "text-overflow": "ellipsis"
+                    });
+                }
+
+                const resolvedId = cfg.idValue || (typeof currentTaskID !== "undefined" ? currentTaskID : null);
+
+                $el.addClass("hpa-editable-row-time control-editable-time")
+                    .off("click.timebox")
+                    .removeClass("editable editing-time");
+
+                $el.on("click.timebox", function(e) {
+                    $(".hpa-editable-row.editing, .hpa-editable-row-number.editing").not($el).find(".btn-save").trigger("click");
+                        if ($(".hpa-editable-row-date.editing-date, .hpa-editable-row-time.editing-time").not($el).length > 0) {
+                            $("body").trigger("click");
+                        }
+                    e.stopPropagation(); e.preventDefault();
+                    if ($el.hasClass("editing-time")) return false;
+
+                    if (cfg.width) $el.css("overflow", "visible");
+
+                    const rawText = typeof cfg.getValue === "function" ? cfg.getValue() : cfg.getValue;
+
+                    let initialValue = null;
+                    if (rawText) {
+                        const timeParts = rawText.split(":");
+                        if (timeParts.length >= 2) {
+                            const [h, min] = timeParts;
+                            const today = new Date();
+                            initialValue = new Date(today.getFullYear(), today.getMonth(), today.getDate(), h, min);
+                        }
+                    }
+
+                    const $container = $("<div></div>");
+                    $el.addClass("editing-time").html("").append($container);
+
+                    const dxInstance = $container.dxDateBox({
+                        value: initialValue,
+                        type: "time",
+                        displayFormat: "HH:mm",
+                        useMaskBehavior: true,
+                        openOnFieldClick: true,
+                        showClearButton: true,
+                        width: "100%",
+                        pickerType: "rollers",
+                        applyButtonText: "Xong",
+                        cancelButtonText: "Hủy",
+                        stylingMode: "outlined",
+                        onInitialized: function(e) {
+                            setTimeout(() => { e.component.open(); }, 100);
+                        }
+                    }).dxDateBox("instance");
+
+                    let currentIdValue = resolvedId;
+                    let isSaving = false;
+                    let hasFinished = false;
+
+                    const finish = (saveIt) => {
+                        if (isSaving || hasFinished) return;
+                        hasFinished = true;
+
+                        const dateValue = dxInstance.option("value");
+                        let vnResult = "";
+
+                        if (dateValue) {
+                            const h = String(dateValue.getHours()).padStart(2, "0");
+                            const min = String(dateValue.getMinutes()).padStart(2, "0");
+                            vnResult = `${h}:${min}`;
+                        }
+
+                        try { dxInstance.dispose(); } catch(e) {}
+                        $el.removeClass("editing-time");
+
+                        if (cfg.width) $el.css("overflow", "hidden");
+
+                        if (!saveIt || vnResult === rawText) {
+                            typeof cfg.setValue === "function" ? cfg.setValue(rawText) : $el.text(rawText);
+                            return;
+                        }
+
+                        typeof cfg.setValue === "function" ? cfg.setValue(vnResult) : $el.text(vnResult);
+
+                        if (!vnResult) currentIdValue = null;
+
+                        const params = [
+                            "LoginID", (typeof LoginID !== "undefined" ? LoginID : 0),
+                            "LanguageID", cfg.language,
+                            "TableName", cfg.tableName,
+                            "ColumnName", cfg.field,
+                            "IDColumnName", cfg.idColumnName,
+                            "ColumnValue", vnResult,
+                            "ID_Value", currentIdValue,
+                            "DataType", "time"
+                        ];
+
+                        isSaving = true;
+                        AjaxHPAParadise({
+                            data: { name: "sp_Common_SaveDataTable", param: params },
+                            success: () => {
+                                isSaving = false;
+                                if (cfg.silent) uiManager.showAlert({ type: "success", message: isAddMode ? "%AddSuccess%" : "%UpdateSuccess%" });
+                                if (cfg.onSave) cfg.onSave(vnResult, true);
+                            },
+                            error: () => {
+                                isSaving = false;
+                                if (typeof uiManager !== "undefined") uiManager.showAlert({ type: "error", message: "Lỗi lưu!" });
+                                typeof cfg.setValue === "function" ? cfg.setValue(rawText) : $el.text(rawText);
+                            }
+                        });
+                    };
+
+                    let buttonClicked = false;
+
+                    dxInstance.on("valueChanged", function(e) {
+                        if (e.event && e.event.type === "dxclick") {
+                            buttonClicked = true;
+                            finish(true);
+                        }
+                    });
+
+                    dxInstance.on("closed", function() {
+                        if (!buttonClicked && !hasFinished) {
+                            finish(false);
+                        }
+                    });
+                });
+            }
+
+			//Thắng: Hàm control number
+            function hpaControlEditableNumber(el, config) {
+                const $el = $(el);
+
+                const cfg = {
+                    type: config.type || "NumberInt",
+                    tableName: config.tableName,
+                    columnName: config.columnName,
+                    idColumnName: config.idColumnName,
+                    idValue: config.idValue,
+                    silent: config.silent || false,
+                    allowAdd: config.allowAdd || false,
+                    onSave: config.onSave || null,
+                    language: config.language || "VN",
+                    width: config.width
+                };
+
+                if (!cfg.columnName || !cfg.tableName || !cfg.idColumnName) return console.error("thiếu columnName, tableName, idColumnName");
+
+                if (!window.__hpaEditableRowNumberCSSInjected) {
+                    const style = document.createElement("style");
+                    style.textContent = `
+                        .hpa-editable-row-number.control-editable-number {
                             cursor: pointer;
-                            padding: 12px 6px;
+                            padding: 8px 4px;
                             border-radius: 4px;
                             transition: all 0.2s;
                             display: inline-block;
-                            height: 100%;
-                            width: 100%;
+                            vertical-align: middle;
+                            box-sizing: border-box;
                         }
-                        .hpa-editable-row.control-editable.editing {
+                        .hpa-editable-row-number.control-editable-number.editing {
                             padding: 4px 8px;
                             z-index: 100;
-                            width: 100%;
-                            height: 100%;
                         }
-                        .hpa-editable-row.control-editable.editing input,
-                        .hpa-editable-row.control-editable.editing textarea,
-                        .hpa-editable-row.control-editable.editing select {
-                            width: 100% !important;
-                            min-width: 300px;
+                        .hpa-editable-row-number.control-editable-number.editing input {
+                            width: 100% !important; /* Full width input */
                             font-size: inherit;
                             font-weight: inherit;
                             padding: 6px 10px;
                             border: 1px solid #1c975e !important;
+                            box-sizing: border-box;
                         }
-                        .hpa-editable-row.control-editable .edit-actions {
+                        .hpa-editable-row-number.control-editable-number .edit-actions {
                             position: absolute;
                             top: 110%;
                             display: inline-flex;
                             gap: 4px;
                             margin-left: 6px;
                             align-items: center;
+                            z-index: 101;
+                            right: 0;
                         }
-                        .hpa-editable-row.control-editable .btn-edit {
+                        .hpa-editable-row-number.control-editable-number .btn-edit {
                             width: 28px;
                             height: 28px;
                             padding: 0;
@@ -2365,37 +3859,68 @@ $(`#shortcutWarning-${menuId}`).addClass("d-none");
                             transition: all 0.2s;
                             font-size: 14px;
                         }
-                        .hpa-editable-row.control-editable .btn-edit:hover {
+                        .hpa-editable-row-number.control-editable-number .btn-edit:hover {
                             transform: scale(1.1);
                         }
-                        .hpa-editable-row.control-editable .btn-edit.btn-save {
+                        .hpa-editable-row-number.control-editable-number .btn-edit.btn-save {
                             background: #2E7D32;
                             color: white;
                             border-color: #2E7D32;
                         }
-                        .hpa-editable-row.control-editable .btn-edit.btn-save:hover {
+                        .hpa-editable-row-number.control-editable-number .btn-edit.btn-save:hover {
                             background: #1c975e;
                         }
-                        .hpa-editable-row.control-editable .btn-edit.btn-cancel {
+                        .hpa-editable-row-number.control-editable-number .btn-edit.btn-cancel {
                             background: #fff;
                             color: #676879;
                         }
-                        .hpa-editable-row.control-editable .btn-edit.btn-cancel:hover {
+                        .hpa-editable-row-number.control-editable-number .btn-edit.btn-cancel:hover {
                             background: #f5f5f5;
                             color: #E53935;
                         }
                     `;
                     document.head.appendChild(style);
-                    window.__hpaEditableRowCSSInjected = true;
+                    window.__hpaEditableRowNumberCSSInjected = true;
                 }
 
-                $el.addClass("hpa-editable-row control-editable")
-                    .off("click.control-editable")
-                    .on("click.control-editable", function (e) {
+                if (cfg.width) {
+                    $el.css({
+                        "width": cfg.width,
+                        "min-width": cfg.width,
+                        "white-space": "nowrap",
+                        "overflow": "hidden",
+                        "text-overflow": "ellipsis"
+                    });
+                }
+
+                const formatValue = (val, type) => {
+                    if (!val) return "";
+                    const cleanVal = val.toString().replace(/[^\d+,.-]/g, "");
+                    if (type === "Money") {
+                        const num = cleanVal.replace(/,/g, "");
+                        if (!num || isNaN(num)) return cleanVal;
+                        return parseFloat(num).toLocaleString("en-US");
+                    }
+                    return cleanVal;
+                };
+
+                const getRawValue = (val, type) => {
+                    if (type === "Money") return val.replace(/,/g, "");
+                    else if (type === "NumberFlo") return val.replace(/,/g, ".");
+                    return val;
+                };
+
+                $el.addClass("hpa-editable-row-number control-editable-number")
+                    .off("click.control-editable-number")
+                    .on("click.control-editable-number", function(e) {
+                        $(".hpa-editable-row.editing, .hpa-editable-row-number.editing").not($el).find(".btn-save").trigger("click");
+                        if ($(".hpa-editable-row-date.editing-date, .hpa-editable-row-time.editing-time").not($el).length > 0) {
+                            $("body").trigger("click");
+                        }
                         e.stopPropagation();
                         e.preventDefault();
 
-                        $(".hpa-editable-row.control-editable.editing").each(function () {
+                        $(".hpa-editable-row-number.control-editable-number.editing").each(function() {
                             if (this !== $el[0]) {
                                 $(this).find(".btn-save").trigger("click");
                             }
@@ -2403,102 +3928,132 @@ $(`#shortcutWarning-${menuId}`).addClass("d-none");
 
                         if ($el.hasClass("editing")) return false;
 
-                    const curVal = $el.text().trim();
-                    let $input;
+                        if (cfg.width) $el.css("overflow", "visible");
 
-                    if (cfg.type === "textarea") {
-                        $input = $("<textarea class=\"form-control form-control-sm\" rows=\"3\">").val(curVal);
-                    } else {
-                        $input = $("<input type=\"text\" class=\"form-control form-control-sm\">").val(curVal);
-                    }
+                        const curVal = $el.text().trim();
+                        const $input = $("<input type=\"text\" class=\"form-control form-control-sm\">").val(curVal);
 
-                    let isAddMode = false;
-                    let recordId = cfg.idValue;
+                        let isAddMode = false;
+                        let recordId = cfg.idValue;
 
-                    const $save = $("<button class=\"btn-edit btn-save\" title=\"Lưu\"><i class=\"bi bi-check-lg\"></i></button>");
-                    const $cancel = $("<button class=\"btn-edit btn-cancel\" title=\"Hủy\"><i class=\"bi bi-x-lg\"></i></button>");
+                        const $save = $("<button class=\"btn-edit btn-save\" title=\"Lưu\"><i class=\"bi bi-check-lg\"></i></button>");
+                        const $cancel = $("<button class=\"btn-edit btn-cancel\" title=\"Hủy\"><i class=\"bi bi-x-lg\"></i></button>");
 
-                    const updateButtonState = () => {
-                        const isEmpty = !$input.val() || $input.val().trim().length === 0;
-
-                        // Chỉ cho phép chuyển sang add mode khi cfg.allowAdd = true
-                        if (cfg.allowAdd && isEmpty && !isAddMode) {
-                            isAddMode = true;
-                            recordId = null;
-                            $save.html(`<i class="bi bi-plus-lg"></i>`).attr("title", "Thêm");
-                        }
-                    };
-
-
-                    const $actions = $("<div class=\"edit-actions\"></div>").append($save).append($cancel);
-                    const $wrap = $("<div class=\"d-flex align-items-end gap-1 w-100 flex-column position-relative\"></div>").append($input).append($actions);
-                    $el.addClass("editing").html("").append($wrap);
-
-                    setTimeout(() => {
-                        const el = $input[0];
-                        el.focus();
-                        const len = el.value.length;
-                        el.setSelectionRange(len, len);   // đặt con trỏ cuối
-                    }, 50);
-
-                    const finish = (saveIt) => {
-                        const newVal = $input.val().trim();
-
-                        $save.off("click");
-                        $cancel.off("click");
-                        $input.off("click keydown input");
-                        $(document).off("click.hpaEditable");
-
-                        $el.removeClass("editing").off("keydown");
-                        if (!saveIt || (newVal === curVal && !isAddMode)) {
-                            $el.text(curVal);
-                            return;
-                        }
-
-                        const params = [
-                            "LoginID", LoginID,
-                            "LanguageID", cfg.language,
-                            "TableName", cfg.tableName,
-                            "ColumnName", cfg.columnName,
-                            "IDColumnName", cfg.idColumnName,
-                            "ColumnValue", newVal,
-                            "ID_Value", recordId
-                        ];
-
-                        AjaxHPAParadise({
-                            data: { name: "sp_Common_SaveDataTable", param: params },
-                            success: () => {
-                                const display = newVal;
-                                $el.text(display);
-                                if (cfg.silent) uiManager.showAlert({ type: "success", message: isAddMode ? "%AddSuccess%" : "%UpdateSuccess%" });
-                                if (cfg.onSave) cfg.onSave(newVal, isAddMode, recordId);
-                            },
-                            error: () => {
-                            uiManager.showAlert({ type: "error", message: "Lưu thất bại!" });
-                                $el.text(curVal);
+                        const updateButtonState = () => {
+                            const isEmpty = !$input.val() || $input.val().trim().length === 0;
+                            if (cfg.allowAdd && isEmpty && !isAddMode) {
+                                isAddMode = true;
+                                recordId = null;
+                                $save.html("<i class=\"bi bi-plus-lg\"></i>").attr("title", "Thêm");
                             }
+                        };
+
+                        const $actions = $("<div class=\"edit-actions\"></div>").append($save).append($cancel);
+                        const $wrap = $("<div class=\"d-flex align-items-end gap-1 w-100 flex-column position-relative\"></div>").append($input).append($actions);
+                        $el.addClass("editing").html("").append($wrap);
+
+                        setTimeout(() => {
+                            const el = $input[0];
+                            el.focus();
+                            const len = el.value.length;
+                            el.setSelectionRange(len, len);
+                        }, 50);
+
+                        $input.on("input", function(e) {
+                            let val = $(this).val();
+                            if (cfg.type === "Phone") {
+                                val = val.replace(/[^0-9+]/g, "");
+                            } else if (cfg.type === "NumberInt") {
+                                val = val.replace(/[^0-9]/g, "");
+                                if (val.length > 1 && val.startsWith("0")) val = val.replace(/^0+/, "");
+                            } else if (cfg.type === "NumberFlo" || cfg.type === "Money") {
+                                val = val.replace(/[^0-9.,]/g, "");
+                            }
+
+                            if (val !== $(this).val()) $(this).val(val);
+
+                            if (cfg.type === "Money") {
+                                const cursorPos = this.selectionStart;
+                                const oldLen = val.length;
+                                const formatted = formatValue(val, cfg.type);
+                                if (formatted !== val) {
+                                    $(this).val(formatted);
+                                    const newLen = formatted.length;
+                                    const newPos = cursorPos + (newLen - oldLen);
+                                    this.setSelectionRange(newPos, newPos);
+                                }
+                            }
+                            updateButtonState();
                         });
-                    };
 
-                    $save.on("click", function(e) {
-                        e.stopPropagation();
-                        $(document).off("click.hpaEditable");
-                        finish(true);
-                    });
+                        const finish = (saveIt) => {
+                            const displayVal = $input.val().trim();
+                            const rawVal = getRawValue(displayVal, cfg.type);
 
-                    $cancel.on("click", (e) => { e.stopPropagation(); e.preventDefault(); finish(false); return false; });
-                    $input.on("input", updateButtonState);
-                    $input.on("keydown", (e) => {
-                        if (e.key === "Enter" && cfg.type !== "textarea") { e.preventDefault(); finish(true); }
-                        if (e.key === "Escape") finish(false);
+                            $save.off("click");
+                            $cancel.off("click");
+                            $input.off("click keydown input");
+                            $(document).off("click.hpaEditableNumber");
+
+                            $el.removeClass("editing").off("keydown");
+
+                            if (cfg.width) $el.css("overflow", "hidden");
+
+                            if (!saveIt || (rawVal === getRawValue(curVal, cfg.type) && !isAddMode)) {
+                                $el.text(curVal);
+                                return;
+                            }
+
+                            const params = [
+                                "LoginID", LoginID,
+                                "LanguageID", cfg.language,
+                                "TableName", cfg.tableName,
+                                "ColumnName", cfg.columnName,
+                                "IDColumnName", cfg.idColumnName,
+                                "ColumnValue", rawVal,
+                                "ID_Value", recordId
+                            ];
+
+                            AjaxHPAParadise({
+                                data: { name: "sp_Common_SaveDataTable", param: params },
+                                success: () => {
+                                    $el.text(displayVal);
+                                    if (cfg.silent) uiManager.showAlert({ type: "success", message: isAddMode ? "%AddSuccess%" : "%UpdateSuccess%" });
+                                    if (cfg.onSave) cfg.onSave(rawVal, isAddMode, recordId);
+                                },
+                                error: () => {
+                                    uiManager.showAlert({ type: "error", message: "Lưu thất bại!" });
+                                    $el.text(curVal);
+                                }
+                            });
+                        };
+
+                        $save.on("click", function(e) {
+                            e.stopPropagation();
+                            $(document).off("click.hpaEditableNumber");
+                            finish(true);
+                        });
+
+                        $cancel.on("click", (e) => {
+                            e.stopPropagation();
+                            e.preventDefault();
+                            finish(false);
+                            return false;
+                        });
+                        $input.on("keydown", (e) => {
+                            if (e.key === "Enter") {
+                                e.preventDefault();
+                                finish(true);
+                            }
+                            if (e.key === "Escape") finish(false);
+                        });
+                        $(document).one("click.hpaEditableNumber", (e) => {
+                            if (!$(e.target).closest($el).length) finish(true);
+                        });
                     });
-                    $(document).one("click.hpaEditable", (e) => {
-                        if (!$(e.target).closest($el).length) finish(true);
-                    });
-                });
             }
-			
-			</script>
+
+		</script>
 
 			'+isnull(@HtmlLanguage,'')+'
 			'
