@@ -323,7 +323,7 @@ GO
                     }
                     const cacheKey = employee.EmployeeID;
                     if (avatarCache[cacheKey]) {
-      return avatarCache[cacheKey];
+                        return avatarCache[cacheKey];
                     }
                     try {
                         const decoded = decodeURIComponent(employee.paramImg);
@@ -569,7 +569,7 @@ GO
                             dataField: "storeImgName",
                             caption: "",
                             width: config.avatarWidth + 16,
-               cellTemplate: function(container, options) {
+                            cellTemplate: function(container, options) {
                                 const emp = options.data;
                                 let imgUrl = avatarCache[emp.EmployeeID] || loadEmployeeImage(emp);
                                 const $img = $(`<img class="grid-employee-image" data-emp-id="${emp.EmployeeID}" src="${imgUrl}" alt="${emp.FullName}" style="${getAvatarStyle()}border-radius:50%;object-fit:cover;" />`);
@@ -615,7 +615,7 @@ GO
                                     dataGridInstance.getDataSource().reload();
                                     dataGridInstance.endUpdate();
                                     renderSelectorButton();
-  }
+                                }
                             }, 50);
                         }
                     };

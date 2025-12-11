@@ -1,0 +1,1035 @@
+// Linh: Control chọn nhân viên dạng dropdown với DevExtreme Grid
+            function hpaControlEmployeeSelector(el, config) {
+                const $el = $(el);
+                if (!$el.length) return null;
+
+                // ===== CONFIG DEFAULTS =====
+                const defaults = {
+                    // Hiển thị
+                    containerId: null,
+                    dropdownId: null,
+                    placeholder: "Chọn nhân viên",
+                    maxVisibleChips: 3,
+                    avatarWidth: 32,
+                    avatarHeight: 32,
+                    width: 350,
+                    height: 400,
+                    showAvatar: true,
+                    
+                    // Dữ liệu
+                    ajaxListName: "EmployeeListAll_DataSetting_Custom",
+                    selectedIds: [],
+                    apiData: null, // Nếu có data sẵn thì không cần gọi API
+                    useApi: true,
+                    
+                    // Phân trang
+                    pageSize: 10,
+                    take: 10,
+                    skip: 0,
+                    
+                    // Chức năng
+                    multi: true,
+                    searchable: true,
+                    
+                    // Lưu trữ
+                    tableName: null,
+                    columnName: null,
+                    idColumnName: null,
+                    idValue: null,
+                    silent: true,
+                    
+                    // Callbacks
+                    onChange: null
+                };
+                
+                const cfg = { ...defaults, ...config };
+                
+                // Tạo unique IDs nếu chưa có
+                const uniqueId = `emp-dropdown-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+                cfg.containerId = cfg.containerId || `${uniqueId}-container`;
+                cfg.dropdownId = cfg.dropdownId || `${uniqueId}-dropdown`;
+                
+                // ===== STATE VARIABLES =====
+                const SVG_PLACEHOLDER = "data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Ccircle cx=%2250%22 cy=%2250%22 r=%2250%22 fill=%22%23e0e0e0%22/%3E%3C/svg%3E";
+                const avatarCache = {};
+                let allEmployees = [];
+                let selectedIds = [...cfg.selectedIds].map(String);
+                let dataGridInstance = null;
+                let totalCount = 0;
+                let currentSkip = 0;
+                let isLoadingApiData = false;
+                // Queue to ensure API calls are executed sequentially
+                let apiQueue = Promise.resolve();
+                // Cache for selected-only load: ensures one batched request
+                let selectedLoaded = false;
+                let selectedLoadPromise = null;
+                let selectedCache = [];
+                let currentSearchText = "";
+                let snapshotEmployees = [];
+                let isGridInitializing = true;
+                
+                // ===== CSS INJECTION =====
+                if (!window.__hpaEmployeeDropdownCSS) {
+                    window.__hpaEmployeeDropdownCSS = true;
+                    const style = document.createElement("style");
+                    style.textContent = `
+                        .hpa-emp-dropdown-wrapper { position: relative; display: inline-block; width: 100%; }
+                        
+                        .hpa-emp-dropdown-btn {
+                            display: inline-flex;
+                            align-items: center;
+                            gap: 6px;
+                            padding: 6px 8px;
+                            border: 1px solid #e6edf3;
+                            border-radius: 20px;
+                            cursor: pointer;
+                            transition: all 0.12s ease;
+                            font-size: 13px;
+                            white-space: nowrap;
+                            background: #fff;
+                            box-shadow: 0 1px 2px rgba(16,24,40,0.04);
+                            width: 100%;
+                        }
+                        .hpa-emp-dropdown-btn:hover { 
+                            border-color: #c7d2da; 
+                            transform: translateY(-1px); 
+                        }
+                        
+                        .hpa-emp-dropdown-chips {
+                            display: flex;
+                            align-items: center;
+                            gap: 0;
+                            flex: 1;
+                            min-width: 0;
+                        }
+                        
+                        .hpa-emp-dropdown-chip {
+                            border-radius: 50%;
+                            overflow: hidden;
+                            flex-shrink: 0;
+                            border: 2px solid white;
+                            box-shadow: 0 2px 4px rgba(0,0,0,0.12);
+                            margin-left: -8px;
+                            transition: all 0.2s;
+                        }
+                        .hpa-emp-dropdown-chip:first-child { margin-left: 0; }
+                        .hpa-emp-dropdown-chip:hover { transform: scale(1.1); z-index: 10; }
+                        .hpa-emp-dropdown-chip img { width: 100%; height: 100%; object-fit: cover; }
+                        
+                        .hpa-emp-dropdown-chip-text {
+                            border-radius: 50%;
+                            overflow: hidden;
+                            flex-shrink: 0;
+                            border: 2px solid white;
+                            box-shadow: 0 2px 4px rgba(0,0,0,0.12);
+                            margin-left: -8px;
+                            transition: all 0.2s;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            font-weight: 600;
+                            background: #e9ecef;
+                        }
+                        .hpa-emp-dropdown-chip-text:first-child { margin-left: 0; }
+                        .hpa-emp-dropdown-chip-text:hover { transform: scale(1.1); z-index: 10; }
+                        
+                        .hpa-emp-dropdown-count {
+                            font-weight: 600;
+                            color: #495057;
+                            margin-left: 4px;
+                        }
+                        
+                        .hpa-emp-dropdown-icon {
+                            margin-left: auto;
+                            color: #6c757d;
+                        }
+                        
+                        .hpa-emp-dropdown-container {
+                            display: none;
+                            position: absolute;
+                            z-index: 3000;
+                            border: 1px solid #dee2e6;
+                            border-radius: 4px;
+                            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                            overflow: hidden;
+                            background: #fff;
+                            margin-top: 4px;
+                        }
+                        
+                        .hpa-emp-dropdown-header {
+                            padding: 12px;
+                            border-bottom: 1px solid #dee2e6;
+                        }
+                        
+                        .hpa-emp-dropdown-search {
+                            width: 100%;
+                            padding: 8px 12px;
+                            border: 1px solid #dee2e6;
+                            border-radius: 4px;
+                            font-size: 13px;
+                            outline: none;
+                            box-sizing: border-box;
+                        }
+                        .hpa-emp-dropdown-search:focus {
+                            border-color: #2E7D32;
+                            box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.1);
+                        }
+                        
+                        .hpa-emp-dropdown-body { overflow-y: auto; }
+                        
+                        .hpa-emp-dropdown-container .dx-datagrid { border: none !important; }
+                        .hpa-emp-dropdown-container .dx-datagrid-headers { display: none; }
+                        .hpa-emp-dropdown-container .dx-checkbox { margin: 0; }
+                        
+                        .grid-employee-cell {
+                            display: flex !important;
+                            align-items: center;
+                            gap: 8px;
+                            padding: 4px 0;
+                        }
+                        
+                        .grid-employee-image {
+                            border-radius: 50%;
+                            object-fit: cover;
+                            flex-shrink: 0;
+                        }
+                    `;
+                    document.head.appendChild(style);
+                }
+                
+                // ===== HELPER FUNCTIONS =====
+                function escapeHtml(s) { 
+                    if (s === null || s === undefined) return ""; 
+                    return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/""/g, "&quot;").replace(/"/g, "&#039;"); 
+                }
+                
+                function getInitials(fullName) {
+                    if (!fullName) return "?";
+                    const words = fullName.trim().split(/\s+/);
+                    if (words.length >= 2) {
+                        return (words[0][0] + words[words.length - 1][0]).toUpperCase();
+                    }
+                    return (fullName.substring(0, 2)).toUpperCase();
+                }
+                
+                function getAvatarStyle() {
+                    return `width:${cfg.avatarWidth}px;height:${cfg.avatarHeight}px;`;
+                }
+                
+                function getChipFontSize() {
+                    const size = Math.min(cfg.avatarWidth, cfg.avatarHeight);
+                    return Math.max(8, Math.floor(size * 0.4));
+                }
+                
+                // ===== DATA LOADING =====
+                function loadEmployeeList(skip, take) {
+                    const jqDeferred = $.Deferred();
+
+                    // Nếu có apiData sẵn
+                    if (cfg.apiData && Array.isArray(cfg.apiData)) {
+                        allEmployees = cfg.apiData;
+                        totalCount = allEmployees.length;
+                        jqDeferred.resolve(allEmployees);
+                        return jqDeferred.promise();
+                    }
+
+                    if (!cfg.useApi) {
+                        allEmployees = [];
+                        totalCount = 0;
+                        jqDeferred.resolve(allEmployees);
+                        return jqDeferred.promise();
+                    }
+
+                    // Nếu đã load đủ
+                    if (allEmployees.length >= totalCount && totalCount > 0) {
+                        jqDeferred.resolve(allEmployees);
+                        return jqDeferred.promise();
+                    }
+
+                    skip = skip || 0;
+                    take = take || cfg.take;
+
+                    // Build params for the API call
+                    const extraparam = [];
+                    extraparam.push("@ProcName"); extraparam.push(cfg.ajaxListName);
+                    extraparam.push("@Take"); extraparam.push(take);
+                    extraparam.push("@Skip"); extraparam.push(skip);
+                    extraparam.push("@LanguageID"); extraparam.push(typeof LanguageID !== "undefined" ? LanguageID : "VN");
+
+                    // Enqueue the actual Ajax call so that requests run sequentially
+                    const runFetch = () => new Promise((resolveFetch, rejectFetch) => {
+                        isLoadingApiData = true;
+                        AjaxHPAParadise({
+                            data: {
+                                name: "sp_LoadGridUsingAPI",
+                                param: extraparam
+                            },
+                            success: function (resultData) {
+                                try {
+                                    let jsonData = typeof resultData === "string" ? JSON.parse(resultData) : resultData;
+                                    if (jsonData.reason == "error") throw new Error("Data error");
+
+                                    const newData = (jsonData.data && jsonData.data[0]) ? jsonData.data[0] : [];
+                                    const existingIds = new Set(allEmployees.map(e => e.EmployeeID));
+                                    const uniqueNewData = newData.filter(e => !existingIds.has(e.EmployeeID));
+                                    allEmployees = [...allEmployees, ...uniqueNewData];
+
+                                    if (jsonData.data && jsonData.data[1] && jsonData.data[1][0]) {
+                                        totalCount = jsonData.data[1][0].TotalCount || 0;
+                                    }
+
+                                    currentSkip = skip;
+                                    isLoadingApiData = false;
+                                    resolveFetch(allEmployees);
+                                } catch (error) {
+                                    isLoadingApiData = false;
+                                    rejectFetch("Data Loading Error");
+                                }
+                            },
+                            error: function () {
+                                isLoadingApiData = false;
+                                rejectFetch("Data Loading Error");
+                            }
+                        });
+                    });
+
+                    // Chain through apiQueue to ensure sequential execution
+                    apiQueue = apiQueue.then(() => runFetch());
+
+                    // Bridge the Promise to jQuery Deferred for callers
+                    apiQueue.then(function() {
+                        jqDeferred.resolve(allEmployees);
+                    }).catch(function(err) {
+                        jqDeferred.reject(err);
+                    });
+
+                    return jqDeferred.promise();
+                }
+
+                // Load only selected employees (fast path) — returns jQuery promise
+                function loadSelectedEmployees() {
+                    // Per-selected-set single fetch: ensure one API call per unique selected-id set and cache result globally
+                    const jqDeferred = $.Deferred();
+
+                    if (!cfg.useApi || !selectedIds || selectedIds.length === 0) {
+                        selectedLoaded = true;
+                        selectedCache = [];
+                        jqDeferred.resolve([]);
+                        return jqDeferred.promise();
+                    }
+
+                    // If already loaded in this instance, merge and return
+                    if (selectedLoaded && Array.isArray(selectedCache)) {
+                        const existingIds = new Set(allEmployees.map(e => String(e.EmployeeID)));
+                        selectedCache.forEach(s => { if (!existingIds.has(String(s.EmployeeID))) allEmployees.push(s); });
+                        jqDeferred.resolve(allEmployees);
+                        return jqDeferred.promise();
+                    }
+
+                    // If apiData provided locally, filter and cache
+                    if (cfg.apiData && Array.isArray(cfg.apiData)) {
+                        const sel = cfg.apiData.filter(e => selectedIds.includes(String(e.EmployeeID)));
+                        const existingIds = new Set(allEmployees.map(e => String(e.EmployeeID)));
+                        sel.forEach(s => { if (!existingIds.has(String(s.EmployeeID))) allEmployees.push(s); });
+                        selectedCache = sel.slice();
+                        selectedLoaded = true;
+                        jqDeferred.resolve(allEmployees);
+                        return jqDeferred.promise();
+                    }
+
+                    // Ensure global maps exist
+                    window.__hpaEmployeeSelectedPromises = window.__hpaEmployeeSelectedPromises || {};
+                    window.__hpaEmployeeSelectedCache = window.__hpaEmployeeSelectedCache || {};
+
+                    // stable key for this selected set
+                    const selKey = selectedIds.slice().map(String).sort().join(",");
+
+                    // If globally cached, merge and return
+                    if (window.__hpaEmployeeSelectedCache[selKey]) {
+                        const cached = window.__hpaEmployeeSelectedCache[selKey] || [];
+                        const existingIds = new Set(allEmployees.map(e => String(e.EmployeeID)));
+                        cached.forEach(s => { if (!existingIds.has(String(s.EmployeeID))) allEmployees.push(s); });
+                        selectedCache = cached.slice();
+                        selectedLoaded = true;
+                        totalCount = Math.max(totalCount, allEmployees.length);
+                        jqDeferred.resolve(allEmployees);
+                        return jqDeferred.promise();
+                    }
+
+                    // If an in-flight promise exists for this selKey, attach to it
+                    if (window.__hpaEmployeeSelectedPromises[selKey]) {
+                        window.__hpaEmployeeSelectedPromises[selKey].then((selData) => {
+                            const cached = window.__hpaEmployeeSelectedCache[selKey] || [];
+                            const existingIds = new Set(allEmployees.map(e => String(e.EmployeeID)));
+                            cached.forEach(s => { if (!existingIds.has(String(s.EmployeeID))) allEmployees.push(s); });
+                            selectedCache = cached.slice();
+                            selectedLoaded = true;
+                            totalCount = Math.max(totalCount, allEmployees.length);
+                            jqDeferred.resolve(allEmployees);
+                        }).catch(() => {
+                            selectedLoaded = true;
+                            selectedCache = [];
+                            jqDeferred.resolve(allEmployees);
+                        });
+                        return jqDeferred.promise();
+                    }
+
+                    // Start the API call and store native Promise globally
+                    const nativePromise = new Promise((resolveNative, rejectNative) => {
+                        // Dùng wrapper sp_LoadGridUsingAPI giống như load danh sách
+                        const extraparam = [];
+                        extraparam.push("@ProcName"); extraparam.push(cfg.ajaxListName || "EmployeeListAll_DataSetting_Custom");
+                        extraparam.push("@Take");     extraparam.push(1000); // Load nhiều để chắc chắn lấy hết selected (thường ít)
+                        extraparam.push("@Skip");     extraparam.push(0);
+                        extraparam.push("@LanguageID"); extraparam.push(LanguageID || "VN");
+                        extraparam.push("@SelectedIds"); extraparam.push(selectedIds.join(",")); // Thêm SelectedIds vào đây
+
+                        AjaxHPAParadise({
+                            data: {
+                                name: "sp_LoadGridUsingAPI",  // <<< QUAN TRỌNG: Dùng wrapper
+                                param: extraparam
+                            },
+                            success: function (resultData) {
+                                try {
+                                    let jsonData = typeof resultData === "string" ? JSON.parse(resultData) : resultData;
+                                    if (jsonData.reason == "error") throw new Error("Data error");
+
+                                    const selData = (jsonData.data && jsonData.data[0]) ? jsonData.data[0] : [];
+
+                                    window.__hpaEmployeeSelectedCache[selKey] = selData.slice();
+
+                                    const existingIds = new Set(allEmployees.map(e => String(e.EmployeeID)));
+                                    const uniqueNew = selData.filter(e => !existingIds.has(String(e.EmployeeID)));
+                                    allEmployees = [...allEmployees, ...uniqueNew];
+
+                                    selectedCache = selData.slice();
+                                    selectedLoaded = true;
+                                    totalCount = Math.max(totalCount, allEmployees.length);
+
+                                    resolveNative(allEmployees);
+                                } catch (e) {
+                                    console.error("Error loading selected employees:", e);
+                                    window.__hpaEmployeeSelectedCache[selKey] = [];
+                                    selectedLoaded = true;
+                                    selectedCache = [];
+                                    resolveNative(allEmployees);
+                                } finally {
+                                    delete window.__hpaEmployeeSelectedPromises[selKey];
+                                }
+                            },
+                            error: function () {
+                                window.__hpaEmployeeSelectedCache[selKey] = [];
+                                selectedLoaded = true;
+                                selectedCache = [];
+                                delete window.__hpaEmployeeSelectedPromises[selKey];
+                                rejectNative("API Error");
+                            }
+                        });
+                    });
+
+                    window.__hpaEmployeeSelectedPromises[selKey] = nativePromise;
+
+                    // Attach to nativePromise and resolve jQuery deferred when done
+                    nativePromise.then(() => {
+                        const cached = window.__hpaEmployeeSelectedCache[selKey] || [];
+                        const existingIds = new Set(allEmployees.map(e => String(e.EmployeeID)));
+                        cached.forEach(s => { if (!existingIds.has(String(s.EmployeeID))) allEmployees.push(s); });
+                        selectedCache = cached.slice();
+                        selectedLoaded = true;
+                        totalCount = Math.max(totalCount, allEmployees.length);
+                        jqDeferred.resolve(allEmployees);
+                    }).catch(() => {
+                        selectedLoaded = true;
+                        selectedCache = [];
+                        jqDeferred.resolve(allEmployees);
+                    });
+
+                    return jqDeferred.promise();
+                }
+                
+                function loadEmployeeImage(employee) {
+                    if (!cfg.showAvatar || !employee.storeImgName || !employee.paramImg) {
+                        return SVG_PLACEHOLDER;
+                    }
+                    
+                    const cacheKey = employee.EmployeeID;
+                    if (avatarCache[cacheKey]) {
+                        return avatarCache[cacheKey];
+                    }
+                    
+                    try {
+                        const decoded = decodeURIComponent(employee.paramImg);
+                        const paramArray = JSON.parse(decoded);
+                        if (Array.isArray(paramArray) && paramArray.length > 1) {
+                            AjaxHPAParadise({
+                                data: {
+                                    name: employee.storeImgName,
+                                    param: paramArray
+                                },
+                                xhrFields: { responseType: "blob" },
+                                cache: true,
+                                success: function(blob) {
+                                    if (blob && blob.size > 0) {
+                                        const imgUrl = URL.createObjectURL(blob);
+                                        avatarCache[cacheKey] = imgUrl;
+                                        
+                                        // Update all images with this employee ID
+                                        $(`#${cfg.containerId} .hpa-emp-dropdown-chip[data-emp-id="${cacheKey}"] img`).attr("src", imgUrl);
+                                        $(`#${cfg.dropdownId} .grid-employee-image[data-emp-id="${cacheKey}"]`).attr("src", imgUrl);
+                                        
+                                        // Cleanup after 5 minutes
+                                        setTimeout(() => {
+                                            URL.revokeObjectURL(imgUrl);
+                                            delete avatarCache[cacheKey];
+                                        }, 300000);
+                                    }
+                                }
+                            });
+                        }
+                    } catch (e) {}
+                    
+                    return SVG_PLACEHOLDER;
+                }
+                
+                // ===== RENDER FUNCTIONS =====
+                function renderSelectorButton() {
+                    let html = `
+                        <div class="hpa-emp-dropdown-wrapper">
+                            <button type="button" class="hpa-emp-dropdown-btn" id="empDropdownBtn_${cfg.containerId}">
+                                <div class="hpa-emp-dropdown-chips">
+                    `;
+                    
+                    const selectedEmps = selectedIds
+                        .map(id => allEmployees.find(e => String(e.EmployeeID) === String(id)))
+                        .filter(e => e);
+                    
+                    const maxVisible = cfg.maxVisibleChips;
+                    const visibleEmps = selectedEmps.slice(0, maxVisible);
+                    const remainingCount = selectedEmps.length - maxVisible;
+                    
+                    if (selectedEmps.length === 0) {
+                        html += `<span class="hpa-emp-dropdown-count">${cfg.placeholder}</span>`;
+                    } else {
+                        if (cfg.showAvatar) {
+                            visibleEmps.forEach(emp => {
+                                const imgUrl = avatarCache[emp.EmployeeID] || loadEmployeeImage(emp);
+                                html += `
+                                    <div class="hpa-emp-dropdown-chip" data-emp-id="${emp.EmployeeID}" title="${escapeHtml(emp.FullName)}" style="${getAvatarStyle()}">
+                                        <img src="${imgUrl}" alt="${escapeHtml(emp.FullName)}" />
+                                    </div>
+                                `;
+                            });
+                        } else {
+                            visibleEmps.forEach(emp => {
+                                const initials = getInitials(emp.FullName);
+                                html += `
+                                    <div class="hpa-emp-dropdown-chip-text" data-emp-id="${emp.EmployeeID}" title="${escapeHtml(emp.FullName)}" style="${getAvatarStyle()}font-size:${getChipFontSize()}px;">
+                                        ${initials}
+                                    </div>
+                                `;
+                            });
+                        }
+                        
+                        if (remainingCount > 0) {
+                            html += `<span class="hpa-emp-dropdown-count">+${remainingCount}</span>`;
+                        }
+                    }
+                    
+                    html += `
+                                </div>
+                                <span class="hpa-emp-dropdown-icon"><i class="bi bi-chevron-down"></i></span>
+                            </button>
+                        </div>
+                    `;
+                    
+                    $(`#${cfg.containerId}`).html(html);
+                    
+                    $(`#empDropdownBtn_${cfg.containerId}`).off("click").on("click", function(e) {
+                        e.stopPropagation();
+                        toggleDropdown();
+                    });
+                    
+                    // Load images for visible chips
+                    if (cfg.showAvatar) {
+                        selectedEmps.forEach(emp => {
+                            if (!avatarCache[emp.EmployeeID] && emp.storeImgName && emp.paramImg) {
+                                loadEmployeeImage(emp);
+                            }
+                        });
+                    }
+                }
+                
+                function initDropdownContainer() {
+                    const $dropdown = $(`#${cfg.dropdownId}`);
+                    $dropdown.addClass("hpa-emp-dropdown-container");
+                    $dropdown.css({
+                        width: cfg.width + "px",
+                        display: "none"
+                    });
+                }
+                
+                function positionDropdown() {
+                    const $btn = $(`#empDropdownBtn_${cfg.containerId}`);
+                    const $dropdown = $(`#${cfg.dropdownId}`);
+
+                    if ($btn.length === 0) return;
+
+                    // Ensure dropdown is appended to body for correct absolute positioning
+                    if ($dropdown.parent().prop("tagName") !== "BODY") {
+                        $dropdown.appendTo(document.body);
+                    }
+
+                    const btnOffset = $btn.offset();
+                    const btnHeight = $btn.outerHeight();
+
+                    $dropdown.css({
+                        position: "absolute",
+                        top: (btnOffset.top + btnHeight + 4) + "px",
+                        left: btnOffset.left + "px",
+                        zIndex: 3005
+                    });
+                }
+                
+                function toggleDropdown() {
+                    const $dropdown = $(`#${cfg.dropdownId}`);
+                    const isVisible = $dropdown.is(":visible");
+                    
+                    if (isVisible) {
+                        $dropdown.hide();
+                    } else {
+                        positionDropdown();
+
+                        // Render dropdown (will show selected-only initially)
+                        $dropdown.show();
+
+                        if (!dataGridInstance) {
+                            createDataGrid();
+
+                            // Start background loading of the full list; when completed, reload grid
+                            loadEmployeeList(0, cfg.take).then(() => {
+                                snapshotEmployees = getSortedEmployees();
+                                if (dataGridInstance) {
+                                    dataGridInstance.beginUpdate();
+                                    dataGridInstance.getDataSource().reload();
+                                    dataGridInstance.endUpdate();
+
+                                    // Re-apply selection from cached selected employees (single batched load)
+                                    if (selectedLoaded && Array.isArray(selectedCache) && selectedCache.length > 0) {
+                                        const cachedIds = selectedCache.map(e => String(e.EmployeeID));
+                                        const toSelect = selectedIds.filter(id => cachedIds.includes(String(id)));
+                                        if (toSelect.length > 0) {
+                                            dataGridInstance.option("selectedRowKeys", toSelect);
+                                        }
+                                    }
+                                }
+                            }).catch(() => {});
+                        } else {
+                            if (allEmployees.length < totalCount) {
+                                loadEmployeeList(allEmployees.length, cfg.take).then(() => {
+                                    snapshotEmployees = getSortedEmployees();
+                                    if (dataGridInstance) {
+                                        dataGridInstance.beginUpdate();
+                                        dataGridInstance.getDataSource().reload();
+                                        dataGridInstance.endUpdate();
+
+                                        if (selectedLoaded && Array.isArray(selectedCache) && selectedCache.length > 0) {
+                                            const cachedIds = selectedCache.map(e => String(e.EmployeeID));
+                                            const toSelect = selectedIds.filter(id => cachedIds.includes(String(id)));
+                                            if (toSelect.length > 0) {
+                                                dataGridInstance.option("selectedRowKeys", toSelect);
+                                            }
+                                        }
+                                    }
+                                }).catch(() => {});
+                            }
+                        }
+
+                        setTimeout(() => {
+                            $(`#${cfg.dropdownId} .hpa-emp-dropdown-search`).focus();
+                        }, 100);
+                    }
+                }
+                
+                function filterEmployees(searchText) {
+                    if (!dataGridInstance || isGridInitializing) return;
+                    
+                    currentSearchText = searchText.trim();
+                    
+                    if (currentSearchText) {
+                        const searchLower = currentSearchText.toLowerCase();
+                        dataGridInstance.filter(["FullName", "contains", searchLower]);
+                    } else {
+                        dataGridInstance.clearFilter();
+                    }
+                    
+                    setTimeout(() => {
+                        if (dataGridInstance) {
+                            dataGridInstance.beginUpdate();
+                            dataGridInstance.getDataSource().reload();
+                            dataGridInstance.endUpdate();
+                        }
+                    }, 50);
+                }
+                
+                function createDataGrid() {
+                    const headerHeight = 50;
+                    const bodyHeight = cfg.height - headerHeight;
+                    
+                    const html = `
+                        <div class="hpa-emp-dropdown-header">
+                            <input type="text" class="hpa-emp-dropdown-search" placeholder="Tìm kiếm..." />
+                        </div>
+                        <div class="hpa-emp-dropdown-body" style="height:${bodyHeight}px;max-height:${bodyHeight}px;">
+                            <div class="employee-grid-inner"></div>
+                        </div>
+                    `;
+                    
+                    $(`#${cfg.dropdownId}`).html(html);
+                    
+                    if (snapshotEmployees.length === 0 && allEmployees.length > 0) {
+                        snapshotEmployees = getSortedEmployees();
+                    }
+                    
+                    const gridStore = new DevExpress.data.CustomStore({
+                        key: "EmployeeID",
+                        load: function(loadOptions) {
+                            const deferred = $.Deferred();
+                            const skip = loadOptions.skip || 0;
+                            const take = loadOptions.take || cfg.take;
+                            
+                            let gridData = getGridData();
+                            const needsMoreData = (skip + take) > gridData.length && allEmployees.length < totalCount;
+                            
+                            if (needsMoreData && !isLoadingApiData) {
+                                const apiSkip = allEmployees.length;
+                                loadEmployeeList(apiSkip, cfg.take).then(() => {
+                                    snapshotEmployees = getSortedEmployees();
+                                    gridData = snapshotEmployees;
+                                    const pageData = gridData.slice(skip, skip + take);
+                                    const finalTotalCount = totalCount > 0 ? totalCount : gridData.length;
+                                    deferred.resolve({ data: pageData, totalCount: finalTotalCount });
+                                }).catch(err => deferred.reject(err));
+                                return deferred.promise();
+                            }
+                            
+                            const pageData = gridData.slice(skip, skip + take);
+                            const finalTotalCount = totalCount > 0 ? totalCount : gridData.length;
+                            deferred.resolve({ data: pageData, totalCount: finalTotalCount });
+                            return deferred.promise();
+                        }
+                    });
+                    
+                    function getSortedEmployees() {
+                        let data = [...allEmployees];
+                        if (currentSearchText.trim()) {
+                            const searchLower = currentSearchText.toLowerCase().trim();
+                            data = data.filter(emp => emp.FullName && emp.FullName.toLowerCase().includes(searchLower));
+                        }
+                        return data.sort((a, b) => {
+                            const aSelected = selectedIds.includes(String(a.EmployeeID));
+                            const bSelected = selectedIds.includes(String(b.EmployeeID));
+                            if (aSelected && !bSelected) return -1;
+                            if (!aSelected && bSelected) return 1;
+                            return 0;
+                        });
+                    }
+                    
+                    function getGridData() {
+                        if (currentSearchText.trim()) {
+                            return getSortedEmployees();
+                        }
+                        if (snapshotEmployees.length > 0) {
+                            return snapshotEmployees;
+                        }
+                        return getSortedEmployees();
+                    }
+                    
+                    const gridColumns = [{ type: "selection", width: 40, alignment: "center" }];
+                    let fixedColumnsWidth = 40;
+                    
+                    if (cfg.showAvatar) {
+                        gridColumns.push({
+                            dataField: "storeImgName",
+                            caption: "",
+                            width: cfg.avatarWidth + 16,
+                            cellTemplate: function(container, options) {
+                                const emp = options.data;
+                                let imgUrl = avatarCache[emp.EmployeeID] || loadEmployeeImage(emp);
+                                const $img = $(`<img class="grid-employee-image" data-emp-id="${emp.EmployeeID}" src="${imgUrl}" alt="${escapeHtml(emp.FullName)}" style="${getAvatarStyle()}border-radius:50%;object-fit:cover;" />`);
+                                container.html($img);
+                            }
+                        });
+                        fixedColumnsWidth += (cfg.avatarWidth + 16);
+                    }
+                    
+                    const nameColumnWidth = `calc(100% - ${fixedColumnsWidth}px)`;
+                    gridColumns.push({ dataField: "FullName", caption: "Tên nhân viên", width: nameColumnWidth });
+                    
+                    const gridConfig = {
+                        dataSource: gridStore,
+                        keyExpr: "EmployeeID",
+                        columns: gridColumns,
+                        showColumnHeaders: false,
+                        remoteOperations: true,
+                        paging: { enabled: true, pageSize: cfg.take },
+                        scrolling: { mode: "virtual" },
+                        height: bodyHeight,
+                        width: "100%",
+                        selection: {
+                            mode: cfg.multi ? "multiple" : "single",
+                            selectAllMode: cfg.multi ? "allPages" : "page"
+                        },
+                        selectedRowKeys: selectedIds,
+                        onSelectionChanged: function(selectedItems) {
+                            const newSelectedIds = cfg.multi ? selectedItems.selectedRowKeys : [selectedItems.selectedRowKeys[0]];
+                            const hasChanged = JSON.stringify([...selectedIds].sort()) !== JSON.stringify([...newSelectedIds].sort());
+                            
+                            if (!hasChanged) return;
+                            
+                            selectedIds = newSelectedIds.map(String);
+                            
+                            if (cfg.onChange) cfg.onChange(selectedIds);
+                            
+                            // Save to DB if configured
+                            if (cfg.tableName && cfg.idValue) {
+                                saveToDB(cfg.multi ? selectedIds : selectedIds[0] || null);
+                            }
+                            
+                            snapshotEmployees = getSortedEmployees();
+                            
+                            if (currentSearchText) {
+                                currentSearchText = "";
+                                $(`#${cfg.dropdownId} .hpa-emp-dropdown-search`).val("");
+                            }
+                            
+                            setTimeout(() => {
+                                if (dataGridInstance) {
+                                    dataGridInstance.beginUpdate();
+                                    dataGridInstance.getDataSource().reload();
+                                    dataGridInstance.endUpdate();
+                                    renderSelectorButton();
+                                }
+                            }, 50);
+                        }
+                    };
+                    
+                    $(`#${cfg.dropdownId} .employee-grid-inner`).dxDataGrid(gridConfig);
+                    dataGridInstance = $(`#${cfg.dropdownId} .employee-grid-inner`).dxDataGrid("instance");
+                    
+                    setTimeout(() => {
+                        if (dataGridInstance) {
+                            let foundSelectedEmps = [];
+                            if (selectedLoaded && Array.isArray(selectedCache) && selectedCache.length > 0) {
+                                // Use cached selected employees (single batched load) when available
+                                const cachedIds = selectedCache.map(e => String(e.EmployeeID));
+                                foundSelectedEmps = selectedIds.filter(id => cachedIds.includes(String(id)));
+                            } else {
+                                foundSelectedEmps = selectedIds.filter(id =>
+                                    allEmployees.some(e => String(e.EmployeeID) === String(id))
+                                );
+                            }
+
+                            if (foundSelectedEmps.length > 0) {
+                                dataGridInstance.option("selectedRowKeys", foundSelectedEmps);
+                            }
+                        }
+                    }, 100);
+
+                    // Attach scroll handlers robustly: try multiple strategies and retry if element not ready
+                    function attachScrollHandlers() {
+                        const onScrollLoadMore = function() {
+                            try {
+                                const el = this;
+                                const $el = $(el);
+                                const scrollTop = (typeof el.scrollTop === "number") ? el.scrollTop : $el.scrollTop();
+                                const scrollHeight = (typeof el.scrollHeight === "number") ? el.scrollHeight : ($el.prop("scrollHeight") || 0);
+                                const clientHeight = (typeof el.clientHeight === "number") ? el.clientHeight : ($el.innerHeight() || 0);
+                                const distanceFromBottom = scrollHeight - (scrollTop + clientHeight);
+
+                                if (distanceFromBottom < 140 && allEmployees.length < totalCount && !isLoadingApiData) {
+                                    const apiSkip = allEmployees.length;
+                                    loadEmployeeList(apiSkip, cfg.take).then(() => {
+                                        snapshotEmployees = getSortedEmployees();
+                                        if (dataGridInstance) {
+                                            dataGridInstance.beginUpdate();
+                                            dataGridInstance.getDataSource().reload();
+                                            dataGridInstance.endUpdate();
+
+                                            if (selectedLoaded && Array.isArray(selectedCache) && selectedCache.length > 0) {
+                                                const cachedIds = selectedCache.map(e => String(e.EmployeeID));
+                                                const toSelect = selectedIds.filter(id => cachedIds.includes(String(id)));
+                                                if (toSelect.length > 0) dataGridInstance.option("selectedRowKeys", toSelect);
+                                            }
+                                        }
+                                    }).catch(() => {});
+                                }
+                            } catch (err) {}
+                        };
+
+                        const tryBind = (attempt) => {
+                            attempt = attempt || 0;
+                            try {
+                                var $scrollEl = null;
+
+                                // 1) Prefer DevExtreme scrollable element
+                                var scrollable = dataGridInstance && dataGridInstance.getScrollable ? dataGridInstance.getScrollable() : null;
+                                if (scrollable && typeof scrollable.element === "function") {
+                                    try { $scrollEl = $(scrollable.element()); } catch(e) { $scrollEl = null; }
+                                }
+
+                                // 2) try dx-viewport inside dropdown
+                                if ((!$scrollEl || $scrollEl.length === 0) && $(`#${cfg.dropdownId} .dx-viewport`).length) {
+                                    $scrollEl = $(`#${cfg.dropdownId} .dx-viewport`);
+                                }
+
+                                // 3) fallback to dropdown body
+                                if ((!$scrollEl || $scrollEl.length === 0) && $(`#${cfg.dropdownId} .hpa-emp-dropdown-body`).length) {
+                                    $scrollEl = $(`#${cfg.dropdownId} .hpa-emp-dropdown-body`);
+                                }
+
+                                if ($scrollEl && $scrollEl.length > 0) {
+                                    $scrollEl.off("scroll.hpa").on("scroll.hpa", onScrollLoadMore);
+                                    return true;
+                                }
+                            } catch (e) {}
+
+                            if (attempt < 12) {
+                                setTimeout(() => tryBind(attempt + 1), 120);
+                            }
+                            return false;
+                        };
+
+                        tryBind(0);
+                    }
+                    attachScrollHandlers();
+                    
+                    $(`#${cfg.dropdownId} .hpa-emp-dropdown-search`).off("keyup").on("keyup", function() {
+                        filterEmployees($(this).val());
+                    });
+                    
+                    setTimeout(() => {
+                        isGridInitializing = false;
+                    }, 100);
+                    
+                    $(`#${cfg.dropdownId} .hpa-emp-dropdown-body`).off("scroll").on("scroll", function() {
+                        const scrollTop = $(this).scrollTop();
+                        const scrollHeight = this.scrollHeight;
+                        const clientHeight = this.clientHeight;
+                        const distanceFromBottom = scrollHeight - (scrollTop + clientHeight);
+                        
+                        if (distanceFromBottom < 100 && allEmployees.length < totalCount && !isLoadingApiData) {
+                            const apiSkip = allEmployees.length;
+                            loadEmployeeList(apiSkip, cfg.take).then(() => {
+                                snapshotEmployees = getSortedEmployees();
+                                if (dataGridInstance) {
+                                    dataGridInstance.beginUpdate();
+                                    dataGridInstance.getDataSource().reload();
+                                    dataGridInstance.endUpdate();
+
+                                    if (selectedLoaded && Array.isArray(selectedCache) && selectedCache.length > 0) {
+                                        const cachedIds = selectedCache.map(e => String(e.EmployeeID));
+                                        const toSelect = selectedIds.filter(id => cachedIds.includes(String(id)));
+                                        if (toSelect.length > 0) dataGridInstance.option("selectedRowKeys", toSelect);
+                                    }
+                                }
+                            });
+                        }
+                    });
+                }
+                
+                function saveToDB(val) {
+                    if (!cfg.tableName || !cfg.idValue) return;
+                    
+                    AjaxHPAParadise({
+                        data: {
+                            name: "sp_Common_SaveDataTable",
+                            param: [
+                                "LoginID", LoginID,
+                                "LanguageID", LanguageID || "VN",
+                                "TableName", cfg.tableName,
+                                "ColumnName", cfg.columnName,
+                                "IDColumnName", cfg.idColumnName || "ID",
+                                "ColumnValue", cfg.multi ? (val || []).join(",") : (val || ""),
+                                "ID_Value", cfg.idValue
+                            ]
+                        },
+                        success: () => {
+                            if (!cfg.silent && typeof uiManager !== "undefined") {
+                                uiManager.showAlert({ type: "success", message: "%UpdateSuccess%" });
+                            }
+                        },
+                        error: () => {
+                            if (typeof uiManager !== "undefined") {
+                                uiManager.showAlert({ type: "error", message: "Lưu thất bại!" });
+                            }
+                        }
+                    });
+                }
+                
+                // ===== EVENT HANDLERS =====
+                $(document).off(`click.employeeDropdown_${cfg.containerId}`).on(`click.employeeDropdown_${cfg.containerId}`, function(e) {
+                    if (!$(e.target).closest(`#${cfg.containerId}, #${cfg.dropdownId}`).length) {
+                        $(`#${cfg.dropdownId}`).hide();
+                    }
+                });
+                
+                // ===== INITIALIZATION =====
+                // Create container structure
+                const containerHtml = `
+                    <div id="${cfg.containerId}"></div>
+                    <div id="${cfg.dropdownId}"></div>
+                `;
+                $el.html(containerHtml);
+                
+                initDropdownContainer();
+
+                // Initial render: try to show selected employees first (fast path)
+                renderSelectorButton();
+
+                if (cfg.useApi && !cfg.apiData) {
+                    if (selectedIds && selectedIds.length > 0) {
+                        // Load only selected employees first and render
+                        loadSelectedEmployees().then(() => {
+                            renderSelectorButton();
+                        }).catch(() => {
+                            renderSelectorButton();
+                        });
+                    } else {
+                        // No selected IDs — defer full load until dropdown open (first open will trigger background load)
+                    }
+                } else {
+                    renderSelectorButton();  // Render ngay nếu có apiData
+                }
+                
+                // ===== PUBLIC API =====
+                return {
+                    getSelectedIds: () => selectedIds,
+                    setSelectedIds: (ids) => {
+                        selectedIds = ids.map(String);
+                        // Clear cached selected-load so we will fetch the new set on demand
+                        selectedLoaded = false;
+                        selectedLoadPromise = null;
+                        selectedCache = [];
+                        renderSelectorButton();
+                        if (dataGridInstance) {
+                            dataGridInstance.option("selectedRowKeys", selectedIds);
+                        }
+                    },
+                    refresh: () => {
+                        if (dataGridInstance) {
+                            dataGridInstance.refresh();
+                        }
+                    },
+                    open: () => {
+                        positionDropdown();
+                        $(`#${cfg.dropdownId}`).show();
+                    },
+                    close: () => {
+                        $(`#${cfg.dropdownId}`).hide();
+                    },
+                    destroy: () => {
+                        $(document).off(`click.employeeDropdown_${cfg.containerId}`);
+                        $el.empty();
+                    }
+                };
+            }

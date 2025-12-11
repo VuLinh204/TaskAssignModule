@@ -1949,7 +1949,7 @@ BEGIN
                     var $prio = $(`.st-priority[data-idx="${idx}"]`);
                     var $filter = $(`.st-user-filter[data-idx="${idx}"]`);
                     if(!checked) {
-          if($sel.length) { $sel.val([]); }
+                    if($sel.length) { $sel.val([]); }
                         if($from.length) { $from.prop("disabled", true); }
                         if($to.length) { $to.prop("disabled", true); }
                         if($note.length) { $note.prop("disabled", true); }
@@ -1961,7 +1961,7 @@ BEGIN
                         if($to.length) { $to.prop("disabled", false); }
                         if($note.length) { $note.prop("disabled", false); }
                         if($prio.length) { $prio.prop("disabled", false); }
-             if($filter.length) { $filter.prop("disabled", false); }
+                        if($filter.length) { $filter.prop("disabled", false); }
                     }
                 });
                 // Click on dropdown items
@@ -2354,27 +2354,11 @@ BEGIN
                             // Gộp tất cả tasks để tính statistics
                             allTasks = [...headerTasks, ...standaloneTasks];
 
-                            // ✅ Mark cache as loaded
+                            // Mark cache as loaded
                             globalCacheStorage.allTasksLoaded = true;
 
-                            AjaxHPAParadise({
-                                data: { name: "EmployeeListAll_DataSetting_Custom", param: [] },
-                                success: function(setupRes) {
-                                    try {
-                                        var setupData = JSON.parse(setupRes).data || [];
-                             employees = setupData[0] || employees || [];
-                                    } catch (ex) {
-                                    }
-                                    // Now we have employees (or empty) -> proceed to render
-                                    updateStatistics();
-                                    updateView("list");
-                                },
-                                error: function() {
-                                    // Failed to load employees - continue anyway (will fallback to IDs)
-                                    updateStatistics();
-                                    updateView("list");
-                                }
-                            });
+                            updateStatistics();
+                            updateView("list");
                         } catch(e) {
                         }
                     }
@@ -2766,7 +2750,7 @@ BEGIN
                 // 1. Render Headers và các task thuộc header
                 if (window.taskHeaders && window.taskHeaders.length > 0) {
                     window.taskHeaders.forEach(function(header) {
-          const headerTasks = window.headerTasksMap[header.HeaderID] || [];
+                        const headerTasks = window.headerTasksMap[header.HeaderID] || [];
                         const visibleTasks = headerTasks.filter(t => data.some(d => d.TaskID === t.TaskID));
 
                         if (visibleTasks.length === 0) return; // Skip header không có task nào visible
@@ -2842,7 +2826,7 @@ BEGIN
                                 <select id="listCreateParentSelect" class="form-select d-none"></select>
                             </div>
                         </div>
-          <div class="d-flex flex-column align-items-end" style="gap:6px;">
+                            <div class="d-flex flex-column align-items-end" style="gap:6px;">
                             <small class="text-muted">Nhập xong nhấn Enter hoặc chọn để lưu</small>
                         </div>
                     </div>
@@ -2977,7 +2961,7 @@ BEGIN
                         <div class="task-title">
                             ${escapeHtml(header.HeaderTitle)}
                         </div>
-           </div>
+                        </div>
                     <div class="row-progress" style="width:220px;">
                         <div class="kpi-text">
                             <span>${completedCount}/${totalCount} hoàn thành</span>
@@ -3051,78 +3035,15 @@ BEGIN
                                 currentIds = [String(window.EmployeeID_Login || LoginID)];
                             }
 
+                            console.log(currentIds);
+
                             hpaControlEmployeeSelector(`#${assigneeContainerId}`, {
-                                type: "employeesMulti",
-                                displayId: t.TaskID,
-                                showAvatar: true,
                                 selectedIds: currentIds,
-                                position: "right",
                                 ajaxListName: "EmployeeListAll_DataSetting_Custom",
-                                onChange: function(selectedIds, taskId) {
-                                    var csv = selectedIds.join(",");
-                                    var _p = [
-                                        "LoginID", LoginID,
-                                        "LanguageID", "VN",
-                                        "TableName", "tblTask",
-                                        "ColumnName", "AssignedToEmployeeIDs",
-                                        "IDColumnName", "ChildTaskID",
-                                        "ColumnValue", csv,
-                                        "ID_Value", taskId
-                                    ];
-                                    AjaxHPAParadise({
-                                        data: { name: "sp_Common_SaveDataTable", param: _p },
-                                        success: function() {
-                                            uiManager.showAlert({ type: "success", message: "Cập nhật người phụ trách thành công!" });
-
-                                            // Update local data
-                                            var task = allTasks.find(x => String(x.TaskID) === String(taskId));
-                                            if (task) {
-                                                task.AssignedToEmployeeIDs = csv;
-                                            }
-
-                                            // Lấy danh sách EmployeeID từ csv
-                                            var empIds = csv.split(",").map(id => id.trim()).filter(Boolean);
-
-                                            // Tìm object employee tương ứng từ global `employees`
-                                            var selectedEmployees = empIds.map(id => {
-                                                var emp = (employees || []).find(e => String(e.EmployeeID) === String(id));
-                                                return emp || { EmployeeID: id, FullName: id }; // fallback nếu không tìm thấy
-                                            });
-
-                                            // Render từng avatar với quyền & lazy-load (giới hạn theo maxVisible)
-                                            const maxVisibleChips = Math.max(1, parseInt(3) || 3); // maxVisible = 3
-                                            const visibleEmps = selectedEmployees.slice(0, maxVisibleChips);
-                                            const remainingCount = selectedEmployees.length - maxVisibleChips;
-
-                                            var avatarHtml = visibleEmps.map(emp =>
-                                                renderEmployeeAvatarOrChip(emp, {
-                                                    showAvatar: true,  // ← quan trọng: bật avatar
-                                                    size: "small",
-                                                    className: "emp-selected-chip"
-                                                })
-                                            ).join("");
-
-                                            // Thêm badge +N nếu có còn lại
-                                            if (remainingCount > 0) {
-                                                const allNames = selectedEmployees.map(e => e.FullName + (e.EmployeeID ? ` (${e.EmployeeID})` : "")).join(", ");
-                                                avatarHtml += `<div class="icon-more" title="${escapeHtml(allNames)}" style="display:inline-flex; align-items:center; justify-content:center; min-width:32px; height:32px; padding:0 8px; border-radius:50%; background:var(--task-primary); color:white; font-weight:700; font-size:12px;">+${remainingCount}</div>`;
-                                            }
-
-                                            // Cập nhật vào DOM
-                                            $(`#${assigneeContainerId} .assignee-icons`).html(avatarHtml);
-
-                                            // Kích hoạt lazy-load cho các avatar mới (nếu có)
-                                            setTimeout(() => {
-                                                const newAvatars = document.querySelectorAll(`#${assigneeContainerId} .customer-avatar-employee`);
-                                                if (typeof callImg_EmployeeSelector === "function") {
-                                                    callImg_EmployeeSelector(newAvatars);
-                                                }
-                                            }, 0);
-                                        },
-                                        error: function() {
-                                            uiManager.showAlert({ type: "error", message: "Cập nhật người phụ trách thất bại!" });
-                                        }
-                                    });
+                                showAvatar: true,
+                                multi: true,
+                                onChange: function(selectedIds) {
+                                    // Handle change
                                 }
                             });
                         } catch(e) {
@@ -3481,7 +3402,6 @@ BEGIN
                 // Khởi tạo employee selectors
                 var defaultEmp = (window.EmployeeID_Login || LoginID);
                 hpaControlEmployeeSelector("#assignedBySelector", {
-                    type: "employee",
                     selectedIds: [defaultEmp],
                     ajaxListName: "EmployeeListAll_DataSetting_Custom",
                     showAvatar: true,
@@ -3547,7 +3467,6 @@ BEGIN
                 setTimeout(() => {
                     if (!$("#assignedBySelector").find(".hpa-selector").length) {
                         hpaControlEmployeeSelector("#assignedBySelector", {
-                            type: "employee",
                             selectedIds: [defaultEmp],
                             ajaxListName: "EmployeeListAll_DataSetting_Custom",
                             showAvatar: true,
@@ -3668,7 +3587,7 @@ BEGIN
                 if(!pid) { uiManager.showAlert({ type: "warning",  message: "Vui lòng chọn Công việc chính trước khi thêm hàng",}); return; }
 
                 // ensure assign container exists
-    if($("#subtask-assign-container").length === 0) return;
+                if($("#subtask-assign-container").length === 0) return;
 
                 var count = $("#subtask-assign-container .temp-subtask").length;
                 var empOpts = (employees || []).map(e => `<option value="${e.EmployeeID}">${escapeHtml(e.FullName)} (${e.EmployeeID})</option>`).join("");
@@ -3879,15 +3798,11 @@ BEGIN
                     $("#subtask-assign-container").html(`
                         <div class="empty-state" style="grid-column: 1 / -1;">
                             <i class="bi bi-list-check"></i>
-                  <p>Chưa có checklist con</p>
+                            <p>Chưa có checklist con</p>
                         </div>
-                 `);
+                    `);
                     return;
                 }
-
-                let empOpts = employees.map(e =>
-                    `<option value="${e.EmployeeID}">${escapeHtml(e.FullName)} (${e.EmployeeID})</option>`
-                ).join("");
 
                 function todayRange() {
                     var d = new Date();
@@ -3919,7 +3834,7 @@ BEGIN
                         </div>
                         <div style="flex: 2; min-width: 200px;">
                             <label class="form-label">Người thực hiện</label>
-                            <div id="assignee-${validIdx}"></div>
+                            <div id="assignee-${validIdx}" data-child-id="${item.ChildTaskID || 0}"></div>
                         </div>
                         <div style="flex: 1; min-width: 140px;">
                             <label class="form-label">Bắt đầu</label>
@@ -3929,7 +3844,7 @@ BEGIN
                             <label class="form-label">Kết thúc</label>
                             <input type="datetime-local" class="form-control st-to" data-idx="${validIdx}" value="${def.end}" />
                         </div>
-                       <div style="flex: 1.5; min-width: 200px;">
+                        <div style="flex: 1.5; min-width: 200px;">
                             <label class="form-label">Ghi chú</label>
                             <input type="text" class="form-control st-note" data-idx="${validIdx}" placeholder="Ghi chú..." />
                         </div>
@@ -3947,20 +3862,41 @@ BEGIN
 
                 $("#subtask-assign-container").html(items);
 
-                // Khởi tạo employee selectors cho mỗi subtask
-                currentTemplate.forEach((item, idx) => {
-                    hpaControlEmployeeSelector(`#assignee-${idx}`, {
-                        type: "employee",
-                        selectedIds: [],
-                        showAvatar: true,
-                        ajaxListName: "EmployeeListAll_DataSetting_Custom",
-                        multi: true,
-                        onChange: function(selectedIds) {
-                            // Lưu vào data attribute hoặc biến global
-                            $(`#assignee-${idx}`).data("selected", selectedIds);
+                // ✅ Đợi DOM render xong (100-200ms)
+                setTimeout(() => {
+                    currentTemplate.forEach((item, idx) => {
+                        // ✅ Parse selectedIds từ dữ liệu có sẵn
+                        let preSelectedIds = [];
+                        
+                        // Kiểm tra nhiều trường có thể chứa EmployeeIDs
+                        const idsSource = item.AssignedToEmployeeIDs || 
+                                        item.EmployeeIDs || 
+                                        item.AssignedTo || 
+                                        "";
+                        
+                        if (idsSource) {
+                            preSelectedIds = String(idsSource)
+                                .split(",")
+                                .map(s => s.trim())
+                                .filter(Boolean);
                         }
+
+                        // ✅ Log để debug
+                        console.log(`[Subtask ${idx}] Pre-selected IDs:`, preSelectedIds);
+
+                        hpaControlEmployeeSelector(`#assignee-${idx}`, {
+                            selectedIds: preSelectedIds,  // ← Truyền đúng IDs
+                            ajaxListName: "EmployeeListAll_DataSetting_Custom",
+                            showAvatar: true,
+                            multi: true,
+                            onChange: function(selectedIds) {
+                                // Lưu vào data attribute để lấy khi submit
+                                $(`#assignee-${idx}`).data("selected", selectedIds);
+                                console.log(`[Subtask ${idx}] Changed to:`, selectedIds);
+                            }
+                        });
                     });
-                });
+                }, 200);  // ← Tăng timeout nếu cần
             }
             function submitAssignment() {
                 let parent = $("#selParent").val();
@@ -4239,7 +4175,7 @@ BEGIN
 
                 $wrap.html("");
                 var selectedEmpIds = $hidden.val() || [];
-          var empObjects = selectedEmpIds.map(empId => {
+                var empObjects = selectedEmpIds.map(empId => {
                     var emp = (employees || []).find(e => String(e.EmployeeID) === String(empId));
                     if (emp) {
                       return emp;
@@ -4609,599 +4545,6 @@ BEGIN
                     }
                 });
             }
-
-            // Linh xử lý các control
-            var DEFAULT_AVATAR_SVG_Employee = `
-                <svg class="avatar" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Default user avatar">
-                    <rect width="200" height="200" fill="#ebf6ff"/>
-                    <circle cx="100" cy="235" r="100" fill="#a4c3f5" stroke="#7192c7" stroke-width="6"/>
-                    <circle cx="100" cy="76" r="43" fill="#fde69a" stroke="#e0b958" stroke-width="6"/>
-                </svg>
-            `;
-            function renderEmployeeAvatarOrChip(employee, options = {}) {
-                if (!employee) return `<div class="icon-chip">?</div>`;
-
-                const empId = String(employee.EmployeeID || "");
-                const fullName = employee.FullName || empId;
-                const showAvatar = options.showAvatar !== false; // mặc định true
-                const isChipOnly = options.isChipOnly === true;
-                const className = options.className || "";
-                const size = options.size || "medium"; // "small" | "medium"
-
-                // CSS tùy theo kích thước
-                const styleMap = {
-                    small: "width:28px;height:28px;margin-left:-8px;border:2px solid white;box-shadow:0 1px 0 rgba(0,0,0,0.04);",
-                    medium: "width:32px;height:32px;"
-                };
-                const baseStyle = "border-radius:50%; object-fit:cover; flex-shrink:0;";
-                const finalStyle = (styleMap[size] || styleMap.medium) + baseStyle;
-
-                if (!showAvatar || isChipOnly) {
-                    const initials = getInitials(fullName) || (empId.charAt(0) || "?").toUpperCase();
-                    return `<div class="icon-chip ${className}" title="${escapeHtml(fullName)}">${escapeHtml(initials)}</div>`;
-                }
-
-                // Nếu có đủ dữ liệu avatar → render <img>
-                if (employee.storeImgName && employee.paramImg) {
-                    return `
-                        <img alt="${escapeHtml(fullName)}"
-                            class="profile-img customer-avatar-employee ${className}"
-                            _name="${employee.storeImgName}"
-                            _param="${employee.paramImg}"
-                            data-employee-id="${empId}"
-                            loading="lazy"
-                            style="${finalStyle}"
-                        />
-                    `;
-                }
-
-                // Thiếu dữ liệu → render avatar default (không lazy-load)
-                return `
-                    <img alt="${escapeHtml(fullName)}"
-                        class="profile-img customer-avatar-employee ${className}"
-                        src="data:image/svg+xml;base64,${btoa(DEFAULT_AVATAR_SVG_Employee)}"
-                        data-employee-id="${empId}"
-                        style="${finalStyle}"
-                    />
-                `;
-            }
-            function callImg_EmployeeSelector(a) {
-                if (window.pendingImageRequests) {
-                    window.pendingImageRequests.forEach(xhr => {
-                        if (xhr && xhr.abort) xhr.abort();
-                    });
-                }
-                window.pendingImageRequests = [];
-                let observer = new IntersectionObserver((entries) => {
-                    entries.forEach(entry => {
-                        if (entry.isIntersecting) {
-               let img = entry.target;
-                            observer.unobserve(img);
-                            loadSingleImage_Employee(img);
-                        }
-                    });
-                }, {
-                    rootMargin: "200px"
-                });
-                for (let i = 0; i < a.length; i++) {
-                    let img = a[i];
-                    if (!img.hasAttribute("data-loaded")) {
-                        img.src = "data:image/svg+xml;base64," + btoa(DEFAULT_AVATAR_SVG_Employee);
-                    }
-                    observer.observe(img);
-                }
-            }
-
-            // Thêm biến toàn cục để cache URL đã tạo
-            window.employeeAvatarCache = window.employeeAvatarCache || {};
-            function loadSingleImage_Employee(imgElement) {
-                let self = $(imgElement);
-                let employeeId = self.attr("data-employee-id");
-                if (!employeeId) return;
-
-                // ƯU TIÊN 1: Nếu đã có trong cache → dùng luôn
-                if (window.employeeAvatarCache[employeeId]) {
-                    if (self.attr("src") !== window.employeeAvatarCache[employeeId]) {
-                        self.attr("src", window.employeeAvatarCache[employeeId]);
-                    }
-                    avatarLoadStatus[employeeId] = "loaded";
-                    return;
-                }
-
-                // ƯU TIÊN 2: Nếu đã loaded hoặc đang loading → bỏ qua
-                if (avatarLoadStatus[employeeId] === "loading" || avatarLoadStatus[employeeId] === "loaded") {
-                    return;
-                }
-
-                let name = self.attr("_name");
-                if (!name || name.length === 0 || name === "null" || name === "undefined") {
-                    avatarLoadStatus[employeeId] = "failed";
-                    return;
-                }
-
-                avatarLoadStatus[employeeId] = "loading";
-
-                let paramStr = self.attr("_param") || "{}";
-                let param;
-                try {
-                    param = JSON.parse(decodeURIComponent(paramStr));
-                } catch(e) {
-                    try { param = JSON.parse(paramStr); } catch(e2) {
-                        avatarLoadStatus[employeeId] = "failed";
-                        return;
-                    }
-                }
-
-                let success = function (blob, status, xhr) {
-                    avatarLoadStatus[employeeId] = "loaded";
-
-                    if (blob && blob.size > 0) {
-                        try {
-                            var url = URL.createObjectURL(blob);
-                            // LƯU VÀO CACHE TOÀN CỤC
-                            window.employeeAvatarCache[employeeId] = url;
-
-                            // Gán cho ảnh hiện tại
-                            self.attr("src", url);
-
-                            // QUAN TRỌNG: Gán luôn cho tất cả các img khác của cùng employeeId đang chờ
-                            $(`.customer-avatar-employee[data-employee-id="${employeeId}"]`).each(function() {
-                                if (this !== imgElement && !this.src.includes("blob:")) {
-                                    this.src = url;
-                                }
-                            });
-
-                            // Optional: dọn dẹp sau 5 phút để tránh memory leak (tùy chọn)
-                            setTimeout(() => {
-                                if (window.employeeAvatarCache[employeeId] === url) {
-                                    URL.revokeObjectURL(url);
-                                    delete window.employeeAvatarCache[employeeId];
-                                }
-                            }, 5 * 60 * 1000);
-
-                        } catch(e) {
-                            avatarLoadStatus[employeeId] = "failed";
-                        }
-                    } else {
-                        avatarLoadStatus[employeeId] = "failed";
-                    }
-                };
-
-                let error = function(xhr, status, error) {
-                    avatarLoadStatus[employeeId] = "failed";
-                };
-
-                AjaxHPAParadise({
-                    data: { name: name, param: param },
-                    xhrFields: { responseType: "blob" },
-                    cache: true,
-                    success: success,
-                    error: error
-               });
-            }
-
-            // Linh: Hàm control chọn nhân viên (đơn hoặc đa chọn)
-            function hpaControlEmployeeSelector(el, config) {
-                setTimeout(() => {
-                    const imgs = document.querySelectorAll(".customer-avatar-employee");
-                    if (typeof callImg_EmployeeSelector === "function") {
-                      callImg_EmployeeSelector(imgs);
-                    }
-                }, 100);
-                const $el = $(el);
-                const defaults = {
-                    type: "employeesMulti",  // employeeMulti | employee
-                    displayId: null,         //
-                    selectedIds: [],
-                    multi: true,
-                    ajaxListName: null,      // sp load dữ liệu
-                    silent: true,            // thông báo
-                    placeholder: "Tìm...",
-                    position: "right",
-                    maxVisible: 3,
-                    onChange: null,
-                    showAvatar: false,
-                    showId: true,
-                    showName: true,
-                    autoSave: false,
-                    ajaxSaveName: null
-                };
-                const cfg = { ...defaults, ...config };
-                // normalize selectedIds to strings for consistent comparisons
-                cfg.selectedIds = (cfg.selectedIds || []).map(x => String(x));
-                // MẢNG TẠM để lưu selectedIds khi load và xử lý trong mảng tạm
-                let tempSelectedIds = [...cfg.selectedIds];
-                const displayId = cfg.displayId || cfg.recordId || null;
-
-                function selIdsToCsv(arr) {
-                    return (arr || []).map(x => String(x)).filter(Boolean).join(",");
-                }
-
-                if ((!employees || employees.length === 0) && cfg.ajaxListName) {
-                    AjaxHPAParadise({
-                        data: { name: cfg.ajaxListName, param: ["LanguageID", cfg.language || "VN"] },
-                        success: function(res) {
-                            try {
-                                const data = JSON.parse(res).data || [];
-                                employees = data[0] || [];
-                            } catch (e) {
-                                employees = [];
-                            }
-                        }
-                    });
-                }
-
-                function renderEmployeeItem(e, isSelected) {
-                    const empId = String(e.EmployeeID);
-                    const fullName = e.FullName || empId;
-                    let labelHtml = "";
-
-                    if (cfg.showName || cfg.showId) {
-                        const namePart = cfg.showName ? escapeHtml(fullName) : "";
-                        const idPart = cfg.showId ? escapeHtml(empId) : "";
-                        if (namePart && idPart) {
-                            labelHtml = `${namePart} (${idPart})`;
-                        } else {
-                            labelHtml = namePart || idPart;
-                        }
-                    }
-
-                    // GỌI HÀM CHUNG ĐỂ ĐẢM BẢO NHẤT QUÁN
-                    let avatarHtml = renderEmployeeAvatarOrChip(e, {
-                        showAvatar: cfg.showAvatar,
-                        size: "medium",
-                        className: ""
-                    });
-
-                    // BG highlight khi selected
-                    const bgStyle = isSelected ? "background-color: #e3f2fd; border-left: 3px solid var(--task-primary);" : "";
-
-                    return `
-                        <div class="control-row-assignee-item ${isSelected ? "selected" : ""}"
-                            data-empid="${empId}"
-                       data-empname="${escapeHtml(fullName)}"
-                            style="padding:8px 10px; cursor:pointer; display:flex; align-items:center; gap:8px; border-bottom:1px solid #f0f2f5; ${bgStyle}">
-                            ${cfg.multi ? `<div style="width:28px; flex-shrink:0;"><input type="checkbox" class="row-assignee-checkbox" ${isSelected ? "checked" : ""} style="cursor:pointer;" /></div>` : `<div style="width:28px; flex-shrink:0;"></div>`}
-                            ${avatarHtml}
-                            ${labelHtml ? `<div style="flex:1; min-width:0; font-weight:600; font-size:14px;">${labelHtml}</div>` : ""}
-                        </div>
-                    `;
-                }
-
-                function renderSelectedChips(selectedIds) {
-                    if (!selectedIds || selectedIds.length === 0) {
-                        return `<div class="icon-chip" title="Chưa chọn" style="display:inline-flex; align-items:center; justify-content:center; width:32px; height:32px; border-radius:50%; background:#f0f2f5; color:#676879; font-weight:700; font-size:14px;">?</div>`;
-                    }
-
-                    // Đảm bảo maxVisible là số dương
-                    const maxVisible = Math.max(1, parseInt(cfg.maxVisible) || 3);
-
-                    const empMap = {};
-                    (employees || []).forEach(e => { empMap[String(e.EmployeeID)] = e; });
-
-                    // Lấy chỉ maxVisible items đầu tiên để render chip
-                    const visibleIds = selectedIds.slice(0, maxVisible);
-                    const remaining = selectedIds.length - maxVisible;
-
-                    const chips = visibleIds.map(empId => {
-                        const e = empMap[empId];
-                        return renderEmployeeAvatarOrChip(e, {
-                            showAvatar: cfg.showAvatar,
-                            size: "small",
-                            className: "emp-selected-chip"
-                        });
-                    });
-
-                    let visible = chips.join("");
-
-                    // Nếu có còn lại, thêm badge +N
-                    if (remaining > 0) {
-                        const allNames = selectedIds.map(id => {
-                            const e = empMap[id];
-                            return (cfg.showName && e?.FullName ? e.FullName : "") +
-                                (cfg.showId && e?.EmployeeID ? ` (${e.EmployeeID})` : "") ||
-                                id;
-                        }).join(", ");
-                        // Chip hiển thị +N với style badge
-                        visible += `<div class="icon-more" title="${escapeHtml(allNames)}" style="display:inline-flex; align-items:center; justify-content:center; min-width:32px; height:32px; padding:0 8px; border-radius:50%; background:var(--task-primary); color:white; font-weight:700; font-size:12px;">+${remaining}</div>`;
-                    }
-                    return visible;
-                }
-
-                // == MULTI SELECT ==
-                if (cfg.type === "employeesMulti") {
-                    const containerId = `assignee-${displayId || Date.now()}`;
-                    const html = `
-                        <div class="row-assignee" data-displayid="${displayId || ""}" style="position:relative;">
-                            <button type="button" class="btn btn-sm btn-light row-assignee-toggle" data-displayid="${displayId}"
-                                style="display:flex;align-items:center;gap:8px;padding:6px 8px;width:100%;">
-                                <div class="assignee-icons" style="display:flex;align-items:center;gap:0;" id="${containerId}-icons">
-                                    ${renderSelectedChips(cfg.selectedIds)}
-                                </div>
-                                <i class="bi bi-chevron-down" style="font-size:12px;color:var(--text-muted);margin-left:auto;"></i>
-               </button>
-                            <div class="row-assignee-dropdown" style="display:none;position:absolute;${cfg.position}:0;top:36px;z-index:2000;width:320px;backdrop-filter:blur(50px);border:1px solid var(--border-color);border-radius:6px;box-shadow:var(--shadow-md);">
-                                <div style="padding:8px;border-bottom:1px solid var(--border-color);">
-                                    <input id="selMultiEmployee" type="text" class="form-control form-control-sm row-assignee-search" placeholder="${escapeHtml(cfg.placeholder)}" />
-                                </div>
-                                <div class="row-assignee-list" style="max-height:260px;overflow:auto;padding:4px 0;"></div>
-                            </div>
-                        </div>
-                    `;
-                    $el.html(html);
-
-                    const renderList = (filter) => {
-                        const q = normalizeForSearch(filter || "");
-                        const selectedItems = [];
-                        const unselectedItems = [];
-
-                        (employees || []).forEach(e => {
-                            const label = `${e.FullName || ""} (${e.EmployeeID || ""})`;
-                            if (!q || normalizeForSearch(label).indexOf(q) !== -1) {
-                                const empIdStr = String(e.EmployeeID);
-                                // SỬ DỤNG mảng tạm tempSelectedIds để kiểm tra trạng thái
-                                const isSelected = (tempSelectedIds || []).includes(empIdStr);
-                                const itemHtml = renderEmployeeItem(e, isSelected);
-                                if (isSelected) {
-                                    selectedItems.push(itemHtml);
-                                } else {
-                                    unselectedItems.push(itemHtml);
-                                }
-                            }
-                        });
-
-                        // Sắp xếp: selected lên đầu, unselected phía sau
-                        const items = [...selectedItems, ...unselectedItems];
-                        $el.find(".row-assignee-list").html(items.length ? items.join("") : `<div style="padding:8px 12px;color:#777;">Không tìm thấy</div>`);
-
-                        // Trigger lazy-load cho avatars trong dropdown
-                        setTimeout(() => {
-                            const imgs = $el.find(".row-assignee-list .customer-avatar-employee");
-                            if (imgs.length && typeof callImg_EmployeeSelector === "function") {
-                                callImg_EmployeeSelector(imgs);
-                            }
-                        }, 0);
-                    };
-
-                    // Gọi renderList lần đầu để populate danh sách khi khởi tạo
-                    renderList("");
-
-                    // Xử lý click nút toggle để mở/đóng dropdown và render list
-                    $el.find(".row-assignee-toggle").on("click", function(e) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        const $dropdown = $el.find(".row-assignee-dropdown");
-                        const isVisible = $dropdown.is(":visible");
-
-                        if (!isVisible) {
-                            // Mở dropdown: render list lại để đảm bảo checkbox đúng trạng thái
-                            renderList($el.find(".row-assignee-search").val() || "");
-                            $dropdown.show();
-                            $el.find(".row-assignee-search").focus();
-                        } else {
-                            // Đóng dropdown
-                            $dropdown.hide();
-                        }
-                    });
-
-                    $el.find(".row-assignee-search").on("input", (e) => renderList($(e.target).val()));
-
-                    $el.on("click", ".control-row-assignee-item", (e) => {
-                        e.stopPropagation();
-                        const $it = $(e.currentTarget);
-                        const empId = String($it.data("empid"));
-                        const isCheckboxClick = $(e.target).hasClass("row-assignee-checkbox") || $(e.target).closest(".row-assignee-checkbox").length > 0;
-
-                        // Lưu trạng thái cũ để rollback nếu cần
-                        const prevSelected = [...tempSelectedIds];
-                        let newSelected = [...tempSelectedIds];
-
-                        if (cfg.multi) {
-                            const idx = newSelected.indexOf(empId);
-                            if (idx === -1) {
-                                // Thêm mới: đưa lên đầu để ảnh hiển thị đầu tiên
-                                newSelected = [empId, ...newSelected];
-                            } else {
-                                // Bỏ chọn: xóa khỏi mảng
-                                newSelected.splice(idx, 1);
-                            }
-                        } else {
-                            newSelected = newSelected.includes(empId) ? [] : [empId];
-                            $el.find(".row-assignee-dropdown").hide();
-                        }
-
-                        // CẬP NHẬT mảy tạm tempSelectedIds
-                        tempSelectedIds = newSelected.map(x => String(x));
-                        cfg.selectedIds = [...tempSelectedIds];
-
-                        // Render lại danh sách: selected lên đầu, checkbox đánh dấu đúng
-                        const currentFilter = $el.find(".row-assignee-search").val() || "";
-                        renderList(currentFilter);
-
-                        // Cập nhật chip hiển thị với số lượng tăng dần
-                        $el.find(".assignee-icons").html(renderSelectedChips(tempSelectedIds));
-
-                        // Lazy load ảnh trong chips
-                        try {
-                            const imgs = $el.find(".assignee-icons .customer-avatar-employee");
-                            if (imgs.length && typeof callImg_EmployeeSelector === "function") callImg_EmployeeSelector(imgs);
-                        } catch (err) {
-                        }
-
-                        // Gọi onChange callback
-                        if (typeof cfg.onChange === "function") cfg.onChange(tempSelectedIds, displayId);
-
-                        // Optional auto-save
-                        if (cfg.autoSave && cfg.ajaxSaveName) {
-                            const csv = selIdsToCsv(tempSelectedIds);
-                            AjaxHPAParadise({
-                                data: { name: cfg.ajaxSaveName, param: [displayId, csv] },
-                                success: function(res) {
-                                    // Success - mảy tạm đã được lưu
-                                },
-                                error: function() {
-                                    // Rollback: khôi phục mảy tạm về trạng thái cũ
-                                    tempSelectedIds = prevSelected;
-                                    cfg.selectedIds = [...tempSelectedIds];
-                                    renderList(currentFilter);
-                                    $el.find(".assignee-icons").html(renderSelectedChips(tempSelectedIds));
-                                    if (!cfg.silent) alert("Lưu người được giao thất bại.");
-                                }
-                            });
-                        }
-                    });
-
-                    // Xử lý click ra ngoài control để tắt dropdown
-                    $(document).on("click.assignee-dropdown-" + displayId, (e) => {
-                        const $target = $(e.target);
-                        // Nếu click không phải trên control này → đóng dropdown
-                        if (!$el.find(".row-assignee").is(e.target) &&
-                            !$el.find(".row-assignee").has(e.target).length &&
-                            !$target.closest($el.find(".row-assignee")).length) {
-                            $el.find(".row-assignee-dropdown").hide();
-                        }
-                    });
-
-                    // Cleanup event khi destroy
-                    $el.data("destroy", () => {
-                        $(document).off("click.assignee-dropdown-" + displayId);
-                    });
-
-                    return $el.find(".row-assignee");
-                }
-
-                // == SINGLE SELECT ==
-                if (cfg.type === "employee") {
-                    const uniqueId = `emp-sel-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-                    const html = `
-                        <div class="control-employee-selector" data-id="${uniqueId}">
-                            <div class="emp-sel-display" style="position:relative;">
-                                <button type="button" class="btn btn-light emp-sel-trigger" style="width:100%;display:flex;align-items:center;gap:8px;padding:8px 12px;">
-                                    <div class="emp-sel-icons">
-                                        ${renderSelectedChips(cfg.selectedIds)}
-                                    </div>
-                             <i class="bi bi-chevron-down ms-auto"></i>
-                                </button>
-                            </div>
-                            <div class="emp-sel-dropdown" style="display:none;position:absolute;z-index:2000;width:320px;background:white;border:1px solid #ddd;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.15);margin-top:4px;">
-                                <div style="padding:8px;border-bottom:1px solid #eee;">
-                                    <input type="text" class="form-control form-control-sm emp-sel-search" placeholder="${escapeHtml(cfg.placeholder)}" />
-                                </div>
-                                <div class="emp-sel-list" style="max-height:260px;overflow:auto;padding:4px 0;"></div>
-                            </div>
-                        </div>
-                    `;
-                    $el.html(html);
-                    const $type = $el.find(".control-employee-selector");
-
-                    const renderList = (searchText) => {
-                        const q = normalizeForSearch(searchText || "");
-                        let html = "";
-                        (employees || []).forEach(e => {
-                            const label = `${e.FullName || ""} (${e.EmployeeID || ""})`;
-                            if (!q || normalizeForSearch(label).indexOf(q) !== -1) {
-                                const isSelected = (cfg.selectedIds || []).indexOf(String(e.EmployeeID)) !== -1;
-                                html += renderEmployeeItem(e, isSelected);
-                            }
-                        });
-                        $type.find(".emp-sel-list").html(html || `<div style="padding:20px;text-align:center;color:#999;">Không tìm thấy</div>`);
-
-                        // Thêm dòng này: Kích hoạt lazy load cho các avatar mới trong dropdown
-                        setTimeout(() => {
-                            const newImgs = $type.find(".emp-sel-list .customer-avatar-employee");
-                            if (newImgs.length && typeof callImg_EmployeeSelector === "function") {
-                                callImg_EmployeeSelector(newImgs);
-                            }
-                        }, 0);
-                    };
-
-                    $type.find(".emp-sel-trigger").on("click", (e) => {
-                        e.stopPropagation();
-                        $(".emp-sel-dropdown").not($type.find(".emp-sel-dropdown")).hide();
-                        $type.find(".emp-sel-dropdown").toggle();
-                        renderList("");
-                        $type.find(".emp-sel-search").focus();
-                    });
-
-                    $type.find(".emp-sel-search").on("input", (e) => renderList($(e.target).val()));
-
-                    $type.on("click", ".control-row-assignee-item, .row-assignee-checkbox", function(e) {
-                        e.stopPropagation();
-
-                        const $item = $(this).closest(".control-row-assignee-item");
-                        const empId = String($item.data("empid"));
-                        const isCheckboxClick = e.target.type === "checkbox";
-
-                        // Nếu là single select và click vào item đã chọn → không làm gì cả (tránh gọi onChange vô ích)
-                        if (!cfg.multi && $item.hasClass("selected") && !isCheckboxClick) {
-                            $type.find(".emp-sel-dropdown").hide();
-                            return;
-                        }
-
-                        let newSelected = [...cfg.selectedIds];
-                        const currentlySelected = newSelected.includes(empId);
-
-                        if (cfg.multi) {
-                            if (currentlySelected) {
-                                newSelected = newSelected.filter(id => id !== empId);
-                            } else {
-                                newSelected.push(empId);
-                            }
-                        } else {
-                            newSelected = currentlySelected ? [] : [empId]; // toggle hoặc chọn mới
-                        }
-
-                        // Cập nhật UI
-                        $type.find(".control-row-assignee-item").removeClass("selected").find(".row-assignee-checkbox").prop("checked", false);
-                        // ensure order: put newly selected at front
-                        if (cfg.multi) {
-                            // keep newSelected order as-is (already managed above)
-                        } else {
-                            // single: newSelected contains only the chosen id
-                        }
-                        newSelected.forEach(id => {
-                            $type.find(`.control-row-assignee-item[data-empid="${id}"]`)
-                                .addClass("selected")
-                                .find(".row-assignee-checkbox").prop("checked", true);
-                        });
-
-                        // Cập nhật chip hiển thị
-                        $type.find(".emp-sel-icons").html(renderSelectedChips(newSelected));
-                        // lazy-load avatars inside the display
-                        try {
-                            const newImgs = $type.find(".emp-sel-icons .customer-avatar-employee");
-                            if (newImgs.length && typeof callImg_EmployeeSelector === "function") callImg_EmployeeSelector(newImgs);
-                        } catch (err) {
-                        }
-
-                        // GỌI onChange DUY NHẤT 1 LẦN
-                        if (typeof cfg.onChange === "function") {
-                            cfg.onChange(newSelected, displayId);
-                        }
-
-                        // Đóng dropdown nếu là single select
-                        if (!cfg.multi) {
-                            $type.find(".emp-sel-dropdown").hide();
-                        }
-                    });
-
-                    $(document).on("click.emp-sel-" + uniqueId, (e) => {
-                        if (!$(e.target).closest($type).length) {
-                            const $dropdown = $type.find(".emp-sel-dropdown");
-                            if ($dropdown.is(":visible")) {
-                                $dropdown.hide();
-                            }
-                       }
-                    });
-
-                    $type.data("destroy", () => {
-                        $(document).off("click.emp-sel-" + uniqueId);
-                    });
-
-                    return $type;
-                }
-            }
-            
         })();
     </script>
     ';

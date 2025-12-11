@@ -1,13 +1,13 @@
 USE Paradise_Beta_Tai2
 GO
-if object_id('[dbo].[EmployeeListAll_DataSetting_Custom]') is null
-	EXEC ('CREATE PROCEDURE [dbo].[EmployeeListAll_DataSetting_Custom] as select 1')
+IF OBJECT_ID('[dbo].[EmployeeListAll_DataSetting_Custom]') IS NULL
+    EXEC ('CREATE PROCEDURE [dbo].[EmployeeListAll_DataSetting_Custom] AS SELECT 1');
 GO
 
 ALTER PROCEDURE [dbo].[EmployeeListAll_DataSetting_Custom]
     @LoginID INT = 3,
     @LanguageID VARCHAR(5) = 'VN',
-    @zxc123 NVARCHAR(150) = '',
+    @SelectedIds NVARCHAR(150) = '',
     @TempTableAPIName NVARCHAR(150) = ''
 AS
 BEGIN
@@ -16,42 +16,82 @@ BEGIN
     DECLARE @storeImgName NVARCHAR(200) = N'paradisefile_sp_GetFileAPI';
     DECLARE @sql NVARCHAR(MAX);
 
-    IF LEN(@TempTableAPIName) = 0
+    IF LEN(ISNULL(@TempTableAPIName, '')) = 0
     BEGIN
         -- SELECT trực tiếp
-        SET @sql = N'
-            SELECT
-                e.EmployeeID,
-                e.FullName,
-                @storeImgName AS storeImgName,
-                dbo.fn_GetStringParamImageByEmployeeID(e.EmployeeID) AS paramImg
-            FROM tblEmployee e
-            WHERE e.EmployeeID IN (
-                SELECT EmployeeID FROM tmpEmployeeTree WHERE LoginID = 3
-            )';
+        IF LEN(ISNULL(@SelectedIds, '')) > 0
+        BEGIN
+            -- Dùng trực tiếp EmployeeID dạng varchar, KHÔNG CAST
+            SET @sql = N'
+                SELECT
+                    e.EmployeeID,
+                    e.FullName,
+                    @storeImgName AS storeImgName,
+                    dbo.fn_GetStringParamImageByEmployeeID(e.EmployeeID) AS paramImg
+                FROM tblEmployee e
+                WHERE e.EmployeeID IN (
+                    SELECT Items
+                    FROM SplitString(@SelectedIds, '','')
+                    WHERE ISNULL(Items, '''') <> ''''
+                )';
+        END
+        ELSE
+        BEGIN
+            SET @sql = N'
+                SELECT
+                    e.EmployeeID,
+                    e.FullName,
+                    @storeImgName AS storeImgName,
+                    dbo.fn_GetStringParamImageByEmployeeID(e.EmployeeID) AS paramImg
+                FROM tblEmployee e
+                WHERE e.EmployeeID IN (
+                    SELECT EmployeeID 
+                    FROM tmpEmployeeTree 
+                    WHERE LoginID = @LoginID
+                )';
+        END
     END
     ELSE
     BEGIN
-        -- Đưa vào bảng tạm API → phải dùng QUOTENAME để tránh SQL injection
-        SET @sql = N'
-            SELECT
-                e.EmployeeID,
-                e.FullName,
-                @storeImgName AS storeImgName,
-                dbo.fn_GetStringParamImageByEmployeeID(e.EmployeeID) AS paramImg
-            INTO ' + QUOTENAME(@TempTableAPIName) + N'
-            FROM tblEmployee e
-            WHERE e.EmployeeID IN (
-                SELECT EmployeeID FROM tmpEmployeeTree
-            )';
+        -- Ghi dữ liệu vào bảng tạm
+        IF LEN(ISNULL(@SelectedIds, '')) > 0
+        BEGIN
+            SET @sql = N'
+                SELECT
+                    e.EmployeeID,
+                    e.FullName,
+                    @storeImgName AS storeImgName,
+                    dbo.fn_GetStringParamImageByEmployeeID(e.EmployeeID) AS paramImg
+                INTO ' + QUOTENAME(@TempTableAPIName) + N'
+                FROM tblEmployee e
+                WHERE e.EmployeeID IN (
+                    SELECT Items
+                    FROM SplitString(@SelectedIds, '','')
+                    WHERE ISNULL(Items, '''') <> ''''
+                )';
+        END
+        ELSE
+        BEGIN
+            SET @sql = N'
+                SELECT
+                    e.EmployeeID,
+                    e.FullName,
+                    @storeImgName AS storeImgName,
+                    dbo.fn_GetStringParamImageByEmployeeID(e.EmployeeID) AS paramImg
+                INTO ' + QUOTENAME(@TempTableAPIName) + N'
+                FROM tblEmployee e
+                WHERE e.EmployeeID IN (
+                    SELECT EmployeeID 
+                    FROM tmpEmployeeTree
+                )';
+        END
     END
 
     EXEC sp_executesql
         @sql,
-        N'@LoginID INT, @storeImgName NVARCHAR(200)',
+        N'@LoginID INT, @storeImgName NVARCHAR(200), @SelectedIds NVARCHAR(150)',
         @LoginID = @LoginID,
-        @storeImgName = @storeImgName;
+        @storeImgName = @storeImgName,
+        @SelectedIds = @SelectedIds;
 END
 GO
-
-EmployeeListAll_DataSetting_Custom
