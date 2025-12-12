@@ -373,7 +373,7 @@ BEGIN
         appsDockContainer.insertBefore(appButton, secondHr.nextSibling);
     } else {
  appsDockContainer.insertBefore(appButton, secondHr);
-      secondHrElement++;
+ secondHrElement++;
     }
 
     updateStyleDock();
@@ -1023,6 +1023,8 @@ function UpdateLayOutApi(typeSetting, valueSetting){
          //   console.log(valueSetting);
     },
 
+
+
           error: function (error) {
             console.error("Error", error);
           }
@@ -1664,7 +1666,7 @@ function showLoadingByClassOrID(target, text = "Loading...", spinnerColor = "bla
                     }
 
 
-                    #settingsModal-$ .modal {
+                  #settingsModal-$ .modal {
                   width: 700px
 
                  }
@@ -1882,7 +1884,7 @@ list-style: none;
   let searchTerm = $(this).val().toLowerCase();
        $(`#api-all-${menuId} .api-list`).each(function () {
                 let apiName = $(this).find(".api-item input").first().val().toLowerCase();
-                if (apiName.includes(searchTerm)) {
+          if (apiName.includes(searchTerm)) {
 
          $(this).show();
                 } else {
@@ -2006,6 +2008,7 @@ let tempTextarea = document.createElement("textarea");
 
 		 $(document).on("hidden.bs.modal", `#settingsModal-${menuId}`, function () {
 			isShortcutModeActive = false;
+
 			keysPressed = [];
 			
 
@@ -2348,6 +2351,7 @@ $(`#shortcutWarning-${menuId}`).addClass("d-none");
 							margin-left: 6px;
 							align-items: center;
 							z-index: 100 !important;
+
 							right: 0;
 						}
 						.hpa-editable-row.control-editable .btn-edit {
@@ -2684,7 +2688,7 @@ $(`#shortcutWarning-${menuId}`).addClass("d-none");
                 }
                 function renderDisplay() {
                     const $t = display.find(".hpa-field-text");
-        if (!cfg.multi) {
+                    if (!cfg.multi) {
                         const v = selected[0];
                         if (!v) {
                             $t.html(`<span class="hpa-field-placeholder">${escapeHtml(cfg.placeholder)}</span>`);
@@ -2749,7 +2753,7 @@ $(`#shortcutWarning-${menuId}`).addClass("d-none");
                         params.push("LanguageID"); params.push(typeof LanguageID !== "undefined" ? LanguageID : "VN");
                         params.push("TableName"); params.push(cfg.sourceTableName || cfg.tableName || "");
                         params.push("ColumnName"); params.push(cfg.sourceColumnName || cfg.columnName || cfg.field || "");
-          params.push("IDColumnName"); params.push(cfg.sourceIdColumnName || cfg.idColumnName || "ID");
+                    params.push("IDColumnName"); params.push(cfg.sourceIdColumnName || cfg.idColumnName || "ID");
                         params.push("ColumnValue"); params.push(kw);
                         AjaxHPAParadise({
                             data: { name: "sp_Common_SaveDataTable", param: params },
@@ -2822,7 +2826,7 @@ $(`#shortcutWarning-${menuId}`).addClass("d-none");
                     // Lưu vào DB
                     try {
                         saveToDB(cfg.multi ? selected : selected[0] || null);
-       } catch (e) {}
+                } catch (e) {}
 
                     // Clear cache API nếu cần
                     if (cfg.useApi && cfg.ajaxListName) {
@@ -2901,8 +2905,8 @@ $(`#shortcutWarning-${menuId}`).addClass("d-none");
                         AjaxHPAParadise({
                             data: { name: "sp_LoadGridUsingAPI", param: p },
                             success: res => {
-                                try {
-                                    const json = typeof res === "string" ? JSON.parse(res) : res;
+                try {
+              const json = typeof res === "string" ? JSON.parse(res) : res;
                                     const rows = json?.data?.[0] || [];
                                     const mapped = cfg.columns ? rows : rows.map(x => ({
                                         value: x.TaskID || x.EmployeeID || x.ID || x.value,
@@ -2985,7 +2989,7 @@ $(`#shortcutWarning-${menuId}`).addClass("d-none");
                     // Bắt đầu load sau 500ms (để UI render xong)
                     setTimeout(loadNextBatch, 500);
                 }
-     // ==================== INITIAL API LOAD ====================
+                    // ==================== INITIAL API LOAD ====================
                 function initialApiLoad(filter) {
                     showLoading();
 
@@ -3068,7 +3072,7 @@ $(`#shortcutWarning-${menuId}`).addClass("d-none");
 
                     batch.forEach(o => {
               const val = getItemValue(o);
-                        const isSel = selected.includes(String(val));
+                const isSel = selected.includes(String(val));
 
                         if (cfg.columns && cfg.columns.length) {
                             if (cfg.multi) {
@@ -3131,10 +3135,10 @@ $(`#shortcutWarning-${menuId}`).addClass("d-none");
                         let currentList = _fetchedItems;
                         if (curFilter) {
                             currentList = _fetchedItems.filter(item => itemMatchesSearch(item, curFilter));
-                        }
+                }
 
-                        // Nếu còn items chưa render thì render tiếp
-                        if (_renderedCount < currentList.length) {
+                // Nếu còn items chưa render thì render tiếp
+                if (_renderedCount < currentList.length) {
                             loadMoreRender(currentList);
                         }
                     }
@@ -3214,7 +3218,7 @@ $(`#shortcutWarning-${menuId}`).addClass("d-none");
                             filteredOpts = allItems.filter(o => itemMatchesSearch(o, q));
                         }
 
-                        // ĐƯA SELECTED LÊN ĐẦU
+                  // ĐƯA SELECTED LÊN ĐẦU
                         const selectedSet = new Set(selected.map(String));
                         const selectedItems = [];
                         const otherItems = [];
@@ -3303,7 +3307,7 @@ $(`#shortcutWarning-${menuId}`).addClass("d-none");
                                 "LoginID", window.LoginID || 0,
                                 "LanguageID", typeof LanguageID !== "undefined" ? LanguageID : "VN",
                                 "TableName", cfg.tableName,
-                                "ColumnName", cfg.columnName,
+                               "ColumnName", cfg.columnName,
                                 "IDColumnName", cfg.idColumnName || "ID",
                                 "ColumnValue", cfg.multi ? (val || []).join(",") : (val || ""),
                                 "ID_Value", cfg.idValue
@@ -3384,7 +3388,7 @@ $(`#shortcutWarning-${menuId}`).addClass("d-none");
                 // ==================== PUBLIC API ====================
                 return {
                     setValue(v) {
-                        selected = cfg.multi ? (Array.isArray(v) ? v.map(String) : (v ? [String(v)] : [])) : (v ? [String(v)] : []);
+                  selected = cfg.multi ? (Array.isArray(v) ? v.map(String) : (v ? [String(v)] : [])) : (v ? [String(v)] : []);
                         renderDisplay();
                         saveToDB(cfg.multi ? selected : selected[0] || null);
                     },
@@ -3418,7 +3422,7 @@ $(`#shortcutWarning-${menuId}`).addClass("d-none");
                 };
             }
 
-			// Linh: Control chọn nhân viên dạng dropdown với DevExtreme Grid
+            // Linh: Control chọn nhân viên dạng dropdown với DevExtreme Grid
             function hpaControlEmployeeSelector(el, config) {
                 const $el = $(el);
                 if (!$el.length) return null;
@@ -3435,42 +3439,50 @@ $(`#shortcutWarning-${menuId}`).addClass("d-none");
                     width: 350,
                     height: 400,
                     showAvatar: true,
-                    
+
                     // Dữ liệu
                     ajaxListName: "EmployeeListAll_DataSetting_Custom",
                     selectedIds: [],
                     apiData: null, // Nếu có data sẵn thì không cần gọi API
                     useApi: true,
-                    
+
                     // Phân trang
                     pageSize: 10,
-                    take: 10,
+                    take: config.take || 20,
                     skip: 0,
-                    
+
                     // Chức năng
                     multi: true,
                     searchable: true,
-                    
+
                     // Lưu trữ
                     tableName: null,
                     columnName: null,
                     idColumnName: null,
                     idValue: null,
                     silent: true,
-                    
+
                     // Callbacks
                     onChange: null
                 };
-                
+
                 const cfg = { ...defaults, ...config };
-                
+
                 // Tạo unique IDs nếu chưa có
                 const uniqueId = `emp-dropdown-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
                 cfg.containerId = cfg.containerId || `${uniqueId}-container`;
                 cfg.dropdownId = cfg.dropdownId || `${uniqueId}-dropdown`;
-                
+
                 // ===== STATE VARIABLES =====
                 const SVG_PLACEHOLDER = "data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Ccircle cx=%2250%22 cy=%2250%22 r=%2250%22 fill=%22%23e0e0e0%22/%3E%3C/svg%3E";
+
+                function getImageCacheKey(employee) {
+                    try {
+                        var store = (employee && employee.storeImgName) || "";
+                        var param = (employee && employee.paramImg) || "";
+                        return store + "|" + param;
+                    } catch (e) { return (employee && employee.storeImgName || "") + "|" + (employee && employee.paramImg || ""); }
+                }
                 const avatarCache = {};
                 let allEmployees = [];
                 let selectedIds = [...cfg.selectedIds].map(String);
@@ -3478,6 +3490,7 @@ $(`#shortcutWarning-${menuId}`).addClass("d-none");
                 let totalCount = 0;
                 let currentSkip = 0;
                 let isLoadingApiData = false;
+                let backgroundLoadScheduled = false;
                 // Queue to ensure API calls are executed sequentially
                 let apiQueue = Promise.resolve();
                 // Cache for selected-only load: ensures one batched request
@@ -3487,14 +3500,14 @@ $(`#shortcutWarning-${menuId}`).addClass("d-none");
                 let currentSearchText = "";
                 let snapshotEmployees = [];
                 let isGridInitializing = true;
-                
+
                 // ===== CSS INJECTION =====
                 if (!window.__hpaEmployeeDropdownCSS) {
                     window.__hpaEmployeeDropdownCSS = true;
                     const style = document.createElement("style");
                     style.textContent = `
                         .hpa-emp-dropdown-wrapper { position: relative; display: inline-block; width: 100%; }
-                        
+
                         .hpa-emp-dropdown-btn {
                             display: inline-flex;
                             align-items: center;
@@ -3510,11 +3523,11 @@ $(`#shortcutWarning-${menuId}`).addClass("d-none");
                             box-shadow: 0 1px 2px rgba(16,24,40,0.04);
                             width: 100%;
                         }
-                        .hpa-emp-dropdown-btn:hover { 
-                            border-color: #c7d2da; 
-                            transform: translateY(-1px); 
+                        .hpa-emp-dropdown-btn:hover {
+                            border-color: #c7d2da;
+                            transform: translateY(-1px);
                         }
-                        
+
                         .hpa-emp-dropdown-chips {
                             display: flex;
                             align-items: center;
@@ -3522,7 +3535,7 @@ $(`#shortcutWarning-${menuId}`).addClass("d-none");
                             flex: 1;
                             min-width: 0;
                         }
-                        
+
                         .hpa-emp-dropdown-chip {
                             border-radius: 50%;
                             overflow: hidden;
@@ -3535,7 +3548,7 @@ $(`#shortcutWarning-${menuId}`).addClass("d-none");
                         .hpa-emp-dropdown-chip:first-child { margin-left: 0; }
                         .hpa-emp-dropdown-chip:hover { transform: scale(1.1); z-index: 10; }
                         .hpa-emp-dropdown-chip img { width: 100%; height: 100%; object-fit: cover; }
-                        
+
                         .hpa-emp-dropdown-chip-text {
                             border-radius: 50%;
                             overflow: hidden;
@@ -3552,18 +3565,18 @@ $(`#shortcutWarning-${menuId}`).addClass("d-none");
                         }
                         .hpa-emp-dropdown-chip-text:first-child { margin-left: 0; }
                         .hpa-emp-dropdown-chip-text:hover { transform: scale(1.1); z-index: 10; }
-                        
+
                         .hpa-emp-dropdown-count {
                             font-weight: 600;
                             color: #495057;
                             margin-left: 4px;
                         }
-                        
+
                         .hpa-emp-dropdown-icon {
                             margin-left: auto;
                             color: #6c757d;
                         }
-                        
+
                         .hpa-emp-dropdown-container {
                             display: none;
                             position: absolute;
@@ -3575,12 +3588,12 @@ $(`#shortcutWarning-${menuId}`).addClass("d-none");
                             background: #fff;
                             margin-top: 4px;
                         }
-                        
+
                         .hpa-emp-dropdown-header {
                             padding: 12px;
                             border-bottom: 1px solid #dee2e6;
                         }
-                        
+
                         .hpa-emp-dropdown-search {
                             width: 100%;
                             padding: 8px 12px;
@@ -3594,20 +3607,20 @@ $(`#shortcutWarning-${menuId}`).addClass("d-none");
                             border-color: #2E7D32;
                             box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.1);
                         }
-                        
+
                         .hpa-emp-dropdown-body { overflow-y: auto; }
-                        
+
                         .hpa-emp-dropdown-container .dx-datagrid { border: none !important; }
                         .hpa-emp-dropdown-container .dx-datagrid-headers { display: none; }
                         .hpa-emp-dropdown-container .dx-checkbox { margin: 0; }
-                        
+
                         .grid-employee-cell {
                             display: flex !important;
                             align-items: center;
                             gap: 8px;
                             padding: 4px 0;
                         }
-                        
+
                         .grid-employee-image {
                             border-radius: 50%;
                             object-fit: cover;
@@ -3616,13 +3629,13 @@ $(`#shortcutWarning-${menuId}`).addClass("d-none");
                     `;
                     document.head.appendChild(style);
                 }
-                
+
                 // ===== HELPER FUNCTIONS =====
-                function escapeHtml(s) { 
-                    if (s === null || s === undefined) return ""; 
-                    return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/""/g, "&quot;").replace(/"/g, "&#039;"); 
+                function escapeHtml(s) {
+                    if (s === null || s === undefined) return "";
+                    return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/""/g, "&quot;").replace(/"/g, "&#039;");
                 }
-                
+
                 function getInitials(fullName) {
                     if (!fullName) return "?";
                     const words = fullName.trim().split(/\s+/);
@@ -3631,16 +3644,16 @@ $(`#shortcutWarning-${menuId}`).addClass("d-none");
                     }
                     return (fullName.substring(0, 2)).toUpperCase();
                 }
-                
+
                 function getAvatarStyle() {
                     return `width:${cfg.avatarWidth}px;height:${cfg.avatarHeight}px;`;
                 }
-                
+
                 function getChipFontSize() {
                     const size = Math.min(cfg.avatarWidth, cfg.avatarHeight);
                     return Math.max(8, Math.floor(size * 0.4));
                 }
-                
+
                 // ===== DATA LOADING =====
                 function loadEmployeeList(skip, take) {
                     const jqDeferred = $.Deferred();
@@ -3648,7 +3661,7 @@ $(`#shortcutWarning-${menuId}`).addClass("d-none");
                     // Nếu có apiData sẵn
                     if (cfg.apiData && Array.isArray(cfg.apiData)) {
                         allEmployees = cfg.apiData;
-                        totalCount = allEmployees.length;
+                   totalCount = allEmployees.length;
                         jqDeferred.resolve(allEmployees);
                         return jqDeferred.promise();
                     }
@@ -3671,6 +3684,7 @@ $(`#shortcutWarning-${menuId}`).addClass("d-none");
 
                     // Build params for the API call
                     const extraparam = [];
+
                     extraparam.push("@ProcName"); extraparam.push(cfg.ajaxListName);
                     extraparam.push("@Take"); extraparam.push(take);
                     extraparam.push("@Skip"); extraparam.push(skip);
@@ -3679,6 +3693,8 @@ $(`#shortcutWarning-${menuId}`).addClass("d-none");
                     // Enqueue the actual Ajax call so that requests run sequentially
                     const runFetch = () => new Promise((resolveFetch, rejectFetch) => {
                         isLoadingApiData = true;
+                        // this marks that a background/queued fetch is active
+                        backgroundLoadScheduled = true;
                         AjaxHPAParadise({
                             data: {
                                 name: "sp_LoadGridUsingAPI",
@@ -3700,14 +3716,17 @@ $(`#shortcutWarning-${menuId}`).addClass("d-none");
 
                                     currentSkip = skip;
                                     isLoadingApiData = false;
+                                    backgroundLoadScheduled = false;
                                     resolveFetch(allEmployees);
                                 } catch (error) {
                                     isLoadingApiData = false;
+                                    backgroundLoadScheduled = false;
                                     rejectFetch("Data Loading Error");
                                 }
                             },
                             error: function () {
                                 isLoadingApiData = false;
+                                backgroundLoadScheduled = false;
                                 rejectFetch("Data Loading Error");
                             }
                         });
@@ -3798,11 +3817,14 @@ $(`#shortcutWarning-${menuId}`).addClass("d-none");
                     const nativePromise = new Promise((resolveNative, rejectNative) => {
                         // Dùng wrapper sp_LoadGridUsingAPI giống như load danh sách
                         const extraparam = [];
-                        extraparam.push("@ProcName"); extraparam.push(cfg.ajaxListName || "EmployeeListAll_DataSetting_Custom");
-                        extraparam.push("@Take");     extraparam.push(1000); // Load nhiều để chắc chắn lấy hết selected (thường ít)
-                        extraparam.push("@Skip");     extraparam.push(0);
-                        extraparam.push("@LanguageID"); extraparam.push(LanguageID || "VN");
-                        extraparam.push("@SelectedIds"); extraparam.push(selectedIds.join(",")); // Thêm SelectedIds vào đây
+                        extraparam.push("@ProcName");
+                        extraparam.push(cfg.ajaxListName || "EmployeeListAll_DataSetting_Custom");
+                        extraparam.push("@Take");     
+                        extraparam.push(cfg.Take); // Load nhiều để chắc chắn lấy hết selected (thường ít)
+                        extraparam.push("@Skip");     
+                        extraparam.push(0);
+                        extraparam.push("@LanguageID"); 
+                        extraparam.push(LanguageID || "VN");
 
                         AjaxHPAParadise({
                             data: {
@@ -3856,7 +3878,7 @@ $(`#shortcutWarning-${menuId}`).addClass("d-none");
                         cached.forEach(s => { if (!existingIds.has(String(s.EmployeeID))) allEmployees.push(s); });
                         selectedCache = cached.slice();
                         selectedLoaded = true;
-                        totalCount = Math.max(totalCount, allEmployees.length);
+                  totalCount = Math.max(totalCount, allEmployees.length);
                         jqDeferred.resolve(allEmployees);
                     }).catch(() => {
                         selectedLoaded = true;
@@ -3866,51 +3888,87 @@ $(`#shortcutWarning-${menuId}`).addClass("d-none");
 
                     return jqDeferred.promise();
                 }
-                
+
                 function loadEmployeeImage(employee) {
                     if (!cfg.showAvatar || !employee.storeImgName || !employee.paramImg) {
                         return SVG_PLACEHOLDER;
                     }
-                    
-                    const cacheKey = employee.EmployeeID;
-                    if (avatarCache[cacheKey]) {
-                        return avatarCache[cacheKey];
+
+                    var cacheKey = getImageCacheKey(employee);
+
+                    // Global caches to avoid duplicate calls
+                    window.__paradisefile_cache = window.__paradisefile_cache || {};
+                    window.__paradisefile_promises = window.__paradisefile_promises || {};
+
+                    // If already cached, return URL immediately
+                    if (window.__paradisefile_cache[cacheKey]) {
+                        var cachedUrl = window.__paradisefile_cache[cacheKey];
+                        avatarCache[employee.EmployeeID] = cachedUrl;
+                        return cachedUrl;
                     }
-                    
+
+                    // If an in-flight promise exists, attach an update callback and return placeholder
+                    if (window.__paradisefile_promises[cacheKey]) {
+                        window.__paradisefile_promises[cacheKey].then(function(url) {
+                            try {
+                                avatarCache[employee.EmployeeID] = url;
+                                $(`#${cfg.containerId} .hpa-emp-dropdown-chip[data-emp-id="${employee.EmployeeID}"] img`).attr("src", url);
+                                $(`#${cfg.dropdownId} .grid-employee-image[data-emp-id="${employee.EmployeeID}"]`).attr("src", url);
+                                $(`#${cfg.containerId} .hpa-emp-dropdown-chip img[data-img-key="${cacheKey}"]`).attr("src", url);
+                                $(`#${cfg.dropdownId} .grid-employee-image[data-img-key="${cacheKey}"]`).attr("src", url);
+                            } catch (e) {}
+                        }).catch(function(){/*ignore*/});
+                        return SVG_PLACEHOLDER;
+                    }
+
                     try {
                         const decoded = decodeURIComponent(employee.paramImg);
                         const paramArray = JSON.parse(decoded);
                         if (Array.isArray(paramArray) && paramArray.length > 1) {
-                            AjaxHPAParadise({
-                                data: {
-                                    name: employee.storeImgName,
-                                    param: paramArray
-                                },
-                                xhrFields: { responseType: "blob" },
-                                cache: true,
-                                success: function(blob) {
-                                    if (blob && blob.size > 0) {
-                                        const imgUrl = URL.createObjectURL(blob);
-                                        avatarCache[cacheKey] = imgUrl;
-                                        
-                                        // Update all images with this employee ID
-                                        $(`#${cfg.containerId} .hpa-emp-dropdown-chip[data-emp-id="${cacheKey}"] img`).attr("src", imgUrl);
-                                        $(`#${cfg.dropdownId} .grid-employee-image[data-emp-id="${cacheKey}"]`).attr("src", imgUrl);
-                                        
-                                        // Cleanup after 5 minutes
-                                        setTimeout(() => {
-                                            URL.revokeObjectURL(imgUrl);
-                                            delete avatarCache[cacheKey];
-                                        }, 300000);
-                                    }
-                                }
+                            var native = new Promise(function(resolveNative) {
+                                AjaxHPAParadise({
+                                    data: {
+                                        name: employee.storeImgName,
+                                        param: paramArray
+                                    },
+                                    xhrFields: { responseType: "blob" },
+                                    cache: true,
+                                    success: function(blob) {
+                                        try {
+                                            if (blob && blob.size > 0) {
+                                                const imgUrl = URL.createObjectURL(blob);
+                                                // keep in global cache for session to avoid re-fetch
+                                                window.__paradisefile_cache[cacheKey] = imgUrl;
+                                                avatarCache[employee.EmployeeID] = imgUrl;
+
+                                                // Update any elements that reference this image key
+                                                try {
+                                                    $(`#${cfg.containerId} .hpa-emp-dropdown-chip img[data-img-key="${cacheKey}"]`).attr("src", imgUrl);
+                                                    $(`#${cfg.containerId} .hpa-emp-dropdown-chip[data-emp-id="${employee.EmployeeID}"] img`).attr("src", imgUrl);
+                                                    $(`#${cfg.dropdownId} .grid-employee-image[data-img-key="${cacheKey}"]`).attr("src", imgUrl);
+                                                    $(`#${cfg.dropdownId} .grid-employee-image[data-emp-id="${employee.EmployeeID}"]`).attr("src", imgUrl);
+                                                } catch (e) {}
+
+                                                // resolve native promise
+                                                resolveNative(imgUrl);
+                                            } else {
+                                                resolveNative(null);
+                                            }
+                                        } catch (e) { resolveNative(null); }
+                                    },
+                                    error: function() { resolveNative(null); }
+                                });
                             });
+
+                            window.__paradisefile_promises[cacheKey] = native;
+                            // when done, remove in-flight marker
+                            native.finally(function(){ delete window.__paradisefile_promises[cacheKey]; });
                         }
                     } catch (e) {}
-                    
+
                     return SVG_PLACEHOLDER;
                 }
-                
+
                 // ===== RENDER FUNCTIONS =====
                 function renderSelectorButton() {
                     let html = `
@@ -3918,24 +3976,25 @@ $(`#shortcutWarning-${menuId}`).addClass("d-none");
                             <button type="button" class="hpa-emp-dropdown-btn" id="empDropdownBtn_${cfg.containerId}">
                                 <div class="hpa-emp-dropdown-chips">
                     `;
-                    
+
                     const selectedEmps = selectedIds
                         .map(id => allEmployees.find(e => String(e.EmployeeID) === String(id)))
                         .filter(e => e);
-                    
+
                     const maxVisible = cfg.maxVisibleChips;
                     const visibleEmps = selectedEmps.slice(0, maxVisible);
                     const remainingCount = selectedEmps.length - maxVisible;
-                    
+
                     if (selectedEmps.length === 0) {
                         html += `<span class="hpa-emp-dropdown-count">${cfg.placeholder}</span>`;
                     } else {
                         if (cfg.showAvatar) {
                             visibleEmps.forEach(emp => {
-                                const imgUrl = avatarCache[emp.EmployeeID] || loadEmployeeImage(emp);
+                                const imgKey = getImageCacheKey(emp);
+                                const imgUrl = (window.__paradisefile_cache && window.__paradisefile_cache[imgKey]) || avatarCache[emp.EmployeeID] || loadEmployeeImage(emp);
                                 html += `
-                                    <div class="hpa-emp-dropdown-chip" data-emp-id="${emp.EmployeeID}" title="${escapeHtml(emp.FullName)}" style="${getAvatarStyle()}">
-                                        <img src="${imgUrl}" alt="${escapeHtml(emp.FullName)}" />
+                                    <div class="hpa-emp-dropdown-chip" data-emp-id="${emp.EmployeeID}" data-img-key="${imgKey}" title="${escapeHtml(emp.FullName)}" style="${getAvatarStyle()}">
+                                        <img data-img-key="${imgKey}" src="${imgUrl}" alt="${escapeHtml(emp.FullName)}" />
                                     </div>
                                 `;
                             });
@@ -3949,26 +4008,26 @@ $(`#shortcutWarning-${menuId}`).addClass("d-none");
                                 `;
                             });
                         }
-                        
+
                         if (remainingCount > 0) {
                             html += `<span class="hpa-emp-dropdown-count">+${remainingCount}</span>`;
                         }
                     }
-                    
+
                     html += `
                                 </div>
                                 <span class="hpa-emp-dropdown-icon"><i class="bi bi-chevron-down"></i></span>
                             </button>
                         </div>
                     `;
-                    
+
                     $(`#${cfg.containerId}`).html(html);
-                    
+
                     $(`#empDropdownBtn_${cfg.containerId}`).off("click").on("click", function(e) {
                         e.stopPropagation();
                         toggleDropdown();
                     });
-                    
+
                     // Load images for visible chips
                     if (cfg.showAvatar) {
                         selectedEmps.forEach(emp => {
@@ -3978,7 +4037,7 @@ $(`#shortcutWarning-${menuId}`).addClass("d-none");
                         });
                     }
                 }
-                
+
                 function initDropdownContainer() {
                     const $dropdown = $(`#${cfg.dropdownId}`);
                     $dropdown.addClass("hpa-emp-dropdown-container");
@@ -3987,7 +4046,7 @@ $(`#shortcutWarning-${menuId}`).addClass("d-none");
                         display: "none"
                     });
                 }
-                
+
                 function positionDropdown() {
                     const $btn = $(`#empDropdownBtn_${cfg.containerId}`);
                     const $dropdown = $(`#${cfg.dropdownId}`);
@@ -4009,11 +4068,11 @@ $(`#shortcutWarning-${menuId}`).addClass("d-none");
                         zIndex: 3005
                     });
                 }
-                
+
                 function toggleDropdown() {
                     const $dropdown = $(`#${cfg.dropdownId}`);
                     const isVisible = $dropdown.is(":visible");
-                    
+
                     if (isVisible) {
                         $dropdown.hide();
                     } else {
@@ -4023,9 +4082,10 @@ $(`#shortcutWarning-${menuId}`).addClass("d-none");
                         $dropdown.show();
 
                         if (!dataGridInstance) {
+                            isLoadingApiData = true;
+                            backgroundLoadScheduled = true;
                             createDataGrid();
 
-                            // Start background loading of the full list; when completed, reload grid
                             loadEmployeeList(0, cfg.take).then(() => {
                                 snapshotEmployees = getSortedEmployees();
                                 if (dataGridInstance) {
@@ -4045,22 +4105,27 @@ $(`#shortcutWarning-${menuId}`).addClass("d-none");
                             }).catch(() => {});
                         } else {
                             if (allEmployees.length < totalCount) {
-                                loadEmployeeList(allEmployees.length, cfg.take).then(() => {
-                                    snapshotEmployees = getSortedEmployees();
-                                    if (dataGridInstance) {
-                                        dataGridInstance.beginUpdate();
-                                        dataGridInstance.getDataSource().reload();
-                                        dataGridInstance.endUpdate();
+                                if (!backgroundLoadScheduled) {
+                                    isLoadingApiData = true;
+                                    backgroundLoadScheduled = true;
+                                    loadEmployeeList(allEmployees.length, cfg.take).then(() => {
+                                        backgroundLoadScheduled = false;
+                                        snapshotEmployees = getSortedEmployees();
+                                        if (dataGridInstance) {
+                                            dataGridInstance.beginUpdate();
+                                            dataGridInstance.getDataSource().reload();
+                                            dataGridInstance.endUpdate();
 
-                                        if (selectedLoaded && Array.isArray(selectedCache) && selectedCache.length > 0) {
-                                            const cachedIds = selectedCache.map(e => String(e.EmployeeID));
-                                            const toSelect = selectedIds.filter(id => cachedIds.includes(String(id)));
-                                            if (toSelect.length > 0) {
-                                                dataGridInstance.option("selectedRowKeys", toSelect);
+                                            if (selectedLoaded && Array.isArray(selectedCache) && selectedCache.length > 0) {
+                                                const cachedIds = selectedCache.map(e => String(e.EmployeeID));
+                                                const toSelect = selectedIds.filter(id => cachedIds.includes(String(id)));
+                                                if (toSelect.length > 0) {
+                                                    dataGridInstance.option("selectedRowKeys", toSelect);
+                                                }
                                             }
                                         }
-                                    }
-                                }).catch(() => {});
+                                    }).catch(() => {});
+                                }
                             }
                         }
 
@@ -4069,19 +4134,19 @@ $(`#shortcutWarning-${menuId}`).addClass("d-none");
                         }, 100);
                     }
                 }
-                
+
                 function filterEmployees(searchText) {
                     if (!dataGridInstance || isGridInitializing) return;
-                    
+
                     currentSearchText = searchText.trim();
-                    
+
                     if (currentSearchText) {
                         const searchLower = currentSearchText.toLowerCase();
                         dataGridInstance.filter(["FullName", "contains", searchLower]);
                     } else {
                         dataGridInstance.clearFilter();
                     }
-                    
+
                     setTimeout(() => {
                         if (dataGridInstance) {
                             dataGridInstance.beginUpdate();
@@ -4090,11 +4155,10 @@ $(`#shortcutWarning-${menuId}`).addClass("d-none");
                         }
                     }, 50);
                 }
-                
-                function createDataGrid() {
-                    const headerHeight = 50;
+
+                function createDataGrid() {                    const headerHeight = 50;
                     const bodyHeight = cfg.height - headerHeight;
-                    
+
                     const html = `
                         <div class="hpa-emp-dropdown-header">
                             <input type="text" class="hpa-emp-dropdown-search" placeholder="Tìm kiếm..." />
@@ -4103,23 +4167,23 @@ $(`#shortcutWarning-${menuId}`).addClass("d-none");
                             <div class="employee-grid-inner"></div>
                         </div>
                     `;
-                    
+
                     $(`#${cfg.dropdownId}`).html(html);
-                    
+
                     if (snapshotEmployees.length === 0 && allEmployees.length > 0) {
                         snapshotEmployees = getSortedEmployees();
                     }
-                    
+
                     const gridStore = new DevExpress.data.CustomStore({
                         key: "EmployeeID",
                         load: function(loadOptions) {
                             const deferred = $.Deferred();
                             const skip = loadOptions.skip || 0;
                             const take = loadOptions.take || cfg.take;
-                            
+
                             let gridData = getGridData();
                             const needsMoreData = (skip + take) > gridData.length && allEmployees.length < totalCount;
-                            
+
                             if (needsMoreData && !isLoadingApiData) {
                                 const apiSkip = allEmployees.length;
                                 loadEmployeeList(apiSkip, cfg.take).then(() => {
@@ -4131,14 +4195,14 @@ $(`#shortcutWarning-${menuId}`).addClass("d-none");
                                 }).catch(err => deferred.reject(err));
                                 return deferred.promise();
                             }
-                            
+
                             const pageData = gridData.slice(skip, skip + take);
                             const finalTotalCount = totalCount > 0 ? totalCount : gridData.length;
                             deferred.resolve({ data: pageData, totalCount: finalTotalCount });
                             return deferred.promise();
                         }
                     });
-                    
+
                     function getSortedEmployees() {
                         let data = [...allEmployees];
                         if (currentSearchText.trim()) {
@@ -4153,7 +4217,7 @@ $(`#shortcutWarning-${menuId}`).addClass("d-none");
                             return 0;
                         });
                     }
-                    
+
                     function getGridData() {
                         if (currentSearchText.trim()) {
                             return getSortedEmployees();
@@ -4163,10 +4227,10 @@ $(`#shortcutWarning-${menuId}`).addClass("d-none");
                         }
                         return getSortedEmployees();
                     }
-                    
+
                     const gridColumns = [{ type: "selection", width: 40, alignment: "center" }];
                     let fixedColumnsWidth = 40;
-                    
+
                     if (cfg.showAvatar) {
                         gridColumns.push({
                             dataField: "storeImgName",
@@ -4174,17 +4238,26 @@ $(`#shortcutWarning-${menuId}`).addClass("d-none");
                             width: cfg.avatarWidth + 16,
                             cellTemplate: function(container, options) {
                                 const emp = options.data;
-                                let imgUrl = avatarCache[emp.EmployeeID] || loadEmployeeImage(emp);
-                                const $img = $(`<img class="grid-employee-image" data-emp-id="${emp.EmployeeID}" src="${imgUrl}" alt="${escapeHtml(emp.FullName)}" style="${getAvatarStyle()}border-radius:50%;object-fit:cover;" />`);
+                                const imgKey = getImageCacheKey(emp);
+                                let imgUrl = (window.__paradisefile_cache && window.__paradisefile_cache[imgKey]) || avatarCache[emp.EmployeeID] || loadEmployeeImage(emp);
+                                const $img = $(`<img class="grid-employee-image" data-emp-id="${emp.EmployeeID}" data-img-key="${imgKey}" src="${imgUrl}" alt="${escapeHtml(emp.FullName)}" style="${getAvatarStyle()}border-radius:50%;object-fit:cover;" />`);
                                 container.html($img);
                             }
                         });
                         fixedColumnsWidth += (cfg.avatarWidth + 16);
                     }
-                    
+
                     const nameColumnWidth = `calc(100% - ${fixedColumnsWidth}px)`;
-                    gridColumns.push({ dataField: "FullName", caption: "Tên nhân viên", width: nameColumnWidth });
-                    
+                    gridColumns.push({ dataField: "FullName", caption: "Tên nhân viên", width: nameColumnWidth,
+                        cellTemplate: function(container, options) {
+                            const emp = options.data || {};
+                            const name = escapeHtml(emp.FullName || emp.EmployeeName || emp.DisplayName || "");
+                            const title = emp.Title || emp.PositionName || "";
+                            const html = `<div class="grid-employee-cell"><div style="flex:1;min-width:0"><span class="hpa-emp-name" data-empid="${emp.EmployeeID}" title="${name}${title?(" - "+escapeHtml(title)):""}" style="cursor:pointer;display:inline-block;width:100%;">${name}</span></div></div>`;
+                            container.html(html);
+                        }
+                    });
+
                     const gridConfig = {
                         dataSource: gridStore,
                         keyExpr: "EmployeeID",
@@ -4203,25 +4276,25 @@ $(`#shortcutWarning-${menuId}`).addClass("d-none");
                         onSelectionChanged: function(selectedItems) {
                             const newSelectedIds = cfg.multi ? selectedItems.selectedRowKeys : [selectedItems.selectedRowKeys[0]];
                             const hasChanged = JSON.stringify([...selectedIds].sort()) !== JSON.stringify([...newSelectedIds].sort());
-                            
+
                             if (!hasChanged) return;
-                            
+
                             selectedIds = newSelectedIds.map(String);
-                            
+
                             if (cfg.onChange) cfg.onChange(selectedIds);
-                            
+
                             // Save to DB if configured
                             if (cfg.tableName && cfg.idValue) {
                                 saveToDB(cfg.multi ? selectedIds : selectedIds[0] || null);
                             }
-                            
+
                             snapshotEmployees = getSortedEmployees();
-                            
+
                             if (currentSearchText) {
                                 currentSearchText = "";
                                 $(`#${cfg.dropdownId} .hpa-emp-dropdown-search`).val("");
                             }
-                            
+
                             setTimeout(() => {
                                 if (dataGridInstance) {
                                     dataGridInstance.beginUpdate();
@@ -4232,10 +4305,30 @@ $(`#shortcutWarning-${menuId}`).addClass("d-none");
                             }, 50);
                         }
                     };
-                    
+
                     $(`#${cfg.dropdownId} .employee-grid-inner`).dxDataGrid(gridConfig);
                     dataGridInstance = $(`#${cfg.dropdownId} .employee-grid-inner`).dxDataGrid("instance");
-                    
+
+                    // Delegate click on name to toggle selection
+                    $(document).off(`click.empNameToggle_${cfg.containerId}`).on(`click.empNameToggle_${cfg.containerId}`, `#${cfg.dropdownId} .hpa-emp-name`, function(e){
+                        e.stopPropagation();
+                        try{
+                            if(!dataGridInstance) return;
+                            const id = $(this).data("empid");
+                            if(id === undefined || id === null) return;
+                            const current = dataGridInstance.option("selectedRowKeys") || [];
+                            const asStr = current.map(String);
+                            const exists = asStr.indexOf(String(id)) !== -1;
+                            let newSel;
+                            if (exists) {
+                                newSel = asStr.filter(function(x){ return x !== String(id); });
+                            } else {
+                                newSel = asStr.concat([String(id)]);
+                            }
+                            dataGridInstance.option("selectedRowKeys", newSel);
+                        }catch(e){}
+                    });
+
                     setTimeout(() => {
                         if (dataGridInstance) {
                             let foundSelectedEmps = [];
@@ -4322,21 +4415,21 @@ $(`#shortcutWarning-${menuId}`).addClass("d-none");
                         tryBind(0);
                     }
                     attachScrollHandlers();
-                    
+
                     $(`#${cfg.dropdownId} .hpa-emp-dropdown-search`).off("keyup").on("keyup", function() {
                         filterEmployees($(this).val());
                     });
-                    
+
                     setTimeout(() => {
                         isGridInitializing = false;
                     }, 100);
-                    
+
                     $(`#${cfg.dropdownId} .hpa-emp-dropdown-body`).off("scroll").on("scroll", function() {
                         const scrollTop = $(this).scrollTop();
                         const scrollHeight = this.scrollHeight;
                         const clientHeight = this.clientHeight;
                         const distanceFromBottom = scrollHeight - (scrollTop + clientHeight);
-                        
+
                         if (distanceFromBottom < 100 && allEmployees.length < totalCount && !isLoadingApiData) {
                             const apiSkip = allEmployees.length;
                             loadEmployeeList(apiSkip, cfg.take).then(() => {
@@ -4356,10 +4449,10 @@ $(`#shortcutWarning-${menuId}`).addClass("d-none");
                         }
                     });
                 }
-                
+
                 function saveToDB(val) {
                     if (!cfg.tableName || !cfg.idValue) return;
-                    
+
                     AjaxHPAParadise({
                         data: {
                             name: "sp_Common_SaveDataTable",
@@ -4382,17 +4475,17 @@ $(`#shortcutWarning-${menuId}`).addClass("d-none");
                             if (typeof uiManager !== "undefined") {
                                 uiManager.showAlert({ type: "error", message: "Lưu thất bại!" });
                             }
-                        }
+                 }
                     });
                 }
-                
+
                 // ===== EVENT HANDLERS =====
                 $(document).off(`click.employeeDropdown_${cfg.containerId}`).on(`click.employeeDropdown_${cfg.containerId}`, function(e) {
                     if (!$(e.target).closest(`#${cfg.containerId}, #${cfg.dropdownId}`).length) {
                         $(`#${cfg.dropdownId}`).hide();
                     }
                 });
-                
+
                 // ===== INITIALIZATION =====
                 // Create container structure
                 const containerHtml = `
@@ -4400,7 +4493,7 @@ $(`#shortcutWarning-${menuId}`).addClass("d-none");
                     <div id="${cfg.dropdownId}"></div>
                 `;
                 $el.html(containerHtml);
-                
+
                 initDropdownContainer();
 
                 // Initial render: try to show selected employees first (fast path)
@@ -4420,7 +4513,7 @@ $(`#shortcutWarning-${menuId}`).addClass("d-none");
                 } else {
                     renderSelectorButton();  // Render ngay nếu có apiData
                 }
-                
+
                 // ===== PUBLIC API =====
                 return {
                     getSelectedIds: () => selectedIds,
@@ -4449,10 +4542,12 @@ $(`#shortcutWarning-${menuId}`).addClass("d-none");
                     },
                     destroy: () => {
                         $(document).off(`click.employeeDropdown_${cfg.containerId}`);
+                        $(document).off(`click.empNameToggle_${cfg.containerId}`);
                         $el.empty();
                     }
                 };
             }
+			
 
             //Thắng: Hàm control date
             function hpaControlDateBox(el, config) {
@@ -4477,7 +4572,7 @@ $(`#shortcutWarning-${menuId}`).addClass("d-none");
                 if (!window.__hpaEditableRowDateCSSInjected) {
                     const style = document.createElement("style");
                     style.textContent = `
-                        .hpa-editable-row-date.control-editable-date { cursor: pointer; padding: 8px 4px; border-radius: 4px; transition: all 0.2s; display: inline-block; min-height: 1.2em; vertical-align: middle; box-sizing: border-box; }
+                       .hpa-editable-row-date.control-editable-date { cursor: pointer; padding: 8px 4px; border-radius: 4px; transition: all 0.2s; display: inline-block; min-height: 1.2em; vertical-align: middle; box-sizing: border-box; }
                         .hpa-editable-row-date.control-editable-date.editing-date { border-radius: 6px; padding: 0; box-shadow: none; z-index: 100;}
                         .hpa-editable-row-date.control-editable-date.editing-date input { width: 100% !important; min-width: 120px; font-size: 14px; padding: 4px 8px; height: 30px; }
                         .hpa-editable-row-date.control-editable-date.editing-date input[type="datetime-local"] { min-width: 200px; }
@@ -4494,7 +4589,7 @@ $(`#shortcutWarning-${menuId}`).addClass("d-none");
                         "white-space": "nowrap",
                         "overflow": "hidden",
                         "text-overflow": "ellipsis"
-                    });
+     });
                 }
 
                 const parseDate = (str) => {
@@ -4513,7 +4608,7 @@ $(`#shortcutWarning-${menuId}`).addClass("d-none");
 
                 const formatDateToVN = (dateObj) => {
                     if (!dateObj || isNaN(dateObj.getTime())) return "";
-                    const day = ("0" + dateObj.getDate()).slice(-2);
+                  const day = ("0" + dateObj.getDate()).slice(-2);
                     const month = ("0" + (dateObj.getMonth() + 1)).slice(-2);
                     const year = dateObj.getFullYear();
                     if (cfg.type === "datetime") {
@@ -4549,7 +4644,7 @@ $(`#shortcutWarning-${menuId}`).addClass("d-none");
 
                 if (cfg.width) $el.css("overflow", "visible");
 
-                    const rawText = typeof cfg.getValue === "function" ? cfg.getValue() : cfg.getValue;
+              const rawText = typeof cfg.getValue === "function" ? cfg.getValue() : cfg.getValue;
                     const dateValue = parseDate(rawText);
 
                     const $editorContainer = $("<div class=\"dx-field-value\" style=\"width:100%; height:100%\"></div>");
@@ -4579,7 +4674,7 @@ $(`#shortcutWarning-${menuId}`).addClass("d-none");
                             return;
                         }
 
-                        typeof cfg.setValue === "function" ? cfg.setValue(vnResult) : $el.text(vnResult);
+           typeof cfg.setValue === "function" ? cfg.setValue(vnResult) : $el.text(vnResult);
                         if (!rawInput) currentIdValue = null;
 
                         let spDataType = cfg.type === "datetime" ? "datetime" : "date";
@@ -4591,7 +4686,7 @@ $(`#shortcutWarning-${menuId}`).addClass("d-none");
                             "ColumnName", cfg.field,
                             "IDColumnName", cfg.idColumnName,
                             "ColumnValue", vnResult,
-                            "ID_Value", currentIdValue,
+   "ID_Value", currentIdValue,
                             "DataType", spDataType
                         ];
 
@@ -4627,7 +4722,7 @@ $(`#shortcutWarning-${menuId}`).addClass("d-none");
                         },
                         onKeyDown: function(e) {
                             if (e.event.key === "Enter") {
-                                e.event.preventDefault();
+      e.event.preventDefault();
                                 e.component.close();
                             }
                             if (e.event.key === "Escape") {
@@ -4704,7 +4799,7 @@ $(`#shortcutWarning-${menuId}`).addClass("d-none");
                     const rawText = typeof cfg.getValue === "function" ? cfg.getValue() : cfg.getValue;
 
                     let initialValue = null;
-                    if (rawText) {
+     if (rawText) {
                         const timeParts = rawText.split(":");
                         if (timeParts.length >= 2) {
                             const [h, min] = timeParts;
@@ -4734,10 +4829,10 @@ $(`#shortcutWarning-${menuId}`).addClass("d-none");
                     }).dxDateBox("instance");
 
                     let currentIdValue = resolvedId;
-                    let isSaving = false;
+let isSaving = false;
                     let hasFinished = false;
 
-                    const finish = (saveIt) => {
+  const finish = (saveIt) => {
                         if (isSaving || hasFinished) return;
                         hasFinished = true;
 
@@ -4748,7 +4843,7 @@ $(`#shortcutWarning-${menuId}`).addClass("d-none");
                             const h = String(dateValue.getHours()).padStart(2, "0");
                             const min = String(dateValue.getMinutes()).padStart(2, "0");
                             vnResult = `${h}:${min}`;
-                        }
+                    }
 
                         try { dxInstance.dispose(); } catch(e) {}
                         $el.removeClass("editing-time");
@@ -4786,9 +4881,9 @@ $(`#shortcutWarning-${menuId}`).addClass("d-none");
                             error: () => {
                                 isSaving = false;
                                 if (typeof uiManager !== "undefined") uiManager.showAlert({ type: "error", message: "Lỗi lưu!" });
-                                typeof cfg.setValue === "function" ? cfg.setValue(rawText) : $el.text(rawText);
+             typeof cfg.setValue === "function" ? cfg.setValue(rawText) : $el.text(rawText);
                             }
-                        });
+                  });
                     };
 
                     let buttonClicked = false;
@@ -4873,7 +4968,7 @@ $(`#shortcutWarning-${menuId}`).addClass("d-none");
                             background: white;
                    cursor: pointer;
                             transition: all 0.2s;
-                            font-size: 14px;
+                    font-size: 14px;
                         }
                         .hpa-editable-row-number.control-editable-number .btn-edit:hover {
                             transform: scale(1.1);
@@ -4903,7 +4998,7 @@ $(`#shortcutWarning-${menuId}`).addClass("d-none");
                     $el.css({
                         "width": cfg.width,
                         "min-width": cfg.width,
-                        "white-space": "nowrap",
+    "white-space": "nowrap",
                         "overflow": "hidden",
                         "text-overflow": "ellipsis"
                     });
@@ -4956,7 +5051,7 @@ $(`#shortcutWarning-${menuId}`).addClass("d-none");
                         const $cancel = $("<button class=\"btn-edit btn-cancel\" title=\"Hủy\"><i class=\"bi bi-x-lg\"></i></button>");
 
                         const updateButtonState = () => {
-                            const isEmpty = !$input.val() || $input.val().trim().length === 0;
+   const isEmpty = !$input.val() || $input.val().trim().length === 0;
                             if (cfg.allowAdd && isEmpty && !isAddMode) {
                                 isAddMode = true;
                                 recordId = null;
@@ -5030,9 +5125,9 @@ $(`#shortcutWarning-${menuId}`).addClass("d-none");
                                 "ID_Value", recordId
                             ];
 
-                            AjaxHPAParadise({
+                           AjaxHPAParadise({
                                 data: { name: "sp_Common_SaveDataTable", param: params },
-                                success: () => {
+                             success: () => {
                                     $el.text(displayVal);
                                     if (cfg.silent) uiManager.showAlert({ type: "success", message: isAddMode ? "%AddSuccess%" : "%UpdateSuccess%" });
                                     if (cfg.onSave) cfg.onSave(rawVal, isAddMode, recordId);
@@ -5058,10 +5153,10 @@ $(`#shortcutWarning-${menuId}`).addClass("d-none");
                         });
                         $input.on("keydown", (e) => {
                             if (e.key === "Enter") {
-                                e.preventDefault();
+              e.preventDefault();
                                 finish(true);
                             }
-                            if (e.key === "Escape") finish(false);
+              if (e.key === "Escape") finish(false);
                         });
                         $(document).one("click.hpaEditableNumber", (e) => {
                             if (!$(e.target).closest($el).length) finish(true);
@@ -5071,251 +5166,6 @@ $(`#shortcutWarning-${menuId}`).addClass("d-none");
 
 
             //Thang: Hàm control file, photo
-            function hpaControlFileDropzone(el, config) {
-                const $el = $(el);
-                const uniqueId = `hpa-dropzone-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
-
-                // Config mặc định
-                const cfg = {
-                    uploadUrl: config.uploadUrl || "/api/Upload/Image", // [QUAN TRỌNG] API Upload phía server
-                    allowedExtensions: config.allowedExtensions || [".jpg", ".jpeg", ".gif", ".png"],
-                    maxFileSize: config.maxFileSize || 5000000, // 5MB
-                    currentValue: config.currentValue || "", // Đường dẫn ảnh hiện tại (nếu có)
-                    width: config.width || "100%",
-                    height: config.height || "200px",
-                    tableName: config.tableName,      // Dùng để auto save nếu cần
-                    columnName: config.columnName,    // Dùng để auto save nếu cần
-                    idColumnName: config.idColumnName,// Dùng để auto save nếu cần
-                    idValue: config.idValue,          // Dùng để auto save nếu cần
-                    onSuccess: config.onSuccess || null, // Callback (url, file) => {}
-                    onError: config.onError || null
-                };
-
-                // 1. Inject CSS (Chỉ inject 1 lần)
-                if (!window.__hpaFileDropzoneCSSInjected) {
-                    const style = document.createElement("style");
-                    style.textContent = `
-                        .hpa-dropzone-box {
-                            position: relative;
-                            border: 2px dashed #dce1e5;
-                            border-radius: 8px;
-                            background: #f8f9fa;
-                            display: flex;
-                            flex-direction: column;
-                            align-items: center;
-                            justify-content: center;
-                            overflow: hidden;
-                            transition: all 0.3s ease;
-                            cursor: pointer;
-                        }
-                        .hpa-dropzone-box.dropzone-active {
-                            border-color: #1c975e;
-                            background: #e8f5e9;
-                        }
-                        .hpa-dropzone-box:hover {
-                            border-color: #a0a0a0;
-                        }
-                        .hpa-dropzone-content {
-                            text-align: center;
-                            pointer-events: none; /* Để sự kiện drag xuyên qua vào div cha */
-                            z-index: 1;
-                            width: 100%;
-                            height: 100%;
-                            display: flex;
-                            align-items: center;
-                            justify-content: center;
-                        }
-                        .hpa-preview-img {
-                            max-width: 100%;
-                            max-height: 100%;
-                            object-fit: contain;
-                            display: block;
-                        }
-                        .hpa-placeholder-text {
-                            color: #6c757d;
-                            font-size: 13px;
-                            padding: 10px;
-                        }
-                        .hpa-placeholder-text i {
-                            font-size: 24px;
-                            display: block;
-                            margin-bottom: 5px;
-                        }
-                        .hpa-upload-progress-bar {
-                            position: absolute;
-                            bottom: 10px;
-                            left: 10%;
-                            width: 80%;
-                            z-index: 10;
-                        }
-                        /* Ẩn input file mặc định của dx */
-                        .dx-fileuploader-input-wrapper { display: none; }
-                        .dx-fileuploader-wrapper { display: none; }
-                    `;
-                    document.head.appendChild(style);
-                    window.__hpaFileDropzoneCSSInjected = true;
-                }
-
-                // 2. Xây dựng DOM
-                $el.addClass("hpa-dropzone-wrapper");
-                // Tạo ID duy nhất cho Dropzone để DevExpress bind đúng chỗ
-                $el.attr("id", uniqueId);
-
-                const $dropZone = $(`<div class="hpa-dropzone-box" id="${uniqueId}-zone"></div>`);
-                $dropZone.css({ width: cfg.width, height: cfg.height });
-
-                const $content = $(`<div class="hpa-dropzone-content"></div>`);
-                const $img = $(`<img class="hpa-preview-img" src="${cfg.currentValue}" style="${cfg.currentValue ? '''' : ''display:none''}" />`);
-                const $placeholder = $(`
-                    <div class="hpa-placeholder-text" style="${cfg.currentValue ? ''display:none'' : ''''}">
-                        <i class="dx-icon-image"></i>
-                        <span>Kéo thả hoặc click để chọn</span>
-                    </div>
-                `);
-
-                // Container ẩn cho control DevExpress
-                const $dxUploaderContainer = $(`<div id="${uniqueId}-uploader"></div>`);
-                const $dxProgressContainer = $(`<div class="hpa-upload-progress-bar" id="${uniqueId}-progress"></div>`);
-
-                $content.append($img).append($placeholder);
-                $dropZone.append($content).append($dxProgressContainer);
-                $el.empty().append($dropZone).append($dxUploaderContainer);
-
-                // 3. Khởi tạo DevExpress ProgressBar
-                const progressBar = $dxProgressContainer.dxProgressBar({
-                    min: 0,
-                    max: 100,
-                    width: "100%",
-                    showStatus: false,
-                    visible: false
-                }).dxProgressBar("instance");
-
-                // Helper functions
-                const toggleActive = (isActive) => $dropZone.toggleClass("dropzone-active", isActive);
-                const toggleView = (hasImage) => {
-                    if (hasImage) {
-                        $img.show();
-                        $placeholder.hide();
-                    } else {
-                        $img.hide();
-                        $placeholder.show();
-                    }
-                };
-
-                // 4. Khởi tạo DevExpress FileUploader
-                $dxUploaderContainer.dxFileUploader({
-                    dialogTrigger: `#${uniqueId}-zone`,
-                    dropZone: `#${uniqueId}-zone`,
-                    multiple: false,
-                    allowedFileExtensions: cfg.allowedExtensions,
-                    maxFileSize: cfg.maxFileSize,
-                    uploadMode: "instantly",
-                    uploadUrl: cfg.uploadUrl,
-                    visible: false, // Ẩn UI mặc định của DX
-
-                    onDropZoneEnter: function({ component, dropZoneElement, event }) {
-                        if (dropZoneElement.id === `${uniqueId}-zone`) {
-                            const items = event.originalEvent.dataTransfer.items;
-                            // Kiểm tra sơ bộ loại file
-                            if (items && items.length > 0) {
-                                 toggleActive(true);
-                            }
-                        }
-                    },
-
-                    onDropZoneLeave: function(e) {
-                        if (e.dropZoneElement.id === `${uniqueId}-zone`) {
-                            toggleActive(false);
-                        }
-                    },
-
-                    onUploadStarted: function() {
-                        toggleActive(false);
-                        $img.css("opacity", "0.3");
-                        progressBar.option("visible", true);
-                        progressBar.option("value", 0);
-                    },
-
-                    onProgress: function(e) {
-                        progressBar.option("value", (e.bytesLoaded / e.bytesTotal) * 100);
-                    },
-
-                    onUploaded: function(e) {
-                        const file = e.file;
-                        // Ví dụ response text: "/uploads/2023/image123.jpg" hoặc JSON "{ url: ... }"
-                        let uploadedUrl = "";
-                        try {
-                            // Giả sử server trả về JSON hoặc plain text URL
-                            // Bạn cần điều chỉnh dòng này tùy theo format trả về của Server
-                             const response = JSON.parse(e.request.responseText);
-                             uploadedUrl = response.url || response.path || e.request.responseText;
-                        } catch (err) {
-                            uploadedUrl = e.request.responseText; // Fallback plain text
-                        }
-
-                        // 1. Update Preview bằng FileReader để user thấy ngay (hoặc dùng URL từ server)
-                        const fileReader = new FileReader();
-                        fileReader.onload = function() {
-                            $img.attr("src", fileReader.result);
-                            $img.css("opacity", "1");
-                            toggleView(true);
-                        };
-                        fileReader.readAsDataURL(file);
-
-                        // 2. Reset UI
-                        progressBar.option("visible", false);
-                        progressBar.option("value", 0);
-
-                        // 3. Logic Auto Save vào DB (giống hpaControlEditableRow)
-                        if (cfg.tableName && cfg.columnName && cfg.idValue) {
-                             saveToDatabase(uploadedUrl, cfg.idValue);
-                        }
-
-                        // 4. Callback ra ngoài
-                        if (cfg.onSuccess) cfg.onSuccess(uploadedUrl, file);
-                    },
-
-                    onUploadError: function(e) {
-                        progressBar.option("visible", false);
-                        $img.css("opacity", "1");
-                        toggleActive(false);
-                        // Sử dụng uiManager nếu có, hoặc alert
-                        if (typeof uiManager !== ''undefined'') {
-                            uiManager.showAlert({ type: "error", message: "Upload thất bại: " + e.error.message });
-                        } else {
-                            alert("Upload thất bại!");
-                        }
-                        if (cfg.onError) cfg.onError(e);
-                    }
-                });
-
-                // Hàm lưu dữ liệu vào DB (Tái sử dụng logic của bạn)
-                function saveToDatabase(newVal, recordId) {
-                    const params = [
-                        "LoginID", (typeof LoginID !== ''undefined'' ? LoginID : 0), // Global variable check
-                        "LanguageID", "VN",
-                        "TableName", cfg.tableName,
-           "ColumnName", cfg.columnName,
-                        "IDColumnName", cfg.idColumnName,
-                        "ColumnValue", newVal,
-                        "ID_Value", recordId
-                    ];
-
-                    // Kiểm tra hàm Ajax có tồn tại không
-                    if (typeof AjaxHPAParadise !== ''undefined'') {
-                        AjaxHPAParadise({
-                            data: { name: "sp_Common_SaveDataTable", param: params },
-                            success: () => {
-                                if (typeof uiManager !== ''undefined'')
-                                    uiManager.showAlert({ type: "success", message: "%UpdateSuccess%" });
-                            },
-                            error: () => {
-                                console.error("Lỗi lưu DB đường dẫn ảnh");
-                            }
-                        });
-                    }
-                }
-            }
 
 		</script>
 

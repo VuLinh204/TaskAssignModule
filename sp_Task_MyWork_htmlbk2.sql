@@ -39,10 +39,6 @@ BEGIN
             --shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.15);
             --shadow-hover: 0 6px 20px rgba(46, 125, 50, 0.3);
             --transition-base: 0.2s ease;
-            --radius-sm: 6px;
-            --radius-md: 8px;
-            --radius-lg: 12px;
-            --radius-xl: 16px;
         }
         #sp_Task_MyWork_html .h-title {
             font-weight: 700;
@@ -102,7 +98,7 @@ BEGIN
             background: var(--danger-color);
         }
         #sp_Task_MyWork_html .stat-card {
-            border-radius: var(--radius-lg);
+            border-radius: 12px;
             padding: 20px;
             border: 1px solid var(--border-color);
             transition: all var(--transition-base);
@@ -150,7 +146,7 @@ BEGIN
         /* Filters */
         #sp_Task_MyWork_html .filter-section {
             padding: 16px;
-            border-radius: var(--radius-lg);
+            border-radius: 12px;
             margin-bottom: 20px;
             border: 1px solid var(--border-color);
             display: flex;
@@ -162,7 +158,7 @@ BEGIN
         #sp_Task_MyWork_html .filter-section select {
             padding: 8px 12px;
             border: 1.5px solid var(--border-color);
-            border-radius: var(--radius-md);
+            border-radius: 8px;
             font-size: 14px;
             cursor: pointer;
             transition: all var(--transition-base);
@@ -187,7 +183,7 @@ BEGIN
         }
         #sp_Task_MyWork_html .view-btn {
             padding: 8px 16px;
-            border-radius: var(--radius-sm);
+            border-radius: 6px;
             border: none;
             background: transparent;
             cursor: pointer;
@@ -214,7 +210,7 @@ BEGIN
             gap: 20px;
         }
         #sp_Task_MyWork_html .kanban-column {
-            border-radius: var(--radius-lg);
+            border-radius: 12px;
             padding: 16px;
             min-height: 500px;
             border: 1px solid var(--border-color);
@@ -222,7 +218,7 @@ BEGIN
         }
         #sp_Task_MyWork_html .kanban-board .cu-row {
             margin-bottom: 12px;
-            border-radius: var(--radius-md);
+            border-radius: 8px;
             border: 1px solid var(--border-color);
             max-height: none;
         }
@@ -250,7 +246,7 @@ BEGIN
         #sp_Task_MyWork_html .column-count {
             background: var(--bg-lighter);
             padding: 4px 10px;
-            border-radius: var(--radius-lg);
+            border-radius: 12px;
             font-size: 12px;
             font-weight: 700;
             color: var(--text-secondary);
@@ -260,14 +256,14 @@ BEGIN
         /* Task Row (List + Card) */
         #sp_Task_MyWork_html .cu-list {
             border: 1px solid var(--border-color);
-            border-radius: var(--radius-lg);
+            border-radius: 12px;
             box-shadow: var(--shadow-sm);
         }
         #sp_Task_MyWork_html .cu-row {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 16px 20px;
+            padding: 8px 20px;
             border-bottom: 1px solid var(--bg-lighter);
             transition: all var(--transition-base);
             cursor: pointer;
@@ -299,11 +295,11 @@ BEGIN
             position: relative;
         }
 
+        /* Drag handle position adjustment */
         #sp_Task_MyWork_html .row-check .row-drag-handle {
             position: absolute;
             left: -15px;
         }
-
         #sp_Task_MyWork_html .row-check .priority-icon {
             margin-left: 0;
         }
@@ -319,13 +315,14 @@ BEGIN
             text-align: center;
             flex-shrink: 0;
         }
+
         /* header row no longer shows row-meta; keep space minimal if needed */
         #sp_Task_MyWork_html .row-meta {
             display: none;
         }
         #sp_Task_MyWork_html .task-title {
-            font-size: 15px;
             font-weight: 600;
+            width: 100%;
             display: -webkit-box;
             -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
@@ -359,6 +356,7 @@ BEGIN
         #sp_Task_MyWork_html .prio-3 {
             color: #9e9e9e;
         }
+
         /* KPI Progress */
         #sp_Task_MyWork_html .kpi-bar-bg {
             height: 8px;
@@ -401,7 +399,7 @@ BEGIN
         /* Status Badge */
         #sp_Task_MyWork_html .badge-sts {
             padding: 6px 14px;
-            border-radius: var(--radius-md);
+            border-radius: 8px;
             font-size: 12px;
             font-weight: 700;
             text-transform: uppercase;
@@ -432,7 +430,7 @@ BEGIN
             color: var(--text-secondary);
             background: var(--bg-lighter);
             padding: 4px 10px;
-            border-radius: var(--radius-sm);
+            border-radius: 6px;
             width: fit-content;
             margin-left: auto;
             font-weight: 600;
@@ -469,7 +467,7 @@ BEGIN
         #sp_Task_MyWork_html .btn-refresh {
             border: 1.5px solid var(--border-color);
             padding: 10px 16px;
-            border-radius: var(--radius-md);
+            border-radius: 8px;
             cursor: pointer;
             transition: all var(--transition-base);
             font-weight: 600;
@@ -490,7 +488,7 @@ BEGIN
             color: white;
             border: none;
             padding: 10px 20px;
-            border-radius: var(--radius-md);
+            border-radius: 8px;
             font-weight: 600;
             cursor: pointer;
             transition: all var(--transition-base);
@@ -505,239 +503,8 @@ BEGIN
             transform: translateY(-2px);
             box-shadow: var(--shadow-hover);
         }
-        /* Task Detail Modal */
-        #sp_Task_MyWork_html .task-detail-modal .modal-dialog {
-            max-width: 1000px;
-        }
-        #sp_Task_MyWork_html .task-detail-modal .modal-content {
-            border: none;
-            border-radius: var(--radius-xl);
-            box-shadow: var(--shadow-lg);
-            overflow: hidden;
-            width: 100% !important;
-        }
-        #sp_Task_MyWork_html .assign-modal .modal-content {
-            border: none;
-            border-radius: var(--radius-xl);
-            box-shadow: var(--shadow-lg);
-            overflow: hidden;
-            width: 100% !important;
-        }
-
-        #sp_Task_MyWork_html .task-detail-header {
-            padding: 32px 40px 24px;
-            border-bottom: 1px solid var(--bg-lighter);
-        }
-        #sp_Task_MyWork_html .task-detail-title {
-            font-size: 24px;
-            font-weight: 700;
-            margin-bottom: 16px;
-            line-height: 1.3;
-        }
-        #sp_Task_MyWork_html .task-detail-meta {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 16px;
-            font-size: 14px;
-        }
-        #sp_Task_MyWork_html .meta-row {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 0;
-        }
-
-        #sp_Task_MyWork_html .meta-row i {
-            color: var(--task-primary);
-            font-size: 16px;
-            width: 20px;
-            flex-shrink: 0;
-        }
-
-        #sp_Task_MyWork_html .meta-label {
-            font-weight: 600;
-            min-width: 100px;
-        }
-        #sp_Task_MyWork_html .meta-value {
-            font-weight: 500;
-        }
-        #sp_Task_MyWork_html .task-detail-body {
-            padding: 24px 40px;
-            max-height: 70vh;
-            overflow: auto;
-        }
-        /* KPI Section */
-        #sp_Task_MyWork_html .kpi-section {
-            background: white;
-            border: 1px solid var(--border-color);
-        border-radius: var(--radius-lg);
-            padding: 20px;
-            margin-bottom: 20px;
-        }
-        #sp_Task_MyWork_html .kpi-display {
-            display: flex;
-           justify-content: space-between;
-            align-items: center;
-            margin-bottom: 16px;
-            gap: 24px;
-        }
-        #sp_Task_MyWork_html .kpi-current {
-            font-size: 32px;
-            font-weight: 700;
-            color: var(--task-primary);
-            line-height: 1;
-        }
-        #sp_Task_MyWork_html .kpi-target {
-            font-size: 14px;
-            color: var(--text-secondary);
-            margin-top: 8px;
-        }
-        #sp_Task_MyWork_html .kpi-target strong {
-            color: var(--text-primary);
-        }
-        #sp_Task_MyWork_html .kpi-progress-bar {
-            height: 12px;
-            background: var(--bg-lighter);
-            border-radius: var(--radius-sm);
-            overflow: hidden;
-            margin-bottom: 16px;
-            position: relative;
-        }
-        #sp_Task_MyWork_html .kpi-progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, var(--task-primary), var(--task-primary-hover));
-            transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        #sp_Task_MyWork_html .kpi-input-group {
-            display: flex;
-            gap: 12px;
-        }
-        #sp_Task_MyWork_html .kpi-input-group input {
-            flex: 1;
-            padding: 12px;
-            border: 2px solid var(--border-color);
-            border-radius: var(--radius-md);
-            font-size: 16px;
-            font-weight: 600;
-            transition: all var(--transition-base);
-        }
-        #sp_Task_MyWork_html .kpi-input-group input:focus {
-            border-color: var(--task-primary);
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.1);
-        }
-        #sp_Task_MyWork_html .kpi-input-group button {
-            padding: 12px 24px;
-            background: var(--task-primary);
-            color: white;
-            border: none;
-            border-radius: var(--radius-md);
-            font-weight: 600;
-            cursor: pointer;
-
-            transition: all var(--transition-base);
-            white-space: nowrap;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        #sp_Task_MyWork_html .kpi-input-group button:hover {
-            background: var(--task-primary-hover);
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-hover);
-        }
-        /* Comments Section */
-        #sp_Task_MyWork_html .comments-section {
-            margin-top: 24px;
-            border-radius: var(--radius-lg);
-            padding: 24px;
-        }
-        #sp_Task_MyWork_html .section-title {
-            font-size: 16px;
-            font-weight: 700;
-            margin-bottom: 16px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        #sp_Task_MyWork_html .comment-item {
-            padding: 12px;
-            background: var(--bg-light);
-            border-radius: var(--radius-md);
-            margin-bottom: 8px;
-            border: 1px solid var(--border-color);
-            transition: all var(--transition-base);
-        }
-        #sp_Task_MyWork_html .comment-item:hover {
-            box-shadow: var(--shadow-sm);
-            transform: translateX(4px);
-        }
-        #sp_Task_MyWork_html .comment-header {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 8px;
-        }
-        #sp_Task_MyWork_html .comment-author {
-            font-weight: 600;
-            font-size: 13px;
-            color: var(--text-primary);
-        }
-        #sp_Task_MyWork_html .comment-date {
-            font-size: 12px;
-            color: var(--text-secondary);
-        }
-        #sp_Task_MyWork_html .comment-content {
-            font-size: 14px;
-            color: var(--text-primary);
-            line-height: 1.6;
-        }
-        #sp_Task_MyWork_html .status-select-wrapper {
-            display: flex;
-            align-items: center;
-            margin-top: 24px;
-            margin-left: 20px;
-            gap: 12px;
-        }
-
-        #sp_Task_MyWork_html .status-select-wrapper label {
-            font-weight: 600;
-            font-size: 14px;
-            white-space: nowrap;
-        }
-
-        #sp_Task_MyWork_html .status-select {
-            min-width: 200px;
-            border-radius: var(--radius-md);
-            font-weight: 600;
-            font-size: 14px;
-   cursor: pointer;
-            transition: all var(--transition-base);
-        }
-
-        #sp_Task_MyWork_html .status-select:hover {
-            border-color: var(--task-primary);
-        }
-
-        #sp_Task_MyWork_html .status-select:focus {
-            border-color: var(--task-primary);
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.1);
-        }
-
-        #sp_Task_MyWork_html .status-select option[value="1"] {
-            background: var(--sts-todo);
-            color: var(--sts-todo-text);
-        }
-
-        #sp_Task_MyWork_html .status-select option[value="2"] {
-            background: var(--sts-doing);
-            color: var(--sts-doing-text);
-        }
-
-        #sp_Task_MyWork_html .status-select option[value="3"] {
-            background: var(--sts-done);
-            color: var(--sts-done-text);
-        }
+        
+        
 
         /* Priority Field Wrapper */
         #sp_Task_MyWork_html .priority-field-wrapper {
@@ -745,7 +512,7 @@ BEGIN
         }
 
         #sp_Task_MyWork_html .priority-field-wrapper .hpa-field-display {
-            border-radius: var(--radius-md);
+            border-radius: 8px;
             font-weight: 600;
             font-size: 14px;
             cursor: pointer;
@@ -830,7 +597,7 @@ BEGIN
         #sp_Task_MyWork_html .subtask-horizontal {
             background: var(--bg-white);
             border: 2px solid var(--border-color);
-            border-radius: var(--radius-lg);
+            border-radius: 12px;
             padding: 16px;
             transition: all var(--transition-base);
         }
@@ -874,7 +641,7 @@ BEGIN
             width: 100%;
             padding: 10px 12px;
             border: none;
-            border-radius: var(--radius-md);
+            border-radius: 8px;
             transition: all var(--transition-base);
             font-size: 14px;
         }
@@ -1000,197 +767,11 @@ BEGIN
             z-index: 1050 !important;
         }
 
-        /* Status Badge - Không bị block bởi parent click */
-        #sp_Task_MyWork_html .badge-toggle-status {
-            position: relative;
-            z-index: 10;
-            pointer-events: auto;
-        }
-
         /* Priority Select - Không bị block */
         #sp_Task_MyWork_html .st-priority {
             position: relative;
             z-index: 10;
             pointer-events: auto;
-        }
-
-        /* Task Detail Modal - Larger and Better */
-        #sp_Task_MyWork_html .task-detail-modal .modal-dialog {
-            max-width: 1000px;
-        }
-
-        /* Attachments Section */
-        #sp_Task_MyWork_html .attachments-section {
-            margin-top: 24px;
-            border-radius: var(--radius-lg);
-            border: 1px solid var(--border-color);
-        }
-
-        #sp_Task_MyWork_html .attachment-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 12px;
-            background: var(--bg-light);
-            border-radius: var(--radius-md);
-            margin-bottom: 8px;
-            border: 1px solid var(--border-color);
-            transition: all var(--transition-base);
-        }
-
-        #sp_Task_MyWork_html .attachment-item:hover {
-            box-shadow: var(--shadow-sm);
-            transform: translateX(4px);
-            border-color: var(--task-primary);
-        }
-
-        #sp_Task_MyWork_html .attachment-icon {
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: var(--task-primary);
-            color: white;
-            border-radius: var(--radius-md);
-            font-size: 18px;
-        }
-
-        #sp_Task_MyWork_html .attachment-info {
-            flex: 1;
-            min-width: 0;
-        }
-
-        #sp_Task_MyWork_html .attachment-name {
-            font-weight: 600;
-            font-size: 14px;
-            color: var(--text-primary);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        #sp_Task_MyWork_html .attachment-meta {
-            font-size: 12px;
-            color: var(--text-muted);
-        }
-
-        #sp_Task_MyWork_html .attachment-actions {
-            display: flex;
-            gap: 8px;
-        }
-
-        #sp_Task_MyWork_html .btn-attachment {
-            padding: 6px 12px;
-            border-radius: var(--radius-sm);
-            border: 1px solid var(--border-color);
-            background: white;
-            cursor: pointer;
-            transition: all var(--transition-base);
-            font-size: 13px;
-        }
-
-        #sp_Task_MyWork_html .btn-attachment:hover {
-            background: var(--task-primary);
-            color: white;
-            border-color: var(--task-primary);
-        }
-
-        #sp_Task_MyWork_html .btn-attachment.delete:hover {
-            background: var(--danger-color);
-            border-color: var(--danger-color);
-        }
-
-        #sp_Task_MyWork_html .upload-area {
-            border: 2px dashed var(--border-color);
-            border-radius: var(--radius-lg);
-            padding: 24px;
-            text-align: center;
-            cursor: pointer;
-            transition: all var(--transition-base);
-            margin-top: 16px;
-        }
-
-        #sp_Task_MyWork_html .upload-area:hover {
-            border-color: var(--task-primary);
-            background: var(--bg-lighter);
-        }
-
-        #sp_Task_MyWork_html .upload-area.dragging {
-            border-color: var(--task-primary);
-            background: rgba(46, 125, 50, 0.05);
-        }
-
-        /* Status Selector in Detail */
-        #sp_Task_MyWork_html .status-selector {
-            display: flex;
-            gap: 12px;
-            padding: 16px;
-            border-radius: var(--radius-lg);
-            margin-bottom: 24px;
-        }
-
-        #sp_Task_MyWork_html .status-option {
-            flex: 1;
-            padding: 12px;
-            border-radius: var(--radius-md);
-            border: 2px solid var(--border-color);
-            text-align: center;
-            cursor: pointer;
-            transition: all var(--transition-base);
-            font-weight: 600;
-        }
-
-        #sp_Task_MyWork_html .status-option:hover {
-            transform: translateY(-2px);
-       box-shadow: var(--shadow-sm);
-        }
-
-        #sp_Task_MyWork_html .status-option.active {
-            border-color: var(--task-primary);
-            background: var(--task-primary);
-            color: white;
-        }
-
-        #sp_Task_MyWork_html .status-option.sts-1 { border-color: var(--sts-todo-text); }
-        #sp_Task_MyWork_html .status-option.sts-1.active { background: var(--sts-todo); color: var(--sts-todo-text); }
-
-        #sp_Task_MyWork_html .status-option.sts-2 { border-color: var(--sts-doing-text); }
-        #sp_Task_MyWork_html .status-option.sts-2.active { background: var(--sts-doing); color: var(--sts-doing-text); }
-
-        #sp_Task_MyWork_html .status-option.sts-3 { border-color: var(--sts-done-text); }
-        #sp_Task_MyWork_html .status-option.sts-3.active { background: var(--sts-done); color: var(--sts-done-text); }
-
-        /* Description Section */
-        #sp_Task_MyWork_html .description-section {
-            margin-top: 24px;
-            border-radius: var(--radius-lg);
-            border: 1px solid var(--border-color);
-        }
-
-        #sp_Task_MyWork_html .description-content {
-            width: 100%;
-            min-height: 100px;
-            padding: 12px;
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-md);
-            word-wrap: break-word;
-        }
-
-        #sp_Task_MyWork_html .description-edit {
-            width: 100%;
-            min-height: 120px;
-            padding: 12px;
-            border: 1.5px solid var(--border-color);
-            border-radius: var(--radius-md);
-            resize: vertical;
-            font-family: inherit;
-        }
-
-        #sp_Task_MyWork_html .description-edit:focus {
-            border-color: var(--task-primary);
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.1);
         }
 
         /* Subtask Table in Detail Modal */
@@ -1200,7 +781,7 @@ BEGIN
             margin-top: 16px;
             background: var(--bg-white);
             border: 1px solid var(--border-color);
-            border-radius: var(--radius-md);
+            border-radius: 8px;
             overflow: hidden;
         }
         #sp_Task_MyWork_html .subtask-table th,
@@ -1238,7 +819,7 @@ BEGIN
             font-weight: 600;
             text-transform: uppercase;
             display: inline-block;
-            border-radius: var(--radius-sm);
+            border-radius: 6px;
         }
         #sp_Task_MyWork_html .subtask-table .badge-sts.sts-1 {
             background: var(--sts-todo);
@@ -1249,7 +830,7 @@ BEGIN
             color: var(--sts-doing-text);
         }
         #sp_Task_MyWork_html .subtask-table .badge-sts.sts-3 {
-   background: var(--sts-done);
+            background: var(--sts-done);
             color: var(--sts-done-text);
         }
         #sp_Task_MyWork_html .subtask-table .progress-bar-bg {
@@ -1275,8 +856,7 @@ BEGIN
         }
 
         #sp_Task_MyWork_html .header-row:hover {
-            background: linear-gradient(135deg, var(--task-primary) 0%, var(--task-primary-light) 100%);
-            box-shadow: var(--shadow-lg);
+            box-shadow: 0 10px 40px rgb(151 151 151 / 15%)
         }
 
         #sp_Task_MyWork_html .header-row .expand-icon {
@@ -1314,12 +894,40 @@ BEGIN
         /* Subtask Container */
         #sp_Task_MyWork_html .subtask-container {
             display: none;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            padding: 8px 0;
         }
 
         #sp_Task_MyWork_html .subtask-container.show {
             display: block;
             animation: slideDown 0.3s ease;
         }
+
+        /* Subtask container as table-like rows */
+        #sp_Task_MyWork_html .subtask-container .subtask-row {
+            display: grid;
+            grid-template-columns: 40px 1fr 260px 110px 160px minmax(220px, 520px);
+            gap: 12px;
+            align-items: center;
+            padding: 8px 12px;
+            border-bottom: 1px solid var(--bg-lighter);
+            background: var(--bg-white);
+        }
+
+        @media (max-width: 768px) {
+            #sp_Task_MyWork_html .subtask-container .subtask-row {
+                grid-template-columns: 40px 1fr 120px;
+                grid-auto-rows: auto;
+            }
+        }
+
+        /* Timeline strip */
+        .timeline-strip { position: relative; height: 56px; display: flex; align-items: center; }
+        .timeline-bar { position: absolute; left: 6px; right: 6px; height: 8px; background: var(--bg-lighter); border-radius: 6px; }
+        .timeline-marker { position: absolute; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; font-size: 11px; }
+        .timeline-marker .dot { width: 12px; height: 12px; border-radius: 50%; background: var(--task-primary); border: 2px solid #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+        .timeline-marker .label { margin-top: 6px; white-space: nowrap; max-width: 120px; overflow: hidden; text-overflow: ellipsis; color: var(--text-secondary); }
 
         @keyframes slideDown {
             from {
@@ -1380,7 +988,7 @@ BEGIN
 
         #sp_Task_MyWork_html .subtask-row-draggable:hover {
             background: var(--bg-light);
- }
+        }
 
         #sp_Task_MyWork_html .subtask-row-draggable.dragging {
             opacity: 0.5;
@@ -1439,49 +1047,21 @@ BEGIN
             color: var(--task-primary);
         }
 
-       .control-row-assignee-item.selected {
-            background: rgba(46,125,94,0.06);
+        /* Detail icon shown on row hover */
+        #sp_Task_MyWork_html .cu-row { position: relative; }
+        #sp_Task_MyWork_html .cu-row .detail-icon {
+            display: none;
+            cursor: pointer;
+            color: var(--text-secondary);
+            background: rgba(255,255,255,0.9);
+            border-radius: 6px;
+            padding: 6px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+            transition: transform 0.12s ease, opacity 0.12s ease;
+            z-index: 20;
         }
-
-       .control-row-assignee-item .row-assignee-checkbox {
-            width:16px; height:16px;
-        }
-
-       .control-employee-selector .emp-sel-item:hover {
-            opacity: 0.8;
-        }
-
-       .control-employee-selector .emp-sel-item.selected {
-            background: rgba(46, 125, 50, 0.08);
-        }
-
-       .control-employee-selector .icon-chip {
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            background: #f1f5f9;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-            font-weight: 600;
-            border: 2px solid white;
-        }
-          /* Detail icon shown on row hover */
-          .cu-row { position: relative; }
-          .cu-row .detail-icon {
-              display: none;
-              cursor: pointer;
-              color: var(--text-secondary);
-              background: rgba(255,255,255,0.9);
-              border-radius: 6px;
-              padding: 6px;
-              box-shadow: 0 2px 6px rgba(0,0,0,0.06);
-              transition: transform 0.12s ease, opacity 0.12s ease;
-              z-index: 20;
-          }
-          .cu-row:hover .detail-icon { display: block; opacity: 1; transform: translateY(-2px); }
-          .cu-row .detail-icon i { font-size: 14px; }
+        #sp_Task_MyWork_html .cu-row:hover .detail-icon { display: block; opacity: 1; transform: translateY(-2px); }
+        #sp_Task_MyWork_html .cu-row .detail-icon i { font-size: 14px; }
     </style>
     <div id="sp_Task_MyWork_html">
         <div class="cu-header d-flex justify-content-between align-items-center mb-4 gap-2 flex-wrap">
@@ -1568,109 +1148,7 @@ BEGIN
                 </div>
             </div>
         </div>
-        <!-- Task Detail Modal -->
-        <div class="modal fade task-detail-modal" id="mdlTaskDetail" tabindex="-1" data-bs-backdrop="static">
-            <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
-                <div class="modal-content">
-                    <div class="task-detail-header">
-                        <button type="button" class="btn-close float-end" data-bs-dismiss="modal"></button>
-                        <div class="task-detail-title" id="detailTaskName">...</div>
-                        <div class="task-detail-meta">
-                            <div class="meta-row">
-                                <i class="bi bi-person-badge"></i>
-                                <span class="meta-label">Người yêu cầu:</span>
-                                <span class="meta-value" id="detailCreator">-</span>
-                            </div>
-                            <div class="meta-row">
-                                <i class="bi bi-person-check"></i>
-                                <span class="meta-label">Trách nhiệm chính:</span>
-                                <span class="meta-value" id="detailMainResponsible">-</span>
-                            </div>
-                            <div class="meta-row">
-                                <i class="bi bi-calendar-event"></i>
-                                <span class="meta-label">Ngày bắt đầu:</span>
-                                <span class="meta-value" id="detailStartDate">-</span>
-                            </div>
-                            <div class="meta-row">
-                                <i class="bi bi-calendar-x"></i>
-                                <span class="meta-label">Hạn chót:</span>
-                                <span class="meta-value" id="detailDueDate">-</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Quick Actions Bar -->
-                    <div class="quick-actions-bar">
-                        <div class="status-select-wrapper">
-                            <label for="detailStatusSelect">
-                                Trạng thái:
-                            </label>
-                            <div id="detailStatusSelect" class="status-select">
-                            </div>
-                        </div>
-                        <div class="status-select-wrapper">
-                            <label for="detailPriority">
-                                Ưu tiên:
-                            </label>
-                            <div id="detailPriority" class="priority-field-wrapper"></div>
-                        </div>
-                    </div>
-
-                    <div class="task-detail-body">
-                        <!-- KPI Section -->
-                    <div class="kpi-section" id="kpiSection">
-                            <div class="kpi-display">
-                                <div>
-                                    <div class="kpi-current" id="detailActualKPI">0</div>
-                                    <div class="kpi-target">Mục tiêu: <strong id="detailTargetKPI">100</strong> <span id="detailUnit">đơn</span></div>
-                                </div>
-                                <div style="text-align: right;">
-                                    <div style="font-size: 24px; font-weight: 700; color: var(--task-primary);" id="detailProgressPct">0%</div>
-                                    <div style="font-size: 12px; color: #676879;">Tiến độ</div>
-                                </div>
-                            </div>
-                            <div class="kpi-progress-bar">
-                            <div class="kpi-progress-fill" id="detailProgressBar" style="width: 0%"></div>
-                            </div>
-                            <div class="kpi-input-group">
-                                <input type="number" id="txtUpdateKPI" placeholder="Nhập KPI mới..." class="form-control">
-                                <input type="text" id="txtUpdateNote" placeholder="Ghi chú (tùy chọn)..." class="form-control">
-                                <button id="btnUpdateKPI"><i class="bi bi-check-lg"></i> Cập nhật</button>
-                            </div>
-                        </div>
-
-                        <!-- Description Section -->
-                        <div class="description-section">
-                            <div id="descriptionDisplay" class="description-content">
-                                Chưa có mô tả...
-                            </div>
-                            <div id="descriptionEdit" style="display:none;">
-                     <textarea class="description-edit" id="txtDescription" placeholder="Nhập mô tả chi tiết..."></textarea>
-                                <div class="mt-2" style="display:flex; gap:8px; justify-content:flex-end;">
-                                    <button class="btn btn-sm btn-white border" id="btnCancelDescription">Hủy</button>
-                                    <button class="btn btn-sm btn-cu" id="btnSaveDescription">
-                                        <i class="bi bi-check-lg"></i> Lưu
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Attachments Section -->
-                        <div class="attachments-section" id="attachmentsSection">
-                            <div class="section-title"><i class="bi bi-file-earmark-arrow-up"></i> Tài liệu đính kèm</div>
-                            <div id="attachmentsList"></div>
-                            <div id="attachFileControl"></div>
-                        </div>
-
-                        <!-- Comments Section -->
-                        <div class="comments-section">
-                            <div class="section-title"><i class="bi bi-chat-dots"></i> Nhận xét & Ghi chú</div>
-                            <div id="commentsList"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <!-- Task detail moved to separate form `sp_Task_TaskDetail_html` -->
         <!-- Assign Modal -->
         <div class="modal fade assign-modal" id="mdlAssign" tabindex="-1">
             <div class="modal-dialog modal-dialog-centered">
@@ -1711,7 +1189,7 @@ BEGIN
                         </div>
                         <!-- Step 2: Phân bổ chi tiết -->
                         <div class="assign-step">
-          <div class="step-header">
+                            <div class="step-header">
                                 <div class="step-number">2</div>
                                 <div class="step-title">Phân bổ chi tiết (Subtasks)</div>
                                 <div style="margin-left:auto; display:flex; gap:8px; align-items:center;">
@@ -1740,36 +1218,18 @@ BEGIN
         (function(){ "use strict";
             var allTasks = [], filteredTasks = [], currentTaskID = 0, currentView = "list";
             var employees = [], tasks = [], headers = [], currentTemplate = [];
-            var rowAssigneeMap = {};
             var currentChildTasks = []; // cached child tasks for selected ParentTaskID
             var expandedHeadersState = {};
             var attachmentMode = ""; // "file"
-            var avatarLoadStatus = {}; // employeeId → "loading" | "loaded" | "failed"
             var currentTaskID = null;
-            var currentTaskPriority = 3; // Default priority
-
-            // ============================================
-            // CACHE GLOBALS - Tối ưu API calls
-            // ============================================
             var globalCacheStorage = {
                 allTasksLoaded: false,
                 selectBoxState: {}, // {elementId: {value, text, dirty}}
                 selectBoxOptions: {} // {optionKey: [...options]} - cache options từ config
             };
 
-            // Helper: Normalize string cho search (remove diacritics, lowercase)
-            function normalizeForSearch(str) {
-                if (!str) return "";
-                return String(str)
-                    .toLowerCase()
-                    .normalize("NFD")
-                    .replace(/[\u0300-\u036f]/g, "")
-                    .trim();
-            }
-
-            // Expose only specific APIs intentionally
             window.toggleHeaderExpand = toggleHeaderExpand;
-            window.updateTaskStatus = updateTaskStatus;
+
             $(document).ready(function() {
                 attachUIHandlers();
                 loadTasks();
@@ -1779,7 +1239,6 @@ BEGIN
                 // Cache jQuery selectors
                 const $btnAssign = $("#btnAssign");
                 const $btnRefresh = $("#btnRefresh");
-                const $btnUpdateKPI = $("#btnUpdateKPI");
                 const $btnAddParentOpen = $("#btnAddParentOpen");
                 const $btnQuickAddSubtask = $("#btnQuickAddSubtask");
                 const $btnReloadChecklist = $("#btnReloadChecklist");
@@ -1789,7 +1248,7 @@ BEGIN
                 // Static buttons
                 $btnAssign.on("click", openAssignModal);
                 $btnRefresh.on("click", loadTasks);
-                $btnUpdateKPI.on("click", updateKPI);
+                // detail KPI update handled in sp_Task_TaskDetail_html
                 $btnAddParentOpen.on("click", openAddParentModal);
                 $btnQuickAddSubtask.on("click", showQuickSubtaskInput);
                 $btnReloadChecklist.on("click", reloadChecklist);
@@ -1811,45 +1270,14 @@ BEGIN
                     if(headerId) toggleHeaderExpand(headerId);
                 });
 
-                $doc.on("click", ".badge-toggle-status", function(e) {
-                    e.stopPropagation();
-                    e.preventDefault();
-                    var id = $(this).data("recordid");
-                    var code = parseInt($(this).data("status")) || 1;
-                    if(id) toggleStatus(id, code);
-                });
-
                 $doc.on("click", ".btn-temp-remove", function() {
                     $(this).closest(".temp-subtask").remove();
-                });
-
-                // Toggle subtask status (in detail table)
-                $doc.on("click", ".subtask-toggle-status", function(e) {
-                    e.stopPropagation();
-                    var $el = $(this);
-                    var childId = $el.data("childid");
-                    var current = Number($el.data("status")) || 0;
-                    var next = current >= 3 ? 1 : current + 1;
-                    AjaxHPAParadise({
-                        data: {
-                            name: "sp_Task_UpdateSubtaskStatus",
-                            param: ["ChildTaskID", childId, "LoginID", LoginID, "NewStatus", next]
-                        },
-                        success: function() { loadSubtasksForDetail(currentTaskID); }
-                    });
                 });
 
                 // Create parent modal button may be appended dynamically
                 $doc.on("click", "#btnCreateParent", function() {
                     createParentFromModal();
                 });
-
-                // When hidden parent select changes, hide subtasks if cleared
-                $doc.on("change", "#selParent", function() {
-                    if(!$(this).val()) {
-                       $("#subtask-assign-container").html(`<div class="empty-state" style="grid-column: 1 / -1;"><i class="bi bi-inbox"></i><p>Vui lòng chọn Công việc chính ở trên</p></div>`);
-                    }
-              });
 
                 $(document).on("click", ".row-assignee-toggle", function(e) {
                     e.stopPropagation();
@@ -1875,7 +1303,6 @@ BEGIN
 
                     }
                 });
-
 
                 // Filter assignee list
                 $(document).on("input", ".row-assignee-search", function(e){
@@ -2066,199 +1493,12 @@ BEGIN
                     } catch(err) {
                     }
                 });
-                $("#btnEditDescription").on("click", function() {
-                    $("#descriptionDisplay").hide();
-                    $("#descriptionEdit").show();
-                    $("#txtDescription").focus();
-                });
-                $("#btnCancelDescription").on("click", function() {
-                    $("#descriptionEdit").hide();
-                    $("#descriptionDisplay").show();
-                });
-                $("#btnSaveDescription").on("click", function() {
-                    var desc = $("#txtDescription").val();
-
-                    AjaxHPAParadise({
-                        data: {
-                            name: "sp_Task_UpdateDescription",
-                            param: ["TaskID", currentTaskID, "Description", desc]
-                        },
-                        success: function() {
-                            $("#descriptionDisplay").text(desc || "Chưa có mô tả...");
-             $("#descriptionEdit").hide();
-
-                      $("#descriptionDisplay").show();
-                            uiManager.showAlert({
-                                type: "success",
-                                message: "Cập nhật mô tả thành công!",
-                            });
-                        },
-                        error: function() {
-                            uiManager.showAlert({
-                                type: "error",
-                                message: "Cập nhật mô tả thất bại!",
-                            });
-                        }
-                    });
-                });
-                $("#btnAddAttachment").on("click", () => {
-                    new bootstrap.Modal(document.getElementById("mdlAttachType")).show();
-                });
-
-                $(document).on("click", "#btnAttachFile", () => {
-                    $("#mdlAttachType").modal("hide");
-                    $("#uploadArea").show();
-                    $("#fileInput").click();
-                });
-
-                $(document).on("click", "#btnAttachLink", () => {
-                    $("#mdlAttachType").modal("hide");
-                    $("#linkArea").show();
-                    $("#txtLinkName").focus();
-                });
-
-
-                $(document).on("click", "#btnChooseFile", function() {
-                    $("#attachmentMenu").remove();
-                    $("#uploadArea").show();
-                    attachmentMode = "file";
-                });
-                $(document).on("click", "#btnChooseLink", function() {
-                    $("#attachmentMenu").remove();
-                    $("#linkArea").show();
-                    attachmentMode = "link";
-                });
-                // Upload Area - Click to select file
-                $("#uploadArea").on("click", function() {
-                    $("#fileInput").click();
-                });
-                // Drag and drop
-                $("#uploadArea").on("dragover", function(e) {
-                    e.preventDefault();
-                    $(this).addClass("dragging");
-                });
-                $("#uploadArea").on("dragleave", function() {
-                    $(this).removeClass("dragging");
-                });
-                $("#uploadArea").on("drop", function(e) {
-                    e.preventDefault();
-                    $(this).removeClass("dragging");
-                    var files = e.originalEvent.dataTransfer.files;
-                    handleFileUpload(files);
-                });
-                // File input change
-                $("#fileInput").on("change", function() {
-                    handleFileUpload(this.files);
-                });
-                $("#btnSaveLink").on("click", function() {
-                    var name = $("#txtLinkName").val().trim();
-                    var url = $("#txtLinkURL").val().trim();
-
-                    if (!name || !url) {
-                        uiManager.showAlert({
-                            type: "warning",
-                            message: "Vui lòng nhập đầy đủ thông tin!",
-                        });
-
-                        return;
-                    }
-
-                    AjaxHPAParadise({
-                        data: {
-                            name: "sp_Task_AddAttachment",
-                            param: [
-                                "TaskID", currentTaskID,
-                                "FileName", name,
-                                "FilePath", url,
-                                "UploadedBy", LoginID,
-                                "IsLink", 1
-                            ]
-                        },
-                        success: function() {
-                            $("#linkArea").hide();
-                            $("#txtLinkName, #txtLinkURL").val("");
-                         loadAttachments(currentTaskID);
-                            uiManager.showAlert({
-                                type: "success",
-                                message: "Thêm link thành công!",
-                            });
-                        },
-                        error: function() {
-                            uiManager.showAlert({
-                                type: "error",
-                                message: "Thêm link thất bại!",
-                            });
-                        }
-                    });
-                });
-                $("#btnCancelLink").on("click", function() {
-                    $("#linkArea").hide();
-                    $("#txtLinkName, #txtLinkURL").val("");
-                });
                 $(document).on("click", ".st-priority", function(e) {
                     e.stopPropagation();
                 });
                 $("#viewListT, #viewKanbanT").on("click", function() {
                     updateView($(this).attr("id") === "viewListT" ? "list" : "kanban");
                 });
-                $("#detailStatusSelect").change(function() {
-                    updateTaskStatusFromSelect();
-                })
-                // Khi thay đổi bộ lọc trạng thái
-                $("#filterStatus, #filterOverdue").on("change", updateView);
-                // Xử lý click để chỉnh sửa trực tiếp
-                $(document).on("click", ".cu-row .task-title", function() {
-                    const $title = $(this);
-                    const taskId = $title.closest(".cu-row").data("recordid") || currentTaskID;
-                    hpaControlEditableRow($title[0], {
-                        type: "input",
-                        tableName: "tblTask",
-                        columnName: "TaskName",
-                        idColumnName: "TaskID",
-                        idValue: taskId
-                    });
-                    $title.trigger("click"); // tự động mở form sửa luôn
-                });
-                $(document).on("renderTaskDetail", function() {
-                    hpaControlEditableRow("#detailTaskName", {
-                        type: "input",
-                        tableName: "tblTask",
-                        columnName: "TaskName",
-                        idColumnName: "TaskID",
-                        idValue: currentTaskID
-                    });
-                });
-                $(document).on("renderTaskDetail", function() {
-                    hpaControlEditableRow("#detailDescription", {
-                        type: "textarea",
-                        tableName: "tblTask",
-                        columnName: "Description",
-                        idColumnName: "TaskID",
-                        idValue: currentTaskID
-                    });
-                });
-                $(document).on("renderSubtasks", function() {
-                    $("#subtaskTableBody .subtask-name").each(function() {
-                        const childId = $(this).closest("tr").data("childid");
-                        hpaControlEditableRow(this, {
-                            type: "input",
-                            tableName: "tblTask",
-                            columnName: "ChildTaskName",
-                            idColumnName: "ChildTaskID",
-                            idValue: childId
-                        });
-                    });
-                });
-                const originalOpenTaskDetail = openTaskDetail;
-                openTaskDetail = function(taskId) {
-                    currentTaskID = taskId;
-                    originalOpenTaskDetail(taskId);
-                    setTimeout(() => {
-                        $(document).trigger("renderTaskDetail");
-                        $(document).trigger("renderSubtasks");
-                    }, 200);
-                };
-
 
                 $(document).on("click", ".task-title", function(e) {
                     var taskId = $(this).closest(".cu-row").data("recordid");
@@ -2275,16 +1515,6 @@ BEGIN
                         onSave: function(val) {
                             loadTasks(); // Reload lại list sau khi sửa
                         }
-                    });
-                });
-
-                $(document).on("click", "#descriptionDisplay", function(e) {
-                    hpaControlEditableRow(this, {
-                        type: "textarea",
-                        tableName: "tblTask",
-                        columnName: "Description",
-                        idColumnName: "TaskID",
-                        idValue: currentTaskID
                     });
                 });
 
@@ -2322,12 +1552,29 @@ BEGIN
                     }
                 });
             }
+
+            function normalizeForSearch(str) {
+                if (!str) return "";
+                return String(str)
+                    .toLowerCase()
+                    .normalize("NFD")
+                    .replace(/[\u0300-\u036f]/g, "")
+                    .trim();
+            }
             function loadTasks() {
                 // Nếu đã tải → dùng cache, không gọi lại
                 if (globalCacheStorage.allTasksLoaded && allTasks.length > 0) {
                     updateStatistics();
                     updateView("list");
                     return;
+                }
+
+                function getImageCacheKey(employee) {
+                    try {
+                        var store = employee.storeImgName || "";
+                        var param = employee.paramImg || "";
+                        return store + "|" + param;
+                    } catch (e) { return (employee.storeImgName || "") + "|" + (employee.paramImg || ""); }
                 }
 
                 AjaxHPAParadise({
@@ -2361,141 +1608,6 @@ BEGIN
                             updateView("list");
                         } catch(e) {
                         }
-                    }
-                });
-            }
-            function loadAttachments(taskId) {
-                AjaxHPAParadise({
-                    data: { name: "sp_Task_GetDetail", param: ["TaskID", taskId, "LoginID", LoginID] },
-                    success: function(res) {
-                        try {
-                            var data = JSON.parse(res).data;
-                            var attachments = data[4] || []; // data[4]: Attachments
-                            renderAttachments(attachments);
-                        } catch(e) {
-                            renderAttachments([]);
-                        }
-                    }
-                });
-            }
-            function renderAttachments(attachments) {
-                if (attachments.length === 0) {
-              $("#attachmentsList").html(`<p class="text-muted small">Chưa có tài liệu nào</p>`);
-                    return;
-                }
-
-                var html = (attachments || []).map(function(a){ return renderComponent("attachmentItem", { attachment: a }); }).join("");
-
-                $("#attachmentsList").html(html);
-            }
-            function getFileIcon(filename) {
-                var ext = filename.substring(filename.lastIndexOf(".")).toLowerCase();
-                var icons = {
-                    ".pdf": "bi-file-pdf-fill",
-                    ".doc": "bi-file-word-fill",
-                    ".docx": "bi-file-word-fill",
-                    ".xls": "bi-file-excel-fill",
-                    ".xlsx": "bi-file-excel-fill",
-                    ".jpg": "bi-file-image-fill",
-                    ".jpeg": "bi-file-image-fill",
-
-                    ".png": "bi-file-image-fill"
-                };
-                return icons[ext] || "bi-file-earmark-fill";
-            }
-            function downloadAttachment(attachId) {
-                window.location.href = `/api/task/download/${attachId}`;
-            }
-            function deleteAttachment(attachId) {
-                if (!confirm("Bạn có chắc chắn muốn xóa tài liệu này?")) return;
-
-                AjaxHPAParadise({
-                    data: {
-                        name: "sp_Task_DeleteAttachment",
-                        param: ["AttachID", attachId]
-                    },
-                    success: function() {
-                        loadAttachments(currentTaskID);
-                        uiManager.showAlert({
-                            type: "success",
-                            message: "Xóa tài liệu thành công!",
-                        });
-                    },
-                    error: function() {
-                        uiManager.showAlert({
-                            type: "error",
-                            message: "Xóa tài liệu thất bại!",
-                        });
-                    }
-                });
-            }
-            function handleFileUpload(files) {
-                if (files.length === 0) return;
-
-                // Validate file size and type
-                var validFiles = [];
-                var maxSize = 10 * 1024 * 1024; // 10MB
-                var allowedTypes = [".pdf", ".doc", ".docx", ".xls", ".xlsx", ".jpg", ".jpeg", ".png"];
-
-                for (var i = 0; i < files.length; i++) {
-                    var file = files[i];
-                    var ext = file.name.substring(file.name.lastIndexOf(".")).toLowerCase();
-
-                    if (file.size > maxSize) {
-                        uiManager.showAlert({
-                            type: "warning",
-                            message: `File ${file.name} quá lớn (> 10MB)`,
-                        });
-                        continue;
-                    }
-
-                    if (allowedTypes.indexOf(ext) === -1) {
-                        uiManager.showAlert({
-                            type: "warning",
-                            message: `File ${file.name} không được hỗ trợ`,
-                        });
-                        continue;
-                    }
-
-                    validFiles.push(file);
-                }
-
-                if (validFiles.length === 0) return;
-
-                // Upload files (you need to implement server-side upload endpoint)
-                uploadFilesToServer(validFiles);
-            }
-            function uploadFilesToServer(files) {
-                // This is a placeholder - implement your file upload logic
-                var formData = new FormData();
-                formData.append("TaskID", currentTaskID);
-                formData.append("UploadedBy", LoginID);
-
-                for (var i = 0; i < files.length; i++) {
-                    formData.append("files[]", files[i]);
-                }
-
-                // Example using jQuery AJAX
-                $.ajax({
-                    url: "/api/task/upload", // Your upload endpoint
-                    type: "POST",
-                    data: formData,
-                    processData: false,
-                    contentType: false,
-                    success: function(response) {
-                        $("#uploadArea").hide();
-                        $("#fileInput").val("");
-                        loadAttachments(currentTaskID);
-                        uiManager.showAlert({
-                            type: "success",
-                            message: "Tải file thành công!",
-                        });
-                    },
-                error: function() {
-                        uiManager.showAlert({
-                            type: "error",
-                            message: "Tải file thất bại!",
-                     });
                     }
                 });
             }
@@ -2547,7 +1659,6 @@ BEGIN
                     renderKanbanView(filteredTasks);
                 }
             }
-
             function formatSimpleDate(dateString) {
                 if(!dateString) return "";
                 var d = new Date(dateString);
@@ -2557,7 +1668,6 @@ BEGIN
                 return day + "/" + month;
             }
             function escapeHtml(str) {
-
                 if (str === null || str === undefined) return "";
                 return String(str)
                     .replace(/&/g, "&amp;")
@@ -2566,86 +1676,101 @@ BEGIN
                     .replace(/""/g, "&quot;")
                     .replace(/"/g, "&#39;");
             }
-            // Unified small component renderer
-            function renderComponent(type, props) {
-                props = props || {};
-                try {
-                    if (type === "attachmentItem") {
-                        var a = props.attachment || {};
-                        var icon = getFileIcon(a.FileName || "");
-                        var isLink = a.FilePath && (String(a.FilePath).startsWith("http://") || String(a.FilePath).startsWith("https://"));
-                        var uploadedBy = a.UploadedByName || a.UploadedBy || "";
-                        var uploadedDate = a.UploadedDate ? formatSimpleDate(a.UploadedDate) : "";
-                        return `
-                            <div class="attachment-item">
-                                <div class="attachment-icon"><i class="bi ${icon}"></i></div>
-                                <div class="attachment-info">
-                                    <div class="attachment-name">${escapeHtml(a.FileName || "")}</div>
-                                    <div class="attachment-meta text-muted small">${escapeHtml(uploadedBy)} ${uploadedDate ? "• " + escapeHtml(uploadedDate) : ""}</div>
-                                </div>
-                                <div class="attachment-actions">
-                                    ${isLink ? `<a href="${escapeHtml(a.FilePath)}" target="_blank" class="btn btn-sm btn-light">Mở</a>` : `<button class="btn btn-sm btn-light" data-attachid="${a.AttachID || ""}" onclick="downloadAttachment(${a.AttachID || ""})">Tải</button>`}
-                                    <button class="btn btn-sm btn-danger ms-2" onclick="deleteAttachment(${a.AttachID || ""})">Xóa</button>
-                                </div>
-                            </div>
-                        `;
-                }
 
-                    if (type === "commentItem") {
-                        var c = props.comment || {};
-                        var author = c.FullName || c.Author || c.CreatedBy || "";
-                        var date = c.CreatedDate ? formatSimpleDate(c.CreatedDate) : "";
-                        return `
-                            <div class="comment-item">
-                                <div class="comment-header">
-                                    <span class="comment-author">${escapeHtml(author)}</span>
-                                    <span class="comment-date text-muted small">${escapeHtml(date)}</span>
-                         </div>
-                                <div class="comment-content">${escapeHtml(c.Content || "")}</div>
-                            </div>
-                        `;
-                    }
+            // Build timeline HTML from normalized entries (each {dt: Date, label: string})
+            function buildTimelineHtml(entries) {
+                if (!entries || entries.length === 0) return `<div class="text-muted">Không có lịch</div>`;
+                // normalize to { start: Date, end: Date, label }
+                var norm = (entries||[]).map(function(e){
+                    if (!e) return null;
+                    if (e.start && e.end) return { start: new Date(e.start), end: new Date(e.end), label: e.label||e.EmployeeName||e.label||"" };
+                    if (e.dt) return { start: new Date(e.dt), end: new Date(e.dt), label: e.label||"" };
+                    if (typeof e === "string" || typeof e === "number") { var d=new Date(e); return { start:d, end:d, label: "" }; }
+                    return null;
+                }).filter(Boolean);
 
-                    // Fallback: return empty string
-                    return "";
-                } catch (e) {
-                    return "";
-                }
+                if (norm.length === 0) return `<div class="text-muted">Không có lịch</div>`;
+
+                // compute global range
+                var minStart = norm.reduce((min,e)=> e.start < min ? e.start : min, norm[0].start);
+                var maxEnd = norm.reduce((max,e)=> e.end > max ? e.end : max, norm[0].end);
+                var rangeMs = Math.max(1, maxEnd - minStart);
+
+                // Build a simple table: Assignee | Start | End | Duration | Visual
+                var html = `<div class="timeline-table" style="overflow:auto;">`;
+                html += `<table style="width:100%;border-collapse:collapse;font-size:13px;">
+                            <thead><tr><th style="text-align:left;padding:6px 8px">Người</th><th style="padding:6px 8px">Bắt đầu</th><th style="padding:6px 8px">Kết thúc</th><th style="padding:6px 8px">Thời gian</th><th style="padding:6px 8px">Lịch</th></tr></thead><tbody>`;
+
+                norm.forEach(function(en){
+                    var s = en.start; var e = en.end;
+                    if (!s || isNaN(s.getTime())) s = minStart;
+                    if (!e || isNaN(e.getTime())) e = s;
+                    var durDays = Math.max(1, Math.ceil((e - s)/(24*3600*1000)) + 1);
+                    var startTxt = ("0"+s.getDate()).slice(-2) + "/" + ("0"+(s.getMonth()+1)).slice(-2);
+                    var endTxt = ("0"+e.getDate()).slice(-2) + "/" + ("0"+(e.getMonth()+1)).slice(-2);
+
+                    // visual bar: compute left and width percent relative to global range
+                    var leftPct = ((s - minStart) / rangeMs) * 100;
+                    var widthPct = ((e - s) / rangeMs) * 100;
+                    if (widthPct < 1) widthPct = 1;
+
+                    var safeLabel = escapeHtml(en.label || "");
+
+                    html += `<tr style="border-bottom:1px solid var(--bg-lighter)">`;
+                    html += `<td style="padding:6px 8px;vertical-align:middle">${safeLabel}</td>`;
+                    html += `<td style="padding:6px 8px;vertical-align:middle">${startTxt}</td>`;
+                    html += `<td style="padding:6px 8px;vertical-align:middle">${endTxt}</td>`;
+                    html += `<td style="padding:6px 8px;vertical-align:middle">${durDays} ngày</td>`;
+                    html += `<td style="padding:6px 8px;vertical-align:middle;min-width:200px;max-width:520px;">
+                                <div style="position:relative;height:28px;background:var(--bg-lighter);border-radius:6px;overflow:hidden;">
+                                    <div style="position:absolute;left:${leftPct}%;width:${widthPct}%;top:3px;bottom:3px;background:linear-gradient(90deg,var(--task-primary),var(--task-primary-hover));border-radius:6px;display:flex;align-items:center;padding:2px 8px;color:#fff;font-weight:600;">${safeLabel} (${durDays}d)</div>
+                                </div>
+                              </td>`;
+                    html += `</tr>`;
+                });
+
+                html += `</tbody></table></div>`;
+                return html;
             }
-            function normalizeForSearch(s) {
-                if (!s && s !== "") return "";
+
+            // Populate timeline DOM for a single task (called after list HTML is rendered)
+            function populateTimelineForTask(t) {
                 try {
-                    var str = String(s || "").toLowerCase();
+                    console.log("[populateTimelineForTask] start", t && t.TaskID, t);
+                    var timelineContainerId = `timeline-container-${t.TaskID}`;
+                    var $el = $(`#${timelineContainerId}`);
+                    if (!$el.length) return;
 
-                    // Bản đồ ký tự tiếng Việt đầy đủ (bao gồm tất cả dấu và biến thể)
-                    var vietnameseMap = {
-                        "à": "a", "á": "a", "ả": "a", "ã": "a", "ạ": "a",
-                        "ă": "a", "ằ": "a", "ắ": "a", "ẳ": "a", "ẵ": "a", "ặ": "a",
-                        "â": "a", "ầ": "a", "ấ": "a", "ẩ": "a", "ẫ": "a", "ậ": "a",
-                        "è": "e", "é": "e", "ẻ": "e", "ẽ": "e", "ẹ": "e",
-                        "ê": "e", "ề": "e", "ế": "e", "ễ": "e", "ệ": "e",
-                        "ì": "i", "í": "i", "ỉ": "i", "ĩ": "i", "ị": "i",
-                        "ò": "o", "ó": "o", "ỏ": "o", "õ": "o", "ọ": "o",
-                        "ô": "o", "ồ": "o", "ố": "o", "ổ": "o", "ỗ": "o", "ộ": "o",
-                        "ơ": "o", "ờ": "o", "ớ": "o", "ở": "o", "ỡ": "o", "ợ": "o",
-                        "ù": "u", "ú": "u", "ủ": "u", "ũ": "u", "ụ": "u",
-                        "ư": "u", "ừ": "u", "ứ": "u", "ử": "u", "ữ": "u", "ự": "u",
-                        "ỳ": "y", "ý": "y", "ỷ": "y", "ỹ": "y", "ỵ": "y",
-                        "đ": "d"
-                    };
+                    // Build entries from possible shapes
+                    var raw = t.Schedule || t.AssignHistory || t.ScheduleEntries || t.Timeline || [];
+                    try {
+                        if (typeof raw === "string" && raw.trim() !== "") {
+                            try { raw = JSON.parse(raw); } catch(e) {
+                                raw = raw.split(/[,;|]/).map(s=>({ Date: s.trim(), Label: "" }));
+                            }
+                        }
+                    } catch(e) { raw = []; }
+                    if (!Array.isArray(raw)) raw = [raw];
+                    console.log("[populateTimelineForTask] raw after-parse", raw);
 
-                    // Áp dụng bản đồ ký tự
-                    var result = "";
-                    for (var i = 0; i < str.length; i++) {
-                        var char = str[i];
-                        result += vietnameseMap[char] || char;
+                    var entries = [];
+                    raw.forEach(function(e){
+                        if (!e) return;
+                        if (typeof e === "string" || typeof e === "number") { entries.push({ dt: new Date(e), label: ""}); return; }
+                        var d = e.ScheduleDate || e.AssignDate || e.Date || e.StartDate || e.DateTime || e.ActionDate || e.MyStartDate || e.DueDate || e.DateString || e.DateTimeString || e.Date || null;
+                        if (!d && e.date) d = e.date;
+                        var label = e.EmployeeName || e.FullName || e.UserName || e.Label || e.Description || e.Action || e.Note || e.Title || "";
+                        if (d) entries.push({ dt: new Date(d), label: label });
+                    });
+
+                    if (entries.length === 0) {
+                        if (t.MyStartDate) entries.push({ dt: new Date(t.MyStartDate), label: "Start" });
+                        if (t.DueDate) entries.push({ dt: new Date(t.DueDate), label: "Due" });
                     }
 
-                    // Fallback: NFD normalization cho các ký tự khác
-                    return result.normalize ? result.normalize("NFD").replace(/[\u0300-\u036f]/g, "") : result;
-                } catch (e) {
-                  return String(s || "").toLowerCase();
-                }
+                    console.log("[populateTimelineForTask] normalized entries", entries);
+                    $el.html(buildTimelineHtml(entries));
+                } catch(e) {}
             }
             function updateStatistics() {
                 var todoCount = allTasks.filter(t => t.StatusCode == 1).length;
@@ -2654,7 +1779,7 @@ BEGIN
                 var overdueCount = allTasks.filter(t => t.IsOverdue == 1).length;
                 $("#stat-todo").text(todoCount);
                 $("#stat-doing").text(doingCount);
-            $("#stat-done").text(doneCount);
+                $("#stat-done").text(doneCount);
                 $("#stat-overdue").text(overdueCount);
             }
             function renderKanbanView(data) {
@@ -2686,7 +1811,6 @@ BEGIN
                 renderTaskCards("#tasks-doing", doingTasks);
                 renderTaskCards("#tasks-done", doneTasks);
             }
-
             function renderTaskCards(container, tasks) {
                 if(tasks.length === 0) {
                     $(container).html(`<div class="empty-state"><i class="bi bi-inbox"></i><p>Không có công việc</p></div>`);
@@ -2710,11 +1834,11 @@ BEGIN
                         kpiDisplayText = "Chưa có tiến độ";
                     }
                     return `
-                    <div class="cu-row task-row" data-recordid="${t.TaskID}">
+                    <div class="cu-row task-row" data-recordid="${t.TaskID}" data-historyid="${t.HistoryID || ""}">
                         <div class="row-check">
                             <i class="bi bi-flag-fill priority-icon ${prioClass}"></i>
-                 </div>
-                <div class="row-main">
+                        </div>
+                        <div class="row-main">
                             <div class="task-title" title="${escapeHtml(t.TaskName)}">${t.TaskName}</div>
                             <div class="task-sub">
                                 ${t.CommentCount > 0 ? `<span><i class="bi bi-chat-dots"></i> ${t.CommentCount}</span>` : ""}
@@ -2802,6 +1926,13 @@ BEGIN
                 }
 
                 $("#list-container").html(htmlParts.join(""));
+
+                // Populate timelines for rendered tasks after DOM insertion
+                try {
+                    (data || []).forEach(function(t){
+                        try { populateTimelineForTask(t); } catch(e) {}
+                    });
+                } catch(e) {}
 
                 // Thêm dòng ở cuối: hiển thị nút "+" gọn — click sẽ mở vùng tạo/chọn công việc
                 var footerHtml = `
@@ -2906,14 +2037,12 @@ BEGIN
                     try { initRowPriorityControls(); } catch(e) {}
                 }, 50);
             }
-
-            // Initialize priority controls in a deterministic way.
-            // Call this after the list HTML is rendered so elements exist in the DOM.
             function initRowPriorityControls(context) {
                 var $root = context ? $(context) : $(document);
                 $root.find(".row-priority-select, .row-priority-field").each(function () {
                     const $el = $(this);
-                    const historyId = $el.data("recordid") || $el.closest(".cu-row").data("historyid") || $el.closest(".cu-row").data("taskid");
+                    const historyId = $el.attr("data-historyid");
+                    console.log("[initRowPriorityControls] init for historyId=", historyId);
                     const currentPriority = parseInt($el.data("priority") || $el.data("current-priority") || $el.val() || 3);
 
                     // Avoid double-init: if already initialized (wrapper present), skip
@@ -2927,11 +2056,12 @@ BEGIN
                                 { value: 3, text: "Thấp" }
                             ],
                             selected: currentPriority,
-                            tableName: "tblAssignHistory",
+                            searchable: false,
+                            tableName: "tblTask_AssignHistory",
                             columnName: "AssignPriority",
                             idColumnName: "HistoryID",
                             idValue: historyId,
-                            silent: false,
+                            silent: true,
                             onChange: function(newValue) {
                                 try {
                                     $el.closest(".cu-row").find(".priority-icon")
@@ -2965,7 +2095,7 @@ BEGIN
                     <div class="row-progress" style="width:220px;">
                         <div class="kpi-text">
                             <span>${completedCount}/${totalCount} hoàn thành</span>
-                            <strong style="color: white">${progressPct}%</strong>
+                            <strong>${progressPct}%</strong>
                         </div>
                         <div class="kpi-bar-bg">
                             <div class="kpi-bar-fill" style="width: ${progressPct}%;"></div>
@@ -3014,7 +2144,7 @@ BEGIN
 
                     // Build priority select (1=High,2=Medium,3=Low)
                     var prioSelect = `
-                        <div class="row-priority-select" data-recordid="${t.TaskID}" style="width:110px;">
+                        <div class="row-priority-select" data-recordid="${t.TaskID}" data-historyid="${t.HistoryID}" style="width:110px;">
                         </div>`;
 
                     // Build assignee display using shared component
@@ -3035,13 +2165,15 @@ BEGIN
                                 currentIds = [String(window.EmployeeID_Login || LoginID)];
                             }
 
-                            console.log(currentIds);
-
                             hpaControlEmployeeSelector(`#${assigneeContainerId}`, {
                                 selectedIds: currentIds,
                                 ajaxListName: "EmployeeListAll_DataSetting_Custom",
                                 showAvatar: true,
                                 multi: true,
+                                tableName: "tblTask_AssignHistory",
+                                columnName: "EmployeeID",
+                                idColumnName: "HistoryID",
+                                idValue: t.HistoryID,
                                 onChange: function(selectedIds) {
                                     // Handle change
                                 }
@@ -3053,11 +2185,88 @@ BEGIN
                     // status for subtask
                     var stClass = t.StatusCode == 2 ? "sts-2" : t.StatusCode == 3 ? "sts-3" : "sts-1";
                     var statusLabel = t.StatusLabel || (t.StatusCode == 1 ? "Chưa làm" : (t.StatusCode == 2 ? "Đang làm" : "Hoàn thành"));
-                    var statusHtml = `<span class="badge-sts ${stClass} badge-toggle-status" data-recordid="${t.TaskID}" data-status="${t.StatusCode}">${statusLabel}</span>`;
+                    var statusHtml = `<div id="status-control-${t.TaskID}" class="task-status-control" data-taskid="${t.TaskID}"></div>`;
 
-                    // Return simplified row HTML
+                    // initialize status control after render
+                    setTimeout(function() {
+                        try {
+                            if ($(`#status-control-${t.TaskID}`).length === 0) return;
+                            hpaControlField(`#status-control-${t.TaskID}`, {
+                                type: "select",
+                                options: [
+                                    { value: 1, text: "Chưa làm" },
+                                    { value: 2, text: "Đang làm" },
+                                    { value: 3, text: "Hoàn thành" }
+                                ],
+                                selected: Number(t.StatusCode) || 1,
+                                width: 140,
+                                silent: true,
+                                onChange: function(newVal) {
+                                    var newStatus = Number(newVal);
+                                    if (newStatus === Number(t.StatusCode)) return;
+                                    // optimistic UI update
+                                    $(`#status-control-${t.TaskID} .hpa-control-display`).text(newStatus===1?"Chưa làm":newStatus===2?"Đang làm":"Hoàn thành");
+                                    AjaxHPAParadise({
+                                        data: {
+                                            name: "sp_Task_UpdateStatus",
+                                            param: [
+                                                "TaskID", t.TaskID,
+                                                "LoginID", LoginID,
+                                                "NewStatus", newStatus
+                                            ]
+                                        },
+                                        success: function() { setTimeout(loadTasks, 300); },
+                                        error: function() { uiManager.showAlert({ type: "error", message: "Cập nhật trạng thái thất bại!" }); }
+                                    });
+                                }
+                            });
+                        } catch (e) {}
+                    }, 120);
+
+                    // Timeline container for subtask
+                    var timelineContainerId = `timeline-container-${t.TaskID}`;
+
+                    // Initialize timeline for subtask after render (simple fallback)
+                    setTimeout(function(){
+                        try {
+                            var entries = [];
+                            if (t.MyStartDate) entries.push({ date: t.MyStartDate, label: "Start" });
+                            if (t.DueDate) entries.push({ date: t.DueDate, label: "Due" });
+                            var html = "";
+                            if (entries.length === 0) {
+                                html = `<div class="text-muted">Không có lịch</div>`;
+                            } else {
+                                // compute visual range
+                                var firstDt = entries[0].dt;
+                                var lastDt = entries[entries.length-1].dt;
+                                var rangeMs = Math.max(1, lastDt - firstDt);
+                                var days = Math.max(1, Math.ceil(rangeMs / (24*3600*1000)));
+                                var widthPx = Math.min(900, Math.max(260, days * 28));
+
+                                html = `<div style="overflow:auto;">`;
+                                html += `<div class="timeline-strip" style="width:${widthPx}px;margin:6px 8px;">`;
+                                html += `<div class="timeline-bar"></div>`;
+
+                                entries.forEach(function(en){
+                                    var leftPercent = ((en.dt - firstDt) / rangeMs) * 100;
+                                    var dd = ("0"+en.dt.getDate()).slice(-2) + "/" + ("0"+(en.dt.getMonth()+1)).slice(-2);
+                                    var tt = ("0"+en.dt.getHours()).slice(-2) + ":" + ("0"+en.dt.getMinutes()).slice(-2);
+                                    var safeLabel = escapeHtml(en.label || "");
+                                    html += `<div class="timeline-marker" title="${safeLabel}" style="left:${leftPercent}%;">
+                                                <div class="dot"></div>
+                                                <div class="label">${dd} ${tt}</div>
+                                             </div>`;
+                                });
+
+                                html += `</div></div>`;
+                            }
+                            $(`#${timelineContainerId}`).html(html);
+                        } catch(e) {}
+                    }, 120);
+
+                    // Return simplified row HTML (with timeline)
                     return `
-                    <div class="cu-row task-row draggable subtask-row" data-recordid="${t.TaskID}" draggable="true" style="padding-left:30px; display:flex;align-items:center;gap:12px;">
+                    <div class="cu-row task-row draggable subtask-row" data-recordid="${t.TaskID}" data-historyid="${t.HistoryID}" draggable="true" style="padding-left:30px; display:flex;align-items:center;gap:12px;">
                         <div class="row-check" style="width:40px;">
                             <i class="bi bi-grip-vertical row-drag-handle"></i>
                             <i class="bi bi-flag-fill priority-icon ${prioClass}"></i>
@@ -3069,6 +2278,9 @@ BEGIN
                         <div style="width:120px;flex-shrink:0;">${prioSelect}</div>
                         <div style="width:260px;flex-shrink:0;">${assigneeHtml}</div>
                         <div style="width:140px;flex-shrink:0;text-align:right;">${statusHtml}</div>
+                        <div style="min-width:220px;max-width:520px;flex-shrink:0;">
+                            <div id="${timelineContainerId}"></div>
+                        </div>
                     </div>`;
                 }
 
@@ -3078,41 +2290,194 @@ BEGIN
                 } else {
                     var stClass = t.StatusCode == 2 ? "sts-2" : t.StatusCode == 3 ? "sts-3" : "sts-1";
                     var statusLabel = (t.StatusCode == 1 ? "Chưa làm" : (t.StatusCode == 2 ? "Đang làm" : "Hoàn thành"));
-                    statusHtml = `<span class="badge-sts ${stClass} badge-toggle-status" data-recordid="${t.TaskID}" data-status="${t.StatusCode}">${statusLabel}</span>`;
+                    statusHtml = `<div id="status-control-${t.TaskID}" class="task-status-control" data-taskid="${t.TaskID}"></div>`;
+
+                    // init status control for main task after render
+                    setTimeout(function() {
+                        try {
+                            if ($(`#status-control-${t.TaskID}`).length === 0) return;
+                            hpaControlField(`#status-control-${t.TaskID}`, {
+                                type: "select",
+                                options: [
+                                    { value: 1, text: "Chưa làm" },
+                                    { value: 2, text: "Đang làm" },
+                                    { value: 3, text: "Hoàn thành" }
+                                ],
+                                selected: Number(t.StatusCode) || 1,
+                                width: 140,
+                                silent: true,
+                                onChange: function(newVal) {
+                                    var newStatus = Number(newVal);
+                                    if (newStatus === Number(t.StatusCode)) return;
+                                    $(`#status-control-${t.TaskID} .hpa-control-display`).text(newStatus===1?"Chưa làm":newStatus===2?"Đang làm":"Hoàn thành");
+                                    AjaxHPAParadise({
+                                        data: {
+                                            name: "sp_Task_UpdateStatus",
+                                            param: [
+                                                "TaskID", t.TaskID,
+                                                "LoginID", LoginID,
+                                                "NewStatus", newStatus
+                                            ]
+                                        },
+                                        success: function() { setTimeout(loadTasks, 300); },
+                                        error: function() { uiManager.showAlert({ type: "error", message: "Cập nhật trạng thái thất bại!" }); }
+                                    });
+                                }
+                            });
+                        } catch(e) {}
+                    }, 120);
                 }
+
+                // Build assignee container for main task
+                var assigneeContainerId = `assignee-container-${t.TaskID}`;
+                var prioSelect = `
+                    <div class="row-priority-select" data-recordid="${t.TaskID}" style="width:110px;">
+                    </div>`;
+
+                // Timeline container id
+                var timelineContainerId = `timeline-container-${t.TaskID}`;
+                console.log("timelineContainerId", timelineContainerId);
+
+                // Initialize assignee selector, priority and timeline after render
+                setTimeout(function() {
+                    try {
+                        // Assignees
+                        if ($(`#${assigneeContainerId}`).length) {
+                            var currentIds = [];
+                            if (t.AssignedToEmployeeIDs) {
+                                currentIds = String(t.AssignedToEmployeeIDs).split(",").map(s=>s.trim()).filter(Boolean);
+                            }
+                            // fallback to single AssignedTo
+                            if ((!currentIds || currentIds.length===0) && t.AssignedTo) {
+                                currentIds = [String(t.AssignedTo)];
+                            }
+                            try{
+                                hpaControlEmployeeSelector(`#${assigneeContainerId}`, {
+                                    selectedIds: currentIds,
+                                    ajaxListName: "EmployeeListAll_DataSetting_Custom",
+                                    showAvatar: true,
+                                    multi: true,
+                                    silent: true,
+                                    readOnly: true
+                                });
+                            }catch(e){}
+                        }
+
+                        // Priority init (if any control expects it)
+                        if ($(`.row-priority-select[data-recordid="${t.TaskID}"]`).length) {
+                            try { initRowPriorityControls($(`.row-priority-select[data-recordid="${t.TaskID}"]`)); } catch(e){}
+                        }
+
+                        // Timeline render
+                        if ($(`#${timelineContainerId}`).length) {
+                            try {
+                                var rawEntries = t.Schedule || t.AssignHistory || t.ScheduleEntries || t.Timeline || [];
+                                // Accept array, JSON string, or comma-separated dates
+                                try {
+                                    if (typeof rawEntries === "string" && rawEntries.trim() !== "") {
+                                        try { rawEntries = JSON.parse(rawEntries); } catch (e) {
+                                            var parts = rawEntries.split(/[,;|]/).map(s => s.trim()).filter(Boolean);
+                                            rawEntries = parts.map(function(p){ return { Date: p, Label: "" }; });
+                                        }
+                                    }
+                                } catch(e) { rawEntries = []; }
+
+                                if (!Array.isArray(rawEntries)) rawEntries = [rawEntries];
+
+                                var entries = [];
+                                rawEntries.forEach(function(e){
+                                    if (!e) return;
+                                    // handle raw primitives
+                                    if (typeof e === "string" || typeof e === "number") {
+                                        entries.push({ date: e, label: "" });
+                                        return;
+                                    }
+                                    var d = e.ScheduleDate || e.AssignDate || e.Date || e.StartDate || e.DateTime || e.ActionDate || e.MyStartDate || e.DueDate || e.DateString || e.DateTimeString || null;
+                                    var label = e.EmployeeName || e.FullName || e.UserName || e.Label || e.Description || e.Action || e.Note || e.Title || "";
+                                    if (d) entries.push({ date: d, label: label });
+                                });
+
+                                if (entries.length === 0) {
+                                    if (t.MyStartDate) entries.push({ date: t.MyStartDate, label: "Start" });
+                                    if (t.DueDate) entries.push({ date: t.DueDate, label: "Due" });
+                                }
+                                // normalize and sort
+                                entries = entries.map(function(en){ var dt = new Date(en.date); return { dt: dt, label: en.label }; }).filter(en=>en.dt && !isNaN(en.dt.getTime()));
+                                entries.sort(function(a,b){ return a.dt - b.dt; });
+
+                                var html = "";
+                                if (entries.length === 0) {
+                                    html = `<div class="text-muted">Không có lịch</div>`;
+                                } else {
+                                    var firstDt = entries[0].dt;
+                                    var lastDt = entries[entries.length-1].dt;
+                                    var rangeMs = Math.max(1, lastDt - firstDt);
+                                    var days = Math.max(1, Math.ceil(rangeMs / (24*3600*1000)));
+                                    var widthPx = Math.min(900, Math.max(260, days * 28));
+
+                                    html = `<div style="overflow:auto;">`;
+                                    html += `<div class="timeline-strip" style="width:${widthPx}px;margin:6px 8px;">`;
+                                    html += `<div class="timeline-bar"></div>`;
+
+                                    entries.forEach(function(en){
+                                        var leftPercent = ((en.dt - firstDt) / rangeMs) * 100;
+                                        var dd = ("0"+en.dt.getDate()).slice(-2) + "/" + ("0"+(en.dt.getMonth()+1)).slice(-2);
+                                        var tt = ("0"+en.dt.getHours()).slice(-2) + ":" + ("0"+en.dt.getMinutes()).slice(-2);
+                                        var safeLabel = escapeHtml(en.label || "");
+                                        html += `<div class="timeline-marker" title="${safeLabel}" style="left:${leftPercent}%;">
+                                                    <div class="dot"></div>
+                                                    <div class="label">${dd} ${tt}</div>
+                                                 </div>`;
+                                    });
+
+                                    html += `</div></div>`;
+                                }
+                                $(`#${timelineContainerId}`).html(html);
+                            } catch(e) {}
+                        }
+                    } catch(e) {}
+                }, 140);
 
                 return `
                 <div class="cu-row task-row draggable"
                     style="${isChild ? "padding-left:30px;" : ""}"
                     data-recordid="${t.TaskID}"
-                draggable="true">
-                    <div class="row-check">
+                    draggable="true">
+                    <div class="row-check" style="width:40px;flex-shrink:0;display:flex;align-items:center;gap:8px;">
                         <i class="bi bi-grip-vertical row-drag-handle"></i>
-                        <i class="bi bi-flag-fill priority-icon ${prioClass}"></i>
                     </div>
-                    <div class="row-main" style="position: relative;">
-                        <div class="task-title" title="${escapeHtml(t.TaskName)}">${t.TaskName}</div>
-                        <div class="task-sub">
-                            ${t.CommentCount > 0 ? `<span><i class="bi bi-chat-dots"></i> ${t.CommentCount}</span>` : ""}
-                            <span class="text-muted">#${t.TaskID}</span>
+
+                    <!-- Name -->
+                    <div class="col-name" style="flex:1;min-width:220px;display:flex;align-items:center;gap:12px;">
+                        <div class="task-main" style="width:100%;">
+                            <div class="task-title" title="${escapeHtml(t.TaskName)}">${t.TaskName}</div>
+                            <div class="task-sub">
+                                ${t.CommentCount > 0 ? `<span><i class="bi bi-chat-dots"></i> ${t.CommentCount}</span>` : ""}
+                                <span class="text-muted">#${t.TaskID}</span>
+                            </div>
                         </div>
                         <div class="detail-icon" data-recordid="${t.TaskID}" title="Xem chi tiết"><i class="bi bi-box-arrow-up-right"></i></div>
                     </div>
-                    <div class="row-kpi">
-                        <div class="kpi-text">
-                            <span>${kpiDisplayText}</span>
-                            <strong style="color: var(--task-primary)">${t.ProgressPct}%</strong>
-                        </div>
-                        <div class="kpi-bar-bg">
-                            <div class="kpi-bar-fill" style="width: ${Math.min(t.ProgressPct, 100)}%"></div>
-                        </div>
+
+                    <!-- Assignees -->
+                    <div class="col-assignees" style="width:260px;flex-shrink:0;">
+                        <div id="${assigneeContainerId}" style="width:100%;"></div>
                     </div>
-                    <div class="row-status">
+
+                    <!-- Priority -->
+                    <div class="col-priority" style="width:110px;flex-shrink:0;display:flex;align-items:center;justify-content:center;">
+                        <i class="bi bi-flag-fill priority-icon ${prioClass}"></i>
+                        ${prioSelect}
+                    </div>
+
+                    <!-- Status -->
+                    <div class="col-status" style="width:160px;flex-shrink:0;display:flex;align-items:center;justify-content:center;">
                         ${statusHtml}
                     </div>
-                    <div class="row-meta">
-                        ${dateRange ? `<span class="date-range ${dateClass}">${dateRange}</span>` : ""}
-                        ${t.IsOverdue ? `<small class="text-danger mt-1 fw-bold"><i class="bi bi-exclamation-triangle-fill"></i> Quá hạn</small>` : ""}
+
+                    <!-- Timeline -->
+                    <div class="col-timeline" style="min-width:220px;max-width:520px;flex-shrink:0;">
+                        <div id="${timelineContainerId}"></div>
                     </div>
                 </div>`;
             }
@@ -3124,103 +2489,27 @@ BEGIN
                     return;
                 }
                 currentTaskID = taskID;
-
-                // Populate modal với thông tin từ local data
-                $("#detailTaskName").text(task.TaskName || "");
-                $("#detailCreator").text(task.RequestedByName || task.RequestedBy || "-");
-                $("#detailMainResponsible").text(task.MainResponsibleName || task.MainResponsibleID || "-");
-                $("#detailStartDate").text(formatSimpleDate(task.MyStartDate));
-                $("#detailDueDate").text(formatSimpleDate(task.MyDueDate || task.DueDate));
-                $("#detailActualKPI").text(task.ActualKPI || 0);
-                $("#detailTargetKPI").text(task.KPIPerDay || task.TargetKPI || 0);
-                $("#detailUnit").text(task.Unit || "");
-                $("#detailProgressPct").text((task.ProgressPct || 0) + "%");
-                $("#detailProgressBar").css("width", Math.min(task.ProgressPct || 0, 100) + "%");
-                $("#txtUpdateKPI").val("");
-                $("#txtUpdateNote").val("");
-                var currentStatus = task.StatusCode || 1;
-                $("#detailStatusSelect").val(currentStatus);
-
-                // Set priority value for later initialization
-                currentTaskPriority = task.Priority || task.AssignPriority || 3;
-
-                // Render comments nếu có lưu trong task, nếu không thì để rỗng
-                if (task.Comments) {
-                    renderComments(task.Comments);
-                } else {
-                    renderComments([]);
-                }
-
-                // Hide/Show KPI section
-                var hasKPI = (task.KPIPerDay && task.KPIPerDay > 0) || task.HasSubtasks || task.TotalSubtasks > 0;
-                if (!hasKPI) {
-                    $(".kpi-section").hide();
-                } else {
-                    $(".kpi-section").show();
-                }
-
-                // Blur and show modal
+                // Provide full task payload to the detail form before opening
                 try {
-                    if (document.activeElement && typeof document.activeElement.blur === "function") {
-                        document.activeElement.blur();
-                    }
-                } catch(e) {
+                    window.sp_Task_TaskDetail_html = window.sp_Task_TaskDetail_html || {};
+                    window.sp_Task_TaskDetail_html.TaskID = taskID;
+                    window.sp_Task_TaskDetail_html.TaskData = task;
+                    console.log("[openTaskDetail] passing TaskData to detail", task && task.TaskID, task);
+                } catch (e) { /* ignore */ }
+
+                if (["Android", "iOS"].includes(getMobileOperatingSystem())) {
+                    OpenFormParamMobile("sp_Task_TaskDetail", {
+                        TaskID: taskID,
+                        LoginID: LoginID,
+                        LanguageID: LanguageID
+                    });
+                } else {
+                    openFormParam("sp_Task_TaskDetail", {
+                        TaskID: taskID,
+                        LoginID: LoginID,
+                        LanguageID: LanguageID
+                    });
                 }
-
-                var mdl = new bootstrap.Modal(document.getElementById("mdlTaskDetail"));
-                mdl.show();
-
-                // Hiện vùng upload file trong modal chi tiết
-                try { $("#uploadArea").show(); } catch(e) {}
-
-                setTimeout(function() {
-                    try {
-                        document.getElementById("mdlTaskDetail").focus();
-                    } catch(e) {
-                    }
-
-                    // USE hpaControlDatebox
-                    if ($("#detailStartDate").length > 0) {
-                    }
-                    if ($("#detailDueDate").length > 0) {
-                    }
-
-                    if ($("#detailPriority").length > 0) {
-                        hpaControlField("#detailPriority", {
-                            options: [
-                                {value: 3, text: "Thấp"},
-                                {value: 2, text: "Trung bình"},
-                                {value: 1, text: "Cao"}
-                            ],
-                            selected: currentTaskPriority,
-                            tableName: "tblAssignHistory",
-                            columnName: "AssignPriority",
-                            idColumnName: "HistoryID",
-                            idValue: taskID,
-                            onChange: function(value, text) {
-                            }
-                        });
-                    }
-
-                    if ($("#detailStatusSelect").length > 0) {
-                        hpaControlField("#detailStatusSelect", {
-                            options: [
-                                {value: 3, text: "Hoàn thành"},
-                                {value: 2, text: "Đang làm"},
-                                {value: 1, text: "Chưa làm"}
-                            ],
-                            selected: currentStatus,
-                            searchable: false,
-                            silent: true,
-                            onChange: function(value, text) {
-                                try {
-                                    var newStatus = parseInt(value, 10);
-                                    if (!isNaN(newStatus)) updateTaskStatus(newStatus);
-                                } catch (e) { console.warn("updateTaskStatus failed", e); }
-                            }
-                        });
-                    }
-                }, 80);
             }
             function findTaskById(taskId) {
                 // Try header tasks first
@@ -3236,137 +2525,6 @@ BEGIN
                 if (found) return found;
 
                 return null;
-            }
-            function updateTaskStatus(newStatus) {
-                if (!currentTaskID) return;
-
-                AjaxHPAParadise({
-                    data: {
-                        name: "sp_Task_UpdateStatus",
-                        param: ["TaskID", currentTaskID, "LoginID", LoginID, "NewStatus", newStatus]
-                    },
-                    success: function() {
-                        // Update UI
-                        $(".status-quick-btn").removeClass("active");
-                        $(`.status-quick-btn[data-status="${newStatus}"]`).addClass("active");
-
-                        uiManager.showAlert({ type: "success",  message: "Cập nhật trạng thái thành công!",});
-
-                        // Reload tasks
-                        loadTasks();
-                    },
-                    error: function() {
-                        uiManager.showAlert({ type: "error",  message: "Cập nhật trạng thái thất bại!",});
-                    }
-                });
-            }
-            function updateTaskStatusFromSelect() {
-                var newStatus = parseInt($("#detailStatusSelect").val());
-                if (!newStatus || !currentTaskID) return;
-
-                AjaxHPAParadise({
-                    data: {
-                        name: "sp_Task_UpdateStatus",
-                        param: ["TaskID", currentTaskID, "LoginID", LoginID, "NewStatus", newStatus]
-                    },
-                    success: function() {
-                        // Show notification
-                        var statusText = newStatus === 1 ? "Chưa làm" : newStatus === 2 ? "Đang làm" : "Hoàn thành";
-                        uiManager.showAlert({ type: "success",  message: "Cập nhật trạng thái thành công!",});
-
-                        // Reload tasks
-                        loadTasks();
-                    },
-                    error: function() {
-                        uiManager.showAlert({ type: "error",  message: "Cập nhật trạng thái thất bại!",});
-                    }
-                });
-            }
-            function renderComments(comments) {
-                if(comments.length === 0) {
-                    $("#commentsList").html(`<p class="text-muted small">Chưa có nhận xét nào</p>`);
-                    return;
-                }
-
-                var html = (comments || []).map(function(c){ return renderComponent("commentItem", { comment: c }); }).join("");
-                $("#commentsList").html(html);
-            }
-            function updateKPI() {
-                var val = $("#txtUpdateKPI").val();
-                var note = $("#txtUpdateNote").val();
-
-                if(!val || val == "") {
-                  uiManager.showAlert({ type: "error",  message: "Vui lòng nhập giá trị KPI!",});
-                    return;
-                }
-
-                AjaxHPAParadise({
-                    data: {
-                        name: "sp_Task_UpdateKPI",
-                        param: [
-                            "TaskID", currentTaskID,
-                            "LoginID", LoginID,
-                            "ActualKPI", val,
-                            "Note", note
-                        ]
-                    },
-                    success: function(res) {
-                        try {
-                            // Close modal
-                            var modalInstance = bootstrap.Modal.getInstance(document.getElementById("mdlTaskDetail"));
-                            if (modalInstance) {
-                                modalInstance.hide();
-                            }
-
-                            // Show success message
-                            uiManager.showAlert({ type: "success",  message: "Cập nhật KPI thành công!",});
-
-                            // Reload tasks
-                            loadTasks();
-                        } catch(e) {
-                            loadTasks();
-                        }
-                    },
-                    error: function(err) {
-                        uiManager.showAlert({ type: "error",  message: "Cập nhật KPI thất bại!", });
-                    }
-                });
-            }
-            function toggleStatus(taskID, currentCode) {
-                var nextCode = currentCode >= 3 ? 1 : currentCode + 1;
-
-                AjaxHPAParadise({
-                    data: {
-                        name: "sp_Task_UpdateStatus",
-                        param: [
-                            "TaskID", taskID,
-                            "LoginID", LoginID,
-                            "NewStatus", nextCode
-                        ]
-                    },
-                    success: function() {
-                        var task = findTaskById(taskID);
-                        if (task) {
-                            task.StatusCode = nextCode;
-                        }
-                        var statusLabel = nextCode === 1 ? "Chưa làm" : nextCode === 2 ? "Đang làm" : "Hoàn thành";
-                        var stClass = nextCode === 1 ? "sts-1" : nextCode === 2 ? "sts-2" : "sts-3";
-
-                        $(`.badge-toggle-status[data-recordid="${taskID}"]`)
-                            .removeClass("sts-1 sts-2 sts-3")
-                            .addClass(stClass)
-                            .text(statusLabel)
-                            .data("status", nextCode);
-
-                        // Reload toàn bộ sau 500ms (để người dùng thấy update ngay lập tức)
-                        setTimeout(function() {
-                            loadTasks();
-                        }, 500);
-                    },
-                    error: function(err) {
-                        uiManager.showAlert({ type: "error",  message: "Cập nhật trạng thái thất bại!", });
-                    }
-                });
             }
             function openAssignModal() {
                 if (tasks && tasks.length > 0) {
@@ -3456,6 +2614,12 @@ BEGIN
                         
                         onChange: function(value, text) {
                             loadAssignTemplate();
+                            // When hidden parent select changes, hide subtasks if cleared
+                            if($("#parentTaskCombobox .hpa-field-item.selected").val()) {
+                                $("#subtask-assign-container").html(`<div class="empty-state" style="grid-column: 1 / -1;"><i class="bi bi-inbox"></i><p>Vui lòng chọn Công việc chính ở trên</p></div>`);
+                            } else {
+                                console.log("parentTaskCombobox cleared");
+                            }
                         }
                     });
                 } catch(e) {
@@ -3490,9 +2654,14 @@ BEGIN
                     }
                 }, 50);
 
-                // 5. Đặt ngày mặc định là hôm nay
+                // 5. Đặt ngày mặc định là hôm nay (use hpaControl datebox when available)
                 const today = new Date().toISOString().split("T")[0];
-                $("#dDate").val(today);
+                if (window.hpaControlDateBox && typeof window.hpaControlDateBox === "function") {
+                    try { hpaControlDateBox("#dDate", { value: today }); } catch(e) { $("#dDate").val(today); }
+                    try { hpaControlDateBox("#dDue", { value: "" }); } catch(e) { $("#dDue").val(""); }
+                } else {
+                    $("#dDate").val(today);
+                }
 
                 console.log("[renderAssignDropdowns] Dropdowns initialized");
             }
@@ -3579,67 +2748,6 @@ BEGIN
 
                         </div>`;
                     $("#subtask-assign-container").html(html);
-                });
-            }
-            function addTempRow() {
-                // require a selected parent task
-                var pid = $("#selParent").val();
-                if(!pid) { uiManager.showAlert({ type: "warning",  message: "Vui lòng chọn Công việc chính trước khi thêm hàng",}); return; }
-
-                // ensure assign container exists
-                if($("#subtask-assign-container").length === 0) return;
-
-                var count = $("#subtask-assign-container .temp-subtask").length;
-                var empOpts = (employees || []).map(e => `<option value="${e.EmployeeID}">${escapeHtml(e.FullName)} (${e.EmployeeID})</option>`).join("");
-
-                fetchChildTasks(pid, function(childTasks) {
-                    var candidateChilds = tasks.filter(function(t){ return String(t.TaskID) !== String(pid); });
-                    var childOpts = `<option value="">-- Tạo mới --</option>` + candidateChilds.map(function(t){ return `<option value="${t.TaskID}">${escapeHtml(t.TaskName)}</option>`; }).join("");
-                    var d = new Date();
-                    var yyyy = d.getFullYear();
-                    var mm = String(d.getMonth()+1).padStart(2,"0");
-                    var dd = String(d.getDate()).padStart(2,"0");
-                    var defStart = `${yyyy}-${mm}-${dd}T00:00`;
-                    var defEnd = `${yyyy}-${mm}-${dd}T23:59`;
-
-                    var idxNum = 1000 + count;
-                    var row = `<div class="cu-row temp-subtask" data-idx="${idxNum}">
-                    <div class="row-check" style="width:40px;flex-shrink:0"></div>
-                        <div class="row-main" style="min-width:0; display:flex; gap:8px; align-items:center;">
-                            <select class="form-select temp-sub-exist" style="width:260px; margin-right:8px; flex:0 0 260px;" onchange="tempExistingChanged(this)">${childOpts}</select>
-                            <input type="text" class="form-control temp-sub-name" value="" style="flex:1; min-width:220px;" />
-                            <div style="flex: 0 0 320px; position:relative;">
-                                <div class="search-select" style="position:relative;">
-                                    <div class="selected-icons" data-idx="${idxNum}" style="right:8px; top:50%; transform:translateY(-50%);"></div>
-                                    <input type="text" placeholder="Tìm..." class="form-control st-user-filter" data-idx="${idxNum}" autocomplete="off" />
-                                    <div class="search-select-dropdown st-user-dropdown" id="stUserDropdown-${idxNum}" style="position:absolute; z-index:1050; display:none; max-height:220px; overflow:auto; border:1px solid #ddd; box-shadow:0 6px 18px rgba(0,0,0,0.08); width:100%;"></div>
-                                    <select multiple class="form-select d-none st-user-select" data-idx="${idxNum}">${empOpts}</select>
-                                </div>
-                            </div>
-                            <input type="datetime-local" class="form-control temp-sub-from" style="width:220px; flex:0 0 220px;" value="${defStart}" />
-                            <input type="datetime-local" class="form-control temp-sub-to" style="width:220px; flex:0 0 220px;" value="${defEnd}" />
-                            <input type="text" class="form-control temp-sub-note" placeholder="Ghi chú..." style="flex:0 0 200px;" />
-                            <select class="form-select temp-sub-priority" style="width:120px; flex:0 0 120px;">
-                                <option value="1">Cao</option>
-                                <option value="2">Trung bình</option>
-                                <option value="3" selected>Thấp</option>
-                            </select>
-                            <button class="btn btn-outline-danger btn-temp-remove" title="Xoá">✕</button>
-                        </div>
-                    </div>
-                    `;
-
-                    // remove empty state placeholder inside assign container if present
-                    if($("#subtask-assign-container .empty-state").length) $("#subtask-assign-container .empty-state").remove();
-                    // append so temp rows appear inline with other subtasks
-                    $("#subtask-assign-container").append(row);
-
-                    // focus the name input of the newly added row for quick entry
-                    try {
-                        var $new = $("#subtask-assign-container .temp-subtask").last();
-                        $new.find(".temp-sub-name").focus();
-                        $new[0].scrollIntoView({ behavior: "smooth", block: "center" });
-                    } catch(e) { /* ignore focus errors */ }
                 });
             }
             function showQuickSubtaskInput() {
@@ -3733,20 +2841,8 @@ BEGIN
                     error: function() { uiManager.showAlert({ type: "error", message: "Tạo task thất bại." }); }
                 });
             }
-            function removeQuickAdd() { $("#quickAddWrapper").remove(); $("#quickSubtaskDropdown").remove(); }
-            function tempExistingChanged(sel) {
-                var $row = $(sel).closest(".temp-subtask");
-                var val = $(sel).val();
-                if(!val) {
-                    $row.find(".temp-sub-name").prop("disabled", false);
-                    return;
-                }
-                var t = tasks.find(function(x){ return String(x.TaskID) === String(val); });
-                if(t) {
-                    $row.find(".temp-sub-name").val(t.TaskName).prop("disabled", true);
-                    if(t.MyStartDate) $row.find(".temp-sub-from").val((t.MyStartDate.split("T")[0]||"")+"T00:00");
-                    if(t.DueDate) $row.find(".temp-sub-to").val((t.DueDate.split("T")[0]||"")+"T23:59");
-                }
+            function removeQuickAdd() { 
+                $("#quickAddWrapper").remove(); $("#quickSubtaskDropdown").remove(); 
             }
             function collectTempDetails() {
                 var res = [];
@@ -3903,6 +2999,7 @@ BEGIN
                 let mainUser = $("#selMainUser").val();
                 let dDate = $("#dDate").val();
                 let dDue = $("#dDue").val();
+                console.log("[submitAssignment] parent:", parent, "mainUser:", mainUser, "dDate:", dDate, "dDue:", dDue);
                 if(!parent || !mainUser) {
                     uiManager.showAlert({ type: "warning",  message: "Vui lòng chọn Công việc chính và Người chịu trách nhiệm chính",});
                     return;
@@ -4004,14 +3101,6 @@ BEGIN
                 } catch(err) {
                     uiManager.showAlert({ type: "danger", message: "Lỗi khi chuẩn bị dữ liệu giao việc" });
                 }
-            }
-            function filterSelectOptions(selectId, text) {
-                var q = normalizeForSearch(text || "");
-                var $sel = $("#" + selectId);
-                $sel.find("option").each(function(){
-                    var txt = normalizeForSearch($(this).text() || "");
-                    if(!q || txt.indexOf(q) !== -1) $(this).show(); else $(this).hide();
-                });
             }
             function filterMultiOptions(idx, text) {
                 try {
@@ -4211,7 +3300,8 @@ BEGIN
                 }
             }
             function initSubtaskDragDrop() {
-                var rows = document.querySelectorAll(".subtask-row-draggable");
+                // Support both legacy .subtask-row-draggable and current .subtask-row
+                var rows = document.querySelectorAll(".subtask-row-draggable, .subtask-row");
 
                 rows.forEach(function(row) {
                     // CHỈ cho phép drag khi kéo từ handle icon
@@ -4286,8 +3376,8 @@ BEGIN
                                 this.parentNode.insertBefore(dragging, this);
                             }
 
-                            // Lưu thứ tự mới vào database
-                            saveSubtaskOrder();
+                            // Lưu thứ tự mới vào database (pass context for parent detection)
+                            try { saveSubtaskOrder(this); } catch(ex) { console.warn("saveSubtaskOrder failed", ex); }
                         }
 
                         this.classList.remove("drag-over");
@@ -4295,132 +3385,96 @@ BEGIN
                     });
               });
             }
-            function saveSubtaskOrder() {
-                // Lấy danh sách child IDs theo thứ tự hiện tại
-                var orderedIds = [];
-                $("#subtaskTableBody tr.subtask-row-draggable").each(function() {
-                    var childId = $(this).data("childid");
-                    if (childId) orderedIds.push(childId);
-                });
+            function saveSubtaskOrder(context) {
+                try {
+                    console.log("[saveSubtaskOrder] start", context);
 
-                // Kiểm tra có dữ liệu không
-                if (orderedIds.length === 0) {
-                    return;
-                }
-
-                // Kiểm tra currentTaskID (parent task)
-                if (!currentTaskID) {
-                    return;
-                }
-
-                // Chuyển mảng thành chuỗi CSV
-                var orderedIdsCSV = orderedIds.join(",");
-
-                // Gọi API lưu vào database
-                AjaxHPAParadise({
-                    data: {
-                        name: "sp_Task_UpdateSubtaskOrder",
-                        param: [
-                            "ParentTaskID", currentTaskID,
-                            "OrderedChildIDs", orderedIdsCSV,
-                            "LoginID", LoginID
-                        ]
-                    },
-                    success: function(res) {
-                        try {
-                            var result = JSON.parse(res);
-                            if (result.data && result.data[0] && result.data[0][0]) {
-                                var data = result.data[0][0];
-                                if (data.Success === 1) {
-                                    // Thành công - hiển thị thông báo nhẹ
-                                    uiManager.showAlert({
-                                      type: "success",
-                                        message: "Đã lưu thứ tự subtask thành công!"
-                                    });
-                                } else {
-                                        uiManager.showAlert({
-                                        type: "error",
-                                        message: "Không thể lưu thứ tự subtask: " + data.ErrorMessage
-                                    });
-                                }
-                            }
-                        } catch(e) {
+                    var $container = null;
+                    try {
+                        if (context && context.closest) {
+                            $container = $(context).closest(".subtask-container");
                         }
-                    },
-                    error: function(err) {
-                            uiManager.showAlert({
-                            type: "error",
-                        message: "Không thể lưu thứ tự subtask do lỗi hệ thống."
-                        });
+                    } catch(e) {}
+
+                    if ((!$container || $container.length === 0) ) {
+                        $container = $(".subtask-container:visible").first();
                     }
-                });
-            }
-            function initSubtaskDragDrop() {
-                var rows = document.querySelectorAll(".subtask-row-draggable");
 
-                rows.forEach(function(row) {
-                    // Bắt đầu kéo
-                    row.addEventListener("dragstart", function(e) {
-                        this.classList.add("dragging");
-                        e.dataTransfer.effectAllowed = "move";
-                        e.dataTransfer.setData("text/html", this.innerHTML);
-                    });
+                    if ((!$container || $container.length === 0) && currentTaskID) {
+                        $container = $(`#subtasks-${currentTaskID}`);
+                    }
 
-                    // Kết thúc kéo
-                    row.addEventListener("dragend", function() {
-                        this.classList.remove("dragging");
-                        rows.forEach(function(r) {
-                            r.classList.remove("drag-over");
-                        });
-                    });
+                    if (!$container || $container.length === 0) {
+                        console.warn("[saveSubtaskOrder] no subtask container found");
+                        return;
+                    }
 
-                    // Di chuyển qua row khác
-                    row.addEventListener("dragover", function(e) {
-                        if (e.preventDefault) {
-                            e.preventDefault();
+                    // Derive parent id from container id (format: subtasks-<parentId> or subtasks-header-<id>)
+                    var parentId = null;
+                    try {
+                        var idAttr = $container.attr("id") || "";
+                        var m = idAttr.match(/subtasks-(\d+)$/);
+                        if (m && m[1]) parentId = m[1];
+                        // fallback: try numeric at end
+                        if (!parentId) {
+                            var mm = idAttr.match(/subtasks-.*?(\d+)/);
+                            if (mm && mm[1]) parentId = mm[1];
                         }
-                        e.dataTransfer.dropEffect = "move";
+                    } catch(e) {}
 
-                        var dragging = document.querySelector(".dragging");
-                        if (dragging && dragging !== this) {
-                            this.classList.add("drag-over");
-                        }
-                        return false;
+                    if (!parentId && currentTaskID) parentId = currentTaskID;
+                    if (!parentId) {
+                        console.warn("[saveSubtaskOrder] cannot determine parentId");
+                        return;
+                    }
+
+                    // Collect ordered child IDs from rendered rows (support multiple possible classes/attrs)
+                    var orderedIds = [];
+                    $container.find(".subtask-row, .subtask-row-draggable, .cu-row.task-row").each(function() {
+                        var childId = $(this).data("recordid") || $(this).data("childid") || $(this).data("taskid");
+                        if (childId) orderedIds.push(childId);
                     });
 
-                    // Rời khỏi row
-                    row.addEventListener("dragleave", function() {
-                        this.classList.remove("drag-over");
-                    });
+                    if (orderedIds.length === 0) {
+                        console.warn("[saveSubtaskOrder] no child rows found under container", $container.attr("id"));
+                        return;
+                    }
 
-                    // Thả xuống
-                    row.addEventListener("drop", function(e) {
+                    var orderedIdsCSV = orderedIds.join(",");
+                    console.log("[saveSubtaskOrder] parentId", parentId, "ordered", orderedIdsCSV);
 
-                        if (e.stopPropagation) {
-                            e.stopPropagation();
+                    // Call API to save ordering
+                    AjaxHPAParadise({
+                        data: {
+                            name: "sp_Common_SaveDataTable",
+                            param: [
+                                "LoginID", window.LoginID || 0,
+                                "LanguageID", typeof LanguageID !== "undefined" ? LanguageID : "VN",
+                                "TableName", "tblTask_AssignHistory",
+                                "ColumnName", "SortOrder",
+                                "IDColumnName", "HistoryID",
+                                "ColumnValue", orderedIdsCSV,
+                                "ID_Value", ""
+                            ]
+                        },
+                        success: function(res) {
+                            try {
+                                var result = JSON.parse(res);
+                                if (result.data && result.data[0] && result.data[0][0]) {
+                                    var data = result.data[0][0];
+                                    if (data.Success === 1) {
+                                        uiManager.showAlert({ type: "success", message: "Đã lưu thứ tự subtask thành công!" });
+                                    } else {
+                                        uiManager.showAlert({ type: "error", message: "Không thể lưu thứ tự subtask: " + (data.ErrorMessage || "Unknown") });
+                                    }
+                                }
+                            } catch(e) { console.warn("saveSubtaskOrder parse result error", e); }
+                        },
+                        error: function(err) {
+                            uiManager.showAlert({ type: "error", message: "Không thể lưu thứ tự subtask do lỗi hệ thống." });
                         }
-
-                        var dragging = document.querySelector(".dragging");
-                        if (dragging && dragging !== this) {
-                            var allRows = Array.from(rows);
-                            var dragIndex = allRows.indexOf(dragging);
-                            var dropIndex = allRows.indexOf(this);
-
-                            // Chèn vào vị trí mới
-                            if (dragIndex < dropIndex) {
-                                this.parentNode.insertBefore(dragging, this.nextSibling);
-                            } else {
-                                this.parentNode.insertBefore(dragging, this);
-                            }
-
-                            // Lưu thứ tự mới vào database
-                            saveSubtaskOrder();
-                        }
-
-                        this.classList.remove("drag-over");
-                        return false;
                     });
-                });
+                } catch(e) { console.error("saveSubtaskOrder unexpected error", e); }
             }
             function initListDragDrop() {
                 var rows = document.querySelectorAll(".cu-list .cu-row.draggable:not(.header-row)");
@@ -4487,13 +3541,13 @@ BEGIN
                             var dropIndex = allRows.indexOf(this);
 
                             if (dragIndex < dropIndex) {
-                 this.parentNode.insertBefore(dragging, this.nextSibling);
+                                this.parentNode.insertBefore(dragging, this.nextSibling);
                             } else {
-                        this.parentNode.insertBefore(dragging, this);
+                                this.parentNode.insertBefore(dragging, this);
                             }
 
-                            // Lưu thứ tự mới
-                            saveListOrder();
+                            // Lưu thứ tự mới (only update the moved row)
+                            try { saveListOrder(dragging); } catch(e) { console.warn("saveListOrder error", e); }
                         }
 
                         this.classList.remove("drag-over");
@@ -4501,8 +3555,9 @@ BEGIN
                     });
                 });
             }
-            function saveListOrder() {
+            function saveListOrder(movedRow) {
                 var orderedIds = [];
+                var orderedPairs = []; // HistoryID:position
                 var headerId = null;
 
                 // Lấy headerId từ row đầu tiên trong danh sách (hoặc từ dragging row)
@@ -4520,31 +3575,53 @@ BEGIN
                     }
                 }
 
-                $(".cu-list .cu-row.draggable:not(.header-row)").each(function() {
-                    var taskId = $(this).data("recordid");
+                $(".cu-list .cu-row.draggable:not(.header-row)").each(function(index) {
+                    var $row = $(this);
+                    var taskId = $row.data("recordid") || $row.data("taskid") || $row.data("recordid");
+                    var historyId = $row.attr("data-historyid");
+                    // fallback: try to find any element inside with history id
+                    if (!historyId) {
+                        var $inner = $row.find("[data-historyid]");
+                        if ($inner.length) historyId = $inner.first().data("historyid");
+                    }
                     if (taskId) orderedIds.push(taskId);
+                    if (historyId) orderedPairs.push(historyId + ":" + (index + 1));
                 });
-
                 if (orderedIds.length === 0) return;
 
-                AjaxHPAParadise({
-                    data: {
-                        name: "sp_Task_UpdateMainTaskOrder",
-                        param: [
-                            "LoginID", LoginID,
-                            "HeaderID", headerId,           // BÂY GIỜ ĐÃ CÓ GIÁ TRỊ
-                            "OrderedTaskIDs", orderedIds.join(",")
-                        ]
-                    },
-                    success: function(res) {
-                        uiManager.showAlert({ type: "success", message: "Đã lưu thứ tự công việc!" });
-                    },
-                    error: function() {
-                        uiManager.showAlert({ type: "error", message: "Lưu thứ tự thất bại!" });
-                        loadTasks(); // rollback UI
+                if (movedRow) {
+                    var $m = $(movedRow);
+                    var movedHistoryId = $m.attr("data-historyid");
+                    if (!movedHistoryId) {
+                        var $inner = $m.find("[data-historyid]");
+                        if ($inner.length) movedHistoryId = $inner.first().data("historyid");
                     }
-                });
+                    if (movedHistoryId) {
+                        // determine new position index
+                        var newIndex = $(".cu-list .cu-row.draggable:not(.header-row)").index(movedRow);
+                        var newPos = (newIndex >= 0) ? (newIndex + 1) : 1;
+                        console.log("[saveListOrder] updating single HistoryID", movedHistoryId, "->", newPos);
+                        AjaxHPAParadise({
+                            data: {
+                                name: "sp_Common_SaveDataTable",
+                                param: [
+                                    "LoginID", LoginID,
+                                    "LanguageID", typeof LanguageID !== "undefined" ? LanguageID : "VN",
+                                    "TableName", "tblTask_AssignHistory",
+                                    "ColumnName", "SortOrder",
+                                    "IDColumnName", "HistoryID",
+                                    "ColumnValue", newPos,
+                                    "ID_Value", movedHistoryId
+                                ]
+                            },
+                            success: function(res) {},
+                            error: function() {}
+                        });
+                        return;
+                    }
+                }
             }
+            
         })();
     </script>
     ';

@@ -1,0 +1,1406 @@
+USE Paradise_Beta_Tai2
+GO
+if object_id('[dbo].[sp_Task_MyWork_html]') is null
+	EXEC ('CREATE PROCEDURE [dbo].[sp_Task_MyWork_html] as select 1')
+GO
+
+ALTER PROCEDURE [dbo].[sp_Task_MyWork_html]
+    @LoginID    INT = 3,
+    @LanguageID VARCHAR(2) = 'VN',
+    @isWeb      INT = 1
+AS
+BEGIN
+    SET NOCOUNT ON;
+    DECLARE @html NVARCHAR(MAX);
+    SET @html = N'
+    <style>
+        :root {
+            --task-primary: #2E7D32;
+            --task-primary-light: #1c975eff;
+            --task-primary-hover: #1c975e;
+            --sts-todo: #dfe1e6;
+            --sts-doing: #deebff;
+            --sts-done: #e3fcef;
+            --sts-todo-text: #42526e;
+            --sts-doing-text: #0747a6;
+            --sts-done-text: #006644;
+            --danger-color: #E53935;
+            --warning-color: #FB8C00;
+            --success-color: #00C875;
+            --border-color: #e8eaed;
+            --text-primary: #1a1a1a;
+            --text-secondary: #676879;
+            --text-muted: #87909e;
+            --bg-white: #ffffff;
+            --bg-light: #f8f9fa;
+            --bg-lighter: #f0f2f5;
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.02);
+            --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08);
+            --shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.15);
+            --shadow-hover: 0 6px 20px rgba(46, 125, 50, 0.3);
+            --transition-base: 0.2s ease;
+            --radius-sm: 6px;
+            --radius-md: 8px;
+            --radius-lg: 12px;
+            --radius-xl: 16px;
+        }
+
+        #sp_Task_MyWork_html .h-title {
+            font-weight: 700;
+            font-size: clamp(20px, 5vw, 28px);
+        }
+
+        #sp_Task_MyWork_html .h-title i {
+            color: var(--task-primary);
+            font-size: 1.2em;
+        }
+
+        /* Stats Cards */
+        #sp_Task_MyWork_html .stats-row {
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        #sp_Task_MyWork_html .stats-row .stat-card {
+            padding: 8px 12px;
+            border-radius: 10px;
+            min-width: 110px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+            border: 1px solid rgba(0,0,0,0.04);
+            position: relative;
+        }
+
+        #sp_Task_MyWork_html .stats-row .stat-card::before {
+            content: "";
+            position: absolute;
+            width: 8px;
+            left: 8px;
+            top: calc(50% - 8px);
+            height: 16px;
+            border-radius: 4px;
+        }
+
+        #sp_Task_MyWork_html .stats-row .stat-card.doing::before {
+            background: var(--sts-doing);
+        }
+
+        #sp_Task_MyWork_html .stats-row .stat-card.todo::before {
+            background: var(--sts-todo);
+        }
+
+        #sp_Task_MyWork_html .stats-row .stat-card.done::before {
+            background: var(--sts-done);
+        }
+
+        #sp_Task_MyWork_html .stats-row .stat-card.overdue::before {
+            background: var(--danger-color);
+        }
+
+        #sp_Task_MyWork_html .stats-row .stat-card .stat-label-task {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: none;
+            margin: 0;
+            margin-left: 10px;
+            white-space: nowrap;
+        }
+
+        #sp_Task_MyWork_html .stats-row .stat-card .stat-value {
+            font-size: 16px;
+            font-weight: 800;
+            margin-left: auto;
+        }
+
+        /* Filter Section */
+        #sp_Task_MyWork_html .filter-section {
+            padding: 16px;
+            border-radius: var(--radius-lg);
+            margin-bottom: 20px;
+            border: 1px solid var(--border-color);
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+            box-shadow: var(--shadow-sm);
+        }
+
+        #sp_Task_MyWork_html .filter-section select {
+            padding: 8px 12px;
+            border: 1.5px solid var(--border-color);
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            cursor: pointer;
+            transition: all var(--transition-base);
+            min-width: 180px;
+        }
+
+        #sp_Task_MyWork_html .filter-section select:hover {
+            border-color: var(--task-primary);
+        }
+
+        /* View Switcher */
+        #sp_Task_MyWork_html .view-switcher {
+            display: flex;
+            gap: 8px;
+            padding: 4px;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-sm);
+        }
+
+        #sp_Task_MyWork_html .view-btn {
+            padding: 8px 16px;
+            border-radius: var(--radius-sm);
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+            transition: all var(--transition-base);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+        }
+
+        #sp_Task_MyWork_html .view-btn.active {
+            background: var(--task-primary);
+            color: white;
+            box-shadow: var(--shadow-sm);
+        }
+
+        /* Kanban Board */
+        #sp_Task_MyWork_html .kanban-board {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        #sp_Task_MyWork_html .kanban-column {
+            border-radius: var(--radius-lg);
+            padding: 16px;
+            min-height: 500px;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-sm);
+            background: var(--bg-white);
+        }
+
+        #sp_Task_MyWork_html .column-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid var(--bg-lighter);
+        }
+
+        #sp_Task_MyWork_html .column-title {
+            font-weight: 700;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        #sp_Task_MyWork_html .column-count {
+            background: var(--bg-lighter);
+            padding: 4px 10px;
+            border-radius: var(--radius-lg);
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-secondary);
+            min-width: 28px;
+            text-align: center;
+        }
+
+        /* Task List */
+        #sp_Task_MyWork_html .cu-list {
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
+        }
+
+        #sp_Task_MyWork_html .cu-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 20px;
+            border-bottom: 1px solid var(--bg-lighter);
+            transition: all var(--transition-base);
+            cursor: pointer;
+            gap: 12px;
+            max-height: 110px;
+            position: relative;
+        }
+
+        #sp_Task_MyWork_html .cu-row:hover {
+            background: var(--bg-light);
+            border-color: var(--task-primary);
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
+        }
+
+        #sp_Task_MyWork_html .row-check {
+            width: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            gap: 4px;
+            position: relative;
+        }
+
+        #sp_Task_MyWork_html .row-drag-handle {
+            cursor: grab;
+            color: var(--text-muted);
+            font-size: 18px;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        #sp_Task_MyWork_html .cu-row:hover .row-drag-handle {
+            opacity: 1;
+        }
+
+        #sp_Task_MyWork_html .row-drag-handle:active {
+            cursor: grabbing;
+        }
+
+        #sp_Task_MyWork_html .row-main {
+            flex: 1;
+            min-width: 0;
+        }
+
+        #sp_Task_MyWork_html .task-title {
+            font-weight: 600;
+            width: 100%;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        #sp_Task_MyWork_html .task-sub {
+            font-size: 13px;
+            color: var(--text-muted);
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            margin-top: 4px;
+        }
+
+        /* Priority Icon */
+        #sp_Task_MyWork_html .priority-icon {
+            font-size: 16px;
+            transition: transform var(--transition-base);
+        }
+
+        #sp_Task_MyWork_html .prio-1 { color: var(--danger-color); }
+        #sp_Task_MyWork_html .prio-2 { color: var(--warning-color); }
+        #sp_Task_MyWork_html .prio-3 { color: #9e9e9e; }
+
+        /* KPI Progress */
+        #sp_Task_MyWork_html .row-progress {
+            width: 220px;
+            flex-shrink: 0;
+        }
+
+        #sp_Task_MyWork_html .kpi-bar-bg {
+            height: 8px;
+            background: var(--bg-lighter);
+            border-radius: 4px;
+            overflow: hidden;
+            width: 100%;
+            margin-top: 6px;
+        }
+
+        #sp_Task_MyWork_html .kpi-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--task-primary), var(--task-primary-hover));
+            transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 4px;
+        }
+
+        #sp_Task_MyWork_html .kpi-text {
+            font-size: 13px;
+            display: flex;
+            justify-content: space-between;
+            font-weight: 600;
+            gap: 5px;
+        }
+
+        /* Status Badge */
+        #sp_Task_MyWork_html .row-status {
+            width: 130px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        #sp_Task_MyWork_html .badge-sts {
+            padding: 6px 14px;
+            border-radius: var(--radius-md);
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            display: inline-block;
+            transition: all var(--transition-base);
+            cursor: pointer;
+            letter-spacing: 0.3px;
+        }
+
+        #sp_Task_MyWork_html .badge-sts:hover {
+            transform: scale(1.05);
+            box-shadow: var(--shadow-sm);
+        }
+
+        #sp_Task_MyWork_html .sts-1 {
+            background: var(--sts-todo);
+            color: var(--sts-todo-text);
+        }
+
+        #sp_Task_MyWork_html .sts-2 {
+            background: var(--sts-doing);
+            color: var(--sts-doing-text);
+        }
+
+        #sp_Task_MyWork_html .sts-3 {
+            background: var(--sts-done);
+            color: var(--sts-done-text);
+        }
+
+        /* Buttons */
+        #sp_Task_MyWork_html .btn-refresh,
+        #sp_Task_MyWork_html .btn-assign {
+            padding: 10px 16px;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: all var(--transition-base);
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            white-space: nowrap;
+        }
+
+        #sp_Task_MyWork_html .btn-refresh {
+            border: 1.5px solid var(--border-color);
+            background: white;
+            color: var(--text-primary);
+        }
+
+        #sp_Task_MyWork_html .btn-refresh:hover {
+            border-color: var(--task-primary);
+            color: var(--task-primary);
+            transform: translateY(-2px);
+        }
+
+        #sp_Task_MyWork_html .btn-assign {
+            background: var(--task-primary);
+            color: white;
+            border: none;
+        }
+
+        #sp_Task_MyWork_html .btn-assign:hover {
+            background: var(--task-primary-hover);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        /* Header Row */
+        #sp_Task_MyWork_html .header-row {
+            font-weight: 700;
+            cursor: pointer;
+            border-radius: 10px 10px 0 0;
+            transition: all 0.3s ease;
+        }
+
+        #sp_Task_MyWork_html .header-row:hover {
+            box-shadow: 0 10px 40px rgb(151 151 151 / 15%);
+        }
+
+        #sp_Task_MyWork_html .header-row .expand-icon {
+            transition: transform 0.3s ease;
+            font-size: 18px;
+            margin-right: 8px;
+        }
+
+        #sp_Task_MyWork_html .header-row.expanded .expand-icon {
+            transform: rotate(90deg);
+        }
+
+        /* Subtask Container */
+        #sp_Task_MyWork_html .subtask-container {
+            display: none;
+        }
+
+        #sp_Task_MyWork_html .subtask-container.show {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        #sp_Task_MyWork_html .subtask-row {
+            padding-left: 30px;
+        }
+
+        /* Drag & Drop */
+        #sp_Task_MyWork_html .cu-row.dragging {
+            opacity: 0.5;
+            background: var(--bg-lighter);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+            transform: scale(0.98);
+        }
+
+        #sp_Task_MyWork_html .cu-row.drag-over {
+            border-top: 3px solid var(--task-primary);
+            background: rgba(46, 125, 50, 0.05);
+        }
+
+        /* Assign Modal */
+        #sp_Task_MyWork_html .assign-modal .modal-dialog {
+            max-width: 1000px;
+        }
+
+        #sp_Task_MyWork_html .assign-modal .modal-content {
+            border: none;
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-lg);
+        }
+
+        #sp_Task_MyWork_html .assign-container {
+            padding: 24px 32px;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+
+        #sp_Task_MyWork_html .assign-step {
+            margin-bottom: 28px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        #sp_Task_MyWork_html .step-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+
+        #sp_Task_MyWork_html .step-number {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--task-primary), #1c975e);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 18px;
+            flex-shrink: 0;
+            box-shadow: 0 2px 8px rgba(46, 125, 50, 0.2);
+        }
+
+        #sp_Task_MyWork_html .step-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        #sp_Task_MyWork_html .assign-row {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            align-items: start;
+        }
+
+        #sp_Task_MyWork_html .form-group {
+            margin-bottom: 16px;
+        }
+
+        #sp_Task_MyWork_html .form-label {
+            font-size: 12px;
+            font-weight: 700;
+            margin-bottom: 6px;
+            display: block;
+            color: var(--text-primary);
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        /* Empty State */
+        #sp_Task_MyWork_html .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-muted);
+        }
+
+        #sp_Task_MyWork_html .empty-state i {
+            font-size: 64px;
+            color: var(--border-color);
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            #sp_Task_MyWork_html .kanban-board {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            #sp_Task_MyWork_html .cu-row {
+                flex-wrap: wrap;
+                padding: 12px;
+            }
+
+            #sp_Task_MyWork_html .row-check {
+                width: 100%;
+                justify-content: flex-start;
+                margin-bottom: 8px;
+            }
+
+            #sp_Task_MyWork_html .row-main {
+                width: 100%;
+                margin-bottom: 8px;
+            }
+
+            #sp_Task_MyWork_html .row-progress,
+            #sp_Task_MyWork_html .row-status {
+                width: 100%;
+            }
+
+            #sp_Task_MyWork_html .kanban-board {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+
+    <div id="sp_Task_MyWork_html">
+        <div class="cu-header d-flex justify-content-between align-items-center mb-4 gap-2 flex-wrap">
+            <div class="h-title m-0 gap-3 d-flex align-items-center">
+                <i class="bi bi-check-circle-fill"></i>Công việc của tôi
+            </div>
+            <div class="header-actions d-flex align-items-center gap-2 flex-wrap">
+                <div class="view-switcher">
+                    <button class="view-btn active" id="viewListT">
+                        <i class="bi bi-list-ul"></i> Danh sách
+                    </button>
+                    <button class="view-btn" id="viewKanbanT">
+                        <i class="bi bi-kanban"></i> Kanban
+                    </button>
+                </div>
+                <button class="btn-assign" id="btnAssign">
+                    <i class="bi bi-plus-circle-fill"></i> Giao việc
+                </button>
+                <button class="btn-refresh" id="btnRefresh">
+                    <i class="bi bi-arrow-clockwise"></i> Tải lại
+                </button>
+            </div>
+        </div>
+
+        <!-- Statistics -->
+        <div class="stats-row d-flex align-items-center flex-wrap" id="stats-container">
+            <div class="stat-card todo">
+                <div class="stat-label-task">Chưa làm</div>
+                <div class="stat-value" id="stat-todo">0</div>
+            </div>
+            <div class="stat-card doing">
+                <div class="stat-label-task">Đang làm</div>
+                <div class="stat-value" id="stat-doing">0</div>
+            </div>
+            <div class="stat-card done">
+                <div class="stat-label-task">Hoàn thành</div>
+                <div class="stat-value" id="stat-done">0</div>
+            </div>
+            <div class="stat-card overdue">
+                <div class="stat-label-task">Quá hạn</div>
+                <div class="stat-value" id="stat-overdue">0</div>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="filter-section">
+            <label style="font-weight: 600; font-size: 13px;">Lọc:</label>
+            <select id="filterStatus">
+                <option value="">Tất cả trạng thái</option>
+                <option value="1">Chưa làm</option>
+                <option value="2">Đang làm</option>
+                <option value="3">Hoàn thành</option>
+            </select>
+            <select id="filterOverdue">
+                <option value="">Tất cả</option>
+                <option value="1">Chỉ quá hạn</option>
+            </select>
+        </div>
+
+        <!-- List View -->
+        <div id="list-view">
+            <div class="cu-list" id="list-container"></div>
+        </div>
+
+        <!-- Kanban View -->
+        <div id="kanban-view" style="display:none;">
+            <div class="kanban-board">
+                <div class="kanban-column">
+                    <div class="column-header">
+                        <div class="column-title">
+                            <i class="bi bi-circle"></i> Chưa làm
+                        </div>
+                        <span class="column-count" id="count-todo">0</span>
+                    </div>
+                    <div id="tasks-todo"></div>
+                </div>
+                <div class="kanban-column">
+                    <div class="column-header">
+                        <div class="column-title">
+                            <i class="bi bi-arrow-repeat"></i> Đang làm
+                        </div>
+                        <span class="column-count" id="count-doing">0</span>
+                    </div>
+                    <div id="tasks-doing"></div>
+                </div>
+                <div class="kanban-column">
+                    <div class="column-header">
+                        <div class="column-title">
+                            <i class="bi bi-check-circle-fill"></i> Hoàn thành
+                        </div>
+                        <span class="column-count" id="count-done">0</span>
+                    </div>
+                    <div id="tasks-done"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Assign Modal -->
+        <div class="modal fade assign-modal" id="mdlAssign" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title fw-bold">Giao việc</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="assign-container">
+                        <!-- Step 1: Thiết lập chung -->
+                        <div class="assign-step">
+                            <div class="step-header">
+                                <div class="step-number">1</div>
+                                <div class="step-title">Thiết lập chung</div>
+                            </div>
+                            <div class="assign-row">
+                                <div class="form-group">
+                                    <label class="form-label">Công việc chính (Task cha)</label>
+                                    <div id="parentTaskCombobox"></div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Người yêu cầu</label>
+                                    <div id="assignedBySelector"></div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Người chịu trách nhiệm chính</label>
+                                    <div id="mainUserSelector"></div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Ngày yêu cầu</label>
+                                    <input type="date" class="form-control" id="dDate" />
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Hạn hoàn thành</label>
+                                    <input type="date" class="form-control" id="dDue" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Step 2: Phân bổ chi tiết -->
+                        <div class="assign-step">
+                            <div class="step-header">
+                                <div class="step-number">2</div>
+                                <div class="step-title">Phân bổ chi tiết (Subtasks)</div>
+                            </div>
+                            <div id="subtask-assign-container" class="assign-row">
+                                <div class="empty-state" style="grid-column: 1 / -1;">
+                                    <i class="bi bi-inbox"></i>
+                                    <p>Vui lòng chọn Công việc chính ở trên</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-white border" data-bs-dismiss="modal">Đóng</button>
+                        <button type="button" class="btn-assign" id="btnSubmitAssignment">
+                            <i class="bi bi-send-fill"></i> Xác nhận giao việc
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function(){ 
+            "use strict";
+            
+            var allTasks = [], filteredTasks = [];
+            var currentView = "list";
+            var expandedHeadersState = {};
+            var employees = [];
+            var tasks = [];
+            var currentTemplate = [];
+
+            // Helper functions
+            function escapeHtml(str) {
+                if (str === null || str === undefined) return "";
+                return String(str)
+                    .replace(/&/g, "&amp;")
+                    .replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;")
+                    .replace(/"/g, "&quot;")
+                    .replace(/\'/g, "&#039;");
+            }
+
+            function formatSimpleDate(dateString) {
+                if(!dateString) return "";
+                var d = new Date(dateString);
+                if (isNaN(d.getTime())) return "";
+                var day = ("0" + d.getDate()).slice(-2);
+                var month = ("0" + (d.getMonth() + 1)).slice(-2);
+                return day + "/" + month;
+            }
+
+            // Initialize
+            $(document).ready(function() {
+                attachUIHandlers();
+                loadTasks();
+            });
+
+            function attachUIHandlers() {
+                $("#btnRefresh").on("click", loadTasks);
+                $("#btnAssign").on("click", openAssignModal);
+                $("#btnSubmitAssignment").on("click", submitAssignment);
+                
+                $("#viewListT, #viewKanbanT").on("click", function() {
+                    updateView($(this).attr("id") === "viewListT" ? "list" : "kanban");
+                });
+
+                $("#filterStatus, #filterOverdue").on("change", function() {
+                    updateView();
+                });
+
+                // Delegate click for task rows
+                $(document).on("click", ".cu-row:not(.header-row)", function(e) {
+                    e.stopPropagation();
+                    var id = $(this).data("recordid");
+                    if (id) openTaskDetail(id);
+                });
+
+                // Delegate click for header rows
+                $(document).on("click", ".header-row", function(e) {
+                    e.stopPropagation();
+                    var headerId = $(this).data("headerid");
+                    if(headerId) toggleHeaderExpand(headerId);
+                });
+            }
+
+            function loadTasks() {
+                AjaxHPAParadise({
+                    data: { 
+                        name: "sp_Task_GetMyTasks", 
+                        param: ["LoginID", LoginID] 
+                    },
+                    success: function(response) {
+                        try {
+                            var res = JSON.parse(response);
+                            var headers = res.data[0] || [];
+                            var headerTasks = res.data[1] || [];
+                            var standaloneTasks = res.data[2] || [];
+
+                            window.taskHeaders = headers;
+                            window.headerTasksMap = {};
+
+                            headerTasks.forEach(function(task) {
+                                if (!window.headerTasksMap[task.HeaderID]) {
+                                    window.headerTasksMap[task.HeaderID] = [];
+                                }
+                                window.headerTasksMap[task.HeaderID].push(task);
+                            });
+
+                            allTasks = [...headerTasks, ...standaloneTasks];
+                            updateStatistics();
+                            updateView();
+                        } catch(e) {
+                            console.error("Error loading tasks:", e);
+                        }
+                    }
+                });
+            }
+
+            function updateStatistics() {
+                var todoCount = allTasks.filter(t => t.StatusCode == 1).length;
+                var doingCount = allTasks.filter(t => t.StatusCode == 2).length;
+                var doneCount = allTasks.filter(t => t.StatusCode == 3).length;
+                var overdueCount = allTasks.filter(t => t.IsOverdue == 1).length;
+                
+                $("#stat-todo").text(todoCount);
+                $("#stat-doing").text(doingCount);
+                $("#stat-done").text(doneCount);
+                $("#stat-overdue").text(overdueCount);
+            }
+
+            function updateView(view) {
+                if (view) {
+                    $(".view-btn").removeClass("active");
+                    if (view === "list") {
+                        $("#viewListT").addClass("active");
+                    } else {
+                        $("#viewKanbanT").addClass("active");
+                    }
+                    currentView = view;
+                }
+
+                // Filter tasks
+                var statusFilter = $("#filterStatus").val();
+                var overdueFilter = $("#filterOverdue").val();
+
+                filteredTasks = allTasks.filter(function (t) {
+                    var statusMatch = !statusFilter || t.StatusCode == statusFilter;
+                    var overdueMatch = !overdueFilter || (overdueFilter == "1" && t.IsOverdue == 1);
+                    return statusMatch && overdueMatch;
+                });
+
+                // Show appropriate view
+                if (currentView === "list") {
+                    $("#kanban-view").hide();
+                    $("#list-view").show();
+                    renderListView(filteredTasks);
+                } else {
+                    $("#list-view").hide();
+                    $("#kanban-view").show();
+                    renderKanbanView(filteredTasks);
+                }
+            }
+
+            function renderListView(data) {
+                if (data.length === 0 && (!window.taskHeaders || window.taskHeaders.length === 0)) {
+                    $("#list-container").html(`<div class="empty-state"><i class="bi bi-inbox"></i><p>Không có công việc nào</p></div>`);
+                    return;
+                }
+
+                const htmlParts = [];
+                const renderedTaskIds = new Set();
+
+                // Render Headers
+                if (window.taskHeaders && window.taskHeaders.length > 0) {
+                    window.taskHeaders.forEach(function(header) {
+                        const headerTasks = window.headerTasksMap[header.HeaderID] || [];
+                        const visibleTasks = headerTasks.filter(t => data.some(d => d.TaskID === t.TaskID));
+
+                        if (visibleTasks.length === 0) return;
+
+                        visibleTasks.forEach(t => renderedTaskIds.add(t.TaskID));
+                        htmlParts.push(renderHeaderRow(header, visibleTasks));
+
+                        const subtasksHtml = visibleTasks.map(t => renderTaskRow(t, true)).join("");
+                        htmlParts.push(`<div class="subtask-container" id="subtasks-header-${header.HeaderID}">${subtasksHtml}</div>`);
+                    });
+                }
+
+                // Render standalone tasks
+                const standaloneTasks = data.filter(t => !renderedTaskIds.has(t.TaskID));
+                standaloneTasks.forEach(t => {
+                    htmlParts.push(renderTaskRow(t, false));
+                });
+
+                $("#list-container").html(htmlParts.join(""));
+
+                // Restore expanded state
+                setTimeout(function() {
+                    for (var headerId in expandedHeadersState) {
+                        if (expandedHeadersState[headerId]) {
+                            $(`#subtasks-header-${headerId}`).addClass("show");
+                            $(`#expand-icon-${headerId}`).removeClass("bi-caret-right").addClass("bi-caret-down");
+                            $(`.header-row[data-headerid="${headerId}"]`).addClass("expanded");
+                        }
+                    }
+                    initListDragDrop();
+                }, 50);
+            }
+
+            function renderHeaderRow(header, tasks) {
+                const completedCount = tasks.filter(t => t.StatusCode === 3).length;
+                const totalCount = tasks.length;
+                const progressPct = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
+
+                return `
+                <div class="cu-row header-row" data-headerid="${header.HeaderID}">
+                    <div class="row-check">
+                        <i class="bi bi-caret-right expand-icon" id="expand-icon-${header.HeaderID}"></i>
+                    </div>
+                    <div class="row-main">
+                        <div class="task-title">${escapeHtml(header.HeaderTitle)}</div>
+                    </div>
+                    <div class="row-progress">
+                        <div class="kpi-text">
+                            <span>${completedCount}/${totalCount} hoàn thành</span>
+                            <strong>${progressPct}%</strong>
+                        </div>
+                        <div class="kpi-bar-bg">
+                            <div class="kpi-bar-fill" style="width: ${progressPct}%;"></div>
+                        </div>
+                    </div>
+                </div>`;
+            }
+
+            function renderTaskRow(t, isChild) {
+                var startStr = formatSimpleDate(t.MyStartDate);
+                var dueStr = formatSimpleDate(t.DueDate);
+                var dateRange = (startStr || dueStr) ? (startStr + " - " + dueStr) : "";
+                var prioClass = "prio-" + (t.AssignPriority || 3);
+
+                var kpiDisplayText = "";
+                if (t.TargetKPI > 0) {
+                    kpiDisplayText = `${t.ActualKPI} / ${t.TargetKPI} ${t.Unit || ""}`;
+                } else if (t.TotalSubtasks > 0) {
+                    kpiDisplayText = `${t.CompletedSubtasks || 0} / ${t.TotalSubtasks} task`;
+                } else {
+                    kpiDisplayText = "Chưa có tiến độ";
+                }
+
+                var statusClass = t.StatusCode == 2 ? "sts-2" : t.StatusCode == 3 ? "sts-3" : "sts-1";
+                var statusLabel = t.StatusCode == 1 ? "Chưa làm" : (t.StatusCode == 2 ? "Đang làm" : "Hoàn thành");
+
+                return `
+                <div class="cu-row ${isChild ? 'subtask-row' : ''} draggable" data-recordid="${t.TaskID}" draggable="true">
+                    <div class="row-check">
+                        <i class="bi bi-grip-vertical row-drag-handle"></i>
+                        <i class="bi bi-flag-fill priority-icon ${prioClass}"></i>
+                    </div>
+                    <div class="row-main">
+                        <div class="task-title">${escapeHtml(t.TaskName)}</div>
+                        <div class="task-sub">
+                            ${t.CommentCount > 0 ? `<span><i class="bi bi-chat-dots"></i> ${t.CommentCount}</span>` : ""}
+                            <span class="text-muted">#${t.TaskID}</span>
+                        </div>
+                    </div>
+                    <div class="row-progress">
+                        <div class="kpi-text">
+                            <span>${kpiDisplayText}</span>
+                            <strong style="color: var(--task-primary)">${t.ProgressPct}%</strong>
+                        </div>
+                        <div class="kpi-bar-bg">
+                            <div class="kpi-bar-fill" style="width: ${Math.min(t.ProgressPct, 100)}%"></div>
+                        </div>
+                    </div>
+                    <div class="row-status">
+                        <span class="badge-sts ${statusClass}">${statusLabel}</span>
+                    </div>
+                </div>`;
+            }
+
+            function renderKanbanView(data) {
+                let allVisibleTasks = [];
+
+                if (window.taskHeaders) {
+                    window.taskHeaders.forEach(function(header) {
+                        const headerTasks = window.headerTasksMap[header.HeaderID] || [];
+                        allVisibleTasks = allVisibleTasks.concat(headerTasks);
+                    });
+                }
+
+                const standaloneTaskIds = new Set(allVisibleTasks.map(t => t.TaskID));
+                const standaloneTasks = data.filter(t => !standaloneTaskIds.has(t.TaskID));
+                allVisibleTasks = allVisibleTasks.concat(standaloneTasks);
+
+                var todoTasks = allVisibleTasks.filter(t => t.StatusCode == 1);
+                var doingTasks = allVisibleTasks.filter(t => t.StatusCode == 2);
+                var doneTasks = allVisibleTasks.filter(t => t.StatusCode == 3);
+
+                $("#count-todo").text(todoTasks.length);
+                $("#count-doing").text(doingTasks.length);
+                $("#count-done").text(doneTasks.length);
+
+                renderTaskCards("#tasks-todo", todoTasks);
+                renderTaskCards("#tasks-doing", doingTasks);
+                renderTaskCards("#tasks-done", doneTasks);
+            }
+
+            function renderTaskCards(container, tasks) {
+                if(tasks.length === 0) {
+                    $(container).html(`<div class="empty-state"><i class="bi bi-inbox"></i><p>Không có công việc</p></div>`);
+                    return;
+                }
+                var html = tasks.map(t => renderTaskRow(t, false)).join("");
+                $(container).html(html);
+            }
+
+            function toggleHeaderExpand(headerId) {
+                const $container = $(`#subtasks-header-${headerId}`);
+                const $icon = $(`#expand-icon-${headerId}`);
+                const $row = $(`.header-row[data-headerid="${headerId}"]`);
+
+                const isVisible = $container.hasClass("show");
+
+                if (isVisible) {
+                    $container.removeClass("show");
+                    $icon.removeClass("bi-caret-down").addClass("bi-caret-right");
+                    $row.removeClass("expanded");
+                    expandedHeadersState[headerId] = false;
+                } else {
+                    $container.addClass("show");
+                    $icon.removeClass("bi-caret-right").addClass("bi-caret-down");
+                    $row.addClass("expanded");
+                    expandedHeadersState[headerId] = true;
+                }
+            }
+
+            function initListDragDrop() {
+                var rows = document.querySelectorAll(".cu-list .cu-row.draggable:not(.header-row)");
+
+                rows.forEach(function(row) {
+                    var handle = row.querySelector(".row-drag-handle");
+                    if (!handle) return;
+
+                    row.setAttribute("draggable", "false");
+
+                    handle.addEventListener("mousedown", function(e) {
+                        e.stopPropagation();
+                        row.setAttribute("draggable", "true");
+                    });
+
+                    handle.addEventListener("mouseup", function() {
+                        row.setAttribute("draggable", "false");
+                    });
+
+                    row.addEventListener("dragstart", function(e) {
+                        if (row.getAttribute("draggable") !== "true") {
+                            e.preventDefault();
+                            return;
+                        }
+                        this.classList.add("dragging");
+                        e.dataTransfer.effectAllowed = "move";
+                        e.dataTransfer.setData("text/plain", this.dataset.taskid);
+                    });
+
+                    row.addEventListener("dragend", function() {
+                        this.classList.remove("dragging");
+                        row.setAttribute("draggable", "false");
+                        rows.forEach(function(r) {
+                            r.classList.remove("drag-over");
+                        });
+                    });
+
+                    row.addEventListener("dragover", function(e) {
+                        e.preventDefault();
+                        e.dataTransfer.dropEffect = "move";
+                        var dragging = document.querySelector(".dragging");
+                        if (dragging && dragging !== this) {
+                            this.classList.add("drag-over");
+                        }
+                        return false;
+                    });
+
+                    row.addEventListener("dragleave", function() {
+                        this.classList.remove("drag-over");
+                    });
+
+                    row.addEventListener("drop", function(e) {
+                        e.stopPropagation();
+                        e.preventDefault();
+
+                        var dragging = document.querySelector(".dragging");
+                        if (dragging && dragging !== this) {
+                            var allRows = Array.from(rows);
+                            var dragIndex = allRows.indexOf(dragging);
+                            var dropIndex = allRows.indexOf(this);
+
+                            if (dragIndex < dropIndex) {
+                                this.parentNode.insertBefore(dragging, this.nextSibling);
+                            } else {
+                                this.parentNode.insertBefore(dragging, this);
+                            }
+
+                            saveListOrder();
+                        }
+
+                        this.classList.remove("drag-over");
+                        return false;
+                    });
+                });
+            }
+
+            function saveListOrder() {
+                var orderedIds = [];
+                $(".cu-list .cu-row.draggable:not(.header-row)").each(function() {
+                    var taskId = $(this).data("recordid");
+                    if (taskId) orderedIds.push(taskId);
+                });
+
+                if (orderedIds.length === 0) return;
+
+                AjaxHPAParadise({
+                    data: {
+                        name: "sp_Task_UpdateMainTaskOrder",
+                        param: [
+                            "LoginID", LoginID,
+                            "HeaderID", null,
+                            "OrderedTaskIDs", orderedIds.join(",")
+                        ]
+                    },
+                    success: function() {
+                        uiManager.showAlert({ type: "success", message: "Đã lưu thứ tự công việc!" });
+                    }
+                });
+            }
+
+            function openTaskDetail(taskId) {
+                if (["Android", "iOS"].includes(getMobileOperatingSystem())) {
+                    OpenFormParamMobile("sp_Task_TaskDetail_html", {
+                        TaskID: taskId,
+                        LoginID: LoginID,
+                        LanguageID: LanguageID
+                    });
+                } else {
+                    openFormParam("sp_Task_TaskDetail_html", {
+                        TaskID: taskId,
+                        LoginID: LoginID,
+                        LanguageID: LanguageID
+                    });
+                }
+            }
+
+            function openAssignModal() {
+                if (tasks && tasks.length > 0) {
+                    initAssignModal();
+                } else {
+                    AjaxHPAParadise({
+                        data: { name: "sp_Task_GetAssignmentSetup", param: ["ParentTaskID", 0] },
+                        success: function(res) {
+                            try {
+                                var data = JSON.parse(res).data;
+                                tasks = data[0] || [];
+                            } catch (e) {
+                                tasks = [];
+                            }
+                            initAssignModal();
+                        }
+                    });
+                }
+            }
+
+            function initAssignModal() {
+                currentTemplate = [];
+                $("#subtask-assign-container").html(`<div class="empty-state" style="grid-column: 1 / -1;"><i class="bi bi-inbox"></i><p>Vui lòng chọn Công việc chính ở trên</p></div>`);
+
+                var defaultEmp = (window.EmployeeID_Login || LoginID);
+
+                if (typeof hpaControlField === "function") {
+                    hpaControlField("#parentTaskCombobox", {
+                        searchable: true,
+                        placeholder: "Chọn Công việc chính...",
+                        useApi: true,
+                        take: 20,
+                        ajaxListName: "sp_Task_GetListForParent",
+                        tableName: "tblTask",
+                        columnName: "TaskName",
+                        idColumnName: "TaskID",
+                        onChange: function(value, text) {
+                            loadAssignTemplate(value);
+                        }
+                    });
+                }
+
+                if (typeof hpaControlEmployeeSelector === "function") {
+                    hpaControlEmployeeSelector("#assignedBySelector", {
+                        selectedIds: [defaultEmp],
+                        ajaxListName: "EmployeeListAll_DataSetting_Custom",
+                        showAvatar: true,
+                        multi: false
+                    });
+
+                    hpaControlEmployeeSelector("#mainUserSelector", {
+                        selectedIds: [defaultEmp],
+                        ajaxListName: "EmployeeListAll_DataSetting_Custom",
+                        showAvatar: true,
+                        multi: false
+                    });
+                }
+
+                const today = new Date().toISOString().split("T")[0];
+                $("#dDate").val(today);
+
+                var mdl = new bootstrap.Modal(document.getElementById("mdlAssign"));
+                mdl.show();
+            }
+
+            function loadAssignTemplate(parentTaskID) {
+                if (!parentTaskID) return;
+
+                AjaxHPAParadise({
+                    data: {
+                        name: "sp_Task_GetDetailedTemplate",
+                        param: ["ParentTaskID", parentTaskID]
+                    },
+                    success: function(res) {
+                        try {
+                            currentTemplate = JSON.parse(res).data[0] || [];
+                            renderAssignSubtasks();
+                        } catch(e) {
+                            console.error("Error loading template:", e);
+                        }
+                    }
+                });
+            }
+
+            function renderAssignSubtasks() {
+                if(currentTemplate.length === 0) {
+                    $("#subtask-assign-container").html(`
+                        <div class="empty-state" style="grid-column: 1 / -1;">
+                            <i class="bi bi-list-check"></i>
+                            <p>Chưa có subtask template</p>
+                        </div>
+                    `);
+                    return;
+                }
+
+                let items = currentTemplate.map((item, idx) => {
+                    return `
+                    <div class="cu-row" style="cursor:default; align-items: flex-start; padding: 12px; gap:8px;">
+                        <div style="width:40px;">
+                            <input type="checkbox" class="form-check-input subtask-checkbox" data-idx="${idx}" checked />
+                        </div>
+                        <div style="flex: 2;">
+                            <div class="task-title">${escapeHtml(item.ChildTaskName)}</div>
+                        </div>
+                        <div style="flex: 2;">
+                            <label class="form-label">Người thực hiện</label>
+                            <div id="assignee-${idx}"></div>
+                        </div>
+                        <div style="flex: 1;">
+                            <label class="form-label">Bắt đầu</label>
+                            <input type="datetime-local" class="form-control st-from" data-idx="${idx}" />
+                        </div>
+                        <div style="flex: 1;">
+                            <label class="form-label">Kết thúc</label>
+                            <input type="datetime-local" class="form-control st-to" data-idx="${idx}" />
+                        </div>
+                        <div style="flex: 1;">
+                            <label class="form-label">Ưu tiên</label>
+                            <select class="form-select st-priority" data-idx="${idx}">
+                                <option value="1">Cao</option>
+                                <option value="2">Trung bình</option>
+                                <option value="3" selected>Thấp</option>
+                            </select>
+                        </div>
+                    </div>
+                    `;
+                }).join("");
+
+                $("#subtask-assign-container").html(items);
+
+                setTimeout(() => {
+                    currentTemplate.forEach((item, idx) => {
+                        if (typeof hpaControlEmployeeSelector === "function") {
+                            hpaControlEmployeeSelector(`#assignee-${idx}`, {
+                                selectedIds: [],
+                                ajaxListName: "EmployeeListAll_DataSetting_Custom",
+                                showAvatar: true,
+                                multi: true
+                            });
+                        }
+                    });
+                }, 200);
+            }
+
+            function submitAssignment() {
+                var parent = $("#parentTaskCombobox").find("select").val() || 
+                             ($("#parentTaskCombobox .hpa-field-wrapper").length ? 
+                              $("#parentTaskCombobox").data("value") : null);
+                
+                var mainUser = $("#mainUserSelector").find("select").val() || 
+                               (window.EmployeeID_Login || LoginID);
+                
+                var dDate = $("#dDate").val();
+                var dDue = $("#dDue").val();
+
+                if(!parent || !mainUser) {
+                    uiManager.showAlert({ 
+                        type: "warning",  
+                        message: "Vui lòng chọn Công việc chính và Người chịu trách nhiệm chính"
+                    });
+                    return;
+                }
+
+                var details = [];
+                
+                $(".subtask-checkbox:checked").each(function() {
+                    var idx = $(this).data("idx");
+                    var template = currentTemplate[idx];
+                    if (!template) return;
+
+                    var empSelector = $(`#assignee-${idx}`).data("hpaControlEmployeeSelector");
+                    var emps = empSelector ? empSelector.getSelectedIds() : [];
+                    
+                    var from = $(`.st-from[data-idx="${idx}"]`).val();
+                    var to = $(`.st-to[data-idx="${idx}"]`).val();
+                    var priority = $(`.st-priority[data-idx="${idx}"]`).val();
+
+                    if(emps && emps.length > 0) {
+                        emps.forEach(function(emp) {
+                            details.push({
+                                ChildTaskID: template.ChildTaskID,
+                                EmployeeID: emp,
+                                Priority: parseInt(priority) || 3,
+                                StartDate: from || null,
+                                EndDate: to || null
+                            });
+                        });
+                    }
+                });
+
+                AjaxHPAParadise({
+                    data: {
+                        name: "sp_Task_AssignWithDetails",
+                        param: [
+                            "ParentTaskID", parent,
+                            "MainResponsibleID", mainUser,
+                            "AssignmentDetails", JSON.stringify(details),
+                            "AssignmentDate", dDate,
+                            "AssignmentDueDate", dDue,
+                            "CommittedHours", null,
+                            "AssignedBy", LoginID
+                        ]
+                    },
+                    success: function() {
+                        uiManager.showAlert({
+                            type: "success",
+                            message: "Giao việc thành công!"
+                        });
+                        bootstrap.Modal.getInstance(document.getElementById("mdlAssign")).hide();
+                        loadTasks();
+                    }
+                });
+            }
+
+        })();
+    </script>
+    ';
+    SELECT @html AS html;
+END
+GO
+
+EXEC sp_GenerateHTMLScript 'sp_Task_MyWork_html'
