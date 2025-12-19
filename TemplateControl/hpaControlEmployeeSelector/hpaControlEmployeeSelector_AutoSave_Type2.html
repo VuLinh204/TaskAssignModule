@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="vi">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>hpaControlEmployeeSelector - AutoSave Type 2 (Lazy load giả lập)</title>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" />
+        <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+        <style>
+            body {
+                padding: 40px;
+                background: #e8f5e9;
+                font-family: system-ui, sans-serif;
+            }
+            h2 {
+                color: #2e7d32;
+            }
+            .table {
+                table-layout: fixed;
+                width: 100%;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            }
+            pre {
+                background: #fff;
+                border: 1px solid #c8e6c9;
+                border-radius: 8px;
+            }
+            :root {
+                --border-color: #e6edf3;
+                --task-primary: #2e7d32;
+            }
+            th.col-id {
+                width: 80px;
+            }
+            th.col-emp {
+                width: calc(100% - 80px);
+            }
+
+            .hpa-emp-dropdown-wrapper {
+                position: relative;
+                display: inline-block;
+                width: 100%;
+            }
+
+            .hpa-emp-dropdown-btn {
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                padding: 6px 8px;
+                border: 1px solid var(--border-color);
+                border-radius: 20px;
+                cursor: pointer;
+                transition: all 0.12s ease;
+                font-size: 13px;
+                white-space: nowrap;
+                background: #fff;
+                box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
+                width: 100%;
+            }
+            .hpa-emp-dropdown-btn:hover {
+                border-color: #c7d2da;
+                transform: translateY(-1px);
+            }
+
+            .hpa-emp-dropdown-chips {
+                display: flex;
+                align-items: center;
+                gap: 0;
+                flex: 1;
+                min-width: 0;
+            }
+
+            .hpa-emp-dropdown-chip-text {
+                border-radius: 50%;
+                overflow: hidden;
+                flex-shrink: 0;
+                border: 2px solid white;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.12);
+                margin-left: -8px;
+                transition: all 0.2s;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: 600;
+                background: #e9ecef;
+                width: 32px;
+                height: 32px;
+                font-size: 11px;
+            }
+            .hpa-emp-dropdown-chip-text:first-child {
+                margin-left: 0;
+            }
+            .hpa-emp-dropdown-chip-text:hover {
+                transform: scale(1.1);
+                z-index: 10;
+            }
+
+            .hpa-emp-dropdown-count {
+                font-weight: 600;
+                color: #495057;
+                margin-left: 4px;
+            }
+
+            .hpa-emp-dropdown-icon {
+                margin-left: auto;
+                color: #6c757d;
+                transition: transform 0.2s;
+            }
+
+            .hpa-emp-dropdown-btn.open .hpa-emp-dropdown-icon {
+                transform: rotate(180deg);
+            }
+
+            /* Dropdown absolute + hướng lên nếu cần */
+            .hpa-emp-dropdown-container {
+                display: none;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                margin-top: 4px;
+                z-index: 9999;
+                border: 1px solid #dee2e6;
+                border-radius: 8px;
+                box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+                overflow: hidden;
+                background: #fff;
+                width: 380px;
+                max-height: 420px;
+            }
+            .hpa-emp-dropdown-container.open {
+                display: block;
+            }
+            .hpa-emp-dropdown-container.upward {
+                top: auto;
+                bottom: 100%;
+                margin-top: 0;
+                margin-bottom: 4px;
+            }
+
+            .hpa-emp-dropdown-header {
+                padding: 12px;
+                border-bottom: 1px solid #dee2e6;
+                background: #f8f9fa;
+            }
+
+            .hpa-emp-dropdown-search {
+                width: 100%;
+                padding: 8px 12px;
+                border: 1px solid #dee2e6;
+                border-radius: 4px;
+                font-size: 13px;
+                outline: none;
+                box-sizing: border-box;
+            }
+            .hpa-emp-dropdown-search:focus {
+                border-color: var(--task-primary);
+                box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.1);
+            }
+
+            .hpa-emp-dropdown-body {
+                overflow-y: auto;
+                max-height: 360px;
+            }
+
+            .hpa-emp-item {
+                padding: 8px 12px;
+                border-radius: 4px;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+            .hpa-emp-item:hover {
+                background: #c8e6c9;
+            }
+            .hpa-emp-item.selected {
+                background: var(--task-primary);
+                color: white;
+                font-weight: 600;
+            }
+
+            .hpa-emp-item-chip {
+                width: 32px;
+                height: 32px;
+                border-radius: 50%;
+                background: #e9ecef;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: 600;
+                font-size: 11px;
+            }
+
+            .hpa-emp-loading {
+                text-align: center;
+                color: #78909c;
+                padding: 12px;
+            }
+
+            .hpa-emp-backdrop {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: transparent;
+                z-index: 9998;
+                display: none;
+            }
+            .hpa-emp-backdrop.open {
+                display: block;
+            }
+        </style>
+    </head>
+    <body>
+        <h2 class="mb-4">hpaControlEmployeeSelector - Có AutoSave - Type 2 (Lazy load giả lập)</h2>
+        <p>Multi select • Lazy load khi scroll • Search local • AutoSave</p>
+
+        <table class="table table-bordered table-hover align-middle">
+            <thead class="table-success">
+                <tr>
+                    <th class="col-id">ID</th>
+                    <th class="col-emp">Nhân viên phụ trách</th>
+                </tr>
+            </thead>
+            <tbody id="taskBody"></tbody>
+        </table>
+
+        <div class="mt-5">
+            <h5>Dữ liệu mẫu hiện tại:</h5>
+            <pre id="dataPreview" class="p-3 rounded shadow-sm"></pre>
+        </div>
+
+        <script>
+            // DỮ LIỆU MẪU (200 nhân viên để test lazy load)
+            let allEmployees = Array.from({ length: 200 }, (_, i) => ({
+                EmployeeID: String(i + 1),
+                FullName: `Nhân viên ${i + 1} - ${['An', 'Bình', 'Cường', 'Dung', 'Em', 'Quân', 'Hoa', 'Khánh'][i % 8]}`,
+            }));
+
+            let records = [
+                { TaskID: 1, Employees: ['10', '50', '100'] },
+                { TaskID: 2, Employees: [] },
+                { TaskID: 3, Employees: ['150'] },
+                { TaskID: 4, Employees: ['5', '20'] },
+            ];
+
+            function renderTasks() {
+                const $body = $('#taskBody').empty();
+                records.forEach((record) => {
+                    $body.append(`
+                        <tr>
+                            <td>${record.TaskID}</td>
+                            <td class="emp-selector"></td>
+                        </tr>
+                    `);
+                });
+                applySelectors();
+                $('#dataPreview').text(JSON.stringify(records, null, 2));
+            }
+
+            // CONTROL AUTOSAVE TYPE 2 - LAZY LOAD GIẢ LẬP (ĐÃ SỬA 2 YÊU CẦU)
+            function hpaControlEmployeeSelector(el) {
+                const $el = $(el);
+
+                const uniqueId = 'emp_lazy_' + Date.now() + Math.random().toString(36).substr(2, 9);
+                const wrapper = $(`<div class="hpa-emp-dropdown-wrapper"></div>`);
+                const btn = $(`<div class="hpa-emp-dropdown-btn">
+                                <div class="hpa-emp-dropdown-chips"></div>
+                                <span class="hpa-emp-dropdown-icon"><i class="bi bi-chevron-down"></i></span>
+                            </div>`);
+                const dropdown = $(`<div id="${uniqueId}_dropdown" class="hpa-emp-dropdown-container">
+                                <div class="hpa-emp-dropdown-header">
+                                    <input type="text" class="hpa-emp-dropdown-search" placeholder="Tìm kiếm nhân viên..." />
+                                </div>
+                                <div class="hpa-emp-dropdown-body">
+                                    <div class="hpa-emp-items"></div>
+                                </div>
+                            </div>`);
+                const backdrop = $(`<div id="${uniqueId}_backdrop" class="hpa-emp-backdrop"></div>`);
+
+                // Dropdown nằm trong wrapper → scroll theo cha
+                wrapper.append(btn).append(dropdown);
+                $('body').append(backdrop);
+                $el.empty().append(wrapper);
+
+                let selected = [];
+                let fetched = [];
+                let skip = 0;
+                const take = 30;
+                let hasMore = true;
+                let currentFilter = '';
+
+                function getInitials(name) {
+                    const words = name.trim().split(/\s+/);
+                    if (words.length >= 2) return (words[0][0] + words[words.length - 1][0]).toUpperCase();
+                    return name.substring(0, 2).toUpperCase();
+                }
+
+                function renderButton() {
+                    const $chips = btn.find('.hpa-emp-dropdown-chips').empty();
+                    if (selected.length === 0) {
+                        $chips.html(`<span style="color:#78909c">Chọn nhân viên</span>`);
+                    } else {
+                        const maxVisible = 3;
+                        const visible = selected.slice(0, maxVisible);
+                        visible.forEach((id) => {
+                            const emp = fetched.find((e) => e.EmployeeID === id) || allEmployees.find((e) => e.EmployeeID === id);
+                            if (emp) {
+                                const initials = getInitials(emp.FullName);
+                                $chips.append(`<div class="hpa-emp-dropdown-chip-text" title="${emp.FullName}">${initials}</div>`);
+                            }
+                        });
+                        if (selected.length > maxVisible) {
+                            $chips.append(`<span class="hpa-emp-dropdown-count">+${selected.length - maxVisible}</span>`);
+                        }
+                    }
+                }
+
+                function fetchAndRender(filter = '', append = false) {
+                    if (!append) {
+                        fetched = [];
+                        skip = 0;
+                        hasMore = true;
+                        currentFilter = filter;
+                    }
+
+                    setTimeout(() => {
+                        let data = allEmployees;
+                        if (filter) {
+                            const q = filter.toLowerCase();
+                            data = allEmployees.filter((e) => e.FullName.toLowerCase().includes(q));
+                        }
+                        const page = data.slice(skip, skip + take);
+                        fetched = fetched.concat(page);
+                        skip += take;
+                        hasMore = skip < data.length;
+
+                        const $items = dropdown.find('.hpa-emp-items');
+                        if (!append) $items.empty();
+
+                        page.forEach((emp) => {
+                            const initials = getInitials(emp.FullName);
+                            const isSel = selected.includes(emp.EmployeeID);
+                            const item = $(`<div class="hpa-emp-item ${isSel ? 'selected' : ''}">
+                                <div class="hpa-emp-item-chip">${initials}</div>
+                                <span>${emp.FullName}</span>
+                            </div>`);
+                            item.on('click', () => {
+                                const idx = selected.indexOf(emp.EmployeeID);
+                                if (idx === -1) selected.push(emp.EmployeeID);
+                                else selected.splice(idx, 1);
+                                renderButton();
+                                // Gọi lại fetchAndRender để cập nhật trạng thái selected
+                                fetchAndRender(currentFilter, false);
+
+                                // AutoSave
+                                const rowId = $el.closest('tr').find('td:first').text();
+                                const record = records.find((r) => r.TaskID == rowId);
+                                if (record) record.Employees = selected.slice();
+                                renderTasks();
+                                alert('Cập nhật nhân viên thành công!');
+                            });
+                            $items.append(item);
+                        });
+
+                        // XÓA thông báo "Scroll để tải thêm..." nếu đã hết dữ liệu
+                        $items.find('.hpa-emp-loading').remove();
+                        if (hasMore) {
+                            $items.append(`<div class="hpa-emp-loading">Scroll để tải thêm...</div>`);
+                        }
+                    }, 300);
+                }
+
+                // Điều chỉnh hướng dropdown (xuống dưới hoặc lên trên)
+                function adjustDropdownDirection() {
+                    dropdown.removeClass('upward');
+                    const wrapperRect = wrapper[0].getBoundingClientRect();
+                    const spaceBelow = window.innerHeight - wrapperRect.bottom;
+                    const dropdownHeight = dropdown.outerHeight() || 420;
+
+                    if (spaceBelow < dropdownHeight + 20) {
+                        dropdown.addClass('upward');
+                    }
+                }
+
+                btn.on('click', (e) => {
+                    e.stopPropagation();
+                    if (btn.hasClass('open')) {
+                        btn.removeClass('open');
+                        dropdown.removeClass('open').hide();
+                        backdrop.removeClass('open');
+                    } else {
+                        $('.hpa-emp-dropdown-btn').not(btn).removeClass('open');
+                        $('.hpa-emp-dropdown-container').not(dropdown).removeClass('open').hide();
+                        $('.hpa-emp-backdrop').not(backdrop).removeClass('open');
+
+                        btn.addClass('open');
+                        adjustDropdownDirection();
+                        dropdown.addClass('open').show();
+                        backdrop.addClass('open');
+
+                        // Reset scroll về đầu khi mở lại
+                        dropdown.find('.hpa-emp-dropdown-body').scrollTop(0);
+
+                        dropdown.find('.hpa-emp-dropdown-search').val('').focus();
+                        fetchAndRender('', false);
+                    }
+                });
+
+                dropdown.find('.hpa-emp-dropdown-search').on('input', function () {
+                    fetchAndRender($(this).val(), false);
+                });
+
+                dropdown.find('.hpa-emp-dropdown-body').on('scroll', function () {
+                    const scrollTop = $(this).scrollTop();
+                    const scrollHeight = this.scrollHeight;
+                    const clientHeight = this.clientHeight;
+                    if (scrollTop + clientHeight >= scrollHeight - 50 && hasMore) {
+                        fetchAndRender(currentFilter, true);
+                    }
+                });
+
+                backdrop.on('click', () => {
+                    btn.removeClass('open');
+                    dropdown.removeClass('open').hide();
+                    backdrop.removeClass('open');
+                });
+
+                $(document).on('click', (e) => {
+                    if (!wrapper.is(e.target) && wrapper.has(e.target).length === 0 && !dropdown.is(e.target) && dropdown.has(e.target).length === 0) {
+                        btn.removeClass('open');
+                        dropdown.removeClass('open').hide();
+                        backdrop.removeClass('open');
+                    }
+                });
+
+                // Load giá trị hiện tại
+                const rowId = $el.closest('tr').find('td:first').text();
+                const record = records.find((r) => r.TaskID == rowId);
+                if (record && record.Employees) selected = record.Employees.slice();
+
+                renderButton();
+            }
+
+            function applySelectors() {
+                $('.emp-selector').each(function () {
+                    hpaControlEmployeeSelector(this);
+                });
+            }
+
+            $(document).ready(renderTasks);
+        </script>
+    </body>
+</html>

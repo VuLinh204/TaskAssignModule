@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="vi">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>hpaControlField - FULL (Textarea + Single Select)</title>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" />
+        <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+        <style>
+            body {
+                padding: 40px;
+                background: #f8f9fa;
+                font-family: system-ui, sans-serif;
+            }
+            h2 {
+                color: #155724;
+            }
+            .table {
+                table-layout: fixed;
+                width: 100%;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            }
+            pre {
+                background: #fff;
+                border: 1px solid #dee2e6;
+                border-radius: 8px;
+            }
+            th.col-id {
+                width: 80px;
+            }
+            th.col-desc {
+                width: 60%;
+            }
+            th.col-status {
+                width: calc(40% - 80px);
+            }
+        </style>
+    </head>
+    <body>
+        <h2 class="mb-4">hpaControlField - Phiên bản FULL</h2>
+        <p>Textarea + Single select • AutoSave • allowAdd • UI chuẩn</p>
+
+        <table class="table table-bordered table-hover align-middle">
+            <thead class="table-success">
+                <tr>
+                    <th class="col-id">ID</th>
+                    <th class="col-desc">Mô tả chi tiết (textarea)</th>
+                    <th class="col-status">Trạng thái (single select)</th>
+                </tr>
+            </thead>
+            <tbody id="taskBody"></tbody>
+        </table>
+
+        <div class="mt-5">
+            <h5>Dữ liệu mẫu hiện tại:</h5>
+            <pre id="dataPreview" class="p-3 rounded shadow-sm"></pre>
+        </div>
+
+        <script>
+            // DỮ LIỆU MẪU
+            let records = [
+                { TaskID: 1, Description: 'Trang chủ mới với chart realtime, dark mode, responsive', Status: 'Đang làm' },
+                { TaskID: 2, Description: '', Status: '' },
+                { TaskID: 3, Description: 'API user: CRUD, JWT, refresh token, phân quyền', Status: 'Hoàn thành' },
+                { TaskID: 4, Description: '', Status: '' },
+            ];
+
+            let statuses = [
+                { value: 'Đang làm', text: 'Đang làm' },
+                { value: 'Chưa làm', text: 'Chưa làm' },
+                { value: 'Hoàn thành', text: 'Hoàn thành' },
+                { value: 'Tạm dừng', text: 'Tạm dừng' },
+            ];
+
+            function renderTasks() {
+                const $body = $('#taskBody').empty();
+                records.forEach((record) => {
+                    $body.append(`
+            <tr>
+                <td>${record.TaskID}</td>
+                <td class="field textarea" data-field="Description">${record.Description || ''}</td>
+                <td class="field select" data-field="Status"></td>
+            </tr>
+        `);
+                });
+                applyFields();
+                $('#dataPreview').text(JSON.stringify(records, null, 2));
+            }
+
+            // CONTROL FULL - TEXTAREA + SINGLE SELECT
+            function hpaControlField(el) {
+                const $el = $(el);
+                const isTextarea = $el.hasClass('textarea');
+
+                if (isTextarea) {
+                    const curVal = $el.text().trim();
+                    const $textarea = $(`<textarea class="form-control form-control-sm" rows="4" placeholder="Nhập mô tả...">${curVal}</textarea>`);
+                    $el.empty().append($textarea);
+
+                    $textarea.on('blur', () => {
+                        const newVal = $textarea.val().trim();
+                        if (newVal !== curVal) {
+                            const rowId = $el.closest('tr').find('td:first').text();
+                            const record = records.find((r) => r.TaskID == rowId);
+                            if (record) record.Description = newVal;
+                            renderTasks();
+                            alert('Cập nhật mô tả thành công!');
+                        }
+                    });
+
+                    $el.on('click', () => $textarea.focus());
+                } else {
+                    // Single select
+                    let selected = [];
+
+                    if (!window.__selectCSS) {
+                        window.__selectCSS = true;
+                        const style = document.createElement('style');
+                        style.textContent = `
+                            .select-wrapper { position: relative; width: 100%; }
+                            .select-display { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border: 1px solid #cfd8dc; border-radius: 6px; cursor: pointer; background: #fff; min-height: 38px; }
+                            .select-display.focused { border-color: #2e7d32; box-shadow: 0 0 0 4px rgba(46,125,94,0.1); }
+                            .select-dropdown { position: absolute; top: calc(100% + 8px); left: 0; right: 0; background: white; border: 1px solid #cfd8dc; border-radius: 6px; box-shadow: 0 8px 24px rgba(0,0,0,0.15); max-height: 320px; overflow: auto; display: none; z-index: 3000; padding: 8px; }
+                            .select-item { padding: 8px 12px; border-radius: 4px; cursor: pointer; }
+                            .select-item:hover { background: #e8f5e9; }
+                            .select-item.selected { background: #2e7d32; color: white; }
+                        `;
+                        document.head.appendChild(style);
+                    }
+
+                    const wrapper = $(`<div class="select-wrapper"></div>`);
+                    const display = $(`<div class="select-display"><div class="select-text"></div><i class="bi bi-chevron-down ms-auto"></i></div>`);
+                    const dropdown = $(`<div class="select-dropdown"><div class="select-items"></div></div>`);
+                    wrapper.append(display).append(dropdown);
+                    $el.empty().append(wrapper);
+
+                    function renderDisplay() {
+                        const $t = display.find('.select-text').empty();
+                        if (selected.length === 0) {
+                            $t.html(`<span style="color:#78909c">Chọn trạng thái...</span>`);
+                        } else {
+                            const item = statuses.find((o) => o.value === selected[0]);
+                            $t.text(item ? item.text : selected[0]);
+                        }
+                    }
+
+                    function renderList() {
+                        const container = dropdown.find('.select-items').empty();
+                        statuses.forEach((o) => {
+                            const isSel = selected.includes(o.value);
+                            const item = $(`<div class="select-item ${isSel ? 'selected' : ''}">${o.text}</div>`);
+                            item.on('click', () => {
+                                selected = [o.value];
+                                renderDisplay();
+                                dropdown.hide();
+                                display.removeClass('focused');
+
+                                const rowId = $el.closest('tr').find('td:first').text();
+                                const record = records.find((r) => r.TaskID == rowId);
+                                if (record) record.Status = o.value;
+                                renderTasks();
+                                alert('Cập nhật trạng thái thành công!');
+                            });
+                            container.append(item);
+                        });
+                    }
+
+                    display.on('click', (e) => {
+                        e.stopPropagation();
+                        dropdown.toggle();
+                        display.toggleClass('focused');
+                        if (dropdown.is(':visible')) renderList();
+                    });
+
+                    $(document).on('click.selectClose', (e) => {
+                        if (!wrapper.is(e.target) && wrapper.has(e.target).length === 0) {
+                            dropdown.hide();
+                            display.removeClass('focused');
+                        }
+                    });
+
+                    const rowId = $el.closest('tr').find('td:first').text();
+                    const record = records.find((r) => r.TaskID == rowId);
+                    if (record && record.Status) selected = [record.Status];
+                    renderDisplay();
+                }
+            }
+
+            function applyFields() {
+                $('.field').each(function () {
+                    hpaControlField(this);
+                });
+            }
+
+            $(document).ready(renderTasks);
+        </script>
+    </body>
+</html>

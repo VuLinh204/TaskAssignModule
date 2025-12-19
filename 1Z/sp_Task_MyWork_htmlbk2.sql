@@ -304,7 +304,7 @@ BEGIN
             margin-left: 0;
         }
         #sp_Task_MyWork_html .row-main {
-            min-width: 0;
+            min-width: 200px;
         }
         #sp_Task_MyWork_html .row-progress {
             width: 220px;
@@ -911,8 +911,6 @@ BEGIN
             gap: 12px;
             align-items: center;
             padding: 8px 12px;
-            border-bottom: 1px solid var(--bg-lighter);
-            background: var(--bg-white);
         }
 
         @media (max-width: 768px) {
@@ -1508,7 +1506,7 @@ BEGIN
 
                     hpaControlEditableRow(this, {
                         type: "text",
-                        tableName: "tblTask",
+                        tableSN: "-1233093056",
                         columnName: "TaskName",
                         idColumnName: "TaskID",
                         idValue: taskId,
@@ -1736,7 +1734,6 @@ BEGIN
             // Populate timeline DOM for a single task (called after list HTML is rendered)
             function populateTimelineForTask(t) {
                 try {
-                    console.log("[populateTimelineForTask] start", t && t.TaskID, t);
                     var timelineContainerId = `timeline-container-${t.TaskID}`;
                     var $el = $(`#${timelineContainerId}`);
                     if (!$el.length) return;
@@ -1751,7 +1748,6 @@ BEGIN
                         }
                     } catch(e) { raw = []; }
                     if (!Array.isArray(raw)) raw = [raw];
-                    console.log("[populateTimelineForTask] raw after-parse", raw);
 
                     var entries = [];
                     raw.forEach(function(e){
@@ -1768,7 +1764,6 @@ BEGIN
                         if (t.DueDate) entries.push({ dt: new Date(t.DueDate), label: "Due" });
                     }
 
-                    console.log("[populateTimelineForTask] normalized entries", entries);
                     $el.html(buildTimelineHtml(entries));
                 } catch(e) {}
             }
@@ -2042,7 +2037,6 @@ BEGIN
                 $root.find(".row-priority-select, .row-priority-field").each(function () {
                     const $el = $(this);
                     const historyId = $el.attr("data-historyid");
-                    console.log("[initRowPriorityControls] init for historyId=", historyId);
                     const currentPriority = parseInt($el.data("priority") || $el.data("current-priority") || $el.val() || 3);
 
                     // Avoid double-init: if already initialized (wrapper present), skip
@@ -2266,7 +2260,7 @@ BEGIN
 
                     // Return simplified row HTML (with timeline)
                     return `
-                    <div class="cu-row task-row draggable subtask-row" data-recordid="${t.TaskID}" data-historyid="${t.HistoryID}" draggable="true" style="padding-left:30px; display:flex;align-items:center;gap:12px;">
+                    <div class="cu-row task-row draggable subtask-row" data-recordid="${t.TaskID}" data-historyid="${t.HistoryID}" draggable="true" style="padding-left:30px; display:flex;align-items:center;gap:12px;overflow-x:auto;">
                         <div class="row-check" style="width:40px;">
                             <i class="bi bi-grip-vertical row-drag-handle"></i>
                             <i class="bi bi-flag-fill priority-icon ${prioClass}"></i>
@@ -2336,7 +2330,6 @@ BEGIN
 
                 // Timeline container id
                 var timelineContainerId = `timeline-container-${t.TaskID}`;
-                console.log("timelineContainerId", timelineContainerId);
 
                 // Initialize assignee selector, priority and timeline after render
                 setTimeout(function() {
@@ -2494,7 +2487,6 @@ BEGIN
                     window.sp_Task_TaskDetail_html = window.sp_Task_TaskDetail_html || {};
                     window.sp_Task_TaskDetail_html.TaskID = taskID;
                     window.sp_Task_TaskDetail_html.TaskData = task;
-                    console.log("[openTaskDetail] passing TaskData to detail", task && task.TaskID, task);
                 } catch (e) { /* ignore */ }
 
                 if (["Android", "iOS"].includes(getMobileOperatingSystem())) {
@@ -2617,8 +2609,6 @@ BEGIN
                             // When hidden parent select changes, hide subtasks if cleared
                             if($("#parentTaskCombobox .hpa-field-item.selected").val()) {
                                 $("#subtask-assign-container").html(`<div class="empty-state" style="grid-column: 1 / -1;"><i class="bi bi-inbox"></i><p>Vui lòng chọn Công việc chính ở trên</p></div>`);
-                            } else {
-                                console.log("parentTaskCombobox cleared");
                             }
                         }
                     });
@@ -2662,8 +2652,6 @@ BEGIN
                 } else {
                     $("#dDate").val(today);
                 }
-
-                console.log("[renderAssignDropdowns] Dropdowns initialized");
             }
             function loadAssignTemplate() {
                 let pid = $("#selParent").val();
@@ -2977,9 +2965,6 @@ BEGIN
                                 .filter(Boolean);
                         }
 
-                        // ✅ Log để debug
-                        console.log(`[Subtask ${idx}] Pre-selected IDs:`, preSelectedIds);
-
                         hpaControlEmployeeSelector(`#assignee-${idx}`, {
                             selectedIds: preSelectedIds,  // ← Truyền đúng IDs
                             ajaxListName: "EmployeeListAll_DataSetting_Custom",
@@ -2988,7 +2973,6 @@ BEGIN
                             onChange: function(selectedIds) {
                                 // Lưu vào data attribute để lấy khi submit
                                 $(`#assignee-${idx}`).data("selected", selectedIds);
-                                console.log(`[Subtask ${idx}] Changed to:`, selectedIds);
                             }
                         });
                     });
@@ -2999,7 +2983,6 @@ BEGIN
                 let mainUser = $("#selMainUser").val();
                 let dDate = $("#dDate").val();
                 let dDue = $("#dDue").val();
-                console.log("[submitAssignment] parent:", parent, "mainUser:", mainUser, "dDate:", dDate, "dDue:", dDue);
                 if(!parent || !mainUser) {
                     uiManager.showAlert({ type: "warning",  message: "Vui lòng chọn Công việc chính và Người chịu trách nhiệm chính",});
                     return;
@@ -3387,8 +3370,6 @@ BEGIN
             }
             function saveSubtaskOrder(context) {
                 try {
-                    console.log("[saveSubtaskOrder] start", context);
-
                     var $container = null;
                     try {
                         if (context && context.closest) {
@@ -3441,7 +3422,6 @@ BEGIN
                     }
 
                     var orderedIdsCSV = orderedIds.join(",");
-                    console.log("[saveSubtaskOrder] parentId", parentId, "ordered", orderedIdsCSV);
 
                     // Call API to save ordering
                     AjaxHPAParadise({
@@ -3600,7 +3580,6 @@ BEGIN
                         // determine new position index
                         var newIndex = $(".cu-list .cu-row.draggable:not(.header-row)").index(movedRow);
                         var newPos = (newIndex >= 0) ? (newIndex + 1) : 1;
-                        console.log("[saveListOrder] updating single HistoryID", movedHistoryId, "->", newPos);
                         AjaxHPAParadise({
                             data: {
                                 name: "sp_Common_SaveDataTable",
@@ -3621,13 +3600,12 @@ BEGIN
                     }
                 }
             }
-            
         })();
     </script>
     ';
     SELECT @html AS html;
-    --EXEC sp_GenerateHTMLScript 'sp_Task_MyWork_html'
+    -- EXEC sp_GenerateHTMLScript 'sp_Task_MyWork_html', '-1', 'controlname = ''hpaControlEditableRow'' and autoSave = ''1'''
 END
 GO
 
-EXEC sp_GenerateHTMLScript 'sp_Task_MyWork_html'
+EXEC sp_GenerateHTMLScript 'sp_Task_MyWork_html', '-1', 'controlname = ''hpaControlEditableRow'' and autoSave = ''1'''

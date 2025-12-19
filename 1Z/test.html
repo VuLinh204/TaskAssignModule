@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Document</title>
+        <link rel="stylesheet" href="https://cdn3.devexpress.com/jslib/23.1.6/css/dx.light.css" />
+
+        <!-- jQuery (BẮT BUỘC) -->
+        <link rel="stylesheet" href="https://cdn3.devexpress.com/jslib/23.1.6/css/dx.light.css" />
+
+        <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+        <script src="https://cdn3.devexpress.com/jslib/23.1.6/js/jszip.min.js"></script>
+        <script src="https://cdn3.devexpress.com/jslib/23.1.6/js/dx.all.js"></script>
+    </head>
+    <body>
+        <style>
+            .employee-item {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+
+            .employee-item img {
+                width: 32px;
+                height: 32px;
+                border-radius: 50%;
+            }
+
+            .employee-tag {
+                display: flex;
+                align-items: center;
+                gap: 6px;
+            }
+
+            .employee-tag img {
+                width: 20px;
+                height: 20px;
+                border-radius: 50%;
+            }
+        </style>
+        <div id="employeeSelector"></div>
+        <script>
+            const employees = [
+                {
+                    ID: 1,
+                    Name: 'NGUYỄN THANH LONG',
+                    Avatar: 'https://i.pravatar.cc/40?img=1',
+                },
+                {
+                    ID: 2,
+                    Name: 'NGUYỄN TRƯỜNG LONG',
+                    Avatar: 'https://i.pravatar.cc/40?img=2',
+                },
+                {
+                    ID: 3,
+                    Name: 'NGUYỄN TẤN CHIẾN',
+                    Avatar: 'https://i.pravatar.cc/40?img=3',
+                },
+                {
+                    ID: 4,
+                    Name: 'VŨ ĐÌNH CƯỜNG',
+                    Avatar: 'https://i.pravatar.cc/40?img=4',
+                },
+                {
+                    ID: 5,
+                    Name: 'ĐỖ THỊ HOÀI THANH',
+                    Avatar: 'https://i.pravatar.cc/40?img=5',
+                },
+                {
+                    ID: 6,
+                    Name: 'TRƯƠNG QUỐC PHONG',
+                    Avatar: 'https://i.pravatar.cc/40?img=6',
+                },
+            ];
+
+            $('#employeeSelector').dxTagBox({
+                dataSource: employees,
+                valueExpr: 'ID',
+                displayExpr: 'Name',
+                searchEnabled: true,
+                showSelectionControls: true,
+                maxDisplayedTags: 3,
+                multiline: false,
+                placeholder: 'Chọn nhân viên',
+                itemTemplate(itemData) {
+                    return `
+                <div class="employee-item">
+                    <img src="${itemData.Avatar}" />
+                    <span>${itemData.Name}</span>
+                </div>
+            `;
+                },
+                tagTemplate(itemData) {
+                    return `
+                <div class="employee-tag">
+                    <img src="${itemData.Avatar}" />
+                    <span>${itemData.Name}</span>
+                </div>
+            `;
+                },
+                onValueChanged(e) {
+                    console.log('Selected IDs:', e.value);
+                },
+            });
+        </script>
+    </body>
+</html>
