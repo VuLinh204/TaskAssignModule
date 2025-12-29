@@ -316,10 +316,8 @@ SET @html = N'
                 });
             }
 
-            $(document).ready(function() {
-                loadUI();
-                loadData();
-            });
+            loadUI();
+            loadData();
         })();
     </script>
 ';

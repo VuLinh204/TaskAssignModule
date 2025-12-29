@@ -1,7 +1,7 @@
 USE Paradise_Beta_Tai2
 GO
 if object_id('[dbo].[sptblCommonControlType_Signed_Linh]') is null
-	EXEC ('CREATE PROCEDURE [dbo].[sptblCommonControlType_Signed_Linh] as select 1')
+ EXEC ('CREATE PROCEDURE [dbo].[sptblCommonControlType_Signed_Linh] as select 1')
 GO
 ALTER PROCEDURE [dbo].[sptblCommonControlType_Signed_Linh]
     @TableName VARCHAR(256) = ''
@@ -71,6 +71,7 @@ BEGIN
         }
 
         let %columnName%Instance, %columnName%OriginalValue, %columnName%IsEditing = false;
+
 
 
         function loadUI%columnName%() {
@@ -227,7 +228,7 @@ BEGIN
         let %columnName%Instance
         let %columnName%OriginalValue = null
 
-    function loadUI%columnName%() {
+  function loadUI%columnName%() {
             const $container = $("#%IDDiv%");
 
             const customStore = new DevExpress.data.CustomStore({
@@ -777,7 +778,7 @@ BEGIN
                         deferred.resolve(filteredData);
                     }, 300);
 
-          return deferred.promise();
+ return deferred.promise();
                 }
             });
 
@@ -878,7 +879,7 @@ BEGIN
                 try {
                     AjaxHPAParadise({
  data: {
-                            name: "sp_GetParadiseFile",
+              name: "sp_GetParadiseFile",
                             param: [employee.storeImgName, employee.paramImg]
                         },
                         success: function(res) {
@@ -964,7 +965,7 @@ BEGIN
                         if (cachedUrl) {
                             $chip.append(
                                 $("<img>").attr({ src: cachedUrl, alt: item.Name || item.FullName || "" }).css({
-                                    width: "100%", height: "100%", objectFit: "cover"
+                               width: "100%", height: "100%", objectFit: "cover"
                                 })
                             );
                         } else {
@@ -1053,7 +1054,7 @@ BEGIN
                     gridContainer.dxDataGrid({
                         dataSource: DataSource,
                         keyExpr: "ID",
-                        selection: {
+           selection: {
                             mode: "multiple",
                             showCheckBoxesMode: "always"
                         },
@@ -1116,7 +1117,7 @@ BEGIN
                                     container.append(
                                         $("<div>").addClass("small").css("word-break", "break-word").text(email)
                           );
-                       }
+    }
                             }
                         ],
                         showBorders: true,
@@ -1308,7 +1309,7 @@ BEGIN
                 byKey: function(key) {
                     const item = DataSource.find(i => i.ID === key);
                     return $.Deferred().resolve(item || null).promise();
-                },
+           },
                 load: function(loadOptions) {
                     const searchValue = loadOptions.searchValue || "";
                     let filteredData = DataSource;
@@ -1461,7 +1462,7 @@ BEGIN
                         %columnName%OriginalValue = val;
     } else {
                         %columnName%OriginalValue = [];
-                    }
+   }
                     if (%columnName%Instance) {
                         %columnName%Instance.option("value", %columnName%OriginalValue);
                     }
@@ -1553,7 +1554,7 @@ BEGIN
  %columnName%OriginalValue = [];
                     }
                     if (%columnName%Instance) {
-                        %columnName%Instance.option("value", %columnName%OriginalValue);
+                   %columnName%Instance.option("value", %columnName%OriginalValue);
                     }
                 },
                 getValue: function() {
@@ -1640,7 +1641,7 @@ BEGIN
                     if (typeof val === "string") {
                  %columnName%OriginalValue = val.split(",").map(v => {
                const num = parseInt(v);
-                            return isNaN(num) ? v : num;
+                       return isNaN(num) ? v : num;
                         });
                     } else if (Array.isArray(val)) {
                         %columnName%OriginalValue = val;
@@ -1741,18 +1742,18 @@ BEGIN
     BEGIN
         SET @columnsConfig = N''
         SELECT @gridColumnId = columnId FROM #temptable WHERE ColumnName = @currentGrid AND Type = 'hpaControlGrid'
-        
+
         -- Lấy GridPrimaryKeyField từ config table
-        SELECT @gridPrimaryKey = ISNULL(GridPrimaryKeyField, @gridColumnId) FROM dbo.tblCommonControlType_Signed 
+        SELECT @gridPrimaryKey = ISNULL(GridPrimaryKeyField, @gridColumnId) FROM dbo.tblCommonControlType_Signed
         WHERE ColumnName = @currentGrid AND Type = 'hpaControlGrid'
-        
+
         IF @gridPrimaryKey IS NULL
             SET @gridPrimaryKey = @gridColumnId
 
         -- Build columns config - SIMPLE: no cellTemplate, just display data
         SELECT @columnsConfig +=
             CASE WHEN @columnsConfig <> N'' THEN N',' + CHAR(13)+CHAR(10) ELSE N'' END +
-            N'    { dataField: "' + ChildColumnName + N'", caption: "' + Caption + N'", width: 150, allowEditing: ' + 
+            N'    { dataField: "' + ChildColumnName + N'", caption: "' + Caption + N'", width: 150, allowEditing: ' +
             CASE WHEN ReadOnly = 1 THEN 'false' ELSE 'true' END + N' }'
         FROM #GridChildControls
         WHERE GridColumnName = @currentGrid
@@ -1760,8 +1761,8 @@ BEGIN
 
         IF EXISTS (SELECT 1 FROM #GridChildControls WHERE GridColumnName = @currentGrid AND ChildColumnName = 'ParentTaskID')
         BEGIN
-            SET @columnsConfig = 
-                N'    { dataField: "ParentTaskID", caption: "Task cha", width: 100, alignment: "center", allowGrouping: false, allowFiltering: true, visible: true },' + 
+            SET @columnsConfig =
+                N'    { dataField: "ParentTaskID", caption: "Task cha", width: 100, alignment: "center", allowGrouping: false, allowFiltering: true, visible: true },' +
                 CHAR(13)+CHAR(10) + @columnsConfig
         END
 
@@ -1774,234 +1775,234 @@ BEGIN
         UPDATE #temptable
         SET
             loadUI = N'
-				if ($("#' + @currentGrid + N'").length === 0) {
-					$("<div>", { id: "' + @currentGrid + N'" }).appendTo("body");
-				}
-				let ' + @currentGrid + N'Instance;
-				let ' + @currentGrid + N'DataSource = [];
-				function loadUI' + @currentGrid + N'() {
-					const $container = $("#' + @currentGrid + N'");
-					const store = new DevExpress.data.ArrayStore({ data: ' + @currentGrid + N'DataSource, key: "' + @gridPrimaryKey + N'" });
-					/*BEGIN_DX*/
-					' + @currentGrid + N'Instance = $("<div>").appendTo($container).dxDataGrid({
-						dataSource: store,
-						keyExpr: "' + @gridPrimaryKey + N'",
-						showBorders: true,
-						showRowLines: true,
-						showColumnLines: false,
-						rowAlternationEnabled: false,
-						hoverStateEnabled: true,
-						columnAutoWidth: true,
-						allowColumnReordering: true,
-						allowColumnResizing: true,
-						columnResizingMode: "widget",
-						wordWrapEnabled: true,
-						toolbar: {
-							items: [
-								{
-									location: "before",
-									widget: "dxButton",
-									options: {
-										text: "Danh sách",
-										icon: "menu",
-										onClick: function() { console.log("List view") }
-									}
-								},
-								"groupPanel",
-								"exportButton",
-								"columnChooserButton",
-								"searchPanel"
-							]
-						},
-						selection: {
-							mode: "multiple",
-							showCheckBoxesMode: "always",
-							allowSelectAll: true
-						},
-						paging: {
-							enabled: true,
-							pageSize: 50
-						},
-						pager: {
-							visible: true,
-							allowedPageSizes: [10, 20, 50, 100],
-							showPageSizeSelector: true,
-							showInfo: true,
-							showNavigationButtons: true
-						},
-						grouping: {
-							autoExpandAll: true,
-							contextMenuEnabled: true
-						},
-						groupPanel: {
-							visible: true,
-							emptyPanelText: "Kéo cột vào đây để nhóm theo tiêu chí"
-						},
-						filterRow: {
-							visible: true,
-							applyFilter: "auto"
-						},
-						searchPanel: {
-							visible: true,
-							width: 240,
-							placeholder: "Tìm kiếm..."
-						},
-						headerFilter: {
-							visible: true
-						},
-						columnChooser: {
-							enabled: true,
-							mode: "select",
-							title: "Chọn cột hiển thị"
-						},
-						export: {
-							enabled: true,
-							fileName: "ExportData",
-							formats: ["pdf", "xlsx"],
-							allowExportSelectedData: true
-						},
-						stateStoring: {
-							enabled: true,
-							type: "localStorage",
-							storageKey: "' + @currentGrid + N'GridState"
-						},
-						sorting: {
-							mode: "multiple"
-						},
-						scrolling: {
-							mode: "virtual",
-							rowRenderingMode: "virtual",
-							showScrollbar: "onHover"
-						},
-						columnFixing: {
-							enabled: true
-						},
-						columns: ' + @columnsConfig + N',
-						summary: {
-							totalItems: [
-								{
-									column: "' + @gridColumnId + N'",
-									summaryType: "count",
-									displayFormat: "Tổng: {0} bản ghi"
-								}
-							],
-							groupItems: [
-								{
-									column: "' + @gridColumnId + N'",
-									summaryType: "count",
-									displayFormat: "{0}"
-								}
-							]
-						},
-						masterDetail: {
-							enabled: true,
-							autoExpandAll: false,
-							template: function(container, options) {
-								var parentTaskId = options.data.TaskID;
-								var subtasks = window.' + @currentGrid + N'AllData ? window.' + @currentGrid + N'AllData.filter(function(t) { return t.ParentTaskID === parentTaskId; }) : [];
-								if (subtasks.length > 0) {
-									var html = `<div style="padding: 16px; background: var(--bg-light);"><strong style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;"><i class="bi bi-diagram-3"></i>Subtasks (${subtasks.length})</strong>`;
-									html += `<table class="table" style="margin: 0;"><thead><tr><th style="padding: 10px 12px;">Mã</th><th style="padding: 10px 12px;">Tên</th><th style="padding: 10px 12px;">Trạng thái</th><th style="padding: 10px 12px;">Ưu tiên</th><th style="padding: 10px 12px;">Tiến độ</th><th style="padding: 10px 12px;">Người thực hiện</th></tr></thead><tbody>`;
-									subtasks.forEach(function(st) {
-										var statusClass = "sts-" + (st.StatusCode || 1);
-										var statusText = (st.StatusCode || 1) === 1 ? "Chưa làm" : (st.StatusCode || 1) === 2 ? "Đang làm" : "Hoàn thành";
-										var prioClass = "prio-" + (st.AssignPriority || 3);
-										var prioText = (st.AssignPriority || 3) === 1 ? "Cao" : (st.AssignPriority || 3) === 2 ? "Trung bình" : "Thấp";
-										html += `<tr style="border-bottom: 1px solid var(--bg-lighter);"><td style="padding: 10px 12px;">#${st.TaskID}</td><td style="padding: 10px 12px;">${st.TaskName}</td><td style="padding: 10px 12px;"><span class="badge-sts ${statusClass}">${statusText}</span></td><td style="padding: 10px 12px; text-align: center;"><i class="bi bi-flag-fill priority-icon ${prioClass}" title="${prioText}"></i></td><td style="padding: 10px 12px; text-align: center;">${st.ProgressPct || 0}%</td><td style="padding: 10px 12px;">${st.AssignedToName || "-"}</td></tr>`;
-									});
-									html += "</tbody></table></div>";
-									$(container).html(html);
-								} else {
-									$(container).html(`<div style="padding: 16px; color: var(--text-muted);"><i class="bi bi-info-circle"></i> Không có subtasks</div>`);
-								}
-							}
-						},
-						onRowPrepared: function(e) {
-							if (e.rowType === "data") {
-								// Custom row styling if needed
-								if (e.data.IsOverdue === 1) {
-									e.rowElement.css("background-color", "rgba(229, 57, 53, 0.03)");
-								}
-								if (e.data.StatusCode === 3 || e.data.Status === 3) {
-									e.rowElement.css("opacity", "0.7");
-								}
-							}
-						},
-						onCellPrepared: function(e) {
-							if (e.rowType === "data" && e.column.command === "drag") {
-								e.cellElement.css({
-									cursor: "grab",
-									userSelect: "none"
-								});
-							}
-						},
-						onContextMenuPreparing: function(e) {
-							if (e.row && e.row.rowType === "data") {
-								e.items = [
-									{
-										text: "Xem chi tiết",
-										icon: "info",
-										onItemClick: function() {
-											console.log("View details for record:", e.row.data);
-										}
-									},
-									{
-										text: "Chỉnh sửa",
-										icon: "edit",
-										onItemClick: function() {
-											console.log("Edit record:", e.row.data);
-										}
-									},
-									{ beginGroup: true },
-									{
-										text: "Xóa",
-										icon: "trash",
-										onItemClick: function() {
-											if (confirm("Bạn có chắc chắn muốn xóa?")) {
-												console.log("Delete record:", e.row.data);
-											}
-										}
-									}
-								];
-							}
-						},
-						onCellClick: function(e) {
-							if (e.rowType === "data" && e.column && e.column.allowEditing === true) {
-								e.component.editCell(e.rowIndex, e.column.dataField);
-							}
-						},
-						onRowUpdating: async function(e) {
-							const col = Object.keys(e.newData)[0];
-							let newVal = e.newData[col];
-							if (e.row?.data?._grid_controls?.[col]) {
-								newVal = e.row.data._grid_controls[col].option("value");
-							}
-							try {
-								await saveFunction(JSON.stringify([-99218308, [col], [newVal]]), [[e.key], "' + @gridColumnId + N'"]);
-								const rowIdx = ' + @currentGrid + N'Instance.getRowIndexByKey(e.key);
-								' + @currentGrid + N'Instance.cellValue(rowIdx, col, newVal);
-								if (window.uiManager && window.uiManager.showAlert) {
-									uiManager.showAlert({ type: "success", message: "Lưu thành công" });
-								}
-							} catch (err) {
-								e.cancel = true;
-								if (window.uiManager && window.uiManager.showAlert) {
-									uiManager.showAlert({ type: "error", message: "Lưu thất bại" });
-								}
-								console.error("Error saving:", err);
-							}
-						},
-						onToolbarPreparing: function(e) {
-							// Add custom toolbar items if needed
-						}
-					}).dxDataGrid("instance");
-					/*END_DX*/
-					return {
-						setValue: val => { ' + @currentGrid + N'DataSource = val || []; if (' + @currentGrid + N'Instance) { ' + @currentGrid + N'Instance.option("dataSource", ' + @currentGrid + N'DataSource); ' + @currentGrid + N'Instance.refresh(); } },
-						getValue: () => ' + @currentGrid + N'DataSource,
-						getInstance: () => ' + @currentGrid + N'Instance
-					};
-				}',
+    if ($("#' + @currentGrid + N'").length === 0) {
+     $("<div>", { id: "' + @currentGrid + N'" }).appendTo("body");
+    }
+    let ' + @currentGrid + N'Instance;
+    let ' + @currentGrid + N'DataSource = [];
+    function loadUI' + @currentGrid + N'() {
+     const $container = $("#' + @currentGrid + N'");
+     const store = new DevExpress.data.ArrayStore({ data: ' + @currentGrid + N'DataSource, key: "' + @gridPrimaryKey + N'" });
+     /*BEGIN_DX*/
+     ' + @currentGrid + N'Instance = $("<div>").appendTo($container).dxDataGrid({
+      dataSource: store,
+      keyExpr: "' + @gridPrimaryKey + N'",
+      showBorders: true,
+      showRowLines: true,
+      showColumnLines: false,
+      rowAlternationEnabled: false,
+      hoverStateEnabled: true,
+      columnAutoWidth: true,
+      allowColumnReordering: true,
+      allowColumnResizing: true,
+      columnResizingMode: "widget",
+      wordWrapEnabled: true,
+      toolbar: {
+       items: [
+        {
+         location: "before",
+         widget: "dxButton",
+         options: {
+          text: "Danh sách",
+          icon: "menu",
+          onClick: function() { console.log("List view") }
+         }
+        },
+        "groupPanel",
+        "exportButton",
+        "columnChooserButton",
+        "searchPanel"
+       ]
+      },
+      selection: {
+       mode: "multiple",
+       showCheckBoxesMode: "always",
+       allowSelectAll: true
+      },
+      paging: {
+       enabled: true,
+       pageSize: 50
+      },
+      pager: {
+       visible: true,
+       allowedPageSizes: [10, 20, 50, 100],
+       showPageSizeSelector: true,
+       showInfo: true,
+       showNavigationButtons: true
+      },
+      grouping: {
+       autoExpandAll: true,
+       contextMenuEnabled: true
+      },
+      groupPanel: {
+       visible: true,
+       emptyPanelText: "Kéo cột vào đây để nhóm theo tiêu chí"
+      },
+      filterRow: {
+       visible: true,
+       applyFilter: "auto"
+      },
+      searchPanel: {
+       visible: true,
+       width: 240,
+       placeholder: "Tìm kiếm..."
+      },
+      headerFilter: {
+       visible: true
+      },
+      columnChooser: {
+       enabled: true,
+       mode: "select",
+       title: "Chọn cột hiển thị"
+      },
+      export: {
+       enabled: true,
+       fileName: "ExportData",
+       formats: ["pdf", "xlsx"],
+       allowExportSelectedData: true
+      },
+      stateStoring: {
+       enabled: true,
+       type: "localStorage",
+       storageKey: "' + @currentGrid + N'GridState"
+      },
+      sorting: {
+       mode: "multiple"
+      },
+      scrolling: {
+       mode: "virtual",
+       rowRenderingMode: "virtual",
+       showScrollbar: "onHover"
+      },
+      columnFixing: {
+       enabled: true
+      },
+      columns: ' + @columnsConfig + N',
+      summary: {
+       totalItems: [
+        {
+         column: "' + @gridColumnId + N'",
+         summaryType: "count",
+         displayFormat: "Tổng: {0} bản ghi"
+        }
+       ],
+       groupItems: [
+        {
+         column: "' + @gridColumnId + N'",
+         summaryType: "count",
+         displayFormat: "{0}"
+        }
+       ]
+      },
+      masterDetail: {
+       enabled: true,
+       autoExpandAll: false,
+       template: function(container, options) {
+        var parentTaskId = options.data.TaskID;
+        var subtasks = window.' + @currentGrid + N'AllData ? window.' + @currentGrid + N'AllData.filter(function(t) { return t.ParentTaskID === parentTaskId; }) : [];
+        if (subtasks.length > 0) {
+         var html = `<div style="padding: 16px; background: var(--bg-light);"><strong style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;"><i class="bi bi-diagram-3"></i>Subtasks (${subtasks.length})</strong>`;
+         html += `<table class="table" style="margin: 0;"><thead><tr><th style="padding: 10px 12px;">Mã</th><th style="padding: 10px 12px;">Tên</th><th style="padding: 10px 12px;">Trạng thái</th><th style="padding: 10px 12px;">Ưu tiên</th><th style="padding: 10px 12px;">Tiến độ</th><th style="padding: 10px 12px;">Người thực hiện</th></tr></thead><tbody>`;
+         subtasks.forEach(function(st) {
+          var statusClass = "sts-" + (st.StatusCode || 1);
+          var statusText = (st.StatusCode || 1) === 1 ? "Chưa làm" : (st.StatusCode || 1) === 2 ? "Đang làm" : "Hoàn thành";
+          var prioClass = "prio-" + (st.AssignPriority || 3);
+          var prioText = (st.AssignPriority || 3) === 1 ? "Cao" : (st.AssignPriority || 3) === 2 ? "Trung bình" : "Thấp";
+          html += `<tr style="border-bottom: 1px solid var(--bg-lighter);"><td style="padding: 10px 12px;">#${st.TaskID}</td><td style="padding: 10px 12px;">${st.TaskName}</td><td style="padding: 10px 12px;"><span class="badge-sts ${statusClass}">${statusText}</span></td><td style="padding: 10px 12px; text-align: center;"><i class="bi bi-flag-fill priority-icon ${prioClass}" title="${prioText}"></i></td><td style="padding: 10px 12px; text-align: center;">${st.ProgressPct || 0}%</td><td style="padding: 10px 12px;">${st.AssignedToName || "-"}</td></tr>`;
+         });
+         html += "</tbody></table></div>";
+         $(container).html(html);
+        } else {
+         $(container).html(`<div style="padding: 16px; color: var(--text-muted);"><i class="bi bi-info-circle"></i> Không có subtasks</div>`);
+        }
+       }
+      },
+      onRowPrepared: function(e) {
+       if (e.rowType === "data") {
+        // Custom row styling if needed
+        if (e.data.IsOverdue === 1) {
+         e.rowElement.css("background-color", "rgba(229, 57, 53, 0.03)");
+        }
+        if (e.data.StatusCode === 3 || e.data.Status === 3) {
+         e.rowElement.css("opacity", "0.7");
+        }
+       }
+      },
+      onCellPrepared: function(e) {
+       if (e.rowType === "data" && e.column.command === "drag") {
+        e.cellElement.css({
+         cursor: "grab",
+         userSelect: "none"
+        });
+       }
+      },
+      onContextMenuPreparing: function(e) {
+       if (e.row && e.row.rowType === "data") {
+        e.items = [
+         {
+          text: "Xem chi tiết",
+          icon: "info",
+          onItemClick: function() {
+           console.log("View details for record:", e.row.data);
+          }
+         },
+         {
+          text: "Chỉnh sửa",
+          icon: "edit",
+          onItemClick: function() {
+           console.log("Edit record:", e.row.data);
+          }
+         },
+         { beginGroup: true },
+         {
+          text: "Xóa",
+          icon: "trash",
+          onItemClick: function() {
+           if (confirm("Bạn có chắc chắn muốn xóa?")) {
+            console.log("Delete record:", e.row.data);
+           }
+          }
+         }
+        ];
+       }
+      },
+      onCellClick: function(e) {
+       if (e.rowType === "data" && e.column && e.column.allowEditing === true) {
+        e.component.editCell(e.rowIndex, e.column.dataField);
+       }
+      },
+      onRowUpdating: async function(e) {
+       const col = Object.keys(e.newData)[0];
+       let newVal = e.newData[col];
+       if (e.row?.data?._grid_controls?.[col]) {
+        newVal = e.row.data._grid_controls[col].option("value");
+       }
+       try {
+        await saveFunction(JSON.stringify([-99218308, [col], [newVal]]), [[e.key], "' + @gridColumnId + N'"]);
+        const rowIdx = ' + @currentGrid + N'Instance.getRowIndexByKey(e.key);
+        ' + @currentGrid + N'Instance.cellValue(rowIdx, col, newVal);
+        if (window.uiManager && window.uiManager.showAlert) {
+         uiManager.showAlert({ type: "success", message: "Lưu thành công" });
+        }
+       } catch (err) {
+        e.cancel = true;
+        if (window.uiManager && window.uiManager.showAlert) {
+         uiManager.showAlert({ type: "error", message: "Lưu thất bại" });
+        }
+        console.error("Error saving:", err);
+       }
+      },
+      onToolbarPreparing: function(e) {
+       // Add custom toolbar items if needed
+      }
+     }).dxDataGrid("instance");
+     /*END_DX*/
+     return {
+      setValue: val => { ' + @currentGrid + N'DataSource = val || []; if (' + @currentGrid + N'Instance) { ' + @currentGrid + N'Instance.option("dataSource", ' + @currentGrid + N'DataSource); ' + @currentGrid + N'Instance.refresh(); } },
+      getValue: () => ' + @currentGrid + N'DataSource,
+      getInstance: () => ' + @currentGrid + N'Instance
+     };
+    }',
             loadData = N'
     ' + @currentGrid + N'Control = loadUI' + @currentGrid + N'();
     ' + @currentGrid + N'Control.setValue(obj.' + @currentGrid + N');
@@ -2023,8 +2024,8 @@ BEGIN
     --FROM #temptable
     --ORDER BY ID
 
-	DECLARE @loadUI_Final NVARCHAR(MAX) = N'let DataSource = [];', @loadData_Final NVARCHAR(MAX) = N''
-	select @loadUI_Final += ISNULL(loadUI, ''), @loadData_Final += ISNULL(loadData, '')
+ DECLARE @loadUI_Final NVARCHAR(MAX) = N'let DataSource = [];', @loadData_Final NVARCHAR(MAX) = N''
+ select @loadUI_Final += ISNULL(loadUI, ''), @loadData_Final += ISNULL(loadData, '')
     FROM #temptable where GridColumnName is null
 
     -- Lấy tên grid (IDDiv của hpaControlGrid)
@@ -2082,12 +2083,13 @@ BEGIN
 
     -- Wrap script properly and export
     DECLARE @finalScript NVARCHAR(MAX) = @nsql
-    
+
     -- Return both script and grid ID for application to handle injection
-    SELECT 
-        @finalScript AS htmlProc, 
+    SELECT
+        @finalScript AS htmlProc,
         @gridId AS gridId
 END
 GO
 
-EXEC sptblCommonControlType_Signed_Linh 'sp_Task_MyWork_html'
+
+exec sptblCommonControlType_Signed_Linh 'sp_Task_MyWork_html'

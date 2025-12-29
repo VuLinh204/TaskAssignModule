@@ -92,12 +92,12 @@
                 const $body = $('#taskBody').empty();
                 tasks.forEach((task) => {
                     const row = `
-            <tr>
-                <td>${task.TaskID || ''}</td>
-                <td class="editable" data-id="${task.TaskID}" data-col="TaskName">${task.TaskName || ''}</td>
-                <td class="editable" data-id="${task.TaskID}" data-col="Description">${task.Description || ''}</td>
-                <td class="editable" data-id="${task.TaskID}" data-col="Status">${task.Status || ''}</td>
-            </tr>`;
+                    <tr>
+                        <td>${task.TaskID || ''}</td>
+                        <td class="editable" data-id="${task.TaskID}" data-col="TaskName">${task.TaskName || ''}</td>
+                        <td class="editable" data-id="${task.TaskID}" data-col="Description">${task.Description || ''}</td>
+                        <td class="editable" data-id="${task.TaskID}" data-col="Status">${task.Status || ''}</td>
+                    </tr>`;
                     $body.append(row);
                 });
                 applyControls();
