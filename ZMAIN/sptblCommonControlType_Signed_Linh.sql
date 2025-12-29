@@ -2175,9 +2175,11 @@ BEGIN
                     };
                 }',
             loadData = N'
+                let ' + @currentGrid + N'Control = null;
                 ' + @currentGrid + N'Control = loadUI' + @currentGrid + N'();
                 ' + @currentGrid + N'Control.setValue(obj.' + @currentGrid + N');
-                currentRecordID = obj.' + @gridColumnId
+                currentRecordID = obj.' + @gridColumnId +
+                N' console.log("Loaded grid ' + @currentGrid + N' data:", obj.' + @currentGrid + N');'
         WHERE ColumnName = @currentGrid AND Type = 'hpaControlGrid';
 
         FETCH NEXT FROM grid_cursor INTO @currentGrid;
@@ -2225,7 +2227,7 @@ BEGIN
 
     -- ====== XUẤT KẾT QUẢ =======
     DECLARE @html NVARCHAR(MAX) = N''
-    DECLARE @loadUI NVARCHAR(MAX) = N''
+    DECLARE @loadUI NVARCHAR(MAX) = N'let DataSource = [];'
     DECLARE @loadData NVARCHAR(MAX) = N''
 
     SELECT
@@ -2257,6 +2259,7 @@ BEGIN
                         } else {
                             const obj = results[0]
                             currentRecordID = obj.%ColumnIDName% || currentRecordID;
+                            DataSource = results;
                             ' + @loadData + N'
                         }
                     }

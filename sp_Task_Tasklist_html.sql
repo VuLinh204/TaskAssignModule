@@ -23,7 +23,7 @@ SET @html = N'
     <script>
         (() => {
             var currentRecordID;
-            
+            let DataSource = [];
                 if ($("#gridMyTasks").length === 0) {
                     $("<div>", { id: "gridMyTasks" }).appendTo("body");
                 }
@@ -126,7 +126,9 @@ SET @html = N'
                         } else {
                             const obj = results[0]
                             currentRecordID = obj.gridMyTasks || currentRecordID;
-                            
+                            DataSource = results;
+                            console.log("DataSource", DataSource);
+                            let gridMyTasksControl
                             gridMyTasksControl = loadUIgridMyTasks();
                             gridMyTasksControl.setValue(obj.gridMyTasks);
                             currentRecordID = obj.gridMyTasks
