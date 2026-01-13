@@ -67,7 +67,11 @@ BEGIN
                 minWidth: 280,
                 onShowing: function(e) {
                     if (!%columnName%IsDataLoaded && %columnName%DataSourceSP && %columnName%DataSourceSP !== "") {
-                        load%columnName%DataSource();
+                        // Sử dụng hàm loadDataSourceCommon từ sptblCommonControlType_Signed
+                        loadDataSourceCommon("%ColumnName%", %columnName%DataSourceSP, function(data) {
+                            %columnName%IsDataLoaded = true;
+                            Instance%ColumnName%.option("dataSource", data);
+                        });
                     }
                 }
             },
@@ -311,7 +315,11 @@ BEGIN
                 minWidth: 280,
                 onShowing: function(e) {
                     if (!%columnName%IsDataLoaded && %columnName%DataSourceSP && %columnName%DataSourceSP !== "") {
-                        load%columnName%DataSource();
+                        // Sử dụng hàm loadDataSourceCommon từ sptblCommonControlType_Signed
+                        loadDataSourceCommon("%ColumnName%", %columnName%DataSourceSP, function(data) {
+                            %columnName%IsDataLoaded = true;
+                            Instance%ColumnName%.option("dataSource", data);
+                        });
                     }
                 }
             },

@@ -821,29 +821,14 @@ BEGIN
             let %columnName%DataSourceLoaded = false;
             let spNameDSE%columnName% = "%DataSourceSP%";
 
-            function loadDataSource%ColumnName%() {
-                if (%columnName%DataSourceLoaded || !spNameDSE%columnName%) return;
-                
-                AjaxHPAParadise({
-                    data: {
-                        name: spNameDSE%columnName%,
-                        param: ["LoginID", LoginID, "LanguageID", LanguageID]
-                    },
-                    success: function(res) {
-                        const json = typeof res === "string" ? JSON.parse(res) : res;
-                        window["DataSource_%ColumnName%"] = (json.data && json.data[0]) || [];
-                        %columnName%DataSourceLoaded = true;
-                        if (Instance%columnName% && typeof Instance%columnName%.setDataSource === "function") {
-                            Instance%columnName%.setDataSource(window["DataSource_%ColumnName%"]);
-                        }
-                    },
-                    error: function(err) {
-                        console.error("Failed to load datasource:", err);
+            // Sử dụng hàm loadDataSourceCommon từ sptblCommonControlType_Signed
+            if (spNameDSE%columnName% && spNameDSE%columnName%.trim() !== "") {
+                loadDataSourceCommon("%ColumnName%", spNameDSE%columnName%, function(data) {
+                    if (Instance%columnName% && typeof Instance%columnName%.setDataSource === "function") {
+                        Instance%columnName%.setDataSource(data);
                     }
                 });
             }
-
-            loadDataSource%ColumnName%();
 
             let %columnName%SelectedIds = [], %columnName%SelectedIdsOriginal = [];
             const MAX_VISIBLE_%ColumnName% = 3;

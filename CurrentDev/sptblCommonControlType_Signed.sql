@@ -1006,6 +1006,89 @@ DELETE FROM #temptable WHERE Layout = 'Grid_View' AND GridColumnName IS NOT NULL
 
             %JS_CURRENT_ID%
 
+            // ============================================================================
+            // HÀM LOAD DATASOURCE CHUNG CHO TẤT CẢ CÁC CONTROL
+            // ============================================================================
+            function loadDataSourceCommon(columnName, dataSourceSP, onSuccessCallback) {
+                if (!columnName || !dataSourceSP || dataSourceSP.trim() === "") {
+                    console.warn("[loadDataSourceCommon] Missing columnName or dataSourceSP");
+                    return;
+                }
+
+                const dataSourceKey = "DataSource_" + columnName;
+                // Sử dụng format: columnNameDataSourceLoaded để tương thích với code hiện tại
+                const loadedKey = columnName + "DataSourceLoaded";
+                
+                // Kiểm tra nếu đã load rồi thì không load lại
+                if (window[loadedKey] === true) {
+                    if (onSuccessCallback) {
+                        onSuccessCallback(window[dataSourceKey] || []);
+                    }
+                    return;
+                }
+
+                // Kiểm tra nếu đang load thì đợi
+                if (window[loadedKey] === "loading") {
+                    // Đợi một chút rồi thử lại
+                    setTimeout(function() {
+                        loadDataSourceCommon(columnName, dataSourceSP, onSuccessCallback);
+                    }, 100);
+                    return;
+                }
+
+                // Đánh dấu đang load để tránh load trùng lặp
+                window[loadedKey] = "loading";
+
+                AjaxHPAParadise({
+                    data: {
+                        name: dataSourceSP,
+                        param: ["LoginID", LoginID, "LanguageID", LanguageID]
+                    },
+                    success: function(res) {
+                        const json = typeof res === "string" ? JSON.parse(res) : res;
+                        window[dataSourceKey] = (json.data && json.data[0]) || [];
+                        window[loadedKey] = true;
+                        
+                        // Gọi callback nếu có
+                        if (onSuccessCallback) {
+                            onSuccessCallback(window[dataSourceKey]);
+                        }
+                        
+                        // Tự động cập nhật control nếu có method setDataSource hoặc option
+                        // Thử nhiều format tên instance để tương thích
+                        const instanceVariants = [
+                            "Instance" + columnName.charAt(0).toUpperCase() + columnName.slice(1),
+                            "Instance" + columnName,
+                            "instance" + columnName.charAt(0).toUpperCase() + columnName.slice(1)
+                        ];
+                        
+                        for (let i = 0; i < instanceVariants.length; i++) {
+                            const instanceKey = instanceVariants[i];
+                            if (window[instanceKey]) {
+                                if (typeof window[instanceKey].setDataSource === "function") {
+                                    window[instanceKey].setDataSource(window[dataSourceKey]);
+                                    break;
+                                } else if (typeof window[instanceKey].option === "function") {
+                                    try {
+                                        window[instanceKey].option("dataSource", window[dataSourceKey]);
+                                        break;
+                                    } catch(e) {
+                                        // Continue to next variant
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    error: function(err) {
+                        console.error("[loadDataSourceCommon] Failed to load datasource for", columnName, ":", err);
+                        window[loadedKey] = false;
+                        if (onSuccessCallback) {
+                            onSuccessCallback([]);
+                        }
+                    }
+                });
+            }
+
             function ReloadData() {
                 AjaxHPAParadise({
                     data: {
