@@ -1,0 +1,2319 @@
+<script>
+    // Thêm responsive styles cho grid header
+    const stylegridSubtaskAssign = document.createElement('style');
+    stylegridSubtaskAssign.textContent = `
+                        /* =============== RESPONSIVE POPUP STYLES =============== */
+                        .dx-popup.hpa-responsive {
+                            max-width: 95vw !important;
+                            max-height: 95vh !important;
+                            width: 95vw !important;
+                            left: 0 !important;
+                            top: 0 !important;
+                        }
+                        
+                        .dx-popup.hpa-responsive .dx-popup-content {
+                            height: calc(95vh - 120px) !important;
+                            max-height: calc(95vh - 120px) !important;
+                            overflow-y: auto !important;
+                            padding: 8px !important;
+                            display: flex !important;
+                            flex-direction: column !important;
+                        }
+                        
+                        .dx-popup.hpa-responsive .dx-popup-content-scrollable {
+                            flex: 1 !important;
+                            min-height: 0 !important;
+                            overflow: auto !important;
+                        }
+                        
+                        .dx-popup-content.dx-popup-content-scrollable {
+                            height: auto !important;
+                        }
+                        
+                        .dx-popup.hpa-responsive .dx-toolbar-items {
+                            padding: 4px 0 !important;
+                            flex-wrap: wrap;
+                        }
+                        
+                        .dx-popup.hpa-responsive .dx-toolbar-item {
+                            margin: 2px 2px !important;
+                        }
+                        
+                        /* =============== GRID HEADER STYLES =============== */
+                        .dx-datagrid {
+                            font-size: 14px;
+                        }
+                        
+                        .dx-datagrid-headers {
+                            white-space: normal;
+                            word-break: break-word;
+                        }
+                        
+                        .dx-datagrid-header-panel {
+                            padding: 8px;
+                        }
+                        
+                        .dx-datagrid .dx-header-row {
+                            height: auto;
+                            min-height: 44px;
+                        }
+                        
+                        .dx-datagrid .dx-col-fixed {
+                            z-index: 800 !important;
+                        }
+                        
+                        /* Group row - sát mép */
+                        .dx-datagrid .dx-group-row {
+                            padding: 0 !important;
+                        }
+                        
+                        .dx-datagrid .dx-group-row > td {
+                            padding: 4px 6px !important;
+                        }
+                        
+                        .dx-datagrid .dx-group-row .dx-group-text {
+                            padding: 0 !important;
+                            margin: 0 !important;
+                        }
+                        
+                        /* Mobile responsive */
+                        @media (max-width: 1024px) {
+                            .dx-popup.hpa-responsive {
+                                max-width: 90vw !important;
+                                max-height: 90vh !important;
+                                width: 90vw !important;
+                                left: 5vw !important;
+                            }
+                            .dx-overlay-content.dx-popup-normal.dx-popup-draggable.dx-resizable {
+                                width: 90vw !important;
+                                max-width: 90vw !important;
+                            }
+                            .dx-popup.hpa-responsive .dx-popup-content {
+                                max-height: calc(95vh - 120px) !important;
+                            }
+                        }
+
+                        @media (max-width: 768px) {
+                            .dx-datagrid {
+                                font-size: 12px;
+                            }
+                            
+                            .dx-datagrid-headers {
+                                padding: 4px !important;
+                            }
+                            
+                            .dx-datagrid .dx-header-row {
+                                height: auto;
+                                min-height: 36px;
+                                padding: 0 !important;
+                            }
+                            
+                            .dx-datagrid-text-content {
+                                padding: 4px 2px !important;
+                                font-size: 11px !important;
+                                line-height: 1.3 !important;
+                                overflow: visible !important;
+                                white-space: normal !important;
+                                word-break: break-word !important;
+                            }
+                            
+                            .dx-datagrid-text-content.dx-header-filter {
+                                padding: 2px 1px !important;
+                            }
+                            
+                            .dx-checkbox {
+                                width: 24px !important;
+                                height: 24px !important;
+                            }
+                            
+                            .dx-datagrid-rowsview {
+                                padding: 0 !important;
+                            }
+                            
+                            .dx-datagrid .dx-row {
+                                height: auto;
+                                min-height: 36px;
+                                padding: 0 !important;
+                            }
+                            
+                            .dx-datagrid .dx-data-row > td {
+                                padding: 4px 2px !important;
+                                white-space: normal !important;
+                                word-break: break-word !important;
+                                vertical-align: middle !important;
+                            }
+                            
+                            .dx-datagrid .dx-group-row > td {
+                                padding: 4px 2px !important;
+                            }
+                            
+                            .dx-pager {
+                                padding: 4px 0 !important;
+                            }
+                            
+                            .dx-pager-page,
+                            .dx-pager-navigation {
+                                padding: 2px 4px !important;
+                                font-size: 11px !important;
+                            }
+                            
+                            .dx-searchbox {
+                                width: 100% !important;
+                                max-width: none !important;
+                            }
+                            
+                            .dx-searchbox .dx-texteditor-input {
+                                padding: 4px !important;
+                                font-size: 12px !important;
+                                height: 32px !important;
+                            }
+
+                            .dx-popup.hpa-responsive {
+                                max-width: 95vw !important;
+                                max-height: 85vh !important;
+                                width: 95vw !important;
+                                left: 2.5vw !important;
+                                top: 5vh !important;
+                            }
+                            .dx-overlay-content.dx-popup-normal.dx-popup-draggable.dx-resizable {
+                                width: 95vw !important;
+                                max-width: 95vw !important;
+                                height: auto !important;
+                                max-height: 85vh !important;
+                            }
+                            .dx-popup.hpa-responsive .dx-overlay-wrapper {
+                                position: fixed !important;
+                            }
+                            .dx-popup.hpa-responsive .dx-popup-content {
+                                height: calc(95vh - 120px) !important;
+                                max-height: calc(95vh - 120px) !important;
+                                font-size: 13px !important;
+                                padding: 6px !important;
+                                display: flex !important;
+                                flex-direction: column !important;
+                            }
+                            
+                            .dx-popup.hpa-responsive .dx-popup-content-scrollable {
+                                flex: 1 !important;
+                                min-height: 0 !important;
+                                overflow: auto !important;
+                            }
+                            
+                            .dx-popup-content.dx-popup-content-scrollable {
+                                height: auto !important;
+                            }
+                            /* Toolbar buttons */
+                            .dx-popup.hpa-responsive .dx-toolbar-item .dx-button {
+                                padding: 6px 12px !important;
+                                font-size: 12px !important;
+                                min-height: 36px !important;
+                                width: auto !important;
+                            }
+                            .dx-popup.hpa-responsive .dx-toolbar-item .dx-button .dx-button-text {
+                                font-size: 12px !important;
+                            }
+                            .dx-popup.hpa-responsive .dx-button {
+                                padding: 6px 12px !important;
+                                font-size: 12px !important;
+                                min-height: 36px !important;
+                                width: auto !important;
+                            }
+                            .dx-popup.hpa-responsive .dx-button .dx-button-text {
+                                font-size: 12px !important;
+                            }
+                            .dx-popup.hpa-responsive .dx-datagrid {
+                                font-size: 11px !important;
+                            }
+                            .dx-popup.hpa-responsive .dx-datagrid .dx-data-row td {
+                                padding: 4px 2px !important;
+                            }
+                        }
+                        
+                        @media (max-width: 480px) {
+                            .dx-datagrid {
+                                font-size: 12px;
+                            }
+                            
+                            .dx-datagrid-headers {
+                                padding: 2px !important;
+                            }
+                            
+                            .dx-datagrid .dx-header-row {
+                                min-height: 32px;
+                            }
+                            
+                            .dx-datagrid-text-content {
+                                padding: 2px 1px !important;
+                                font-size: 12px !important;
+                            }
+                            
+                            .dx-checkbox {
+                                width: 20px !important;
+                                height: 20px !important;
+                            }
+                            
+                            .dx-datagrid .dx-row {
+                                min-height: 32px;
+                            }
+                            
+                            .dx-datagrid .dx-data-row > td {
+                                padding: 2px 1px !important;
+                                font-size: 12px !important;
+                            }
+                            
+                            .dx-pager-page,
+                            .dx-pager-navigation {
+                                padding: 1px 2px !important;
+                                font-size: 12px !important;
+                            }
+
+                            .dx-popup.hpa-responsive {
+                                max-width: 98vw !important;
+                                max-height: 80vh !important;
+                                width: 98vw !important;
+                                left: 1vw !important;
+                                top: 10vh !important;
+                            }
+                            .dx-overlay-content.dx-popup-normal.dx-popup-draggable.dx-resizable {
+                                width: 98vw !important;
+                                max-width: 98vw !important;
+                                height: auto !important;
+                                max-height: 80vh !important;
+                            }
+                            .dx-popup.hpa-responsive .dx-overlay-wrapper {
+                                position: fixed !important;
+                            }
+                            .dx-popup.hpa-responsive .dx-popup-content {
+                                height: calc(95vh - 120px) !important;
+                                max-height: calc(95vh - 120px) !important;
+                                font-size: 12px !important;
+                                padding: 4px !important;
+                                display: flex !important;
+                                flex-direction: column !important;
+                            }
+                            
+                            .dx-popup.hpa-responsive .dx-popup-content-scrollable {
+                                flex: 1 !important;
+                                min-height: 0 !important;
+                                overflow: auto !important;
+                            }
+                            
+                            .dx-popup-content.dx-popup-content-scrollable {
+                                height: auto !important;
+                            }
+                            /* Toolbar buttons */
+                            .dx-popup.hpa-responsive .dx-toolbar-item .dx-button {
+                                padding: 4px 8px !important;
+                                font-size: 11px !important;
+                                min-height: 32px !important;
+                                width: auto !important;
+                            }
+                            .dx-popup.hpa-responsive .dx-toolbar-item .dx-button .dx-button-text {
+                                font-size: 11px !important;
+                            }
+                            .dx-popup.hpa-responsive .dx-button {
+                                padding: 4px 8px !important;
+                                font-size: 11px !important;
+                                min-height: 32px !important;
+                                width: auto !important;
+                            }
+                            .dx-popup.hpa-responsive .dx-button .dx-button-text {
+                                font-size: 11px !important;
+                            }
+                            .dx-popup.hpa-responsive .dx-datagrid {
+                                font-size: 10px !important;
+                            }
+                            .dx-popup.hpa-responsive .dx-datagrid .dx-data-row td {
+                                padding: 2px 1px !important;
+                                font-size: 10px !important;
+                            }
+                            .dx-popup.hpa-responsive .dx-datagrid .dx-header-row {
+                                min-height: 28px !important;
+                            }
+                            .dx-popup.hpa-responsive .dx-checkbox {
+                                width: 18px !important;
+                                height: 18px !important;
+                            }
+                        }
+                    `;
+    document.head.appendChild(stylegridSubtaskAssign);
+
+    window.InstancegridSubtaskAssign = $('#gridSubtaskAssign')
+        .dxDataGrid({
+            dataSource: [],
+            keyExpr: 'TaskID',
+            height: '100%',
+            showBorders: true,
+            showRowLines: true,
+            rowAlternationEnabled: false,
+            hoverStateEnabled: true,
+            columnAutoWidth: true,
+            allowColumnReordering: false,
+            allowColumnResizing: false,
+            columnResizingMode: 'widget',
+            wordWrapEnabled: true,
+
+            scrolling: {
+                mode: 'virtual',
+                rowRenderingMode: 'virtual',
+                showScrollbar: 'onHover',
+            },
+
+            paging: {
+                enabled: true,
+                pageSize: 10,
+            },
+
+            pager: {
+                visible: true,
+                allowedPageSizes: [5, 10, 50, 100],
+                showPageSizeSelector: true,
+                showInfo: true,
+                showNavigationButtons: true,
+            },
+
+            selection: {
+                mode: 'multiple',
+                showCheckBoxesMode: 'onClick',
+                allowSelectAll: true,
+            },
+
+            searchPanel: {
+                visible: true,
+                width: 240,
+                placeholder: 'Tìm kiếm...',
+            },
+
+            headerFilter: { visible: true },
+
+            columnChooser: {
+                enabled: true,
+                mode: 'select',
+                title: 'Chọn cột hiển thị',
+            },
+
+            stateStoring: {
+                enabled: false,
+                type: 'localStorage',
+                storageKey: 'gridState_Grid_View',
+            },
+
+            grouping: {
+                autoExpandAll: true,
+                contextMenuEnabled: false,
+                allowCollapsing: true,
+            },
+
+            groupPanel: { visible: false },
+            columnFixing: { enabled: true },
+
+            editing: {
+                mode: 'cell',
+                allowUpdating: true,
+            },
+
+            rowDragging: {
+                allowReordering: true,
+                showDragIcons: true,
+                onReorder: function (e) {
+                    let dataSource = e.component.option('dataSource');
+                    const item = dataSource[e.fromIndex];
+                    dataSource.splice(e.fromIndex, 1);
+                    dataSource.splice(e.toIndex, 0, item);
+                    e.component.option('dataSource', dataSource);
+                },
+            },
+
+            noDataText: 'Không có dữ liệu',
+
+            columns: [
+                {
+                    dataField: 'ChildTaskName',
+                    caption: 'Tên công việc',
+                    width: 250,
+                    allowSorting: true,
+                    allowFiltering: true,
+                    cellTemplate: function (container, cellInfo) {
+                        if (!$('head').find('#hpa-inherit-font-style').length)
+                            $('head').append(
+                                '<style id="hpa-inherit-font-style">.dx-widget{font-size:inherit!important;font-weight:inherit!important;line-height:inherit!important;border-radius:inherit!important}.dx-texteditor, .dx-texteditor-input{font-size:inherit!important;font-weight:inherit!important;line-height:inherit!important;box-sizing:border-box!important;}</style>'
+                            );
+                        window.InstanceChildTaskName = $(container)
+                            .dxTextBox({
+                                value: '',
+                                width: '100%',
+                                readOnly: true,
+                                elementAttr: {
+                                    style: 'border: none !important; box-shadow: none !important; background: transparent !important; padding: inherit !important;',
+                                },
+                                inputAttr: {
+                                    style: 'max-height: 100%; border: none !important; background: transparent; box-shadow: none; padding: inherit; font-size: inherit; font-weight: inherit;',
+                                },
+                            })
+                            .dxTextBox('instance');
+
+                        if (cellInfo.value !== undefined && cellInfo.value !== null && InstanceChildTaskName) {
+                            InstanceChildTaskName.option('value', cellInfo.value);
+                        }
+                    },
+                    allowEditing: true,
+                    editCellTemplate: function (cellElement, cellInfo) {
+                        if (cellInfo.key !== undefined && cellInfo.key !== null) {
+                            currentRecordID_ChildTaskID = cellInfo.key;
+                            console.log(currentRecordID_ChildTaskID);
+                        } else if (cellInfo.data && cellInfo.data['ChildTaskID'] !== undefined) {
+                            currentRecordID_ChildTaskID = cellInfo.data['ChildTaskID'];
+                            console.log(currentRecordID_ChildTaskID);
+                        }
+
+                        // Set initial value
+                        if (cellInfo.value !== undefined && cellInfo.value !== null && InstanceChildTaskName) {
+                            InstanceChildTaskName.option('value', cellInfo.value);
+                        }
+
+                        // TRUYỀN cellInfo vào control để sync Grid sau khi save
+                        if (InstanceChildTaskName && InstanceChildTaskName.setCellInfo) {
+                            InstanceChildTaskName.setCellInfo(cellInfo);
+                            console.log('[Grid Edit] Passed cellInfo to InstanceChildTaskName');
+                        }
+                    },
+                },
+
+                {
+                    dataField: 'AssignedEmployeeIDs',
+                    caption: 'Người thực hiện',
+                    width: 200,
+                    allowSorting: true,
+                    allowFiltering: true,
+                    cellTemplate: function (container, cellInfo) {
+                        const val = cellInfo.value;
+
+                        if (val === undefined || val === null || val === '') {
+                            $('<div>').addClass('dx-placeholder').text('--').appendTo(container);
+                            return;
+                        }
+
+                        const ds = window['DataSource_AssignedEmployeeIDs'];
+                        if (ds && Array.isArray(ds)) {
+                            const f = ds.find((x) => x.id == val || x.ID == val);
+                            if (f) {
+                                $('<div>')
+                                    .text(f.Text || f.Name || '')
+                                    .appendTo(container);
+                                return;
+                            }
+                        }
+
+                        $('<div>')
+                            .text(cellInfo.displayValue ?? val)
+                            .appendTo(container);
+                    },
+                    allowEditing: true,
+                    editCellTemplate: function (cellElement, cellInfo) {
+                        if (cellInfo.key !== undefined && cellInfo.key !== null) {
+                            currentRecordID_ChildTaskID = cellInfo.key;
+                            console.log(currentRecordID_ChildTaskID);
+                        } else if (cellInfo.data && cellInfo.data['ChildTaskID'] !== undefined) {
+                            currentRecordID_ChildTaskID = cellInfo.data['ChildTaskID'];
+                            console.log(currentRecordID_ChildTaskID);
+                        }
+
+                        window.GlobalEmployeeAvatarCache = window.GlobalEmployeeAvatarCache || {};
+                        window.GlobalEmployeeAvatarLoading = window.GlobalEmployeeAvatarLoading || {};
+
+                        function loadGlobalAvatarIfNeededAssignedEmployeeIDs(employeeId, storeImgName, paramImg, callbackFn) {
+                            const idStr = String(employeeId);
+
+                            if (window.GlobalEmployeeAvatarCache[idStr]) {
+                                if (callbackFn) callbackFn(window.GlobalEmployeeAvatarCache[idStr]);
+                                return window.GlobalEmployeeAvatarCache[idStr];
+                            }
+
+                            if (window.GlobalEmployeeAvatarLoading[idStr]) {
+                                if (callbackFn) {
+                                    window.GlobalEmployeeAvatarLoading[idStr].callbacks = window.GlobalEmployeeAvatarLoading[idStr].callbacks || [];
+                                    window.GlobalEmployeeAvatarLoading[idStr].callbacks.push(callbackFn);
+                                }
+                                return null;
+                            }
+
+                            if (!storeImgName) {
+                                return null;
+                            }
+
+                            window.GlobalEmployeeAvatarLoading[idStr] = {
+                                loading: true,
+                                callbacks: callbackFn ? [callbackFn] : [],
+                            };
+
+                            let paramArray = [];
+                            if (paramImg) {
+                                try {
+                                    const decoded = decodeURIComponent(paramImg);
+                                    paramArray = JSON.parse(decoded);
+                                } catch (e) {
+                                    paramArray = [];
+                                }
+                            }
+
+                            AjaxHPAParadise({
+                                data: {
+                                    name: storeImgName,
+                                    param: paramArray,
+                                },
+                                xhrFields: { responseType: 'blob' },
+                                cache: true,
+                                success: function (blob) {
+                                    const callbacks = window.GlobalEmployeeAvatarLoading[idStr]?.callbacks || [];
+                                    delete window.GlobalEmployeeAvatarLoading[idStr];
+
+                                    if (blob && blob.size > 0) {
+                                        const url = URL.createObjectURL(blob);
+                                        window.GlobalEmployeeAvatarCache[idStr] = url;
+
+                                        callbacks.forEach((cb) => {
+                                            try {
+                                                cb(url);
+                                            } catch (e) {
+                                                console.error(e);
+                                            }
+                                        });
+                                    } else {
+                                        callbacks.forEach((cb) => {
+                                            try {
+                                                cb(null);
+                                            } catch (e) {
+                                                console.error(e);
+                                            }
+                                        });
+                                    }
+                                },
+                                error: function () {
+                                    const callbacks = window.GlobalEmployeeAvatarLoading[idStr]?.callbacks || [];
+                                    delete window.GlobalEmployeeAvatarLoading[idStr];
+
+                                    callbacks.forEach((cb) => {
+                                        try {
+                                            cb(null);
+                                        } catch (e) {
+                                            console.error(e);
+                                        }
+                                    });
+                                },
+                            });
+
+                            return null;
+                        }
+
+                        window['DataSource_AssignedEmployeeIDs'] = window['DataSource_AssignedEmployeeIDs'] || [];
+                        let AssignedEmployeeIDsDataSourceLoaded = false;
+                        let spNameDSEAssignedEmployeeIDs = '';
+
+                        function loadDataSourceAssignedEmployeeIDs() {
+                            if (AssignedEmployeeIDsDataSourceLoaded || !spNameDSEAssignedEmployeeIDs) return;
+
+                            AjaxHPAParadise({
+                                data: {
+                                    name: spNameDSEAssignedEmployeeIDs,
+                                    param: ['LoginID', LoginID, 'LanguageID', LanguageID],
+                                },
+                                success: function (res) {
+                                    const json = typeof res === 'string' ? JSON.parse(res) : res;
+                                    window['DataSource_AssignedEmployeeIDs'] = (json.data && json.data[0]) || [];
+                                    AssignedEmployeeIDsDataSourceLoaded = true;
+                                    if (InstanceAssignedEmployeeIDs && typeof InstanceAssignedEmployeeIDs.setDataSource === 'function') {
+                                        InstanceAssignedEmployeeIDs.setDataSource(window['DataSource_AssignedEmployeeIDs']);
+                                    }
+                                },
+                                error: function (err) {
+                                    console.error('Failed to load datasource:', err);
+                                },
+                            });
+                        }
+
+                        loadDataSourceAssignedEmployeeIDs();
+
+                        window.InstanceAssignedEmployeeIDs = {};
+                        let AssignedEmployeeIDsSelectedIds = [],
+                            AssignedEmployeeIDsSelectedIdsOriginal = [];
+                        let AssignedEmployeeIDsIsSaving = false;
+                        const MAX_VISIBLE_AssignedEmployeeIDs = 3;
+
+                        function getInitialsAssignedEmployeeIDs(name) {
+                            if (!name) return '?';
+                            const words = name.trim().split(/\s+/);
+                            if (words.length >= 2) return (words[0][0] + words[words.length - 1][0]).toUpperCase();
+                            return name.substring(0, 2).toUpperCase();
+                        }
+
+                        function getColorForIdAssignedEmployeeIDs(id) {
+                            const colors = [
+                                { bg: '#e3f2fd', text: '#1976d2' },
+                                { bg: '#f3e5f5', text: '#7b1fa2' },
+                                { bg: '#e8f5e9', text: '#388e3c' },
+                                { bg: '#fff3e0', text: '#f57c00' },
+                                { bg: '#fce4ec', text: '#c2185b' },
+                            ];
+                            return colors[Math.abs(id) % colors.length];
+                        }
+
+                        function renderDisplayBoxAssignedEmployeeIDs() {
+                            const $displayBoxAssignedEmployeeIDs = $('#AssignedEmployeeIDs_display');
+                            if (!$displayBoxAssignedEmployeeIDs.length) return;
+                            $displayBoxAssignedEmployeeIDs.empty();
+
+                            const $wrapper = $('<div>')
+                                .css({
+                                    border: '1px solid #dee2e6',
+                                    borderRadius: '8px',
+                                    padding: '10px 12px',
+                                    minHeight: '44px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    cursor: 'pointer',
+                                })
+                                .hover(
+                                    () => $wrapper.css({ borderColor: '#0d6efd', boxShadow: '0 0 0 0.2rem rgba(13,110,253,.15)' }),
+                                    () => $wrapper.css({ borderColor: '#dee2e6', boxShadow: 'none' })
+                                );
+
+                            if (AssignedEmployeeIDsSelectedIds.length === 0) {
+                                $wrapper.append($('<span>').addClass('text-muted').html('<i class="bi bi-person-plus me-2"></i>Chọn nhân viên...'));
+                            } else {
+                                const displayIds = AssignedEmployeeIDsSelectedIds.slice(0, MAX_VISIBLE_AssignedEmployeeIDs);
+                                const $group = $('<div>').css({ display: 'flex', alignItems: 'center' });
+
+                                displayIds.forEach((id, index) => {
+                                    const item = window['DataSource_AssignedEmployeeIDs'].find((e) => String(e.ID) === String(id));
+                                    if (!item) return;
+
+                                    const $chip = $('<div>')
+                                        .css({
+                                            width: '36px',
+                                            height: '36px',
+                                            borderRadius: '50%',
+                                            border: '3px solid #fff',
+                                            boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
+                                            marginLeft: index === 0 ? '0' : '-10px',
+                                            zIndex: MAX_VISIBLE_AssignedEmployeeIDs - index,
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            fontWeight: '600',
+                                            fontSize: '13px',
+                                            position: 'relative',
+                                            overflow: 'hidden',
+                                        })
+                                        .attr('title', item.Name || item.FullName || '');
+
+                                    const cachedUrl = window.GlobalEmployeeAvatarCache[String(id)];
+
+                                    if (cachedUrl) {
+                                        $chip.append($('<img>').attr('src', cachedUrl).css({ width: '100%', height: '100%', objectFit: 'cover' }));
+                                    } else if (item.storeImgName) {
+                                        loadGlobalAvatarIfNeededAssignedEmployeeIDs(id, item.storeImgName, item.paramImg, function (url) {
+                                            renderDisplayBoxAssignedEmployeeIDs();
+                                        });
+
+                                        const color = getColorForIdAssignedEmployeeIDs(id);
+                                        const initials = getInitialsAssignedEmployeeIDs(item.Name || item.FullName);
+                                        $chip.css({ background: color.bg, color: color.text }).text(initials);
+                                    } else {
+                                        const color = getColorForIdAssignedEmployeeIDs(id);
+                                        const initials = getInitialsAssignedEmployeeIDs(item.Name || item.FullName);
+                                        $chip.css({ background: color.bg, color: color.text }).text(initials);
+                                    }
+
+                                    $group.append($chip);
+                                });
+
+                                if (AssignedEmployeeIDsSelectedIds.length > MAX_VISIBLE_AssignedEmployeeIDs) {
+                                    const remaining = AssignedEmployeeIDsSelectedIds.length - MAX_VISIBLE_AssignedEmployeeIDs;
+                                    $group.append(
+                                        $('<div>')
+                                            .css({
+                                                width: '36px',
+                                                height: '36px',
+                                                borderRadius: '50%',
+                                                border: '3px solid #fff',
+                                                marginLeft: '-10px',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                fontWeight: '700',
+                                                fontSize: '12px',
+                                            })
+                                            .text('+' + remaining)
+                                            .attr('title', 'Còn ' + remaining + ' người nữa')
+                                    );
+                                }
+
+                                $wrapper.append($group);
+                            }
+
+                            $displayBoxAssignedEmployeeIDs.append($wrapper);
+                            $wrapper.off('click').on('click', () => {
+                                if (!popupAssignedEmployeeIDs) {
+                                    initPopupAssignedEmployeeIDs();
+                                    // Đợi popup init xong rồi mới show
+                                    setTimeout(() => {
+                                        popupAssignedEmployeeIDs.show();
+                                    }, 0);
+                                } else {
+                                    popupAssignedEmployeeIDs.show();
+                                }
+                            });
+                        }
+
+                        const $containerAssignedEmployeeIDs = $(cellElement);
+                        $containerAssignedEmployeeIDs.empty();
+                        const $displayBoxAssignedEmployeeIDs = $('<div>').attr('id', 'AssignedEmployeeIDs_display');
+                        $containerAssignedEmployeeIDs.append($displayBoxAssignedEmployeeIDs);
+
+                        let popupAssignedEmployeeIDs;
+                        let popupAssignedEmployeeIDsOnce = false;
+                        let AssignedEmployeeIDsGridContainer = null;
+                        function initPopupAssignedEmployeeIDs() {
+                            if (popupAssignedEmployeeIDsOnce) {
+                                popupAssignedEmployeeIDs.show();
+                                return;
+                            }
+                            popupAssignedEmployeeIDsOnce = true;
+                            popupAssignedEmployeeIDs = $('<div>')
+                                .attr('id', 'AssignedEmployeeIDs_popup')
+                                .appendTo(document.body)
+                                .addClass('hpa-responsive')
+                                .dxPopup({
+                                    width: 750,
+                                    height: 'auto',
+                                    animation: null,
+                                    showTitle: true,
+                                    title: 'Chọn nhân viên',
+                                    dragEnabled: true,
+                                    closeOnOutsideClick: true,
+                                    showCloseButton: true,
+                                    toolbarItems: [
+                                        {
+                                            widget: 'dxButton',
+                                            location: 'after',
+                                            toolbar: 'bottom',
+                                            options: {
+                                                text: 'Hủy',
+                                                onClick: () => {
+                                                    popupAssignedEmployeeIDs._isCancelling = true;
+                                                    AssignedEmployeeIDsSelectedIds = [...AssignedEmployeeIDsSelectedIdsOriginal];
+                                                    popupAssignedEmployeeIDs.hide();
+                                                },
+                                            },
+                                        },
+                                        {
+                                            widget: 'dxButton',
+                                            location: 'after',
+                                            toolbar: 'bottom',
+                                            options: {
+                                                text: 'Lưu',
+                                                type: 'success',
+                                                onClick: async () => {
+                                                    await saveValueAssignedEmployeeIDs();
+                                                    popupAssignedEmployeeIDs.hide();
+                                                },
+                                            },
+                                        },
+                                    ],
+                                    contentTemplate: function (contentElement) {
+                                        AssignedEmployeeIDsGridContainer = $('<div>');
+                                        contentElement.append(AssignedEmployeeIDsGridContainer);
+                                    },
+                                    onShown: () => {
+                                        setTimeout(() => {
+                                            const $popupContent = $('#AssignedEmployeeIDs_popup').closest('.dx-popup-wrapper');
+                                            $popupContent.off('mousedown.preventClose').on('mousedown.preventClose', function (e) {
+                                                console.log('Preventing popup close on outside click');
+                                                e.stopPropagation();
+                                            });
+                                        }, 100);
+
+                                        const sortedData = window['DataSource_AssignedEmployeeIDs'].sort((a, b) => {
+                                            const aSelected = AssignedEmployeeIDsSelectedIds.includes(String(a.ID));
+                                            const bSelected = AssignedEmployeeIDsSelectedIds.includes(String(b.ID));
+                                            return bSelected - aSelected;
+                                        });
+
+                                        try {
+                                            const existingInstance = AssignedEmployeeIDsGridContainer.dxDataGrid('instance');
+                                            if (existingInstance) {
+                                                existingInstance.dispose();
+                                            }
+                                        } catch (e) {
+                                            // Instance chưa tồn tại hoặc đã bị destroy
+                                        }
+
+                                        AssignedEmployeeIDsGridContainer.empty().dxDataGrid({
+                                            dataSource: sortedData,
+                                            keyExpr: 'ID',
+                                            columnAutoWidth: true,
+                                            allowColumnResizing: true,
+                                            selection: { mode: 'multiple', showCheckBoxesMode: 'always' },
+                                            selectedRowKeys: AssignedEmployeeIDsSelectedIds,
+                                            columns: [
+                                                {
+                                                    caption: 'Ảnh',
+                                                    width: 80,
+                                                    alignment: 'center',
+                                                    cellTemplate: function (container, options) {
+                                                        const item = options.data;
+                                                        const $cell = $('<div>').css({
+                                                            display: 'flex',
+                                                            justifyContent: 'center',
+                                                            alignItems: 'center',
+                                                            height: '100%',
+                                                        });
+
+                                                        const cachedUrl = window.GlobalEmployeeAvatarCache[String(item.ID)];
+
+                                                        if (cachedUrl) {
+                                                            $cell.append(
+                                                                $('<img>').attr('src', cachedUrl).css({
+                                                                    width: '40px',
+                                                                    height: '40px',
+                                                                    borderRadius: '50%',
+                                                                    objectFit: 'cover',
+                                                                    border: '2px solid #fff',
+                                                                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                                                                })
+                                                            );
+                                                        } else if (item.storeImgName) {
+                                                            loadGlobalAvatarIfNeededAssignedEmployeeIDs(
+                                                                item.ID,
+                                                                item.storeImgName,
+                                                                item.paramImg,
+                                                                function (url) {
+                                                                    AssignedEmployeeIDsGridContainer.dxDataGrid('instance').refresh();
+                                                                }
+                                                            );
+
+                                                            const initials = getInitialsAssignedEmployeeIDs(item.Name || item.FullName || '?');
+                                                            const color = getColorForIdAssignedEmployeeIDs(item.ID);
+                                                            $cell.append(
+                                                                $('<div>').text(initials).css({
+                                                                    width: '40px',
+                                                                    height: '40px',
+                                                                    borderRadius: '50%',
+                                                                    background: color.bg,
+                                                                    color: color.text,
+                                                                    display: 'flex',
+                                                                    justifyContent: 'center',
+                                                                    alignItems: 'center',
+                                                                    fontWeight: '600',
+                                                                    fontSize: '14px',
+                                                                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                                                                })
+                                                            );
+                                                        } else {
+                                                            const initials = getInitialsAssignedEmployeeIDs(item.Name || item.FullName || '?');
+                                                            const color = getColorForIdAssignedEmployeeIDs(item.ID);
+                                                            $cell.append(
+                                                                $('<div>').text(initials).css({
+                                                                    width: '40px',
+                                                                    height: '40px',
+                                                                    borderRadius: '50%',
+                                                                    background: color.bg,
+                                                                    color: color.text,
+                                                                    display: 'flex',
+                                                                    justifyContent: 'center',
+                                                                    alignItems: 'center',
+                                                                    fontWeight: '600',
+                                                                    fontSize: '14px',
+                                                                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                                                                })
+                                                            );
+                                                        }
+
+                                                        container.append($cell);
+                                                    },
+                                                },
+                                                { dataField: 'Name', caption: 'Họ tên' },
+                                                { dataField: 'Email', caption: 'Email' },
+                                                { dataField: 'Position', caption: 'Chức vụ' },
+                                            ],
+                                            searchPanel: { visible: true },
+                                            paging: {
+                                                enabled: true,
+                                                pageSize: 5,
+                                                pageIndex: 0,
+                                            },
+                                            pager: {
+                                                visible: true,
+                                                allowedPageSizes: [5, 10],
+                                                showPageSizeSelector: true,
+                                                showInfo: true,
+                                                showNavigationButtons: true,
+                                            },
+                                            onSelectionChanged: (e) => (AssignedEmployeeIDsSelectedIds = e.selectedRowKeys || []),
+                                        });
+                                    },
+                                    onHidden: () => {
+                                        const $popupContent = $('#AssignedEmployeeIDs_popup').closest('.dx-popup-wrapper');
+                                        $popupContent.off('mousedown.preventClose');
+
+                                        // Dispose grid instance
+                                        try {
+                                            const gridInstance = AssignedEmployeeIDsGridContainer.dxDataGrid('instance');
+                                            if (gridInstance) {
+                                                gridInstance.dispose();
+                                            }
+                                        } catch (e) {
+                                            // Grid chưa được khởi tạo hoặc đã dispose
+                                        }
+
+                                        // Reset position của popup về default
+                                        popupAssignedEmployeeIDs.option('position', { my: 'center', at: 'center', of: window });
+
+                                        renderDisplayBoxAssignedEmployeeIDs();
+                                    },
+                                })
+                                .dxPopup('instance');
+
+                            // Tự động save khi đóng popup (trừ khi bấm Hủy)
+                            popupAssignedEmployeeIDs.on('hiding', async function (e) {
+                                // Skip nếu đang lưu hoặc đã hủy
+                                if (AssignedEmployeeIDsIsSaving || e.component._isCancelling) {
+                                    delete e.component._isCancelling;
+                                    return;
+                                }
+
+                                const original = AssignedEmployeeIDsSelectedIdsOriginal.slice().sort().join(',');
+                                const current = AssignedEmployeeIDsSelectedIds.slice().sort().join(',');
+
+                                if (original !== current) {
+                                    e.cancel = true;
+                                    await saveValueAssignedEmployeeIDs();
+                                    e.component.hide();
+                                }
+                            });
+                        }
+
+                        async function saveValueAssignedEmployeeIDs() {
+                            const original = AssignedEmployeeIDsSelectedIdsOriginal.slice().sort().join(',');
+                            const current = AssignedEmployeeIDsSelectedIds.slice().sort().join(',');
+                            if (original === current || AssignedEmployeeIDsIsSaving) return;
+
+                            AssignedEmployeeIDsIsSaving = true;
+                            try {
+                                const newValue = AssignedEmployeeIDsSelectedIds.join(',');
+                                const dataJSON = JSON.stringify(['0', ['AssignedEmployeeIDs'], [newValue || null]]);
+
+                                let idValues = [currentRecordID_ChildTaskID];
+                                let idFields = ['ChildTaskID'];
+                                if ('' && ''.trim() !== '') {
+                                    idValues.push(currentRecordID_);
+                                    idFields.push('');
+                                }
+                                const idValsJSON = JSON.stringify([idValues, idFields]);
+
+                                const json = await saveFunction(dataJSON, idValsJSON);
+                                const errors = json.data?.[json.data.length - 1] || [];
+                                if (errors.length > 0 && errors[0].Status === 'ERROR') {
+                                    if ('0' === '1') {
+                                        uiManager.showAlert({ type: 'error', message: errors[0].Message || 'Lưu thất bại' });
+                                    }
+                                    return;
+                                }
+
+                                // SYNC GRID: Cập nhật lại giá trị trong Grid sau khi save thành công
+                                if (AssignedEmployeeIDsCellInfo && AssignedEmployeeIDsCellInfo.component) {
+                                    try {
+                                        const grid = AssignedEmployeeIDsCellInfo.component;
+                                        const rowKey = AssignedEmployeeIDsCellInfo.key || AssignedEmployeeIDsCellInfo.data['ChildTaskID'];
+
+                                        // Cập nhật cell value trong grid
+                                        grid.cellValue(AssignedEmployeeIDsCellInfo.rowIndex, 'AssignedEmployeeIDs', newValue);
+
+                                        // Refresh cell để hiển thị giá trị mới
+                                        grid.repaint();
+
+                                        console.log('[Grid Sync] SelectBox AssignedEmployeeIDs: Updated value =', newValue, 'for row', rowKey);
+                                    } catch (syncErr) {
+                                        console.warn('[Grid Sync] SelectBox AssignedEmployeeIDs: Không thể sync grid:', syncErr);
+                                    }
+                                }
+
+                                AssignedEmployeeIDsSelectedIdsOriginal = [...AssignedEmployeeIDsSelectedIds];
+                                if ('0' === '1') {
+                                    uiManager.showAlert({ type: 'success', message: 'Lưu thành công' });
+                                }
+                                renderDisplayBoxAssignedEmployeeIDs();
+                            } catch (err) {
+                                if ('0' === '1') {
+                                    uiManager.showAlert({ type: 'error', message: 'Có lỗi khi lưu' });
+                                }
+                            }
+                        }
+
+                        window.InstanceAssignedEmployeeIDs = {
+                            setValue: function (val) {
+                                if (typeof val === 'string' && val.trim()) {
+                                    AssignedEmployeeIDsSelectedIds = val
+                                        .split(',')
+                                        .map((v) => v.trim())
+                                        .filter((v) => v);
+                                } else if (Array.isArray(val)) {
+                                    AssignedEmployeeIDsSelectedIds = val.map(String);
+                                } else {
+                                    AssignedEmployeeIDsSelectedIds = [];
+                                }
+                                AssignedEmployeeIDsSelectedIdsOriginal = [...AssignedEmployeeIDsSelectedIds];
+                                renderDisplayBoxAssignedEmployeeIDs();
+                            },
+                            getValue: () => AssignedEmployeeIDsSelectedIds,
+                            getValueAsString: () => AssignedEmployeeIDsSelectedIds.join(','),
+                            setDataSource: (data) => {
+                                window['DataSource_AssignedEmployeeIDs'] = data || [];
+                            },
+                            repaint: renderDisplayBoxAssignedEmployeeIDs,
+                            option: function (name, value) {
+                                if (arguments.length === 2 && name === 'value') {
+                                    this.setValue(value);
+                                } else if (arguments.length === 1) {
+                                    if (name === 'value') return this.getValueAsString();
+                                    if (name === 'dataSource') return window['DataSource_AssignedEmployeeIDs'];
+                                }
+                                return undefined;
+                            },
+                            _suppressValueChangeAction: function () {},
+                            _resumeValueChangeAction: function () {},
+                        };
+
+                        renderDisplayBoxAssignedEmployeeIDs();
+
+                        // Set initial value
+                        if (cellInfo.value !== undefined && cellInfo.value !== null && InstanceAssignedEmployeeIDs) {
+                            InstanceAssignedEmployeeIDs.option('value', cellInfo.value);
+                        }
+
+                        // TRUYỀN cellInfo vào control để sync Grid sau khi save
+                        if (InstanceAssignedEmployeeIDs && InstanceAssignedEmployeeIDs.setCellInfo) {
+                            InstanceAssignedEmployeeIDs.setCellInfo(cellInfo);
+                            console.log('[Grid Edit] Passed cellInfo to InstanceAssignedEmployeeIDs');
+                        }
+                    },
+                },
+
+                {
+                    dataField: 'StartDate',
+                    caption: 'Ngày bắt đầu',
+                    width: 180,
+                    allowSorting: true,
+                    allowFiltering: true,
+                    cellTemplate: function (container, cellInfo) {
+                        const val = cellInfo.value;
+
+                        if (val === undefined || val === null || val === '') {
+                            $('<div>').addClass('dx-placeholder').text('--').appendTo(container);
+                            return;
+                        }
+
+                        const d = new Date(val);
+                        const txt = DevExpress.localization.formatDate(d, 'dd/MM/yyyy HH:mm');
+                        $('<div>').text(txt).appendTo(container);
+                    },
+                    allowEditing: true,
+                    editCellTemplate: function (cellElement, cellInfo) {
+                        if (cellInfo.key !== undefined && cellInfo.key !== null) {
+                            currentRecordID_ChildTaskID = cellInfo.key;
+                            console.log(currentRecordID_ChildTaskID);
+                        } else if (cellInfo.data && cellInfo.data['ChildTaskID'] !== undefined) {
+                            currentRecordID_ChildTaskID = cellInfo.data['ChildTaskID'];
+                            console.log(currentRecordID_ChildTaskID);
+                        }
+
+                        let InstanceStartDate,
+                            StartDateTimeOut,
+                            StartDateCellInfo = null;
+
+                        async function DateboxSaveLogic() {
+                            let val = InstanceStartDate.option('value');
+                            // Sửa format lưu thành yyyy/MM/dd HH:mm để lấy cả giờ
+                            let valToSave = val ? DevExpress.localization.formatDate(new Date(val), 'yyyy/MM/dd HH:mm') : null;
+
+                            const dataJSON = JSON.stringify(['0', ['StartDate'], [valToSave]]);
+                            let currentRecordIDValue = [currentRecordID_ChildTaskID];
+                            let currentRecordID = ['ChildTaskID'];
+
+                            if ('' && ''.trim() !== '') {
+                                currentRecordIDValue.push(currentRecordID_);
+                                currentRecordID.push('');
+                            }
+
+                            const idValsJSON = JSON.stringify([currentRecordIDValue, currentRecordID]);
+                            const json = await saveFunction(dataJSON, idValsJSON);
+                            const dtError = json.data[json.data.length - 1] || [];
+
+                            if (dtError.length > 0 && dtError[0].Status === 'ERROR') {
+                                uiManager.showAlert({ type: 'error', message: dtError[0]?.Message || 'Lưu thất bại' });
+                            }
+
+                            // SYNC GRID: Cập nhật lại giá trị trong Grid sau khi save thành công
+                            if (StartDateCellInfo && StartDateCellInfo.component) {
+                                console.log('run update grid');
+                                try {
+                                    const grid = StartDateCellInfo.component;
+                                    const rowKey = StartDateCellInfo.key || StartDateCellInfo.data['ChildTaskID'];
+
+                                    // Cập nhật cell value trong grid
+                                    grid.cellValue(StartDateCellInfo.rowIndex, 'StartDate', val);
+                                    console.log('run update grid val', val);
+                                    // Refresh cell để hiển thị giá trị mới
+                                    grid.repaint();
+
+                                    console.log('[Grid Sync] SelectBox StartDate: Updated value =', val, 'for row', rowKey);
+                                } catch (syncErr) {
+                                    console.warn('[Grid Sync] SelectBox StartDate: Không thể sync grid:', syncErr);
+                                }
+                            }
+                        }
+
+                        InstanceStartDate = $(cellElement)
+                            .dxDateBox({
+                                type: 'datetime', // Đổi từ date -> datetime
+                                displayFormat: 'dd/MM/yyyy HH:mm', // Thêm hiển thị giờ
+                                useMaskBehavior: true,
+                                openOnFieldClick: true,
+                                showClearButton: false,
+                                dateSerializationFormat: 'yyyy-MM-ddTHH:mm:ss', // Format chuẩn ISO có giờ
+                                width: '100%',
+                                elementAttr: { class: 'hpa-dx-datebox-inline' },
+                                onValueChanged: async (e) => {
+                                    clearTimeout(StartDateTimeOut);
+                                    e.event && (await DateboxSaveLogic());
+                                },
+                                onKeyUp: (e) => {
+                                    clearTimeout(StartDateTimeOut);
+                                    StartDateTimeOut = setTimeout(async () => DateboxSaveLogic(), 1000);
+                                },
+                            })
+                            .dxDateBox('instance');
+
+                        // Thêm method setCellInfo vào Instance để nhận cellInfo từ Grid
+                        InstanceStartDate.setCellInfo = function (cellInfo) {
+                            StartDateCellInfo = cellInfo;
+                            console.log('[SelectBox StartDate] Received cellInfo:', cellInfo);
+                        };
+
+                        // Set initial value
+                        if (cellInfo.value !== undefined && cellInfo.value !== null && InstanceStartDate) {
+                            InstanceStartDate.option('value', cellInfo.value);
+                        }
+
+                        // TRUYỀN cellInfo vào control để sync Grid sau khi save
+                        if (InstanceStartDate && InstanceStartDate.setCellInfo) {
+                            InstanceStartDate.setCellInfo(cellInfo);
+                            console.log('[Grid Edit] Passed cellInfo to InstanceStartDate');
+                        }
+                    },
+                },
+
+                {
+                    dataField: 'EndDate',
+                    caption: 'Ngày kết thúc',
+                    width: 180,
+                    allowSorting: true,
+                    allowFiltering: true,
+                    cellTemplate: function (container, cellInfo) {
+                        const val = cellInfo.value;
+
+                        if (val === undefined || val === null || val === '') {
+                            $('<div>').addClass('dx-placeholder').text('--').appendTo(container);
+                            return;
+                        }
+
+                        const d = new Date(val);
+                        const txt = DevExpress.localization.formatDate(d, 'dd/MM/yyyy HH:mm');
+                        $('<div>').text(txt).appendTo(container);
+                    },
+                    allowEditing: true,
+                    editCellTemplate: function (cellElement, cellInfo) {
+                        if (cellInfo.key !== undefined && cellInfo.key !== null) {
+                            currentRecordID_ChildTaskID = cellInfo.key;
+                            console.log(currentRecordID_ChildTaskID);
+                        } else if (cellInfo.data && cellInfo.data['ChildTaskID'] !== undefined) {
+                            currentRecordID_ChildTaskID = cellInfo.data['ChildTaskID'];
+                            console.log(currentRecordID_ChildTaskID);
+                        }
+
+                        let InstanceEndDate,
+                            EndDateTimeOut,
+                            EndDateCellInfo = null;
+
+                        async function DateboxSaveLogic() {
+                            let val = InstanceEndDate.option('value');
+                            // Sửa format lưu thành yyyy/MM/dd HH:mm để lấy cả giờ
+                            let valToSave = val ? DevExpress.localization.formatDate(new Date(val), 'yyyy/MM/dd HH:mm') : null;
+
+                            const dataJSON = JSON.stringify(['0', ['EndDate'], [valToSave]]);
+                            let currentRecordIDValue = [currentRecordID_ChildTaskID];
+                            let currentRecordID = ['ChildTaskID'];
+
+                            if ('' && ''.trim() !== '') {
+                                currentRecordIDValue.push(currentRecordID_);
+                                currentRecordID.push('');
+                            }
+
+                            const idValsJSON = JSON.stringify([currentRecordIDValue, currentRecordID]);
+                            const json = await saveFunction(dataJSON, idValsJSON);
+                            const dtError = json.data[json.data.length - 1] || [];
+
+                            if (dtError.length > 0 && dtError[0].Status === 'ERROR') {
+                                uiManager.showAlert({ type: 'error', message: dtError[0]?.Message || 'Lưu thất bại' });
+                            }
+
+                            // SYNC GRID: Cập nhật lại giá trị trong Grid sau khi save thành công
+                            if (EndDateCellInfo && EndDateCellInfo.component) {
+                                console.log('run update grid');
+                                try {
+                                    const grid = EndDateCellInfo.component;
+                                    const rowKey = EndDateCellInfo.key || EndDateCellInfo.data['ChildTaskID'];
+
+                                    // Cập nhật cell value trong grid
+                                    grid.cellValue(EndDateCellInfo.rowIndex, 'EndDate', val);
+                                    console.log('run update grid val', val);
+                                    // Refresh cell để hiển thị giá trị mới
+                                    grid.repaint();
+
+                                    console.log('[Grid Sync] SelectBox EndDate: Updated value =', val, 'for row', rowKey);
+                                } catch (syncErr) {
+                                    console.warn('[Grid Sync] SelectBox EndDate: Không thể sync grid:', syncErr);
+                                }
+                            }
+                        }
+
+                        InstanceEndDate = $(cellElement)
+                            .dxDateBox({
+                                type: 'datetime', // Đổi từ date -> datetime
+                                displayFormat: 'dd/MM/yyyy HH:mm', // Thêm hiển thị giờ
+                                useMaskBehavior: true,
+                                openOnFieldClick: true,
+                                showClearButton: false,
+                                dateSerializationFormat: 'yyyy-MM-ddTHH:mm:ss', // Format chuẩn ISO có giờ
+                                width: '100%',
+                                elementAttr: { class: 'hpa-dx-datebox-inline' },
+                                onValueChanged: async (e) => {
+                                    clearTimeout(EndDateTimeOut);
+                                    e.event && (await DateboxSaveLogic());
+                                },
+                                onKeyUp: (e) => {
+                                    clearTimeout(EndDateTimeOut);
+                                    EndDateTimeOut = setTimeout(async () => DateboxSaveLogic(), 1000);
+                                },
+                            })
+                            .dxDateBox('instance');
+
+                        // Thêm method setCellInfo vào Instance để nhận cellInfo từ Grid
+                        InstanceEndDate.setCellInfo = function (cellInfo) {
+                            EndDateCellInfo = cellInfo;
+                            console.log('[SelectBox EndDate] Received cellInfo:', cellInfo);
+                        };
+
+                        // Set initial value
+                        if (cellInfo.value !== undefined && cellInfo.value !== null && InstanceEndDate) {
+                            InstanceEndDate.option('value', cellInfo.value);
+                        }
+
+                        // TRUYỀN cellInfo vào control để sync Grid sau khi save
+                        if (InstanceEndDate && InstanceEndDate.setCellInfo) {
+                            InstanceEndDate.setCellInfo(cellInfo);
+                            console.log('[Grid Edit] Passed cellInfo to InstanceEndDate');
+                        }
+                    },
+                },
+
+                {
+                    dataField: 'Priority',
+                    caption: 'Uu tiên',
+                    width: 120,
+                    allowSorting: true,
+                    allowFiltering: true,
+                    cellTemplate: function (container, cellInfo) {
+                        const val = cellInfo.value;
+
+                        if (val === undefined || val === null || val === '') {
+                            $('<div>').addClass('dx-placeholder').text('--').appendTo(container);
+                            return;
+                        }
+
+                        const ds = window['DataSource_Priority'];
+                        if (ds && Array.isArray(ds)) {
+                            const f = ds.find((x) => x.id == val || x.ID == val);
+                            if (f) {
+                                $('<div>')
+                                    .text(f.Text || f.Name || '')
+                                    .appendTo(container);
+                                return;
+                            }
+                        }
+
+                        $('<div>')
+                            .text(cellInfo.displayValue ?? val)
+                            .appendTo(container);
+                    },
+                    allowEditing: true,
+                    editCellTemplate: function (cellElement, cellInfo) {
+                        if (cellInfo.key !== undefined && cellInfo.key !== null) {
+                            currentRecordID_ChildTaskID = cellInfo.key;
+                            console.log(currentRecordID_ChildTaskID);
+                        } else if (cellInfo.data && cellInfo.data['ChildTaskID'] !== undefined) {
+                            currentRecordID_ChildTaskID = cellInfo.data['ChildTaskID'];
+                            console.log(currentRecordID_ChildTaskID);
+                        }
+
+                        window['DataSource_Priority'] = window['DataSource_Priority'] || [];
+
+                        let PriorityDataSourceSP = '';
+                        let PriorityIsLoading = false;
+                        let PriorityIsDataLoaded = false;
+                        let PriorityCellInfo = null; // Biến lưu cellInfo để sync Grid
+
+                        function highlightTextPriority(text, search) {
+                            if (!search || !text) return text;
+                            const regex = new RegExp('(' + search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
+                            return text.replace(regex, '<mark class="bg-warning fw-bold px-1 rounded">$1</mark>');
+                        }
+
+                        window.InstancePriority = $(cellElement)
+                            .dxSelectBox({
+                                dataSource: window['DataSource_Priority'],
+                                valueExpr: 'ID',
+                                displayExpr: 'Name',
+                                placeholder: 'Tìm kiếm hoặc chọn...',
+                                searchEnabled: true,
+                                searchMode: 'contains',
+                                searchExpr: ['Name', 'Code', 'Description'],
+                                searchTimeout: 300,
+                                minSearchLength: 0,
+                                showDataBeforeSearch: true,
+                                showClearButton: false,
+                                stylingMode: 'outlined',
+                                dropDownOptions: {
+                                    showTitle: false,
+                                    closeOnOutsideClick: true,
+                                    height: 'auto',
+                                    maxHeight: 400,
+                                    minWidth: 280,
+                                    onShowing: function (e) {
+                                        if (!PriorityIsDataLoaded && PriorityDataSourceSP && PriorityDataSourceSP !== '') {
+                                            loadPriorityDataSource();
+                                        }
+                                    },
+                                },
+                                itemTemplate: function (data, index) {
+                                    const $item = $('<div>').addClass('d-flex align-items-center gap-3 px-3 py-2 my-1 mx-2 rounded').css({
+                                        cursor: 'pointer',
+                                        transition: 'all 0.2s ease',
+                                        border: '1px solid transparent',
+                                    });
+
+                                    $item
+                                        .on('mouseenter', function () {
+                                            $(this).css({
+                                                transform: 'translateX(4px)',
+                                                borderColor: '#90caf9',
+                                                boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                                            });
+                                        })
+                                        .on('mouseleave', function () {
+                                            $(this).css({
+                                                background: '',
+                                                transform: '',
+                                                borderColor: 'transparent',
+                                                boxShadow: '',
+                                            });
+                                        });
+
+                                    const $content = $('<div>').addClass('flex-fill').css('minWidth', '0');
+                                    const searchValue = InstancePriority.option('searchValue') || '';
+
+                                    $('<div>')
+                                        .addClass('fw-semibold')
+                                        .css({
+                                            fontSize: '14px',
+                                            lineHeight: '1.4',
+                                            overflow: 'hidden',
+                                            textOverflow: 'ellipsis',
+                                            whiteSpace: 'nowrap',
+                                        })
+                                        .html(highlightTextPriority(data.Name || '', searchValue))
+                                        .appendTo($content);
+
+                                    if (data.Description || data.Code) {
+                                        $('<div>')
+                                            .addClass('small text-muted')
+                                            .css({
+                                                fontSize: '12px',
+                                                overflow: 'hidden',
+                                                textOverflow: 'ellipsis',
+                                                whiteSpace: 'nowrap',
+                                            })
+                                            .text(data.Code || data.Description)
+                                            .appendTo($content);
+                                    }
+
+                                    $content.appendTo($item);
+
+                                    if (data.Status) {
+                                        const badgeClass = data.Status === 'Active' ? 'bg-success' : 'bg-secondary';
+                                        $('<span>')
+                                            .addClass('badge ' + badgeClass + ' text-uppercase')
+                                            .css({
+                                                fontSize: '9px',
+                                                padding: '4px 8px',
+                                                letterSpacing: '0.5px',
+                                                flexShrink: '0',
+                                            })
+                                            .text(data.Status)
+                                            .appendTo($item);
+                                    }
+
+                                    setTimeout(() => {
+                                        $item
+                                            .css({
+                                                opacity: '0',
+                                                transform: 'translateX(-10px)',
+                                            })
+                                            .animate(
+                                                {
+                                                    opacity: 1,
+                                                },
+                                                {
+                                                    duration: 300,
+                                                    step: function (now) {
+                                                        $(this).css('transform', 'translateX(' + (-10 + now * 10) + 'px)');
+                                                    },
+                                                    delay: index * 30,
+                                                }
+                                            );
+                                    }, 10);
+
+                                    return $item;
+                                },
+                                onOpened: function (e) {
+                                    $(e.component._popup.content()).parent().addClass('shadow-lg border rounded hpa-responsive').css({
+                                        borderRadius: '12px',
+                                        padding: '8px 0',
+                                        borderColor: '#dee2e6',
+                                    });
+                                },
+                                onFocusIn: function (e) {
+                                    InstancePriority.option('showClearButton', true);
+                                },
+                                onFocusOut: function (e) {
+                                    InstancePriority.option('showClearButton', false);
+                                },
+                                onKeyDown: function (e) {
+                                    if (e.key === 'Enter' || e.key === 'Tab') {
+                                        InstancePriority.option('showClearButton', false);
+                                    }
+                                },
+                                onValueChanged: async function (e) {
+                                    if (!e.event) return;
+
+                                    // Nếu người dùng tìm kiếm rỗng và kết quả trả về là 0/empty/null,
+                                    // không thực hiện lưu và giữ lại giá trị hiện tại.
+                                    if (e.value === '' || e.value == null || e.value === 0 || e.value === '0') {
+                                        InstancePriority.option('value', _initialPriority);
+                                        return;
+                                    }
+
+                                    $(cellElement).find('.dx-texteditor-input').blur();
+                                    if (InstancePriority && InstancePriority.blur) InstancePriority.blur();
+
+                                    const $el = $(e.element);
+                                    $el.css({
+                                        transform: 'scale(1.02)',
+                                        boxShadow: '0 0 0 3px rgba(28, 151, 94, 0.2)',
+                                        transition: 'all 0.2s ease',
+                                    });
+                                    setTimeout(() => {
+                                        $el.css({
+                                            transform: '',
+                                            boxShadow: '',
+                                        });
+                                    }, 300);
+
+                                    // Gọi hàm callback onSelectBoxChanged nếu có
+                                    if (typeof window['onSelectBoxChanged_Priority'] === 'function') {
+                                        console.log('Calling onSelectBoxChanged_Priority callback');
+                                        window['onSelectBoxChanged_Priority'](e.value, InstancePriority, e);
+                                    }
+
+                                    const val = e.value;
+                                    const dataJSON = JSON.stringify(['0', ['Priority'], [val || '']]);
+
+                                    let currentRecordIDValue = [currentRecordID_ChildTaskID];
+                                    let currentRecordID = ['ChildTaskID'];
+
+                                    if ('' && ''.trim() !== '') {
+                                        currentRecordIDValue.push(currentRecordID_);
+                                        currentRecordID.push('');
+                                    }
+                                    const idValsJSON = JSON.stringify([currentRecordIDValue, currentRecordID]);
+
+                                    try {
+                                        const json = await saveFunction(dataJSON, idValsJSON);
+                                        const dtError = json.data[json.data.length - 1] || [];
+                                        if (dtError.length > 0 && dtError[0].Status === 'ERROR') {
+                                            if ('0' === '1') {
+                                                uiManager.showAlert({ type: 'error', message: dtError[0]?.Message || 'Lưu thất bại' });
+                                            }
+                                            InstancePriority.option('value', _initialPriority);
+                                        } else {
+                                            // SYNC GRID: Cập nhật lại giá trị trong Grid sau khi save thành công
+                                            if (PriorityCellInfo && PriorityCellInfo.component) {
+                                                try {
+                                                    const grid = PriorityCellInfo.component;
+                                                    const rowKey = PriorityCellInfo.key || PriorityCellInfo.data['ChildTaskID'];
+
+                                                    // Cập nhật cell value trong grid
+                                                    grid.cellValue(PriorityCellInfo.rowIndex, 'Priority', val);
+
+                                                    // Refresh cell để hiển thị giá trị mới
+                                                    grid.repaint();
+
+                                                    console.log('[Grid Sync] SelectBox Priority: Updated value =', val, 'for row', rowKey);
+                                                } catch (syncErr) {
+                                                    console.warn('[Grid Sync] SelectBox Priority: Không thể sync grid:', syncErr);
+                                                }
+                                            }
+
+                                            if ('0' === '1') {
+                                                uiManager.showAlert({ type: 'success', message: 'Lưu thành công' });
+                                            }
+                                        }
+                                    } catch (err) {
+                                        if ('0' === '1') {
+                                            uiManager.showAlert({ type: 'error', message: 'Có lỗi xảy ra khi lưu' });
+                                        }
+                                        InstancePriority.option('value', _initialPriority);
+                                        console.error('SelectBox Save Error:', err);
+                                    }
+                                },
+                            })
+                            .dxSelectBox('instance');
+
+                        const _initialPriority = InstancePriority.option('value');
+
+                        function loadPriorityDataSource() {
+                            if (!PriorityDataSourceSP || PriorityDataSourceSP === '') {
+                                console.warn('SelectBox Priority: No DataSourceSP');
+                                return;
+                            }
+
+                            if (PriorityIsLoading || PriorityIsDataLoaded) return;
+
+                            PriorityIsLoading = true;
+                            InstancePriority.option('placeholder', 'Đang tải dữ liệu...');
+
+                            const $input = $(cellElement).find('.dx-texteditor-input');
+                            const gradientAnim = setInterval(() => {
+                                if (!PriorityIsLoading) {
+                                    clearInterval(gradientAnim);
+                                    $input.css('background', '');
+                                    return;
+                                }
+                                $input.css({
+                                    backgroundSize: '200% 100%',
+                                    animation: 'none',
+                                });
+                            }, 100);
+
+                            AjaxHPAParadise({
+                                data: {
+                                    name: PriorityDataSourceSP,
+                                    param: ['LoginID', LoginID, 'LanguageID', LanguageID],
+                                },
+                                success: function (res) {
+                                    const json = typeof res === 'string' ? JSON.parse(res) : res;
+                                    const data = (json.data && json.data[0]) || [];
+
+                                    window['DataSource_Priority'] = data;
+
+                                    // Smart Load: Check dữ liệu > 1000 dòng
+                                    if (data.length > 1000) {
+                                        console.log('[SmartLoad] SelectBox Priority: Dữ liệu ' + data.length + ' dòng - Kích hoạt API load');
+                                        window['UseAPILoad_Priority'] = true;
+                                        InstancePriority.option('placeholder', 'Sử dụng tìm kiếm để load dữ liệu (API)');
+                                    } else {
+                                        InstancePriority.option('dataSource', data);
+                                        InstancePriority.repaint();
+                                        InstancePriority.option('placeholder', 'Tìm kiếm hoặc chọn...');
+                                    }
+
+                                    PriorityIsLoading = false;
+                                    PriorityIsDataLoaded = true;
+                                    clearInterval(gradientAnim);
+                                    $input.css('background', '');
+
+                                    console.log('SelectBox Priority: Loaded', data.length, 'items');
+                                },
+                                error: function (err) {
+                                    PriorityIsLoading = false;
+                                    clearInterval(gradientAnim);
+                                    $input.css('background', '');
+                                    InstancePriority.option('placeholder', 'Lỗi tải dữ liệu');
+                                    console.error('SelectBox Priority error:', err);
+                                },
+                            });
+                        }
+
+                        if (PriorityDataSourceSP && PriorityDataSourceSP !== '') {
+                            loadPriorityDataSource();
+                        }
+
+                        // Thêm method setCellInfo vào Instance để nhận cellInfo từ Grid
+                        InstancePriority.setCellInfo = function (cellInfo) {
+                            PriorityCellInfo = cellInfo;
+                            console.log('[SelectBox Priority] Received cellInfo:', cellInfo);
+                        };
+
+                        // Set initial value
+                        if (cellInfo.value !== undefined && cellInfo.value !== null && InstancePriority) {
+                            InstancePriority.option('value', cellInfo.value);
+                        }
+
+                        // TRUYỀN cellInfo vào control để sync Grid sau khi save
+                        if (InstancePriority && InstancePriority.setCellInfo) {
+                            InstancePriority.setCellInfo(cellInfo);
+                            console.log('[Grid Edit] Passed cellInfo to InstancePriority');
+                        }
+                    },
+                },
+
+                {
+                    dataField: 'Note',
+                    caption: 'Ghi chú',
+                    width: 200,
+                    allowSorting: false,
+                    allowFiltering: true,
+                    cellTemplate: function (container, cellInfo) {
+                        const val = cellInfo.value;
+
+                        if (val === undefined || val === null || val === '') {
+                            $('<div>').addClass('dx-placeholder').text('--').appendTo(container);
+                            return;
+                        }
+
+                        const ds = window['DataSource_Note'];
+                        if (ds && Array.isArray(ds)) {
+                            const f = ds.find((x) => x.id == val || x.ID == val);
+                            if (f) {
+                                $('<div>')
+                                    .text(f.Text || f.Name || '')
+                                    .appendTo(container);
+                                return;
+                            }
+                        }
+
+                        $('<div>')
+                            .text(cellInfo.displayValue ?? val)
+                            .appendTo(container);
+                    },
+                    allowEditing: true,
+                    editCellTemplate: function (cellElement, cellInfo) {
+                        if (cellInfo.key !== undefined && cellInfo.key !== null) {
+                            currentRecordID_ChildTaskID = cellInfo.key;
+                            console.log(currentRecordID_ChildTaskID);
+                        } else if (cellInfo.data && cellInfo.data['ChildTaskID'] !== undefined) {
+                            currentRecordID_ChildTaskID = cellInfo.data['ChildTaskID'];
+                            console.log(currentRecordID_ChildTaskID);
+                        }
+
+                        const $containerNote = $(cellElement);
+
+                        let NoteOriginalValue = '';
+                        let NoteIsEditing = false;
+                        let NoteTextDisplay = null;
+                        let NoteMouseDownInside = false;
+                        let _cancelingSaveNote = false;
+                        let _justSavedNote = false;
+                        let _savingNote = false;
+                        window.NoteRealInstance = null;
+
+                        /* ================= POPUP ================= */
+                        let actionPopupNote = null;
+                        let currentFieldIdNote = null;
+                        let saveCallbackNote = null;
+                        let cancelCallbackNote = null;
+
+                        function initActionPopupNote() {
+                            if (actionPopupNote) return;
+                            actionPopupNote = $('<div>')
+                                .appendTo('body')
+                                .addClass('hpa-responsive')
+                                .dxPopup({
+                                    width: 'auto',
+                                    height: 'auto',
+                                    showTitle: false,
+                                    visible: false,
+                                    shading: false,
+                                    dragEnabled: false,
+                                    hideOnOutsideClick: false,
+                                    animation: null,
+                                    showCloseButton: false,
+                                    position: { at: 'bottom right', my: 'top right', offset: '0 4' },
+                                    onShown: function (e) {
+                                        $(e.component.content()).closest('.dx-overlay-wrapper').css('z-index', '9999');
+                                    },
+                                    contentTemplate: () => {
+                                        return $('<div class="d-flex" style="gap: 6px; padding: 6px;">').append(
+                                            $('<div>').dxButton({
+                                                icon: 'check',
+                                                type: 'success',
+                                                stylingMode: 'contained',
+                                                width: 32,
+                                                height: 32,
+                                                elementAttr: { style: 'border-radius: 4px !important;' },
+                                                onInitialized: function (e) {
+                                                    $(e.element).on('mousedown', function (evt) {
+                                                        evt.preventDefault();
+                                                        evt.stopPropagation();
+                                                        _justSavedNote = true;
+                                                        _savingNote = true;
+                                                    });
+                                                },
+                                                onClick: async function () {
+                                                    // Cập nhật value từ textarea trước khi save
+                                                    const $ta = $containerNote.find('textarea');
+                                                    const currentValue = $ta.val().trim();
+                                                    NoteRealInstance.option('value', currentValue);
+
+                                                    if (saveCallbackNote) {
+                                                        await saveCallbackNote(true);
+                                                    }
+                                                    actionPopupNote.hide();
+                                                    setTimeout(function () {
+                                                        _justSavedNote = false;
+                                                        _savingNote = false;
+                                                    }, 300);
+                                                },
+                                            }),
+                                            $('<div>').dxButton({
+                                                icon: 'close',
+                                                stylingMode: 'outlined',
+                                                width: 32,
+                                                height: 32,
+                                                elementAttr: { style: 'border-radius: 4px !important;' },
+                                                onInitialized: function (e) {
+                                                    $(e.element).on('mousedown', function (evt) {
+                                                        evt.preventDefault();
+                                                        evt.stopPropagation();
+                                                        _cancelingSaveNote = true;
+                                                    });
+                                                },
+                                                onClick: function () {
+                                                    // Rollback ngay lập tức trước khi ẩn popup
+                                                    if (cancelCallbackNote) {
+                                                        cancelCallbackNote();
+                                                    }
+                                                    actionPopupNote.hide();
+                                                    setTimeout(function () {
+                                                        _cancelingSaveNote = false;
+                                                    }, 300);
+                                                },
+                                            })
+                                        );
+                                    },
+                                    onHiding: function () {
+                                        currentFieldIdNote = saveCallbackNote = cancelCallbackNote = null;
+                                    },
+                                })
+                                .dxPopup('instance');
+                        }
+
+                        function showActionPopup(inputElement, fieldId, onSave, onCancel) {
+                            if (!actionPopupNote) initActionPopupNote();
+
+                            // Nếu đang có field khác đang edit, cancel field đó trước
+                            if (currentFieldIdNote && currentFieldIdNote !== fieldId && cancelCallbackNote) {
+                                cancelCallbackNote();
+                            }
+
+                            currentFieldIdNote = fieldId;
+                            saveCallbackNote = onSave;
+                            cancelCallbackNote = onCancel;
+
+                            const updatePos = () => {
+                                if (!actionPopupNote?.option('visible')) return;
+                                const $ta = $(inputElement).find('textarea');
+                                if ($ta.length === 0) return;
+                                actionPopupNote.option({
+                                    position: {
+                                        my: 'top right',
+                                        at: 'bottom right',
+                                        of: $ta,
+                                        offset: '0 4',
+                                    },
+                                });
+                                actionPopupNote.repaint();
+                            };
+
+                            actionPopupNote.show();
+                            setTimeout(updatePos, 10);
+
+                            $(window)
+                                .off('scroll.ap' + fieldId)
+                                .on('scroll.ap' + fieldId, updatePos);
+                            $(window)
+                                .off('resize.ap' + fieldId)
+                                .on('resize.ap' + fieldId, updatePos);
+                            $('.dx-scrollable')
+                                .off('scroll.ap' + fieldId)
+                                .on('scroll.ap' + fieldId, updatePos);
+
+                            const intervalId = setInterval(() => {
+                                if (actionPopupNote?.option('visible')) updatePos();
+                                else clearInterval(intervalId);
+                            }, 100);
+
+                            actionPopupNote.option('onHiding', function () {
+                                clearInterval(intervalId);
+                                $(window).off('scroll.ap' + fieldId);
+                                $(window).off('resize.ap' + fieldId);
+                                $('.dx-scrollable').off('scroll.ap' + fieldId);
+                                currentFieldIdNote = saveCallbackNote = cancelCallbackNote = null;
+                            });
+                        }
+
+                        /* ================= EXIT EDIT ================= */
+                        function exitEditNote(cancel = false) {
+                            if (!NoteIsEditing) return;
+
+                            if (cancel) {
+                                // Rollback về giá trị gốc TRƯỚC KHI tắt editing mode
+                                NoteRealInstance.option('value', NoteOriginalValue);
+                                // Cập nhật textarea DOM ngay lập tức
+                                const $ta = $containerNote.find('textarea');
+                                $ta.val(NoteOriginalValue);
+                            } else {
+                                // Lưu giá trị hiện tại làm giá trị gốc mới
+                                NoteOriginalValue = NoteRealInstance.option('value');
+                            }
+
+                            NoteIsEditing = false;
+                            NoteMouseDownInside = false;
+                            $(document).off('mousedown.editNote');
+                            $(document).off('mouseup.editNote');
+
+                            if (actionPopupNote && actionPopupNote.option('visible')) {
+                                actionPopupNote.option('visible', false);
+                            }
+
+                            $containerNote.find('.dx-texteditor').hide();
+                            NoteTextDisplay.text(NoteOriginalValue || '').show();
+                        }
+
+                        /* ================= SAVE ================= */
+                        async function saveValueNote(fromButton = false) {
+                            // Nếu đang cancel thì rollback và thoát
+                            if (_cancelingSaveNote) {
+                                _cancelingSaveNote = false;
+                                exitEditNote(true);
+                                return;
+                            }
+
+                            // Chỉ check flag _saving khi KHÔNG phải từ button
+                            if (!fromButton && _savingNote) {
+                                return;
+                            }
+
+                            const newVal = NoteRealInstance.option('value');
+
+                            // Nếu không có thay đổi thì chỉ thoát edit mode
+                            if (newVal === NoteOriginalValue) {
+                                exitEditNote(false);
+                                _savingNote = false;
+                                _justSavedNote = false;
+                                return;
+                            }
+
+                            try {
+                                // Chỉ set flag nếu chưa được set (từ button đã set rồi)
+                                if (!fromButton) {
+                                    _savingNote = true;
+                                }
+
+                                const dataJSON = JSON.stringify(['0', ['Note'], [newVal || '']]);
+
+                                let currentRecordIDValue = [currentRecordID_ChildTaskID];
+
+                                let currentRecordID = ['ChildTaskID'];
+
+                                if ('' && ''.trim() !== '') {
+                                    currentRecordIDValue.push(currentRecordID_);
+                                    currentRecordID.push('');
+                                }
+
+                                const idValsJSON = JSON.stringify([currentRecordIDValue, currentRecordID]);
+
+                                const json = await saveFunction(dataJSON, idValsJSON);
+
+                                const dtError = json.data[json.data.length - 1] ?? [];
+                                if (dtError.length && dtError[0].Status === 'ERROR') {
+                                    if ('0' === '1') {
+                                        uiManager.showAlert({ type: 'error', message: dtError[0].Message || 'Lưu thất bại' });
+                                    }
+                                    _savingNote = false;
+                                    _justSavedNote = false;
+                                    return;
+                                }
+
+                                NoteOriginalValue = newVal;
+                                if ('0' === '1') {
+                                    uiManager.showAlert({ type: 'success', message: 'Lưu thành công' });
+                                }
+                                exitEditNote(false);
+
+                                if (cellInfo && cellInfo.component) {
+                                    try {
+                                        const grid = cellInfo.component;
+                                        const rowKey = cellInfo.key || cellInfo.data['ChildTaskID'];
+
+                                        // Cập nhật cell value trong grid
+                                        grid.cellValue(cellInfo.rowIndex, 'Note', newVal);
+
+                                        // Refresh cell để hiển thị giá trị mới
+                                        grid.repaint();
+                                    } catch (syncErr) {
+                                        console.warn('[Grid Sync] Không thể sync grid:', syncErr);
+                                    }
+                                }
+                            } catch (e) {
+                                if ('0' === '1') {
+                                    uiManager.showAlert({ type: 'error', message: 'Lỗi khi lưu' });
+                                }
+                            } finally {
+                                setTimeout(function () {
+                                    _savingNote = false;
+                                    _justSavedNote = false;
+                                }, 100);
+                            }
+                        }
+
+                        /* ================= HANDLE CLICK OUTSIDE ================= */
+                        function handleMouseDownNote(e) {
+                            if (!NoteIsEditing) return;
+
+                            // Nếu đang save hoặc cancel thì không xử lý
+                            if (_savingNote || _cancelingSaveNote) return;
+
+                            const $t = $(e.target);
+                            const isInsideControl = $t.closest($containerNote).length > 0;
+                            const isInsidePopup = $t.closest('.dx-popup-wrapper').length > 0;
+
+                            if (isInsideControl || isInsidePopup) {
+                                NoteMouseDownInside = true;
+                            } else {
+                                NoteMouseDownInside = false;
+                            }
+                        }
+
+                        function handleMouseUpNote(e) {
+                            if (!NoteIsEditing) return;
+
+                            // Nếu đang save, cancel hoặc vừa save xong thì không xử lý
+                            if (_savingNote || _cancelingSaveNote || _justSavedNote) {
+                                NoteMouseDownInside = false;
+                                return;
+                            }
+
+                            const $t = $(e.target);
+                            const isInsideControl = $t.closest($containerNote).length > 0;
+                            const isInsidePopup = $t.closest('.dx-popup-wrapper').length > 0;
+
+                            const selection = window.getSelection();
+                            const hasSelection = selection && selection.toString().length > 0;
+
+                            // Chỉ save khi cả mousedown và mouseup đều ở ngoài và không có text được select
+                            if (!NoteMouseDownInside && !isInsideControl && !isInsidePopup && !hasSelection) {
+                                // Cập nhật value từ textarea trước khi save
+                                const $ta = $containerNote.find('textarea');
+                                const currentValue = $ta.val().trim();
+                                NoteRealInstance.option('value', currentValue);
+                                saveValueNote();
+                            }
+                            NoteMouseDownInside = false;
+                        }
+
+                        /* ================= CREATE UI ================= */
+                        NoteTextDisplay = $('<div>')
+                            .css({
+                                padding: '6px 8px',
+                                cursor: 'text',
+                                'min-height': '80px',
+                                'font-size': '14px',
+                                height: '100%',
+                                'line-height': '1.5',
+                                'white-space': 'pre-wrap',
+                                border: '1px solid transparent',
+                                'border-radius': '4px',
+                                transition: 'border-color 0.2s',
+                            })
+                            .appendTo($containerNote);
+
+                        NoteTextDisplay.hover(
+                            function () {
+                                if (!NoteIsEditing) {
+                                    $(this).css('border-color', '#ddd');
+                                }
+                            },
+                            function () {
+                                if (!NoteIsEditing) {
+                                    $(this).css('border-color', 'transparent');
+                                }
+                            }
+                        );
+
+                        NoteTextDisplay.on('click', function () {
+                            if (NoteIsEditing) return;
+                            NoteIsEditing = true;
+                            NoteMouseDownInside = false;
+                            NoteOriginalValue = NoteRealInstance.option('value');
+                            NoteTextDisplay.hide();
+                            $containerNote.find('.dx-texteditor').show();
+
+                            const $ta = $containerNote.find('textarea');
+                            setTimeout(() => {
+                                $ta.focus();
+                                const len = $ta.val().length;
+                                $ta[0].setSelectionRange(len, len);
+                            }, 10);
+
+                            $ta.css({
+                                'border-color': '#1c975e',
+                                padding: '6px',
+                                height: '100%',
+                                'border-radius': '4px',
+                            });
+
+                            showActionPopup(
+                                $containerNote,
+                                'Note',
+                                async (fromButton) => {
+                                    await saveValueNote(fromButton);
+                                },
+                                () => exitEditNote(true)
+                            );
+
+                            setTimeout(() => {
+                                $(document).on('mousedown.editNote', handleMouseDownNote);
+                                $(document).on('mouseup.editNote', handleMouseUpNote);
+                            }, 100);
+                        });
+
+                        window.NoteRealInstance = $('<div>')
+                            .appendTo($containerNote)
+                            .dxTextArea({
+                                value: '',
+                                width: '100%',
+                                height: 80,
+                                onKeyDown: function (e) {
+                                    if (!NoteIsEditing) return;
+
+                                    if (e.event.key === 'Enter' && e.event.ctrlKey) {
+                                        e.event.preventDefault();
+                                        const $ta = $containerNote.find('textarea');
+                                        const currentValue = $ta.val().trim();
+                                        NoteRealInstance.option('value', currentValue);
+                                        saveValueNote();
+                                    }
+
+                                    if (e.event.key === 'Tab') {
+                                        e.event.preventDefault();
+                                        const $ta = $containerNote.find('textarea');
+                                        const currentValue = $ta.val().trim();
+                                        NoteRealInstance.option('value', currentValue);
+                                        saveValueNote();
+                                    }
+
+                                    if (e.event.key === 'Escape') {
+                                        e.event.preventDefault();
+                                        exitEditNote(true);
+                                    }
+                                },
+                                onFocusOut: function (e) {
+                                    // QUAN TRỌNG: Kiểm tra flag cancel TRƯỚC
+                                    if (_cancelingSaveNote) {
+                                        _cancelingSaveNote = false;
+                                        return;
+                                    }
+                                    if (_justSavedNote) {
+                                        _justSavedNote = false;
+                                        return;
+                                    }
+                                    if (_savingNote) {
+                                        return;
+                                    }
+
+                                    if (NoteIsEditing) {
+                                        const $ta = $containerNote.find('textarea');
+                                        const currentValue = $ta.val().trim();
+
+                                        if (currentValue !== NoteOriginalValue) {
+                                            NoteRealInstance.option('value', currentValue);
+                                            saveValueNote();
+                                        } else {
+                                            exitEditNote(false);
+                                        }
+                                    }
+                                },
+                            })
+                            .dxTextArea('instance');
+
+                        $containerNote.find('.dx-texteditor').hide();
+
+                        /* ================= PUBLIC API ================= */
+                        let InstanceNote = {
+                            setValue: function (val) {
+                                NoteOriginalValue = val || '';
+                                NoteRealInstance.option('value', val || '');
+                                NoteTextDisplay.text(val || '');
+                            },
+                            getValue: function () {
+                                return NoteRealInstance.option('value');
+                            },
+                            option: function (name, value) {
+                                if (value !== undefined) {
+                                    NoteRealInstance.option(name, value);
+                                    if (name === 'value') {
+                                        NoteOriginalValue = value || '';
+                                        NoteTextDisplay.text(value || '');
+                                    }
+                                } else {
+                                    return NoteRealInstance.option(name);
+                                }
+                            },
+                            repaint: function () {
+                                NoteRealInstance.repaint();
+                            },
+                            _suppressValueChangeAction: function () {
+                                if (NoteRealInstance._suppressValueChangeAction) {
+                                    NoteRealInstance._suppressValueChangeAction();
+                                }
+                            },
+                            _resumeValueChangeAction: function () {
+                                if (NoteRealInstance._resumeValueChangeAction) {
+                                    NoteRealInstance._resumeValueChangeAction();
+                                }
+                            },
+                        };
+
+                        // Set initial value
+                        if (cellInfo.value !== undefined && cellInfo.value !== null && InstanceNote) {
+                            InstanceNote.option('value', cellInfo.value);
+                        }
+
+                        // TRUYỀN cellInfo vào control để sync Grid sau khi save
+                        if (InstanceNote && InstanceNote.setCellInfo) {
+                            InstanceNote.setCellInfo(cellInfo);
+                            console.log('[Grid Edit] Passed cellInfo to InstanceNote');
+                        }
+                    },
+                },
+
+                {
+                    dataField: 'DefaultKPI',
+                    caption: 'KPI',
+                    width: 100,
+                    allowSorting: true,
+                    allowFiltering: true,
+                    cellTemplate: function (container, cellInfo) {
+                        let InstanceDefaultKPI = $(container)
+                            .dxNumberBox({
+                                format: '#,##0',
+                                showSpinButtons: false,
+                                showClearButton: false,
+                                width: '100%',
+                                elementAttr: { class: 'hpa-dx-numberbox-inline' },
+                                readOnly: true,
+                            })
+                            .dxNumberBox('instance');
+
+                        if (cellInfo.value !== undefined && cellInfo.value !== null && InstanceDefaultKPI) {
+                            InstanceDefaultKPI.option('value', cellInfo.value);
+                        }
+                    },
+                    allowEditing: true,
+                    editCellTemplate: function (cellElement, cellInfo) {
+                        if (cellInfo.key !== undefined && cellInfo.key !== null) {
+                            currentRecordID_ChildTaskID = cellInfo.key;
+                            console.log(currentRecordID_ChildTaskID);
+                        } else if (cellInfo.data && cellInfo.data['ChildTaskID'] !== undefined) {
+                            currentRecordID_ChildTaskID = cellInfo.data['ChildTaskID'];
+                            console.log(currentRecordID_ChildTaskID);
+                        }
+
+                        // Set initial value
+                        if (cellInfo.value !== undefined && cellInfo.value !== null && InstanceDefaultKPI) {
+                            InstanceDefaultKPI.option('value', cellInfo.value);
+                        }
+
+                        // TRUYỀN cellInfo vào control để sync Grid sau khi save
+                        if (InstanceDefaultKPI && InstanceDefaultKPI.setCellInfo) {
+                            InstanceDefaultKPI.setCellInfo(cellInfo);
+                            console.log('[Grid Edit] Passed cellInfo to InstanceDefaultKPI');
+                        }
+                    },
+                },
+            ],
+
+            onCellClick: function (e) {
+                if (e.columnIndex === 0) {
+                    const recordID = e.key || (e.data && e.data['TaskID']);
+                    console.log('[Grid Detail] Click mã - recordID:', recordID);
+                    console.log('[Grid Detail] Mở detail bằng hàm openDetailTaskID');
+                    if (recordID !== undefined && recordID !== null && recordID !== '') {
+                        if (typeof openDetailTaskID === 'function') {
+                            console.log('[Grid Detail] Mở detail bằng hàm openDetailTaskID');
+                            openDetailTaskID(recordID);
+                        } else {
+                            uiManager.showAlert({ type: 'info', message: 'Chi tiết bản ghi ID: ' + recordID });
+                        }
+                    }
+                }
+            },
+
+            onRowPrepared: function (e) {
+                if (e.rowType === 'data') {
+                    const $firstCell = e.rowElement.find('td:first');
+                    if ($firstCell.length) {
+                        $firstCell
+                            .css({
+                                cursor: 'pointer',
+                                color: '#1976d2',
+                                textDecoration: 'none',
+                                fontWeight: '500',
+                            })
+                            .hover(
+                                function () {
+                                    $(this).css({ textDecoration: 'underline' });
+                                },
+                                function () {
+                                    $(this).css({ textDecoration: 'none' });
+                                }
+                            );
+                    }
+                }
+            },
+
+            onToolbarPreparing: function (e) {
+                e.toolbarOptions.items.unshift({
+                    location: 'after',
+                    widget: 'dxButton',
+                    options: {
+                        icon: 'refresh',
+                        hint: 'Tải lại',
+                        onClick: () => ReloadData(),
+                    },
+                });
+            },
+        })
+        .dxDataGrid('instance');
+</script>

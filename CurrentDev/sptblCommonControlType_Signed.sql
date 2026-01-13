@@ -1,15 +1,15 @@
 USE Paradise_Beta_Tai2
 GO
-if object_id('[dbo].[sptblCommonControlType_Signed_Linh]') is null
-	EXEC ('CREATE PROCEDURE [dbo].[sptblCommonControlType_Signed_Linh] as select 1')
+if object_id('[dbo].[sptblCommonControlType_Signed]') is null
+	EXEC ('CREATE PROCEDURE [dbo].[sptblCommonControlType_Signed] as select 1')
 GO
 
-ALTER PROCEDURE [dbo].[sptblCommonControlType_Signed_Linh]
+ALTER PROCEDURE [dbo].[sptblCommonControlType_Signed]
     @TableName VARCHAR(256) = ''
 AS
 BEGIN
     -- ============================================================================
-    -- PROCEDURE: sptblCommonControlType_Signed_Linh
+    -- PROCEDURE: sptblCommonControlType_Signed
     -- MÔ TẢ: Build HTML/JavaScript cho Grid View và các control chung dựa trên cấu hình
     -- THAM SỐ:
     --   @TableName: Tên thủ tục cần build UI (VD: 'sp_Task_MyWork_html')
@@ -79,7 +79,7 @@ BEGIN
     -- ============================================================================
 
     -- Gọi các SP build control theo loại
-    
+
     EXEC sp_hpaControlDate @TableName = @TableName
     EXEC sp_hpaControlTime @TableName = @TableName
     EXEC sp_hpaControlDateTime @TableName = @TableName
@@ -95,7 +95,7 @@ BEGIN
 
     UPDATE #temptable SET
         loadUI = REPLACE(loadUI, '$("#%UID%")', '$("#%UID%" + currentRecordID_%ColumnIDName2%)')
-    WHERE ColumnIDName2 IS NOT NULL
+WHERE ColumnIDName2 IS NOT NULL
       AND LTRIM(RTRIM(ColumnIDName2)) <> ''
       AND loadUI LIKE '%$("#%UID%")%';
 
@@ -258,10 +258,10 @@ BEGIN
     WHILE @@FETCH_STATUS = 0
     BEGIN
         PRINT '========== Building Grid: ' + @GridColumnName + ' =========='
-        
+
         -- RESET @gridColumns cho mỗi Grid
         SET @gridColumns = N'';
-        
+
         -- DROP và TẠO LẠI #GridColumnsGrouped cho Grid hiện tại
         IF OBJECT_ID('tempdb..#GridColumnsGrouped') IS NOT NULL
             DROP TABLE #GridColumnsGrouped;
@@ -327,7 +327,7 @@ BEGIN
                     }
                 },'
             ,
-                CASE 
+                CASE
                 WHEN ControlType = 'hpaControlDateTime'
                 THEN N'cellTemplate: function(container, cellInfo){
                     const val = cellInfo.value;
@@ -353,7 +353,7 @@ BEGIN
                     if (ds && Array.isArray(ds)) {
                         const f = ds.find(x => x.id == val || x.ID == val);
                         if (f) {
-                            $("<div>").text(f.Text || f.Name || "").appendTo(container);
+              $("<div>").text(f.Text || f.Name || "").appendTo(container);
                             return;
                         }
                     }
@@ -415,7 +415,7 @@ BEGIN
                             left: 0 !important;
                             top: 0 !important;
                         }
-                        
+
                         .dx-popup.hpa-responsive .dx-popup-content {
                             height: calc(95vh - 120px) !important;
                             max-height: calc(95vh - 120px) !important;
@@ -424,63 +424,63 @@ BEGIN
                             display: flex !important;
                             flex-direction: column !important;
                         }
-                        
+
                         .dx-popup.hpa-responsive .dx-popup-content-scrollable {
                             flex: 1 !important;
                             min-height: 0 !important;
                             overflow: auto !important;
                         }
-                        
+
                         .dx-popup-content.dx-popup-content-scrollable {
                             height: auto !important;
-                        }
-                        
-                        .dx-popup.hpa-responsive .dx-toolbar-items {
+}
+
+   .dx-popup.hpa-responsive .dx-toolbar-items {
                             padding: 4px 0 !important;
                             flex-wrap: wrap;
                         }
-                        
+
                         .dx-popup.hpa-responsive .dx-toolbar-item {
                             margin: 2px 2px !important;
                         }
-                        
+
                         /* =============== GRID HEADER STYLES =============== */
                         .dx-datagrid {
                             font-size: 14px;
                         }
-                        
+
                         .dx-datagrid-headers {
                             white-space: normal;
                             word-break: break-word;
                         }
-                        
+
                         .dx-datagrid-header-panel {
                             padding: 8px;
                         }
-                        
+
                         .dx-datagrid .dx-header-row {
                             height: auto;
                             min-height: 44px;
                         }
-                        
+
                         .dx-datagrid .dx-col-fixed {
                             z-index: 800 !important;
                         }
-                        
+
                         /* Group row - sát mép */
                         .dx-datagrid .dx-group-row {
                             padding: 0 !important;
                         }
-                        
+
                         .dx-datagrid .dx-group-row > td {
                             padding: 4px 6px !important;
                         }
-                        
+
                         .dx-datagrid .dx-group-row .dx-group-text {
                             padding: 0 !important;
                             margin: 0 !important;
                         }
-                        
+
                         /* Mobile responsive */
                         @media (max-width: 1024px) {
                             .dx-popup.hpa-responsive {
@@ -502,71 +502,71 @@ BEGIN
                             .dx-datagrid {
                                 font-size: 12px;
                             }
-                            
+
                             .dx-datagrid-headers {
                                 padding: 4px !important;
                             }
-                            
+
                             .dx-datagrid .dx-header-row {
                                 height: auto;
                                 min-height: 36px;
                                 padding: 0 !important;
                             }
-                            
+
                             .dx-datagrid-text-content {
                                 padding: 4px 2px !important;
                                 font-size: 11px !important;
                                 line-height: 1.3 !important;
                                 overflow: visible !important;
                                 white-space: normal !important;
-                                word-break: break-word !important;
+                word-break: break-word !important;
                             }
-                            
+
                             .dx-datagrid-text-content.dx-header-filter {
                                 padding: 2px 1px !important;
                             }
-                            
+
                             .dx-checkbox {
                                 width: 24px !important;
                                 height: 24px !important;
                             }
-                            
-                            .dx-datagrid-rowsview {
-                                padding: 0 !important;
+
+   .dx-datagrid-rowsview {
+         padding: 0 !important;
                             }
-                            
+
                             .dx-datagrid .dx-row {
                                 height: auto;
                                 min-height: 36px;
                                 padding: 0 !important;
                             }
-                            
+
                             .dx-datagrid .dx-data-row > td {
                                 padding: 4px 2px !important;
                                 white-space: normal !important;
                                 word-break: break-word !important;
                                 vertical-align: middle !important;
                             }
-                            
+
                             .dx-datagrid .dx-group-row > td {
                                 padding: 4px 2px !important;
                             }
-                            
+
                             .dx-pager {
                                 padding: 4px 0 !important;
                             }
-                            
+
                             .dx-pager-page,
                             .dx-pager-navigation {
                                 padding: 2px 4px !important;
                                 font-size: 11px !important;
                             }
-                            
+
                             .dx-searchbox {
                                 width: 100% !important;
                                 max-width: none !important;
                             }
-                            
+
                             .dx-searchbox .dx-texteditor-input {
                                 padding: 4px !important;
                                 font-size: 12px !important;
@@ -597,13 +597,13 @@ BEGIN
                                 display: flex !important;
                                 flex-direction: column !important;
                             }
-                            
+
                             .dx-popup.hpa-responsive .dx-popup-content-scrollable {
                                 flex: 1 !important;
                                 min-height: 0 !important;
                                 overflow: auto !important;
                             }
-                            
+
                             .dx-popup-content.dx-popup-content-scrollable {
                                 height: auto !important;
                             }
@@ -613,7 +613,7 @@ BEGIN
                                 font-size: 12px !important;
                                 min-height: 36px !important;
                                 width: auto !important;
-                            }
+        }
                             .dx-popup.hpa-responsive .dx-toolbar-item .dx-button .dx-button-text {
                                 font-size: 12px !important;
                             }
@@ -633,39 +633,39 @@ BEGIN
                                 padding: 4px 2px !important;
                             }
                         }
-                        
+
                         @media (max-width: 480px) {
                             .dx-datagrid {
                                 font-size: 12px;
                             }
-                            
+
                             .dx-datagrid-headers {
                                 padding: 2px !important;
                             }
-                            
+
                             .dx-datagrid .dx-header-row {
                                 min-height: 32px;
                             }
-                            
+
                             .dx-datagrid-text-content {
                                 padding: 2px 1px !important;
                                 font-size: 12px !important;
                             }
-                            
+
                             .dx-checkbox {
                                 width: 20px !important;
                                 height: 20px !important;
                             }
-                            
+
                             .dx-datagrid .dx-row {
                                 min-height: 32px;
                             }
-                            
+
                             .dx-datagrid .dx-data-row > td {
                                 padding: 2px 1px !important;
                                 font-size: 12px !important;
                             }
-                            
+
                             .dx-pager-page,
                             .dx-pager-navigation {
                                 padding: 1px 2px !important;
@@ -696,13 +696,13 @@ BEGIN
                                 display: flex !important;
                                 flex-direction: column !important;
                             }
-                            
-                            .dx-popup.hpa-responsive .dx-popup-content-scrollable {
-                                flex: 1 !important;
+
+       .dx-popup.hpa-responsive .dx-popup-content-scrollable {
+    flex: 1 !important;
                                 min-height: 0 !important;
                                 overflow: auto !important;
                             }
-                            
+
                             .dx-popup-content.dx-popup-content-scrollable {
                                 height: auto !important;
                             }
@@ -747,6 +747,7 @@ BEGIN
                         dataSource: [],
                         keyExpr: "%PKColumnName%",
                         height: "100%",
+                        remoteOperations: false,
                         showBorders: true,
                         showRowLines: true,
                         rowAlternationEnabled: false,
@@ -779,7 +780,7 @@ BEGIN
                         selection: {
                             mode: "multiple",
                             showCheckBoxesMode: "onClick",
-                            allowSelectAll: true
+                allowSelectAll: true
                         },
 
                         searchPanel: {
@@ -866,13 +867,30 @@ BEGIN
                         },
 
                         onToolbarPreparing: function(e) {
+                            let isReloading = false;
+                            
                             e.toolbarOptions.items.unshift({
                                 location: "after",
                                 widget: "dxButton",
                                 options: {
                                     icon: "refresh",
                                     hint: "Tải lại",
-                                    onClick: () => ReloadData()
+                                    onClick: function() {
+                                        if (isReloading) {
+                                            console.log("[Grid] Đang reload, vui lòng đợi...");
+                                            return;
+                                        }
+                                        
+                                        isReloading = true;
+                                        this.option("disabled", true);
+                                        
+                                        ReloadData();
+                                        
+                                        setTimeout(() => {
+                                            isReloading = false;
+                                            this.option("disabled", false);
+                                        }, 1000);
+                                    }
                                 }
                             });
                         }
@@ -1078,6 +1096,5 @@ DELETE FROM #temptable WHERE Layout = 'Grid_View' AND GridColumnName IS NOT NULL
 END
 GO
 
--- Test execution
-EXEC sptblCommonControlType_Signed_Linh 'sp_Task_MyWork_html'
+EXEC sptblCommonControlType_Signed 'sp_Task_MyWork_html'
 EXEC sp_GenerateHTMLScript 'sp_Task_MyWork_html'
