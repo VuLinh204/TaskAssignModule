@@ -1,4 +1,3 @@
-USE Paradise_Beta_Tai2
 GO
 if object_id('[dbo].[sp_Task_MyWork_html]') is null
 	EXEC ('CREATE PROCEDURE [dbo].[sp_Task_MyWork_html] as select 1')
@@ -1242,23 +1241,23 @@ SET @html = N'
                         <div class="assign-row">
                             <div class="form-group">
                                 <label class="form-label">Công việc chính (Task cha)</label>
-                                <div id="P8117471F96C44E2D8886F4484DC46071"></div>
+                                <div id="P777C87EE29F94C29A6EAABD16E31FDDC"></div>
                             </div>
                             <div class="form-group">
                                 <label class="form-label">Người yêu cầu</label>
-                                <div id="P92FE9B82A6A24C5DB844EB0566E6A3F3"></div>
+                                <div id="P2920410F91DB42948640CF1ABBDEE649"></div>
                             </div>
                             <div class="form-group">
                                 <label class="form-label">Người phụ trách chính</label>
-                                <div id="PC4F17A30AF044F629C214E4FB871E188"></div>
+                                <div id="PC98E2DFA331343BBAE22882BE3825C1A"></div>
                             </div>
                             <div class="form-group">
                                 <label class="form-label">Ngày yêu cầu</label>
-                                <div id="P23DF6626AD7948EEAF6894A9AD476B3C"></div>
+                                <div id="P02E6F18645BA47648567B32773A1B7B4"></div>
                             </div>
                             <div class="form-group">
                                 <label class="form-label">Hạn hoàn thành</label>
-                                <div id="PF41DAB7E9FCA43409877B4D646C428C5"></div>
+                                <div id="P27C40759D9C94453AB9B2DFBCD661AE3"></div>
                             </div>
                         </div>
                     </div>
@@ -1609,7 +1608,7 @@ SET @html = N'
             // ==================== SUBMIT ASSIGNMENT ====================
             $("#btnSubmitAssignment").off("click").on("click", async function() {
                 try {
-                    // 1. Get parent task ID from form control P8117471F96C44E2D8886F4484DC46071
+                    // 1. Get parent task ID from form control P777C87EE29F94C29A6EAABD16E31FDDC
                     const parentTaskControl = window.Instance_TaskName;
                     const parentTaskID = parentTaskControl ? parentTaskControl.option("value") : null;
                     
@@ -1730,11 +1729,11 @@ SET @html = N'
                 console.log("✓ Modal được mở, khởi tạo event handlers");
                 
                 // Xóa event cũ của selectbox Task cha trước khi gắn mới
-                $(document).off("change.parentTaskSelect", "#P8117471F96C44E2D8886F4484DC46071 input, #P8117471F96C44E2D8886F4484DC46071 select");
+                $(document).off("change.parentTaskSelect", "#P777C87EE29F94C29A6EAABD16E31FDDC input, #P777C87EE29F94C29A6EAABD16E31FDDC select");
                 
                 // Gắn event change cho Task cha
-                $(document).on("change.parentTaskSelect", "#P8117471F96C44E2D8886F4484DC46071 input, #P8117471F96C44E2D8886F4484DC46071 select", function() {
-                    var selectedValue = $(this).val() || $("#P8117471F96C44E2D8886F4484DC46071").data("selected");
+                $(document).on("change.parentTaskSelect", "#P777C87EE29F94C29A6EAABD16E31FDDC input, #P777C87EE29F94C29A6EAABD16E31FDDC select", function() {
+                    var selectedValue = $(this).val() || $("#P777C87EE29F94C29A6EAABD16E31FDDC").data("selected");
                     if (selectedValue) {
                         console.log("[Modal] Parent Task selected:", selectedValue);
                         fetchAssignTemplate(selectedValue);
@@ -1763,15 +1762,15 @@ SET @html = N'
 
         let DataSource = []
         '
-        +(select loadUI from tblCommonControlType_Signed where UID = 'P547D4239B38445CEB3E2550006434E45')
-        +(select loadUI from tblCommonControlType_Signed where UID = 'PA07A58E6AC22406BBC0B8FA698E2EC60')
-        +(select loadUI from tblCommonControlType_Signed where UID = 'P8117471F96C44E2D8886F4484DC46071')
-        +(select loadUI from tblCommonControlType_Signed where UID = 'P92FE9B82A6A24C5DB844EB0566E6A3F3')
-        +(select loadUI from tblCommonControlType_Signed where UID = 'PC4F17A30AF044F629C214E4FB871E188')
-        +(select loadUI from tblCommonControlType_Signed where UID = 'P23DF6626AD7948EEAF6894A9AD476B3C')
-        +(select loadUI from tblCommonControlType_Signed where UID = 'PF41DAB7E9FCA43409877B4D646C428C5') +N'
+            +(select loadUI from tblCommonControlType_Signed where UID = 'PDB2DB35885F14803A9A52961A7871972')
+            +(select loadUI from tblCommonControlType_Signed where UID = 'P870C076FA1FD48DDBDEDE2C2435B4DA9')
+            +(select loadUI from tblCommonControlType_Signed where UID = 'P777C87EE29F94C29A6EAABD16E31FDDC')
+            +(select loadUI from tblCommonControlType_Signed where UID = 'P2920410F91DB42948640CF1ABBDEE649')
+            +(select loadUI from tblCommonControlType_Signed where UID = 'PC98E2DFA331343BBAE22882BE3825C1A')
+            +(select loadUI from tblCommonControlType_Signed where UID = 'P02E6F18645BA47648567B32773A1B7B4')
+            +(select loadUI from tblCommonControlType_Signed where UID = 'P27C40759D9C94453AB9B2DFBCD661AE3') +N'
 
-        let currentRecordID_HeaderID; let currentRecordID_HistoryID; let currentRecordID_TaskID;
+            let currentRecordID_HeaderID; let currentRecordID_HistoryID; let currentRecordID_TaskID;
 
         // ============================================================================
         // HÀM LOAD DATASOURCE CHUNG CHO TẤT CẢ CÁC CONTROL
@@ -1788,7 +1787,7 @@ SET @html = N'
             
             // Kiểm tra nếu đã load rồi thì không load lại
             if (window[loadedKey] === true) {
-                if (onSuccessCallback) {
+                if (typeof onSuccessCallback === "function") {
                     onSuccessCallback(window[dataSourceKey] || []);
                 }
                 return;
@@ -1817,7 +1816,7 @@ SET @html = N'
                     window[loadedKey] = true;
                     
                     // Gọi callback nếu có
-                    if (onSuccessCallback) {
+                    if (typeof onSuccessCallback === "function") {
                         onSuccessCallback(window[dataSourceKey]);
                     }
                     
@@ -1849,12 +1848,29 @@ SET @html = N'
                 error: function(err) {
                     console.error("[loadDataSourceCommon] Failed to load datasource for", columnName, ":", err);
                     window[loadedKey] = false;
-                    if (onSuccessCallback) {
+                    if (typeof onSuccessCallback === "function") {
                         onSuccessCallback([]);
                     }
                 }
             });
         }
+
+        // Load tất cả unique DataSourceSP
+        
+        // Load DataSource: EmployeeListAll_DataSetting_Custom
+        if ("EmployeeListAll_DataSetting_Custom" && "EmployeeListAll_DataSetting_Custom".trim() !== "") {
+            loadDataSourceCommon("MainPersonInCharge", "EmployeeListAll_DataSetting_Custom", function(data) {
+                // Data được shared qua callback
+            });
+        }
+    
+        // Load DataSource: sp_Task_GetAssignmentSetup
+        if ("sp_Task_GetAssignmentSetup" && "sp_Task_GetAssignmentSetup".trim() !== "") {
+            loadDataSourceCommon("TaskName", "sp_Task_GetAssignmentSetup", function(data) {
+                // Data được shared qua callback
+            });
+        }
+    
 
         function ReloadData() {
             AjaxHPAParadise({
@@ -1872,22 +1888,22 @@ SET @html = N'
 
                     const obj = results[0] || null;
 
-                        currentRecordID_HeaderID = obj.HeaderID || currentRecordID_HeaderID; currentRecordID_HistoryID = obj.HistoryID || currentRecordID_HistoryID; currentRecordID_TaskID = obj.TaskID || currentRecordID_TaskID;
+                    currentRecordID_HeaderID = obj.HeaderID || currentRecordID_HeaderID; currentRecordID_HistoryID = obj.HistoryID || currentRecordID_HistoryID; currentRecordID_TaskID = obj.TaskID || currentRecordID_TaskID;
 
                     DataSource = results;
+                    '
+                    +(select loadData from tblCommonControlType_Signed where UID = 'PDB2DB35885F14803A9A52961A7871972')
+                    +(select loadData from tblCommonControlType_Signed where UID = 'P870C076FA1FD48DDBDEDE2C2435B4DA9')
+                    +(select loadData from tblCommonControlType_Signed where UID = 'P777C87EE29F94C29A6EAABD16E31FDDC')
+                    +(select loadData from tblCommonControlType_Signed where UID = 'P2920410F91DB42948640CF1ABBDEE649')
+                    +(select loadData from tblCommonControlType_Signed where UID = 'PC98E2DFA331343BBAE22882BE3825C1A')
+                    +(select loadData from tblCommonControlType_Signed where UID = 'P02E6F18645BA47648567B32773A1B7B4')
+                    +(select loadData from tblCommonControlType_Signed where UID = 'P27C40759D9C94453AB9B2DFBCD661AE3') +N'
+                
 
                     if (1 === 1) {
                         InstancegridMyWork.option("dataSource", results);
-                    } else {
-                        '
-                        +(select loadData from tblCommonControlType_Signed where UID = 'P547D4239B38445CEB3E2550006434E45')
-                        +(select loadData from tblCommonControlType_Signed where UID = 'PA07A58E6AC22406BBC0B8FA698E2EC60')
-                        +(select loadData from tblCommonControlType_Signed where UID = 'P8117471F96C44E2D8886F4484DC46071')
-                        +(select loadData from tblCommonControlType_Signed where UID = 'P92FE9B82A6A24C5DB844EB0566E6A3F3')
-                        +(select loadData from tblCommonControlType_Signed where UID = 'PC4F17A30AF044F629C214E4FB871E188')
-                        +(select loadData from tblCommonControlType_Signed where UID = 'P23DF6626AD7948EEAF6894A9AD476B3C')
-                        +(select loadData from tblCommonControlType_Signed where UID = 'PF41DAB7E9FCA43409877B4D646C428C5') +N'
-                    }
+                    } 
                 }
             })
         }

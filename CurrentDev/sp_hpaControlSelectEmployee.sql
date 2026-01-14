@@ -1,4 +1,3 @@
-USE Paradise_Beta_Tai2
 GO
 IF OBJECT_ID('[dbo].[sp_hpaControlSelectEmployee]') IS NULL
     EXEC ('CREATE PROCEDURE [dbo].[sp_hpaControlSelectEmployee] AS SELECT 1')
@@ -94,7 +93,18 @@ BEGIN
             let spNameDSE%columnName% = "%DataSourceSP%";
             let %columnName%DataSourceLoaded = false;
 
-
+            
+            // Sử dụng hàm loadDataSourceCommon từ sptblCommonControlType_Signed
+            if (spNameDSE%columnName% && spNameDSE%columnName%.trim() !== "") {
+                loadDataSourceCommon("%ColumnName%", spNameDSE%columnName%, function(data) {
+                    window["DataSource_%ColumnName%"] = data || [];
+                    console.log("[SelectEmployee %ColumnName%] DataSource loaded, rendering display...");
+                    // Gọi lại render để load hình
+                    if (typeof renderDisplay%ColumnName% === "function") {
+                        renderDisplay%ColumnName%();
+                    }
+                });
+            }
 
             let %columnName%SelectedIds = [];
             const MAX_VISIBLE_%ColumnName% = 3;
@@ -303,6 +313,19 @@ BEGIN
             window["DataSource_%ColumnName%"] = window["DataSource_%ColumnName%"] || [];
             let %columnName%DataSourceLoaded = false;
             let spNameDSE%columnName% = "%DataSourceSP%";
+
+            
+            // Sử dụng hàm loadDataSourceCommon từ sptblCommonControlType_Signed
+            if (spNameDSE%columnName% && spNameDSE%columnName%.trim() !== "") {
+                loadDataSourceCommon("%ColumnName%", spNameDSE%columnName%, function(data) {
+                    window["DataSource_%ColumnName%"] = data || [];
+                    console.log("[SelectEmployee %ColumnName%] DataSource loaded, rendering display box...");
+                    // Gọi lại render để load hình
+                    if (typeof renderDisplayBox%ColumnName% === "function") {
+                        renderDisplayBox%ColumnName%();
+                    }
+                });
+            }
 
             window.Instance%columnName% = {};
             let %columnName%SelectedIds = [], %columnName%SelectedIdsOriginal = [];
@@ -821,11 +844,17 @@ BEGIN
             let %columnName%DataSourceLoaded = false;
             let spNameDSE%columnName% = "%DataSourceSP%";
 
+            
             // Sử dụng hàm loadDataSourceCommon từ sptblCommonControlType_Signed
             if (spNameDSE%columnName% && spNameDSE%columnName%.trim() !== "") {
                 loadDataSourceCommon("%ColumnName%", spNameDSE%columnName%, function(data) {
                     if (Instance%columnName% && typeof Instance%columnName%.setDataSource === "function") {
                         Instance%columnName%.setDataSource(data);
+                    }
+                    console.log("[SelectEmployee %ColumnName%] DataSource loaded, rendering display box...");
+                    // Gọi lại render để load hình
+                    if (typeof renderDisplayBox%ColumnName% === "function") {
+                        renderDisplayBox%ColumnName%();
                     }
                 });
             }
@@ -1256,6 +1285,19 @@ BEGIN
 
             window["DataSource_%ColumnName%"] = window["DataSource_%ColumnName%"] || [];
             let spNameDSE%columnName% = "%DataSourceSP%";
+
+            
+            // Sử dụng hàm loadDataSourceCommon từ sptblCommonControlType_Signed
+            if (spNameDSE%columnName% && spNameDSE%columnName%.trim() !== "") {
+                loadDataSourceCommon("%ColumnName%", spNameDSE%columnName%, function(data) {
+                    window["DataSource_%ColumnName%"] = data || [];
+                    console.log("[SelectEmployee %ColumnName%] DataSource loaded, rendering display box...");
+                    // Gọi lại render để load hình
+                    if (typeof renderDisplayBox%ColumnName% === "function") {
+                        renderDisplayBox%ColumnName%();
+                    }
+                });
+            }
 
             window.Instance%columnName% = {};
             %columnName%SelectedId = null, %columnName%SelectedIdOriginal = null;
@@ -1762,6 +1804,21 @@ BEGIN
 
             window["DataSource_%ColumnName%"] = window["DataSource_%ColumnName%"] || [];
             let spNameDSE%columnName% = "%DataSourceSP%";
+
+            
+            // Sử dụng hàm loadDataSourceCommon từ sptblCommonControlType_Signed
+            if (spNameDSE%columnName% && spNameDSE%columnName%.trim() !== "") {
+                loadDataSourceCommon("%ColumnName%", spNameDSE%columnName%, function(data) {
+                    if (Instance%columnName% && typeof Instance%columnName%.setDataSource === "function") {
+                        Instance%columnName%.setDataSource(data);
+                    }
+                    console.log("[SelectEmployee %ColumnName%] DataSource loaded, rendering display box...");
+                    // Gọi lại render để load hình
+                    if (typeof renderDisplayBox%ColumnName% === "function") {
+                        renderDisplayBox%ColumnName%();
+                    }
+                });
+            }
 
             window.Instance%columnName% = {};
             let %columnName%SelectedId = null, %columnName%SelectedIdOriginal = null;

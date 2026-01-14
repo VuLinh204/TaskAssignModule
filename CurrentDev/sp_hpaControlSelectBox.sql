@@ -1,4 +1,3 @@
-USE Paradise_Beta_Tai2
 GO
 if object_id('[dbo].[sp_hpaControlSelectBox]') is null
 	EXEC ('CREATE PROCEDURE [dbo].[sp_hpaControlSelectBox] as select 1')
