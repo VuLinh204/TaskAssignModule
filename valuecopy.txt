@@ -1,18 +1,170 @@
-ID	TableName	SPLoadData	ColumnIDName	ColumnName	TableEditor	Type	AutoSave	ReadOnly	DisplayName	Layout	DataSourceSP	html	loadUI	loadData	UID	GroupIndex	ColumnIDName2	AllowSorting	AllowFiltering	GridWidth	GridColumnName	IsAlert	IsMultiSelectEmployee
-305	sp_Task_MyWork_html	sp_Task_GetMyTasks	TaskID	TaskName	tblTask	hpaControlText	1	0	Tên công việc	Grid_View	NULL				46B6CAFE927642E1895AD4AC3AB63B26	NULL	NULL	1	1	200	gridMyWork	NULL	NULL
-306	sp_Task_MyWork_html	NULL	TaskID	Status	tblTask_AssignHistory	hpaControlSelectBox	1	0	Trạng thái	Grid_View	NULL				3B84DD12AC854A8D996DAB9E4117E4F4	NULL	NULL	1	1	180	gridMyWork	NULL	NULL
-307	sp_Task_MyWork_html	NULL	TaskID	AssignPriority	tblTask_AssignHistory	hpaControlSelectBox	1	0	Ưu tiên	Grid_View	NULL				A26D4FEE8B8F4A7196A82892876C1993	NULL	NULL	1	1	180	gridMyWork	NULL	NULL
-308	sp_Task_MyWork_html	NULL	TaskID	StartDate	tblTask_AssignHeader	hpaControlDateTime	1	0	Ngày giao	Grid_View	NULL				DF873155C2B2485893F2A3708063FDEA	NULL	NULL	1	1	150	gridMyWork	NULL	NULL
-309	sp_Task_MyWork_html	NULL	TaskID	DueDate	tblTask_AssignHistory	hpaControlDateTime	1	0	Hạn hoàn thành	Grid_View	NULL				97DB9F614D114492AEE586C51D49CC9F	NULL	NULL	1	1	150	gridMyWork	NULL	NULL
-310	sp_Task_MyWork_html	NULL	TaskID	Progress	tblTask_AssignHistory	hpaControlNumber	1	0	Tiến độ (%)	Grid_View	NULL				57625440AD3A49E7A6502B9ABD515F7C	NULL	NULL	1	1	120	gridMyWork	NULL	NULL
-311	sp_Task_MyWork_html	NULL	TaskID	TaskID	tblTask_AssignHistory	hpaControlText	1	0	Mã CV	Grid_View	NULL				D4448D9B02B9431AB489F9F9FFD3ADBE	NULL	NULL	1	1	150	gridMyWork	NULL	NULL
-312	sp_Task_MyWork_html	NULL	TaskID	IsOverdue	NULL	hpaControlText	1	0	Trạng thái hạn	Grid_View	NULL				8237210023354AFE91F51A3A3036330F	NULL	NULL	1	1	150	gridMyWork	NULL	NULL
-313	sp_Task_MyWork_html	NULL	TaskID	EmployeeID	tblTask_AssignHistory	hpaControlSelectEmployee	1	0	Người thực hiện	Grid_View	EmployeeListAll_DataSetting_Custom				BCC9BAB9EC40493D87810F758DA40E1D	NULL	NULL	1	1	220	gridMyWork	NULL	NULL
-314	sp_Task_MyWork_html	NULL	TaskID	ParentTaskID	NULL	hpaControlText	1	0	ID Task cha	Grid_View	NULL				41632DFE7A4B4FDB842F33D739D4F122	0	NULL	1	1	150	gridMyWork	NULL	NULL
-324	sp_Task_MyWork_html	sp_Task_GetMyTasks	TaskID	gridMyWork	NULL	NULL	0	0	NULL	Grid_View	NULL	<div id="gridMyWork" style="height: 100%;"></div>	
+
+		(() => {
+        // Khai báo biến global - phải khai báo TRƯỚC
+        let unreg_tomselect = null;
+        let groupTomSelect = null;
+        let originalTelegram = "";
+        let originalGroups = [];
+        let currentLogin = "";
+        let currentAccount = null;
+		let employees = [];
+        let accounts = [];
+
+        // Khởi tạo các mảng này để tránh lỗi undefined
+        window.permissionGroups = window.permissionGroups || [];
+        window.linkedEmployees = window.linkedEmployees || [];
+
+        function checkCanUpdate() {
+            if (!currentAccount || !currentAccount.EmployeeID) return;
+
+            const telegramChanged = $("#unreg_TelegramChatID").val() !== originalTelegram;
+            const currentGroups = groupTomSelect ? groupTomSelect.items : [];
+            const groupsChanged = JSON.stringify(currentGroups.sort()) !== JSON.stringify(originalGroups.sort());
+
+            const hasChanges = telegramChanged || groupsChanged;
+            $("#unreg_save_btn").prop("disabled", !hasChanges).css("opacity", hasChanges ? "1" : "0.5");
+        }
+
+        function closeModal() {
+            document.getElementById("unreg_modal_overlay").classList.remove("show");
+        }
+
+		function openDetailLoginName(acc) {
+            // 1. Gắn ngay LoginName lấy từ Grid lên giao diện (như bạn confirm là đã lấy được)
+            $("#unreg_LoginName").text(acc.LoginName);
+            currentLogin = acc.LoginName;
+
+            // Reset các biến tạm
+            originalTelegram = "";
+            originalGroups = [];
+
+            // Xóa badge cũ
+            $("#unreg_LoginName").closest(".unreg-info-card").find(".employee-status-badge").remove();
+
+            // 2. BÓC DỮ LIỆU TỪ DATASOURCE
+            // Dùng LoginName vừa click để tìm object gốc trong window.DataSource
+            // Việc này đảm bảo lấy đủ các trường (ví dụ ParentLoginID) mà trên lưới có thể bị thiếu
+            const dataSource = window.DataSource || [];
+            currentAccount = dataSource.find(x => x.LoginName === acc.LoginName) || acc;
+
+            // 3. XỬ LÝ TRẠNG THÁI LIÊN KẾT
+            // Nếu là User/Managers hoặc đã có EmployeeID thì coi như đã liên kết
+            const isSpecialAccount = (currentAccount.LoginName === 'User' || currentAccount.LoginName === 'Managers');
+            const hasLink = !!currentAccount.EmployeeID || isSpecialAccount;
+
+            // 4. KHỞI TẠO TOMSELECT (Reset & Init)
+            if (unreg_tomselect) unreg_tomselect.destroy();
+            if (groupTomSelect) groupTomSelect.destroy();
+
+            // Init Employee Select
+            unreg_tomselect = new TomSelect('#unreg_employeeLookup', {
+                valueField: 'EmployeeID', labelField: 'FullName',
+                searchField: ['EmployeeID', 'FullName', 'MobilePhone'],
+                placeholder: 'Nhập mã hoặc tên nhân viên...',
+                maxOptions: 300,
+                render: {
+                    option: (d, e) => `<div><strong>${e(d.EmployeeID)}</strong> - ${e(d.FullName)}</div>`,
+                    item: (d, e) => `<div><strong>${e(d.EmployeeID)}</strong> - ${e(d.FullName)}</div>`
+                },
+                onChange: function(value) {
+                    if (!value) {
+                        $("#unreg_EmployeeID, #unreg_FullName, #unreg_Phone, #unreg_Email, #unreg_Birthday, #unreg_HireDate, #unreg_TelegramChatID").val("");
+                        return;
+                    }
+                    const emp = employees.find(x => x.EmployeeID === value) || window.linkedEmployees.find(x => x.EmployeeID === value);
+                    if (emp) {
+                        $("#unreg_EmployeeID").val(emp.EmployeeID);
+                        $("#unreg_FullName").val(emp.FullName);
+                        $("#unreg_Phone").val(emp.MobilePhone || "");
+                        $("#unreg_Email").val(emp.Email || "");
+                        $("#unreg_Birthday").val(emp.Birthday ? emp.Birthday.substring(0, 10) : "");
+                        $("#unreg_HireDate").val(emp.HireDate ? emp.HireDate.substring(0, 10) : "");
+                        $("#unreg_TelegramChatID").val(emp.TelegramChatID || "");
+                    }
+          }
+            });
+
+            // Init Group Select
+            const permissionOptions = (window.permissionGroups || []).map(g => ({ value: g.LoginID, text: g.GroupName }));
+            groupTomSelect = new TomSelect('#unreg_GroupRight', {
+                plugins: ['remove_button'], persist: false, create: false,
+                dropdownDirection: 'upward', options: permissionOptions
+            });
+
+            // 5. FILL DATA VÀO FORM
+            $("#unreg_EmployeeID, #unreg_FullName, #unreg_Phone, #unreg_Email, #unreg_Birthday, #unreg_HireDate, #unreg_TelegramChatID").val("");
+
+            // Fill Quyền (Group)
+            if (currentAccount.ParentLoginID) {
+                const ids = currentAccount.ParentLoginID.split('&').map(x => x.trim()).filter(Boolean);
+                groupTomSelect.clear();
+                groupTomSelect.on("item_add", function() {
+                    if (groupTomSelect.items.length === ids.length) {
+                        originalGroups = ids.slice();
+                        checkCanUpdate();
+                        groupTomSelect.off("item_add");
+                    }
+                });
+                groupTomSelect.addItems(ids);
+            }
+
+            if (hasLink) {
+                // === ĐÃ LIÊN KẾT ===
+                $("#unreg_EmployeeID").val(currentAccount.EmployeeID || (isSpecialAccount ? "SYSTEM" : "")).prop("readonly", true);
+                $("#unreg_FullName").val(currentAccount.FullName || "").prop("readonly", true);
+
+                // Ưu tiên lấy thông tin từ linkedEmployees nếu có, không thì lấy từ currentAccount
+                const linkedEmp = window.linkedEmployees.find(e => e.EmployeeID === currentAccount.EmployeeID);
+                const source = linkedEmp || currentAccount;
+
+                $("#unreg_Phone").val(source.MobilePhone || "");
+                $("#unreg_Email").val(source.Email || "");
+                $("#unreg_Birthday").val(source.Birthday ? source.Birthday.substring(0, 10) : "");
+                $("#unreg_HireDate").val(source.HireDate ? source.HireDate.substring(0, 10) : "");
+                $("#unreg_TelegramChatID").val(source.TelegramChatID || "");
+                originalTelegram = source.TelegramChatID || "";
+
+                // Disable Inputs
+                $("#unreg_EmployeeID, #unreg_FullName, #unreg_Phone, #unreg_Email, #unreg_Birthday, #unreg_HireDate").prop("disabled", true).addClass("bg-light text-muted");
+
+                unreg_tomselect.disable();
+                unreg_tomselect.clear();
+
+                $("#unreg_save_btn").html('<i class="bi bi-save me-2"></i>Cập nhật').prop("disabled", true).css("opacity", "0.5");
+                $("#unreg_unlink_btn").show();
+                $("#unreg_delete_btn").hide();
+                $(".unreg-modal-title").html('<i class="bi bi-link-45deg me-2"></i>Thông tin liên kết');
+
+                $("#unreg_TelegramChatID").off("input").on("input", checkCanUpdate);
+                groupTomSelect.on("change", checkCanUpdate);
+                checkCanUpdate();
+
+            } else {
+                // === CHƯA LIÊN KẾT ===
+                employees.forEach(e => unreg_tomselect.addOption(e));
+                unreg_tomselect.enable();
+
+                $("#unreg_EmployeeID, #unreg_FullName").prop("disabled", true).addClass("bg-light text-muted").val("");
+                $("#unreg_Phone, #unreg_Email, #unreg_Birthday, #unreg_HireDate, #unreg_TelegramChatID").prop("disabled", false).removeClass("bg-light text-muted disabled");
+
+                // Gợi ý thông tin từ chính tài khoản login
+                $("#unreg_Email").val(currentAccount.Email || "");
+                $("#unreg_Phone").val(currentAccount.MobilePhone || "");
+
+                $("#unreg_save_btn").html('<i class="bi bi-check2 me-2"></i>Xác nhận').prop("disabled", false).css("opacity", "1");
+                $("#unreg_unlink_btn").hide();
+                $("#unreg_delete_btn").show();
+                $(".unreg-modal-title").html('<i class="bi bi-link-45deg me-2"></i>Xác nhận liên kết');
+            }
+
+            document.getElementById("unreg_modal_overlay").classList.add("show");
+        }
+        
+            let DataSource = []
+            
                     // Thêm responsive styles cho grid header
-                    const style = document.createElement("style");
-                    style.textContent = `
+                    const styleGridAccount = document.createElement("style");
+                    styleGridAccount.textContent = `
                         /* =============== RESPONSIVE POPUP STYLES =============== */
                         .dx-popup.hpa-responsive {
                             max-width: 95vw !important;
@@ -21,7 +173,7 @@ ID	TableName	SPLoadData	ColumnIDName	ColumnName	TableEditor	Type	AutoSave	ReadOn
                             left: 0 !important;
                             top: 0 !important;
                         }
-                        
+
                         .dx-popup.hpa-responsive .dx-popup-content {
                             height: calc(95vh - 120px) !important;
                             max-height: calc(95vh - 120px) !important;
@@ -30,63 +182,63 @@ ID	TableName	SPLoadData	ColumnIDName	ColumnName	TableEditor	Type	AutoSave	ReadOn
                             display: flex !important;
                             flex-direction: column !important;
                         }
-                        
+
                         .dx-popup.hpa-responsive .dx-popup-content-scrollable {
                             flex: 1 !important;
                             min-height: 0 !important;
                             overflow: auto !important;
                         }
-                        
+
                         .dx-popup-content.dx-popup-content-scrollable {
                             height: auto !important;
                         }
-                        
+
                         .dx-popup.hpa-responsive .dx-toolbar-items {
                             padding: 4px 0 !important;
                             flex-wrap: wrap;
                         }
-                        
+
                         .dx-popup.hpa-responsive .dx-toolbar-item {
                             margin: 2px 2px !important;
                         }
-                        
+
                         /* =============== GRID HEADER STYLES =============== */
                         .dx-datagrid {
                             font-size: 14px;
                         }
-                        
+
                         .dx-datagrid-headers {
                             white-space: normal;
                             word-break: break-word;
                         }
-                        
+
                         .dx-datagrid-header-panel {
                             padding: 8px;
                         }
-                        
+
                         .dx-datagrid .dx-header-row {
                             height: auto;
                             min-height: 44px;
                         }
-                        
+
                         .dx-datagrid .dx-col-fixed {
                             z-index: 800 !important;
                         }
-                        
+
                         /* Group row - sát mép */
                         .dx-datagrid .dx-group-row {
                             padding: 0 !important;
                         }
-                        
+
                         .dx-datagrid .dx-group-row > td {
                             padding: 4px 6px !important;
                         }
-                        
+
                         .dx-datagrid .dx-group-row .dx-group-text {
                             padding: 0 !important;
                             margin: 0 !important;
                         }
-                        
+
                         /* Mobile responsive */
                         @media (max-width: 1024px) {
                             .dx-popup.hpa-responsive {
@@ -108,17 +260,17 @@ ID	TableName	SPLoadData	ColumnIDName	ColumnName	TableEditor	Type	AutoSave	ReadOn
                             .dx-datagrid {
                                 font-size: 12px;
                             }
-                            
+
                             .dx-datagrid-headers {
                                 padding: 4px !important;
                             }
-                            
+
                             .dx-datagrid .dx-header-row {
                                 height: auto;
                                 min-height: 36px;
                                 padding: 0 !important;
                             }
-                            
+
                             .dx-datagrid-text-content {
                                 padding: 4px 2px !important;
                                 font-size: 11px !important;
@@ -127,52 +279,52 @@ ID	TableName	SPLoadData	ColumnIDName	ColumnName	TableEditor	Type	AutoSave	ReadOn
                                 white-space: normal !important;
                                 word-break: break-word !important;
                             }
-                            
+
                             .dx-datagrid-text-content.dx-header-filter {
                                 padding: 2px 1px !important;
                             }
-                            
+
                             .dx-checkbox {
                                 width: 24px !important;
                                 height: 24px !important;
                             }
-                            
+
                             .dx-datagrid-rowsview {
                                 padding: 0 !important;
                             }
-                            
+
                             .dx-datagrid .dx-row {
                                 height: auto;
-                                min-height: 36px;
+                                min-height: 36px !important;
                                 padding: 0 !important;
                             }
-                            
+
                             .dx-datagrid .dx-data-row > td {
-                                padding: 4px 2px !important;
+                                padding: 0 !important;
                                 white-space: normal !important;
                                 word-break: break-word !important;
                                 vertical-align: middle !important;
                             }
-                            
+
                             .dx-datagrid .dx-group-row > td {
                                 padding: 4px 2px !important;
                             }
-                            
+
                             .dx-pager {
                                 padding: 4px 0 !important;
                             }
-                            
+
                             .dx-pager-page,
                             .dx-pager-navigation {
                                 padding: 2px 4px !important;
                                 font-size: 11px !important;
                             }
-                            
+
                             .dx-searchbox {
                                 width: 100% !important;
                                 max-width: none !important;
                             }
-                            
+
                             .dx-searchbox .dx-texteditor-input {
                                 padding: 4px !important;
                                 font-size: 12px !important;
@@ -203,13 +355,13 @@ ID	TableName	SPLoadData	ColumnIDName	ColumnName	TableEditor	Type	AutoSave	ReadOn
                                 display: flex !important;
                                 flex-direction: column !important;
                             }
-                            
+
                             .dx-popup.hpa-responsive .dx-popup-content-scrollable {
                                 flex: 1 !important;
                                 min-height: 0 !important;
                                 overflow: auto !important;
                             }
-                            
+
                             .dx-popup-content.dx-popup-content-scrollable {
                                 height: auto !important;
                             }
@@ -239,39 +391,39 @@ ID	TableName	SPLoadData	ColumnIDName	ColumnName	TableEditor	Type	AutoSave	ReadOn
                                 padding: 4px 2px !important;
                             }
                         }
-                        
+
                         @media (max-width: 480px) {
                             .dx-datagrid {
                                 font-size: 12px;
                             }
-                            
+
                             .dx-datagrid-headers {
                                 padding: 2px !important;
                             }
-                            
+
                             .dx-datagrid .dx-header-row {
                                 min-height: 32px;
                             }
-                            
+
                             .dx-datagrid-text-content {
                                 padding: 2px 1px !important;
                                 font-size: 12px !important;
                             }
-                            
+
                             .dx-checkbox {
                                 width: 20px !important;
                                 height: 20px !important;
                             }
-                            
+
                             .dx-datagrid .dx-row {
                                 min-height: 32px;
                             }
-                            
+
                             .dx-datagrid .dx-data-row > td {
                                 padding: 2px 1px !important;
                                 font-size: 12px !important;
                             }
-                            
+
                             .dx-pager-page,
                             .dx-pager-navigation {
                                 padding: 1px 2px !important;
@@ -302,13 +454,13 @@ ID	TableName	SPLoadData	ColumnIDName	ColumnName	TableEditor	Type	AutoSave	ReadOn
                                 display: flex !important;
                                 flex-direction: column !important;
                             }
-                            
+
                             .dx-popup.hpa-responsive .dx-popup-content-scrollable {
                                 flex: 1 !important;
                                 min-height: 0 !important;
                                 overflow: auto !important;
                             }
-                            
+
                             .dx-popup-content.dx-popup-content-scrollable {
                                 height: auto !important;
                             }
@@ -347,12 +499,27 @@ ID	TableName	SPLoadData	ColumnIDName	ColumnName	TableEditor	Type	AutoSave	ReadOn
                             }
                         }
                     `;
-                    document.head.appendChild(style);
+                    document.head.appendChild(styleGridAccount);
 
-                    let InstancegridMyWork = $("#gridMyWork").dxDataGrid({
+                    // =============== GRID CONFIG DYNAMIC BASED ON DATA SIZE ===============
+                    // Hàm tính remoteOperations dựa trên số lượng dòng
+                    window.getGridConfig_GridAccount = function(dataArray) {
+                        const dataSize = Array.isArray(dataArray) ? dataArray.length : 0;
+                        const isLargeDataset = dataSize > 1000;
+                        
+                        return {
+                            remoteOperations: isLargeDataset,
+                            pageSize: isLargeDataset ? 25 : 10,
+                            allowedPageSizes: isLargeDataset ? [10, 25, 50] : [5, 10, 50, 100]
+                        };
+                    };
+
+                    window.InstanceGridAccount = $("#GridAccount").dxDataGrid({
                         dataSource: [],
-                        keyExpr: "TaskID",
+                        keyExpr: "LoginName",
                         height: "100%",
+                        width: "100%",
+                        remoteOperations: false,
                         showBorders: true,
                         showRowLines: true,
                         rowAlternationEnabled: false,
@@ -377,15 +544,15 @@ ID	TableName	SPLoadData	ColumnIDName	ColumnName	TableEditor	Type	AutoSave	ReadOn
                         pager: {
                             visible: true,
                             allowedPageSizes: [5, 10, 50, 100],
-                        showPageSizeSelector: true,
+                            showPageSizeSelector: true,
                             showInfo: true,
                             showNavigationButtons: true
                         },
 
                         selection: {
-                            mode: "multiple",
-                            showCheckBoxesMode: "onClick",
-                            allowSelectAll: true
+                            mode: "single",
+                            showCheckBoxesMode: "none",
+                            allowSelectAll: false
                         },
 
                         searchPanel: {
@@ -427,16 +594,9 @@ ID	TableName	SPLoadData	ColumnIDName	ColumnName	TableEditor	Type	AutoSave	ReadOn
                             showDragIcons: true,
                             onReorder: function(e) {
                                 let dataSource = e.component.option("dataSource");
-                                // lấy row bị kéo
                                 const item = dataSource[e.fromIndex];
-
-                                // xóa vị trí cũ
                                 dataSource.splice(e.fromIndex, 1);
-
-                                // chèn vào vị trí mới
                                 dataSource.splice(e.toIndex, 0, item);
-
-                                // set lại datasource
                                 e.component.option("dataSource", dataSource);
                             }
                         },
@@ -445,2086 +605,87 @@ ID	TableName	SPLoadData	ColumnIDName	ColumnName	TableEditor	Type	AutoSave	ReadOn
 
                         columns: [
         {
-            dataField: "TaskName",
-            caption: "Tên công việc",
-            width: 200,
+            dataField: "LoginName",
+            caption: "%Tài kho?n%",
+            width: 300,
             allowSorting: true,
             allowFiltering: true,
             cellTemplate: function(container, cellInfo){
-                    const ds = window["DataSource_TaskName"];
-                    if(ds){
-                        const f = ds.find(x => x.id == cellInfo.value || x.ID == cellInfo.value);
-                        if(f) return $("<div>").text(f.Text || f.Name || "").appendTo(container);
-                    }
-                    $("<div>").text(cellInfo.displayValue ?? cellInfo.value ?? "").appendTo(container);
-                },allowEditing: true,
-                editCellTemplate: function(cellElement, cellInfo) {
-                    if (cellInfo.key !== undefined && cellInfo.key !== null) {
-                        currentRecordID_TaskID = cellInfo.key;
-                        console.log(currentRecordID_TaskID)
-                    } else if (cellInfo.data && cellInfo.data["TaskID"] !== undefined) {
-                        currentRecordID_TaskID = cellInfo.data["TaskID"];
-                        console.log(currentRecordID_TaskID)
-                    }
+					const val = cellInfo.value;
 
-                
-            if (!$("head").find("#hpa-inherit-font-style").length) $("head").append("<style id=\"hpa-inherit-font-style\">.dx-widget{font-size:inherit!important;font-weight:inherit!important;line-height:inherit!important;border-radius:inherit!important}.dx-texteditor, .dx-texteditor-input{font-size:inherit!important;font-weight:inherit!important;line-height:inherit!important;box-sizing:border-box!important;}</style>");
-            const $containerTaskName = $(cellElement);
+					if (val === undefined || val === null || val === "") {
+						$("<div>").addClass("dx-placeholder").text("--").appendTo(container);
+						return;
+					}
 
-            let TaskNameOriginalValue = "";
-            let TaskNameIsEditing   = false;
-            let TaskNameTextDisplay = null;
-            let TaskNameRealInstance = null;
-            let TaskNameMouseDownInside = false;
-            let _cancelingSaveTaskName = false;
-            let _justSavedTaskName = false;
-            let _savingTaskName = false;
-
-            /* =============== Popup Save/Cancel =============== */
-            let actionPopupTaskName     = null;
-            let currentFieldIdTaskName  = null;
-            let saveCallbackTaskName    = null;
-            let cancelCallbackTaskName  = null;
-
-            function initActionPopupTaskName() {
-                if (actionPopupTaskName) return;
-                actionPopupTaskName = $("<div>").appendTo("body").dxPopup({
-                    width: "auto",
-                    height: "auto",
-                    showTitle: false,
-                    visible: false,
-                    shading: false,
-                    dragEnabled: false,
-                    hideOnOutsideClick: false,
-                    animation: null,
-                    showCloseButton: false,
-                    position: { at: "bottom right", my: "top right", offset: "0 4" },
-                    onShown: function(e) {
-                        $(e.component.content()).closest(".dx-overlay-wrapper").css("z-index", "9999");
-                    },
-                    contentTemplate: () => {
-                        return $("<div class=\"d-flex\" style=\"gap: 6px; padding: 6px; min-height: fit-content; display: flex; align-items: center; justify-content: center; \">").append(
-                            $("<div>").dxButton({
-                                icon: "check",
-                                type: "success",
-                                stylingMode: "contained",
-                                width: 32, height: 32,
-                                elementAttr: { style: "border-radius: 4px !important;" },
-                                onInitialized: function(e) {
-                                    // Bind mousedown để set flag sớm hơn onFocusOut
-                                    $(e.element).on("mousedown", function() {
-                                        _justSavedTaskName = true;
-                                        _savingTaskName = true;
-                                    });
-                                },
-                                onClick: async function() {
-                                    if (saveCallbackTaskName) {
-                                        await saveCallbackTaskName(true); // Pass true để báo từ button
-                                    }
-                                    
-                                    actionPopupTaskName.hide();
-                                    
-                                    setTimeout(function(){ 
-                                        _justSavedTaskName = false;
-                                        _savingTaskName = false;
-                                    }, 300);
-                                }
-                            }),
-                            $("<div>").dxButton({
-                                icon: "close",
-                                stylingMode: "outlined",
-                                width: 32, height: 32,
-                                elementAttr: { style: "border-radius: 4px !important;" },
-                                onInitialized: function(e) {
-                                    // Bind mousedown để set flag sớm hơn onFocusOut
-                                    $(e.element).on("mousedown", function() {
-                                        _cancelingSaveTaskName = true;
-                                    });
-                                },
-                                onClick: function() {
-                                    if (cancelCallbackTaskName) {
-                                        cancelCallbackTaskName();
-                                    }
-                                    
-                                    actionPopupTaskName.hide();
-                                    
-                                    setTimeout(function(){ 
-                                        _cancelingSaveTaskName = false; 
-                                    }, 300);
-                                }
-                            })
-                        );
-                    },
-                    onHiding: function() {
-                        currentFieldIdTaskName = saveCallbackTaskName = cancelCallbackTaskName = null;
-                    }
-                }).dxPopup("instance");
-            }
-
-            function showActionPopupTaskName(inputElement, fieldId, onSave, onCancel) {
-                if (!actionPopupTaskName) initActionPopupTaskName();
-
-                if (currentFieldIdTaskName && currentFieldIdTaskName !== fieldId && cancelCallbackTaskName) {
-                    cancelCallbackTaskName();
-                }
-
-                currentFieldIdTaskName = fieldId;
-                saveCallbackTaskName   = onSave;
-                cancelCallbackTaskName = onCancel;
-
-                const updatePos = () => {
-                    if (!actionPopupTaskName?.option("visible")) return;
-                    const $input = $(inputElement).find("input");
-                    if ($input.length === 0) return;
-                    actionPopupTaskName.option({
-                        position: {
-                            my: "top right",
-                            at: "bottom right",
-                            of: $input,
-                            offset: "0 4"
-                        }
-                    });
-                    actionPopupTaskName.repaint();
-                };
-
-                actionPopupTaskName.show();
-                setTimeout(updatePos, 10);
-
-                $(window).off("scroll.ap" + fieldId).on("scroll.ap" + fieldId, updatePos);
-                $(window).off("resize.ap" + fieldId).on("resize.ap" + fieldId, updatePos);
-                $(".dx-scrollable").off("scroll.ap" + fieldId).on("scroll.ap" + fieldId, updatePos);
-
-                const intervalId = setInterval(() => {
-                    if (actionPopupTaskName?.option("visible")) updatePos();
-                    else clearInterval(intervalId);
-                }, 100);
-
-                actionPopupTaskName.option("onHiding", function() {
-                    clearInterval(intervalId);
-                    $(window).off("scroll.ap" + fieldId);
-                    $(window).off("resize.ap" + fieldId);
-                    $(".dx-scrollable").off("scroll.ap" + fieldId);
-                    currentFieldIdTaskName = saveCallbackTaskName = cancelCallbackTaskName = null;
-                });
-            }
-
-            /* =============== Inline Edit logic =============== */
-            function exitEditTaskName(cancel = false) {
-                if (!TaskNameIsEditing) return;
-                TaskNameIsEditing = false;
-                TaskNameMouseDownInside = false;
-                $(document).off("mousedown.editTaskName");
-                $(document).off("mouseup.editTaskName");
-
-                if (cancel) {
-                    TaskNameRealInstance.option("value", TaskNameOriginalValue);
-                } else {
-                    TaskNameOriginalValue = TaskNameRealInstance.option("value");
-                }
-
-                if (actionPopupTaskName && actionPopupTaskName.option("visible")) {
-                    actionPopupTaskName.option("visible", false);
-                }
-
-                $containerTaskName.find(".dx-texteditor").hide();
-                TaskNameTextDisplay.text(TaskNameOriginalValue || "").show();
-            }
-
-            async function saveValueTaskName(fromButton = false) {
-                if (_cancelingSaveTaskName) { 
-                    _cancelingSaveTaskName = false; 
-                    exitEditTaskName(true); 
-                    return; 
-                }
-                
-                // Chỉ check flag _saving khi KHÔNG phải từ button
-                // Vì khi từ button thì flag đã được set ở mousedown
-                if (!fromButton && _savingTaskName) {
-                    return;
-                }
-                
-                const newVal = TaskNameRealInstance.option("value");
-                
-                if (newVal === TaskNameOriginalValue) {
-                    exitEditTaskName();
-                    _savingTaskName = false;
-                    _justSavedTaskName = false;
-                    return;
-                }
-
-                try {
-                    // Chỉ set flag nếu chưa được set (từ button đã set rồi)
-                    if (!fromButton) {
-                        _savingTaskName = true;
-                    }
-                    
-                    const dataJSON = JSON.stringify(["-1233093056", ["TaskName"], [newVal]]);
-
-                    let currentRecordIDValue = [
-                        currentRecordID_TaskID
-                    ];
-
-                    let currentRecordID = [
-                        "TaskID"
-                    ];
-
-                    // chỉ nối khi ColumnIDName2 có thật
-                    if ("" && "".trim() !== "") {
-                        currentRecordIDValue.push(currentRecordID_);
-                        currentRecordID.push("");
-                    }
-
-                    const idValsJSON = JSON.stringify([currentRecordIDValue, currentRecordID]);
-
-                    const json = await saveFunction(dataJSON, idValsJSON);
-
-                    const dtError = json.data[json.data.length - 1] || [];
-                    if (dtError.length > 0 && dtError[0].Status === "ERROR") {
-                        if ("0" === "1") {
-                            uiManager.showAlert({ type: "error", message: dtError[0]?.Message || "Lưu thất bại" });
-                        }
-                        _savingTaskName = false;
-                        _justSavedTaskName = false;
-                        return;
-                    }
-
-                    TaskNameOriginalValue = newVal;
-                    if ("0" === "1") {
-                        uiManager.showAlert({ type: "success", message: "Lưu thành công" });
-                    }
-                    
-                    exitEditTaskName();
-
-                    if (cellInfo && cellInfo.component) {
-                        try {
-                            const grid = cellInfo.component;
-                            const rowKey = cellInfo.key || cellInfo.data["TaskID"];
-                            
-                            // Cập nhật cell value trong grid
-                            grid.cellValue(cellInfo.rowIndex, "TaskName", newVal);
-                            
-                            // Refresh cell để hiển thị giá trị mới
-                            grid.repaint();
-                            
-                        } catch (syncErr) {
-                            console.warn("[Grid Sync] Không thể sync grid:", syncErr);
-                        }
-                    }
-                } catch (err) {
-                    if ("0" === "1") {
-                        uiManager.showAlert({ type: "error", message: "Có lỗi xảy ra khi lưu" });
-                    }
-                } finally {
-                    setTimeout(function(){ 
-                        _savingTaskName = false;
-                        _justSavedTaskName = false;
-                    }, 100);
-                }
-            }
-
-            /* =============== Handle Click Outside =============== */
-            function handleMouseDownTaskName(e) {
-                if (!TaskNameIsEditing) return;
-                
-                // Nếu đang save hoặc cancel thì không xử lý
-                if (_savingTaskName || _cancelingSaveTaskName) return;
-
-                const $t = $(e.target);
-                const isInsideControl = $t.closest($containerTaskName).length > 0;
-                const isInsidePopup = $t.closest(".dx-popup-wrapper").length > 0;
-
-                if (isInsideControl || isInsidePopup) {
-                    TaskNameMouseDownInside = true;
-                } else {
-                    TaskNameMouseDownInside = false;
-                }
-            }
-
-            function handleMouseUpTaskName(e) {
-                if (!TaskNameIsEditing) return;
-
-                // Nếu đang save, cancel hoặc vừa save xong thì không xử lý
-                if (_savingTaskName || _cancelingSaveTaskName || _justSavedTaskName) {
-                    TaskNameMouseDownInside = false;
-                    return;
-                }
-
-                const $t = $(e.target);
-                const isInsideControl = $t.closest($containerTaskName).length > 0;
-                const isInsidePopup = $t.closest(".dx-popup-wrapper").length > 0;
-
-                // Chỉ save khi cả mousedown và mouseup đều ở ngoài
-                if (!TaskNameMouseDownInside && !isInsideControl && !isInsidePopup) {
-                    saveValueTaskName();
-                }
-
-                TaskNameMouseDownInside = false;
-            }
-
-            /* =============== Create UI =============== */
-            TaskNameTextDisplay = $("<div>").css({
-                "padding": "1px 8px",
-                "cursor": "text",
-                "min-height": "20px",
-                "line-height": "1.5",
-                "word-break": "break-word",
-                "border": "1px solid transparent",
-                "border-radius": "inherit !important",
-                "transition": "border-color 0.2s"
-            }).appendTo($containerTaskName);
-
-            // Hover effect
-            TaskNameTextDisplay.hover(
-                function() {
-                    if (!TaskNameIsEditing) {
-                        $(this).css("border-color", "#ddd");
-                    }
-                },
-                function() {
-                    if (!TaskNameIsEditing) {
-                        $(this).css("border-color", "transparent");
-                    }
-                }
-            );
-
-            TaskNameTextDisplay.on("click", function() {
-                if (TaskNameIsEditing) return;
-                TaskNameIsEditing = true;
-                TaskNameMouseDownInside = false;
-                TaskNameOriginalValue = TaskNameRealInstance.option("value");
-                TaskNameTextDisplay.hide();
-
-                $containerTaskName.find(".dx-texteditor").show();
-
-                const $input = $containerTaskName.find("input");
-                setTimeout(() => {
-                    $input.focus();
-                    const len = $input.val().length;
-                    $input[0].setSelectionRange(len, len);
-                }, 10);
-
-                $input.css({
-                    "border-color": "#1c975e",
-                    "padding": "1px 8px",
-                    "max-height": "100%",
-                    "cursor": "text",
-                    "border-radius": "inherit !important",
-                    "font-size": "inherit",
-                    "font-weight": "inherit",
-                    "box-sizing": "border-box"
-                });
-
-                showActionPopupTaskName(
-                    $containerTaskName,
-                    "TaskName",
-                    async (fromButton) => { await saveValueTaskName(fromButton); },
-                    () => exitEditTaskName(true)
-                );
-
-                // Bind events sau khi mở edit mode
-                setTimeout(() => {
-                    $(document).on("mousedown.editTaskName", handleMouseDownTaskName);
-                    $(document).on("mouseup.editTaskName", handleMouseUpTaskName);
-                }, 100);
-            });
-
-            TaskNameRealInstance = $("<div>")
-                .appendTo($containerTaskName)
-                .dxTextBox({
-                    value: "",
-                    width: "100%",
-                    inputAttr: { style: "max-height: 100%; line-height: 1.5; font-size: inherit; font-weight: inherit; padding: 1px 8px; box-sizing: border-box;" },
-                    onKeyDown: function(e) {
-                        if (!TaskNameIsEditing) return;
-
-                        if (e.event.key === "Enter") {
-                            e.event.preventDefault();
-                            // Cập nhật value từ input element trước khi save
-                            const $input = $containerTaskName.find("input");
-                            const currentValue = $input.val();
-                            TaskNameRealInstance.option("value", currentValue);
-                            saveValueTaskName();
-                        }
-
-                        if (e.event.key === "Tab") {
-                            e.event.preventDefault();
-                            // Tab cũng lưu giống Enter
-                            const $input = $containerTaskName.find("input");
-                            const currentValue = $input.val();
-                            TaskNameRealInstance.option("value", currentValue);
-                            saveValueTaskName();
-                        }
-
-                        if (e.event.key === "Escape") {
-                            e.event.preventDefault();
-                            exitEditTaskName(true);
-                        }
-                    },
-                    onFocusOut: function(e) {
-                        // Kiểm tra các flag để tránh save trùng
-                        if (_cancelingSaveTaskName) { 
-                            _cancelingSaveTaskName = false; 
-                            return; 
-                        }
-                        if (_justSavedTaskName) { 
-                            _justSavedTaskName = false; 
-                            return; 
-                        }
-                        if (_savingTaskName) {
-                            return;
-                        }
-                        
-                        // Auto-save khi mất focus
-                        if (TaskNameIsEditing) {
-                            const $input = $containerTaskName.find("input");
-                            if ($input.val() !== TaskNameOriginalValue) {
-                                const currentValue = $input.val();
-                                TaskNameRealInstance.option("value", currentValue);
-                                saveValueTaskName();
-                            } else {
-                                exitEditTaskName(false);
-                            }
-                        }
-                    }
-                })
-                .dxTextBox("instance");
-
-            $containerTaskName.find(".dx-texteditor").hide();
-
-            /* =============== Public API =============== */
-            let InstanceTaskName = {
-                setValue: function(val) {
-                    TaskNameOriginalValue = val || "";
-                    TaskNameRealInstance.option("value", val || "");
-                    TaskNameTextDisplay.text(val || "");
-                },
-                getValue: function() {
-                    return TaskNameRealInstance.option("value");
-                },
-                option: function(name, value) {
-                    if (value !== undefined) {
-                        TaskNameRealInstance.option(name, value);
-                        if (name === "value") {
-                            TaskNameOriginalValue = value || "";
-                            TaskNameTextDisplay.text(value || "");
-                        }
-                    } else {
-                        return TaskNameRealInstance.option(name);
-                    }
-                },
-                repaint: function() {
-                    TaskNameRealInstance.repaint();
-                },
-                _suppressValueChangeAction: function() {
-                    if (TaskNameRealInstance._suppressValueChangeAction) {
-                        TaskNameRealInstance._suppressValueChangeAction();
-                    }
-                },
-                _resumeValueChangeAction: function() {
-                    if (TaskNameRealInstance._resumeValueChangeAction) {
-                        TaskNameRealInstance._resumeValueChangeAction();
-                    }
-                }
-            };
-        
-                    // Set initial value
-                    if (cellInfo.value !== undefined && cellInfo.value !== null && InstanceTaskName) {
-                        InstanceTaskName.option("value", cellInfo.value);
-                    }
-
-                    // TRUYỀN cellInfo vào control để sync Grid sau khi save
-                    if (InstanceTaskName && InstanceTaskName.setCellInfo) {
-                        InstanceTaskName.setCellInfo(cellInfo);
-                        console.log("[Grid Edit] Passed cellInfo to InstanceTaskName");
-                    }
-                },
-},
+					$("<div>").text(val).appendTo(container);
+				},allowEditing: false,
+        },
             
         {
-            dataField: "Status",
-            caption: "Trạng thái",
-            width: 180,
+            dataField: "EmployeeID",
+            caption: "%MaNV%",
+            width: 150,
             allowSorting: true,
             allowFiltering: true,
             cellTemplate: function(container, cellInfo){
-                    const ds = window["DataSource_Status"];
-                    if(ds){
-                        const f = ds.find(x => x.id == cellInfo.value || x.ID == cellInfo.value);
-                        if(f) return $("<div>").text(f.Text || f.Name || "").appendTo(container);
-                    }
-                    $("<div>").text(cellInfo.displayValue ?? cellInfo.value ?? "").appendTo(container);
-                },allowEditing: true,
-                editCellTemplate: function(cellElement, cellInfo) {
-                    if (cellInfo.key !== undefined && cellInfo.key !== null) {
-                        currentRecordID_TaskID = cellInfo.key;
-                        console.log(currentRecordID_TaskID)
-                    } else if (cellInfo.data && cellInfo.data["TaskID"] !== undefined) {
-                        currentRecordID_TaskID = cellInfo.data["TaskID"];
-                        console.log(currentRecordID_TaskID)
-                    }
+					const val = cellInfo.value;
 
-                
-		window["DataSource_Status"] = window["DataSource_Status"] || [];
+					if (val === undefined || val === null || val === "") {
+						$("<div>").addClass("dx-placeholder").text("--").appendTo(container);
+						return;
+					}
 
-		let StatusDataSourceSP = "";
-        let StatusIsLoading = false;
-        let StatusIsDataLoaded = false;
-        let StatusCellInfo = null; // Biến lưu cellInfo để sync Grid
-
-        function highlightTextStatus(text, search) {
-            if (!search || !text) return text;
-            const regex = new RegExp("(" + search.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + ")", "gi");
-            return text.replace(regex, "<mark class=\"bg-warning fw-bold px-1 rounded\">$1</mark>");
-        }
-
-		let InstanceStatus = $(cellElement).dxSelectBox({
-			dataSource: window["DataSource_Status"],
-            valueExpr: "ID",
-            displayExpr: "Name",
-            placeholder: "Tìm kiếm hoặc chọn...",
-            searchEnabled: true,
-            searchMode: "contains",
-            searchExpr: ["Name", "Code", "Description"],
-            searchTimeout: 300,
-            minSearchLength: 0,
-            showDataBeforeSearch: true,
-            showClearButton: false,
-            stylingMode: "outlined",
-            dropDownOptions: {
-                showTitle: false,
-                closeOnOutsideClick: true,
-                height: "auto",
-                maxHeight: 400,
-                minWidth: 280,
-                onShowing: function(e) {
-                    if (!StatusIsDataLoaded && StatusDataSourceSP && StatusDataSourceSP !== "") {
-                        loadStatusDataSource();
-                    }
-                }
-            },
-            itemTemplate: function(data, index) {
-                const $item = $("<div>")
-                    .addClass("d-flex align-items-center gap-3 px-3 py-2 my-1 mx-2 rounded")
-                    .css({
-                        cursor: "pointer",
-                        transition: "all 0.2s ease",
-                        border: "1px solid transparent"
-                    });
-
-                $item.on("mouseenter", function() {
-                    $(this).css({
-                        transform: "translateX(4px)",
-                        borderColor: "#90caf9",
-                        boxShadow: "0 2px 8px rgba(0,0,0,0.08)"
-                    });
-                }).on("mouseleave", function() {
-                    $(this).css({
-                        background: "",
-                        transform: "",
-                        borderColor: "transparent",
-                        boxShadow: ""
-                    });
-                });
-
-                const $content = $("<div>").addClass("flex-fill").css("minWidth", "0");
-                const searchValue = InstanceStatus.option("searchValue") || "";
-
-                $("<div>")
-                    .addClass("fw-semibold")
-                    .css({
-                        fontSize: "14px",
-                        lineHeight: "1.4",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap"
-                    })
-                    .html(highlightTextStatus(data.Name || "", searchValue))
-                    .appendTo($content);
-
-                if (data.Description || data.Code) {
-                    $("<div>")
-                        .addClass("small text-muted")
-                        .css({
-                            fontSize: "12px",
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                            whiteSpace: "nowrap"
-                        })
-                        .text(data.Code || data.Description)
-                        .appendTo($content);
-                }
-
-                $content.appendTo($item);
-
-                if (data.Status) {
-                    const badgeClass = data.Status === "Active" ? "bg-success" : "bg-secondary";
-                    $("<span>")
-                        .addClass("badge " + badgeClass + " text-uppercase")
-                        .css({
-                            fontSize: "9px",
-                            padding: "4px 8px",
-                            letterSpacing: "0.5px",
-                            flexShrink: "0"
-                        })
-                        .text(data.Status)
-                        .appendTo($item);
-                }
-
-                setTimeout(() => {
-                    $item.css({
-                        opacity: "0",
-                        transform: "translateX(-10px)"
-                    }).animate({
-                        opacity: 1
-                    }, {
-                        duration: 300,
-                        step: function(now) {
-                            $(this).css("transform", "translateX(" + (-10 + (now * 10)) + "px)");
-                        },
-                        delay: index * 30
-                    });
-                }, 10);
-
-                return $item;
-            },
-            onOpened: function(e) {
-                $(e.component._popup.content()).parent()
-                    .addClass("shadow-lg border rounded hpa-responsive")
-                    .css({
-                        borderRadius: "12px",
-                        padding: "8px 0",
-                        borderColor: "#dee2e6"
-                    });
-            },
-            onFocusIn: function(e) {
-                InstanceStatus.option("showClearButton", true);
-            },
-            onFocusOut: function(e) {
-                InstanceStatus.option("showClearButton", false);
-            },
-            onKeyDown: function(e) {
-                if (e.key === "Enter" || e.key === "Tab") {
-                    InstanceStatus.option("showClearButton", false);
-                }
-            },
-            onValueChanged: async function(e) {
-                if (!e.event) return;
-
-                // Nếu người dùng tìm kiếm rỗng và kết quả trả về là 0/empty/null,
-                // không thực hiện lưu và giữ lại giá trị hiện tại.
-                if (e.value === "" || e.value == null || e.value === 0 || e.value === "0") {
-                    InstanceStatus.option("value", _initialStatus);
-                    return;
-                }
-
-                $(cellElement).find(".dx-texteditor-input").blur();
-                if (InstanceStatus && InstanceStatus.blur) InstanceStatus.blur();
-
-                const $el = $(e.element);
-                $el.css({
-                    transform: "scale(1.02)",
-                    boxShadow: "0 0 0 3px rgba(28, 151, 94, 0.2)",
-                    transition: "all 0.2s ease"
-                });
-                setTimeout(() => {
-                    $el.css({
-                        transform: "",
-                        boxShadow: ""
-                    });
-                }, 300);
-
-                // Gọi hàm callback onSelectBoxChanged nếu có
-                if (typeof window["onSelectBoxChanged_Status"] === "function") {
-                    console.log("Calling onSelectBoxChanged_Status callback");
-                    window["onSelectBoxChanged_Status"](e.value, InstanceStatus, e);
-                }
-
-				const val = e.value;
-				const dataJSON = JSON.stringify(["-1518142557", ["Status"], [val || ""]]);
-				
-				let currentRecordIDValue = [currentRecordID_TaskID];
-                let currentRecordID = ["TaskID"];
-
-				if ("" && "".trim() !== "") {
-					currentRecordIDValue.push(currentRecordID_);
-					currentRecordID.push("");
-				}
-				const idValsJSON = JSON.stringify([currentRecordIDValue, currentRecordID]);
-				
-				try {
-					const json = await saveFunction(dataJSON, idValsJSON);
-					const dtError = json.data[json.data.length - 1] || [];
-                    if (dtError.length > 0 && dtError[0].Status === "ERROR") {
-                        if ("0" === "1") {
-                            uiManager.showAlert({ type: "error", message: dtError[0]?.Message || "Lưu thất bại" });
-                        }
-                        InstanceStatus.option("value", _initialStatus);
-                    } else {
-                        // SYNC GRID: Cập nhật lại giá trị trong Grid sau khi save thành công
-                        if (StatusCellInfo && StatusCellInfo.component) {
-                            try {
-                                const grid = StatusCellInfo.component;
-                                const rowKey = StatusCellInfo.key || StatusCellInfo.data["TaskID"];
-                                
-                                // Cập nhật cell value trong grid
-                                grid.cellValue(StatusCellInfo.rowIndex, "Status", val);
-                                
-                                // Refresh cell để hiển thị giá trị mới
-                                grid.repaint();
-                                
-                                console.log("[Grid Sync] SelectBox Status: Updated value =", val, "for row", rowKey);
-                            } catch (syncErr) {
-                                console.warn("[Grid Sync] SelectBox Status: Không thể sync grid:", syncErr);
-                            }
-                        }
-
-                        if ("0" === "1") {
-                            uiManager.showAlert({ type: "success", message: "Lưu thành công" });
-                        }
-                    }
-                } catch (err) {
-                    if ("0" === "1") {
-                        uiManager.showAlert({ type: "error", message: "Có lỗi xảy ra khi lưu" });
-                    }
-                    InstanceStatus.option("value", _initialStatus);
-                    console.error("SelectBox Save Error:", err);
-                }
-			}
-            }).dxSelectBox("instance");
-
-            const _initialStatus = InstanceStatus.option("value");
-
-        function loadStatusDataSource() {
-            if (!StatusDataSourceSP || StatusDataSourceSP === "") {
-                console.warn("SelectBox Status: No DataSourceSP");
-                return;
-            }
-
-            if (StatusIsLoading || StatusIsDataLoaded) return;
-
-            StatusIsLoading = true;
-            InstanceStatus.option("placeholder", "Đang tải dữ liệu...");
-
-            const $input = $(cellElement).find(".dx-texteditor-input");
-            const gradientAnim = setInterval(() => {
-                if (!StatusIsLoading) {
-                    clearInterval(gradientAnim);
-                    $input.css("background", "");
-                    return;
-                }
-                $input.css({
-                    backgroundSize: "200% 100%",
-                    animation: "none"
-                });
-            }, 100);
-
-            AjaxHPAParadise({
-                data: {
-                    name: StatusDataSourceSP,
-                    param: ["LoginID", LoginID, "LanguageID", LanguageID]
-                },
-                success: function(res) {
-                    const json = typeof res === "string" ? JSON.parse(res) : res;
-                    const data = (json.data && json.data[0]) || [];
-
-                    window["DataSource_Status"] = data;
-                    
-                    // Smart Load: Check dữ liệu > 1000 dòng
-                    if (data.length > 1000) {
-                        console.log("[SmartLoad] SelectBox Status: Dữ liệu " + data.length + " dòng - Kích hoạt API load");
-                        window["UseAPILoad_Status"] = true;
-                        InstanceStatus.option("placeholder", "Sử dụng tìm kiếm để load dữ liệu (API)");
-                    } else {
-                        InstanceStatus.option("dataSource", data);
-                        InstanceStatus.repaint();
-                        InstanceStatus.option("placeholder", "Tìm kiếm hoặc chọn...");
-                    }
-
-                    StatusIsLoading = false;
-                    StatusIsDataLoaded = true;
-                    clearInterval(gradientAnim);
-                    $input.css("background", "");
-
-                    console.log("SelectBox Status: Loaded", data.length, "items");
-                },
-                error: function(err) {
-                    StatusIsLoading = false;
-                    clearInterval(gradientAnim);
-                    $input.css("background", "");
-                    InstanceStatus.option("placeholder", "Lỗi tải dữ liệu");
-                    console.error("SelectBox Status error:", err);
-                }
-            });
-        }
-
-        if (StatusDataSourceSP && StatusDataSourceSP !== "") {
-            loadStatusDataSource();
-        }
-
-        // Thêm method setCellInfo vào Instance để nhận cellInfo từ Grid
-        InstanceStatus.setCellInfo = function(cellInfo) {
-            StatusCellInfo = cellInfo;
-            console.log("[SelectBox Status] Received cellInfo:", cellInfo);
-        };
-		
-                    // Set initial value
-                    if (cellInfo.value !== undefined && cellInfo.value !== null && InstanceStatus) {
-                        InstanceStatus.option("value", cellInfo.value);
-                    }
-
-                    // TRUYỀN cellInfo vào control để sync Grid sau khi save
-                    if (InstanceStatus && InstanceStatus.setCellInfo) {
-                        InstanceStatus.setCellInfo(cellInfo);
-                        console.log("[Grid Edit] Passed cellInfo to InstanceStatus");
-                    }
-                },
-},
+					$("<div>").text(val).appendTo(container);
+				},allowEditing: false,
+        },
             
         {
-            dataField: "AssignPriority",
-            caption: "Ưu tiên",
-            width: 180,
+            dataField: "FullName",
+            caption: "%Họ và tên%",
+            width: 150,
             allowSorting: true,
             allowFiltering: true,
             cellTemplate: function(container, cellInfo){
-                    const ds = window["DataSource_AssignPriority"];
-                    if(ds){
-                        const f = ds.find(x => x.id == cellInfo.value || x.ID == cellInfo.value);
-                        if(f) return $("<div>").text(f.Text || f.Name || "").appendTo(container);
-                    }
-                    $("<div>").text(cellInfo.displayValue ?? cellInfo.value ?? "").appendTo(container);
-                },allowEditing: true,
-                editCellTemplate: function(cellElement, cellInfo) {
-                    if (cellInfo.key !== undefined && cellInfo.key !== null) {
-                        currentRecordID_TaskID = cellInfo.key;
-                        console.log(currentRecordID_TaskID)
-                    } else if (cellInfo.data && cellInfo.data["TaskID"] !== undefined) {
-                        currentRecordID_TaskID = cellInfo.data["TaskID"];
-                        console.log(currentRecordID_TaskID)
-                    }
-
-                
-		window["DataSource_AssignPriority"] = window["DataSource_AssignPriority"] || [];
-
-		let AssignPriorityDataSourceSP = "";
-        let AssignPriorityIsLoading = false;
-        let AssignPriorityIsDataLoaded = false;
-        let AssignPriorityCellInfo = null; // Biến lưu cellInfo để sync Grid
-
-        function highlightTextAssignPriority(text, search) {
-            if (!search || !text) return text;
-            const regex = new RegExp("(" + search.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + ")", "gi");
-            return text.replace(regex, "<mark class=\"bg-warning fw-bold px-1 rounded\">$1</mark>");
-        }
-
-		let InstanceAssignPriority = $(cellElement).dxSelectBox({
-			dataSource: window["DataSource_AssignPriority"],
-            valueExpr: "ID",
-            displayExpr: "Name",
-            placeholder: "Tìm kiếm hoặc chọn...",
-            searchEnabled: true,
-            searchMode: "contains",
-            searchExpr: ["Name", "Code", "Description"],
-            searchTimeout: 300,
-            minSearchLength: 0,
-            showDataBeforeSearch: true,
-            showClearButton: false,
-            stylingMode: "outlined",
-            dropDownOptions: {
-                showTitle: false,
-                closeOnOutsideClick: true,
-                height: "auto",
-                maxHeight: 400,
-                minWidth: 280,
-                onShowing: function(e) {
-                    if (!AssignPriorityIsDataLoaded && AssignPriorityDataSourceSP && AssignPriorityDataSourceSP !== "") {
-                        loadAssignPriorityDataSource();
-                    }
-                }
-            },
-            itemTemplate: function(data, index) {
-                const $item = $("<div>")
-                    .addClass("d-flex align-items-center gap-3 px-3 py-2 my-1 mx-2 rounded")
-                    .css({
-                        cursor: "pointer",
-                        transition: "all 0.2s ease",
-                        border: "1px solid transparent"
-                    });
-
-                $item.on("mouseenter", function() {
-                    $(this).css({
-                        transform: "translateX(4px)",
-                        borderColor: "#90caf9",
-                        boxShadow: "0 2px 8px rgba(0,0,0,0.08)"
-                    });
-                }).on("mouseleave", function() {
-                    $(this).css({
-                        background: "",
-                        transform: "",
-                        borderColor: "transparent",
-                        boxShadow: ""
-                    });
-                });
-
-                const $content = $("<div>").addClass("flex-fill").css("minWidth", "0");
-                const searchValue = InstanceAssignPriority.option("searchValue") || "";
-
-                $("<div>")
-                    .addClass("fw-semibold")
-                    .css({
-                        fontSize: "14px",
-                        lineHeight: "1.4",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap"
-                    })
-                    .html(highlightTextAssignPriority(data.Name || "", searchValue))
-                    .appendTo($content);
-
-                if (data.Description || data.Code) {
-                    $("<div>")
-                        .addClass("small text-muted")
-                        .css({
-                            fontSize: "12px",
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                            whiteSpace: "nowrap"
-                        })
-                        .text(data.Code || data.Description)
-                        .appendTo($content);
-                }
-
-                $content.appendTo($item);
-
-                if (data.Status) {
-                    const badgeClass = data.Status === "Active" ? "bg-success" : "bg-secondary";
-                    $("<span>")
-                        .addClass("badge " + badgeClass + " text-uppercase")
-                        .css({
-                            fontSize: "9px",
-                            padding: "4px 8px",
-                            letterSpacing: "0.5px",
-                            flexShrink: "0"
-                        })
-                        .text(data.Status)
-                        .appendTo($item);
-                }
-
-                setTimeout(() => {
-                    $item.css({
-                        opacity: "0",
-                        transform: "translateX(-10px)"
-                    }).animate({
-                        opacity: 1
-                    }, {
-                        duration: 300,
-                        step: function(now) {
-                            $(this).css("transform", "translateX(" + (-10 + (now * 10)) + "px)");
-                        },
-                        delay: index * 30
-                    });
-                }, 10);
-
-                return $item;
-            },
-            onOpened: function(e) {
-                $(e.component._popup.content()).parent()
-                    .addClass("shadow-lg border rounded hpa-responsive")
-                    .css({
-                        borderRadius: "12px",
-                        padding: "8px 0",
-                        borderColor: "#dee2e6"
-                    });
-            },
-            onFocusIn: function(e) {
-                InstanceAssignPriority.option("showClearButton", true);
-            },
-            onFocusOut: function(e) {
-                InstanceAssignPriority.option("showClearButton", false);
-            },
-		P547D4239B38445CEB3E2550006434E45	NULL	NULL	1	1	150	NULL	NULL	NULL
-326	sp_Task_MyWork_html	NULL	TaskID	EmployeeID	tblTask_AssignHistory	hpaControlSelectEmployee	0	1	Người thực hiện	Grid_View	EmployeeListAll_DataSetting_Custom				BCC9BAB9EC40493D87810F758DA40E1D	NULL	NULL	1	1	220	gridMyWork	NULL	NULL
-329	sp_Task_MyWork_html	NULL	TaskID	TaskName	tblTask_AssignHistory	hpaControlSelectBox	0	0	NULL	NULL	sp_Task_GetAssignmentSetup	<div id="P8117471F96C44E2D8886F4484DC46071"></div>	
-		window["DataSource_TaskName"] = window["DataSource_TaskName"] || [];
-
-		let TaskNameDataSourceSP = "sp_Task_GetAssignmentSetup";
-        let TaskNameIsLoading = false;
-        let TaskNameIsDataLoaded = false;
-
-        function highlightTextTaskName(text, search) {
-            if (!search || !text) return text;
-            const regex = new RegExp("(" + search.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + ")", "gi");
-            return text.replace(regex, "<mark class=\"bg-warning fw-bold px-1 rounded\">$1</mark>");
-        }
-
-		let InstanceTaskName = $("#P8117471F96C44E2D8886F4484DC46071").dxSelectBox({
-			dataSource: window["DataSource_TaskName"],
-            valueExpr: "ID",
-            displayExpr: "Name",
-            placeholder: "Tìm kiếm hoặc chọn...",
-            searchEnabled: true,
-            searchMode: "contains",
-            searchExpr: ["Name", "Code", "Description"],
-            searchTimeout: 300,
-            minSearchLength: 0,
-            showDataBeforeSearch: true,
-            showClearButton: false,
-            stylingMode: "outlined",
-            dropDownOptions: {
-                showTitle: false,
-                closeOnOutsideClick: true,
-                height: "auto",
-                maxHeight: 400,
-                minWidth: 280,
-                onShowing: function(e) {
-                    if (!TaskNameIsDataLoaded && TaskNameDataSourceSP && TaskNameDataSourceSP !== "") {
-                        loadTaskNameDataSource();
-                    }
-                }
-            },
-            itemTemplate: function(data, index) {
-                const $item = $("<div>")
-                    .addClass("d-flex align-items-center gap-3 px-3 py-2 my-1 mx-2 rounded")
-                    .css({
-                        cursor: "pointer",
-                        transition: "all 0.2s ease",
-                        border: "1px solid transparent"
-                    });
-
-                $item.on("mouseenter", function() {
-                    $(this).css({
-                        transform: "translateX(4px)",
-                        borderColor: "#90caf9",
-                        boxShadow: "0 2px 8px rgba(0,0,0,0.08)"
-                    });
-                }).on("mouseleave", function() {
-                    $(this).css({
-                        background: "",
-                        transform: "",
-                        borderColor: "transparent",
-                        boxShadow: ""
-                    });
-                });
-
-                const $content = $("<div>").addClass("flex-fill").css("minWidth", "0");
-                const searchValue = InstanceTaskName.option("searchValue") || "";
-
-                $("<div>")
-                    .addClass("fw-semibold")
-                    .css({
-                        fontSize: "14px",
-                        lineHeight: "1.4",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap"
-                    })
-                    .html(highlightTextTaskName(data.Name || "", searchValue))
-                    .appendTo($content);
-
-                if (data.Description || data.Code) {
-                    $("<div>")
-                        .addClass("small text-muted")
-                        .css({
-                            fontSize: "12px",
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                            whiteSpace: "nowrap"
-                        })
-                        .text(data.Code || data.Description)
-                        .appendTo($content);
-                }
-
-                $content.appendTo($item);
-
-                if (data.Status) {
-                    const badgeClass = data.Status === "Active" ? "bg-success" : "bg-secondary";
-                    $("<span>")
-                        .addClass("badge " + badgeClass + " text-uppercase")
-                        .css({
-                            fontSize: "9px",
-                            padding: "4px 8px",
-                            letterSpacing: "0.5px",
-                            flexShrink: "0"
-                        })
-                        .text(data.Status)
-                        .appendTo($item);
-                }
-
-                setTimeout(() => {
-                    $item.css({
-                        opacity: "0",
-                        transform: "translateX(-10px)"
-                    }).animate({
-                        opacity: 1
-                    }, {
-                        duration: 300,
-                        step: function(now) {
-                            $(this).css("transform", "translateX(" + (-10 + (now * 10)) + "px)");
-                        },
-                        delay: index * 30
-                    });
-                }, 10);
-
-                return $item;
-            },
-            onOpened: function(e) {
-                $(e.component._popup.content()).parent()
-                    .addClass("shadow-lg border rounded hpa-responsive")
-                    .css({
-                        borderRadius: "12px",
-                        padding: "8px 0",
-                        borderColor: "#dee2e6"
-                    });
-            },
-            onFocusIn: function(e) {
-                InstanceTaskName.option("showClearButton", true);
-            },
-            onFocusOut: function(e) {
-                InstanceTaskName.option("showClearButton", false);
-            },
-            onKeyDown: function(e) {
-                if (e.key === "Enter" || e.key === "Tab") {
-                    InstanceTaskName.option("showClearButton", false);
-                }
-            },
-			onValueChanged: function(e) {
-                if (!e.event) return;
-
-                $("#P8117471F96C44E2D8886F4484DC46071").find(".dx-texteditor-input").blur();
-                if (InstanceTaskName && InstanceTaskName.blur) InstanceTaskName.blur();
-
-                // Chỉ visual feedback, không save API
-                const $el = $(e.element);
-                $el.css({
-                    transform: "scale(1.02)",
-                    boxShadow: "0 0 0 3px rgba(28, 151, 94, 0.2)",
-                    transition: "all 0.2s ease"
-                });
-                setTimeout(() => {
-                    $el.css({
-                        transform: "",
-                        boxShadow: ""
-                    });
-                }, 300);
-
-                // Gọi hàm callback onSelectBoxChanged nếu có
-                if (typeof window["onSelectBoxChanged_TaskName"] === "function") {
-                    console.log("Calling onSelectBoxChanged_TaskName callback");
-                    window["onSelectBoxChanged_TaskName"](e.value, InstanceTaskName, e);
-                }
-			}
-		}).dxSelectBox("instance");
-
-        function loadTaskNameDataSource() {
-            if (!TaskNameDataSourceSP || TaskNameDataSourceSP === "") {
-                console.warn("SelectBox TaskName: No DataSourceSP");
-                return;
-            }
-
-            if (TaskNameIsLoading || TaskNameIsDataLoaded) return;
-
-            TaskNameIsLoading = true;
-            InstanceTaskName.option("placeholder", "Đang tải dữ liệu...");
-
-            const $input = $("#P8117471F96C44E2D8886F4484DC46071").find(".dx-texteditor-input");
-            const gradientAnim = setInterval(() => {
-                if (!TaskNameIsLoading) {
-                    clearInterval(gradientAnim);
-                    $input.css("background", "");
-                    return;
-                }
-                $input.css({
-                    backgroundSize: "200% 100%",
-                    animation: "none"
-                });
-            }, 100);
-
-            AjaxHPAParadise({
-                data: {
-                    name: TaskNameDataSourceSP,
-                    param: ["LoginID", LoginID, "LanguageID", LanguageID]
-                },
-                success: function(res) {
-                    const json = typeof res === "string" ? JSON.parse(res) : res;
-                    const data = (json.data && json.data[0]) || [];
-
-                    window["DataSource_TaskName"] = data;
-                    
-                    // Smart Load: Check dữ liệu > 1000 dòng
-                    if (data.length > 1000) {
-                        console.log("[SmartLoad] SelectBox TaskName: Dữ liệu " + data.length + " dòng - Kích hoạt API load");
-                        window["UseAPILoad_TaskName"] = true;
-                        InstanceTaskName.option("placeholder", "Sử dụng tìm kiếm để load dữ liệu (API)");
-                        // Không set dataSource toàn bộ, sẽ load qua API khi user search
-                    } else {
-                        // Load bình thường cho dữ liệu nhỏ
-                        InstanceTaskName.option("dataSource", data);
-                        InstanceTaskName.repaint();
-                        InstanceTaskName.option("placeholder", "Tìm kiếm hoặc chọn...");
-                    }
-
-                    TaskNameIsLoading = false;
-                    TaskNameIsDataLoaded = true;
-                    clearInterval(gradientAnim);
-                    $input.css("background", "");
-
-                    console.log("SelectBox TaskName: Loaded", data.length, "items");
-                },
-                error: function(err) {
-                    TaskNameIsLoading = false;
-                    clearInterval(gradientAnim);
-                    $input.css("background", "");
-                    InstanceTaskName.option("placeholder", "Lỗi tải dữ liệu");
-                    console.error("SelectBox TaskName error:", err);
-                }
-            });
-        }
-
-        if (TaskNameDataSourceSP && TaskNameDataSourceSP !== "") {
-            loadTaskNameDataSource();
-        }
-			
-            // Smart Load: Check số dòng - nếu > 1000 thì dùng API, còn không thì load bình thường
-            var spLoadDataGridName = "sp_Task_GetAssignmentSetup";
-            var isSmartLoadNeeded = false;
-
-            // Kiểm tra xem có cần smart load hay không (chỉ cho các control có datasource)
-            if (spLoadDataGridName && spLoadDataGridName.trim() !== "") {
-                // Lấy data source từ window nếu đã load
-                var dataSource = window["DataSource_TaskName"];
-
-                // Nếu chưa load hoặc dữ liệu trống, thì skip smart load cho lần này
-                if (dataSource && Array.isArray(dataSource) && dataSource.length > 1000) {
-                    isSmartLoadNeeded = true;
-                    console.log("[SmartLoad] TaskName: Dữ liệu > 1000 dòng, sẽ load theo API pagination");
-                }
-            }
-
-            // Nếu smart load, thì set flag để control sẽ tự động load qua API
-            if (isSmartLoadNeeded) {
-                window["UseAPILoad_TaskName"] = true;
-                console.log("[SmartLoad] TaskName: Kích hoạt load API, tránh load toàn bộ dữ liệu lớn");
-                return;
-            }
-
-            // Load bình thường (dữ liệu nhỏ <= 1000)
-            InstanceTaskName._suppressValueChangeAction();
-            InstanceTaskName.option("value", obj.TaskName);
-            InstanceTaskName._resumeValueChangeAction();
-        	P8117471F96C44E2D8886F4484DC46071	NULL	NULL	1	NULL	NULL	NULL	NULL	NULL
-330	sp_Task_MyWork_html	NULL	TaskID	PersonInCharge	tblTask_AssignHeader	hpaControlSelectEmployee	0	0	NULL	NULL	EmployeeListAll_DataSetting_Custom	<div id="P92FE9B82A6A24C5DB844EB0566E6A3F3"></div>	
-            window.GlobalEmployeeAvatarCache = window.GlobalEmployeeAvatarCache || {};
-            window.GlobalEmployeeAvatarLoading = window.GlobalEmployeeAvatarLoading || {};
-
-            function loadGlobalAvatarIfNeededPersonInCharge(employeeId, storeImgName, paramImg, callbackFn) {
-                const idStr = String(employeeId);
-
-                if (window.GlobalEmployeeAvatarCache[idStr]) {
-                    if (callbackFn) callbackFn(window.GlobalEmployeeAvatarCache[idStr]);
-                    return window.GlobalEmployeeAvatarCache[idStr];
-                }
-
-                if (window.GlobalEmployeeAvatarLoading[idStr]) {
-                    if (callbackFn) {
-                        window.GlobalEmployeeAvatarLoading[idStr].callbacks = 
-                            window.GlobalEmployeeAvatarLoading[idStr].callbacks || [];
-                        window.GlobalEmployeeAvatarLoading[idStr].callbacks.push(callbackFn);
-                    }
-                    return null;
-                }
-
-                if (!storeImgName) {
-                    return null;
-                }
-
-                window.GlobalEmployeeAvatarLoading[idStr] = {
-                    loading: true,
-                    callbacks: callbackFn ? [callbackFn] : []
-                };
-
-                let paramArray = [];
-                if (paramImg) {
-                    try {
-                        const decoded = decodeURIComponent(paramImg);
-                        paramArray = JSON.parse(decoded);
-                    } catch (e) {
-                        paramArray = [];
-                    }
-                }
-
-                AjaxHPAParadise({
-                    data: {
-                        name: storeImgName,
-                        param: paramArray
-                    },
-                    xhrFields: { responseType: "blob" },
-                    cache: true,
-                    success: function (blob) {
-                        const callbacks = window.GlobalEmployeeAvatarLoading[idStr]?.callbacks || [];
-                        delete window.GlobalEmployeeAvatarLoading[idStr];
-
-                        if (blob && blob.size > 0) {
-                            const url = URL.createObjectURL(blob);
-                            window.GlobalEmployeeAvatarCache[idStr] = url;
-                            
-                            callbacks.forEach(cb => {
-                                try { cb(url); } catch (e) { console.error(e); }
-                            });
-                        } else {
-                            callbacks.forEach(cb => {
-                                try { cb(null); } catch (e) { console.error(e); }
-                            });
-                        }
-                    },
-                    error: function () {
-                        const callbacks = window.GlobalEmployeeAvatarLoading[idStr]?.callbacks || [];
-                        delete window.GlobalEmployeeAvatarLoading[idStr];
-                        
-                        callbacks.forEach(cb => {
-                            try { cb(null); } catch (e) { console.error(e); }
-                        });
-                    }
-                });
-
-                return null;
-            }
-
-            window["DataSource_PersonInCharge"] = window["DataSource_PersonInCharge"] || [];
-            let PersonInChargeDataSourceLoaded = false;
-            let spNameDSEPersonInCharge = "EmployeeListAll_DataSetting_Custom";
-
-            function loadDataSourcePersonInCharge() {
-                if (PersonInChargeDataSourceLoaded || !spNameDSEPersonInCharge) return;
-                
-                AjaxHPAParadise({
-                    data: {
-                        name: spNameDSEPersonInCharge,
-                        param: ["LoginID", LoginID, "LanguageID", LanguageID]
-                    },
-                    success: function(res) {
-                        const json = typeof res === "string" ? JSON.parse(res) : res;
-                        window["DataSource_PersonInCharge"] = (json.data && json.data[0]) || [];
-                        PersonInChargeDataSourceLoaded = true;
-                        if (InstancePersonInCharge && typeof InstancePersonInCharge.setDataSource === "function") {
-                            InstancePersonInCharge.setDataSource(window["DataSource_PersonInCharge"]);
-                        }
-                    },
-                    error: function(err) {
-                        console.error("Failed to load datasource:", err);
-                    }
-                });
-            }
-
-            loadDataSourcePersonInCharge();
-
-            let InstancePersonInCharge, PersonInChargeSelectedId = null, PersonInChargeSelectedIdOriginal = null;
-
-            function getInitialsPersonInCharge(name) {
-                if (!name) return "?";
-                const words = name.trim().split(/\s+/);
-                if (words.length >= 2) return (words[0][0] + words[words.length - 1][0]).toUpperCase();
-                return name.substring(0, 2).toUpperCase();
-            }
-
-            function getColorForIdPersonInCharge(id) {
-                const colors = [
-                    { bg: "#e3f2fd", text: "#1976d2" },
-                    { bg: "#f3e5f5", text: "#7b1fa2" },
-                    { bg: "#e8f5e9", text: "#388e3c" },
-                    { bg: "#fff3e0", text: "#f57c00" },
-                    { bg: "#fce4ec", text: "#c2185b" }
-                ];
-                return colors[Math.abs(id) % colors.length];
-            }
-
-            function renderDisplayBoxPersonInCharge() {
-                const $displayBoxPersonInCharge = $("#PersonInCharge_display");
-                if (!$displayBoxPersonInCharge.length) return;
-                $displayBoxPersonInCharge.empty();
-
-                const $wrapper = $("<div>").css({
-                    border: "1px solid #dee2e6",
-                    borderRadius: "8px",
-                    padding: "10px 12px",
-                    minHeight: "44px",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "10px",
-                    cursor: "pointer"
-                }).hover(
-                    () => $wrapper.css({ borderColor: "#0d6efd", boxShadow: "0 0 0 0.2rem rgba(13,110,253,.15)" }),
-                    () => $wrapper.css({ borderColor: "#dee2e6", boxShadow: "none" })
-                );
-
-                if (!PersonInChargeSelectedId) {
-                    $wrapper.append($("<span>").addClass("text-muted").html("<i class=\"bi bi-person-plus me-2\"></i>Chọn nhân viên..."));
-                } else {
-                    const item = window["DataSource_PersonInCharge"].find(e => String(e.ID) === String(PersonInChargeSelectedId));
-                    if (!item) {
-                        $wrapper.append($("<span>").addClass("text-muted").text("Nhân viên không tồn tại"));
-                    } else {
-                        const name = item.Name || item.FullName || "?";
-                        
-                        const $avatar = $("<div>").css({
-                            width: "40px", height: "40px", borderRadius: "50%",
-                            boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
-                            display: "flex", alignItems: "center", justifyContent: "center",
-                            fontWeight: "600", fontSize: "14px",
-                            position: "relative", overflow: "hidden",
-                            flexShrink: 0
-                        });
-
-                        const cachedUrl = window.GlobalEmployeeAvatarCache[String(PersonInChargeSelectedId)];
-
-                        if (cachedUrl) {
-                            $avatar.append($("<img>")
-                                .attr("src", cachedUrl)
-                                .css({ width: "100%", height: "100%", objectFit: "cover" })
-                            );
-                        } else if (item.storeImgName) {
-                            loadGlobalAvatarIfNeededPersonInCharge(PersonInChargeSelectedId, item.storeImgName, item.paramImg, function(url) {
-                                renderDisplayBoxPersonInCharge();
-                            });
-                            
-                            const color = getColorForIdPersonInCharge(PersonInChargeSelectedId);
-                            const initials = getInitialsPersonInCharge(name);
-                            $avatar.css({ background: color.bg, color: color.text }).text(initials);
-                        } else {
-                            const color = getColorForIdPersonInCharge(PersonInChargeSelectedId);
-                            const initials = getInitialsPersonInCharge(name);
-                            $avatar.css({ background: color.bg, color: color.text }).text(initials);
-                        }
-
-                        const $info = $("<div>").css({ flex: 1, overflow: "hidden" });
-                        $info.append($("<div>").css({ fontWeight: "500", fontSize: "14px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }).text(name));
-                        if (item.Position) {
-                            $info.append($("<div>").css({ fontSize: "12px", color: "#6c757d", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }).text(item.Position));
-                        }
-
-                        $wrapper.append($avatar).append($info);
-                    }
-                }
-
-                $displayBoxPersonInCharge.append($wrapper);
-                $wrapper.off("click").on("click", () => {
-                    if (!popupPersonInCharge) {
-                        initPopupPersonInCharge();
-                        // Đợi popup init xong rồi mới show
-                        setTimeout(() => {
-                            popupPersonInCharge.show();
-                        }, 0);
-                    } else {
-                        popupPersonInCharge.show();
-                    }
-                });
-            }
-
-            const $containerPersonInCharge = $("#P92FE9B82A6A24C5DB844EB0566E6A3F3");
-            $containerPersonInCharge.empty();
-            const $displayBoxPersonInCharge = $("<div>").attr("id", "PersonInCharge_display");
-            $containerPersonInCharge.append($displayBoxPersonInCharge);
-
-            let popupPersonInCharge;
-            let popupPersonInChargeOnce = false;
-            let PersonInChargeGridContainer = null;
-            function initPopupPersonInCharge() {
-                if (popupPersonInChargeOnce) {
-                    popupPersonInCharge.show();
-                    return;
-                }
-                popupPersonInChargeOnce = true;
-                popupPersonInCharge = $("<div>").attr("id", "PersonInCharge_popup")
-                    .appendTo(document.body)
-                    .addClass("hpa-responsive")
-                    .dxPopup({
-                        width: 750,
-                        height: "auto",
-                        animation: null,
-                        showTitle: true,
-                        title: "Chọn nhân viên",
-                        dragEnabled: true,
-                        closeOnOutsideClick: true,
-                        showCloseButton: true,
-                        toolbarItems: [
-                            {
-                                widget: "dxButton",
-                                location: "after",
-                                toolbar: "bottom",
-                                options: {
-                                    text: "Hủy",
-                                    onClick: () => {
-                                        PersonInChargeSelectedId = PersonInChargeSelectedIdOriginal;
-                                        popupPersonInCharge.hide();
-                                    }
-                                }
-                            },
-                            {
-                                widget: "dxButton",
-                                location: "after",
-                                toolbar: "bottom",
-                                options: {
-                                    text: "Lưu",
-                                    type: "success",
-                                    onClick: () => {
-                                        popupPersonInCharge.hide();
-                                    }
-                                }
-                            }
-                        ],
-                        contentTemplate: function (contentElement) {
-                            PersonInChargeGridContainer = $("<div>");
-                            contentElement.append(PersonInChargeGridContainer);
-                        },
-                        onShown: () => {
-                            const sortedData = window["DataSource_PersonInCharge"].sort((a, b) => {
-                                const aSelected = String(a.ID) === String(PersonInChargeSelectedId);
-                                const bSelected = String(b.ID) === String(PersonInChargeSelectedId);
-                                return bSelected - aSelected;
-                            });
-
-                            // Destroy instance cũ nếu tồn tại
-                            try {
-                                const existingInstance = PersonInChargeGridContainer.dxDataGrid("instance");
-                                if (existingInstance) {
-                                    existingInstance.dispose();
-                                }
-                            } catch (e) {
-                                // Instance chưa tồn tại hoặc đã bị destroy
-                            }
-
-                            PersonInChargeGridContainer
-                            .empty()
-                            .dxDataGrid({
-                                dataSource: sortedData,
-                                keyExpr: "ID",
-                                columnAutoWidth: true,
-                                allowColumnResizing: true,
-                                selection: { mode: "single" },
-                                selectedRowKeys: PersonInChargeSelectedId ? [PersonInChargeSelectedId] : [],
-                                hoverStateEnabled: true,
-                                onRowPrepared: function(e) {
-                                    if (e.rowType === "data") {
-                                        e.rowElement.css("cursor", "pointer");
-                                    }
-                                },
-                                columns: [
-                                    {
-                                        dataField: "ID",
-                                        caption: "ID",
-                                        width: 60,
-                                        allowSearch: false
-                                    },
-                                    {
-                                        dataField: "Name",
-                                        caption: "Tên"
-                                    },
-                                    {
-                                        dataField: "Position",
-                                        caption: "Chức vụ"
-                                    }
-                                ],
-                                searchPanel: { visible: true },
-                                paging: { 
-                                    enabled: true,
-                                    pageSize: 5,
-                                    pageIndex: 0
-                                },
-                                pager: {
-                                    visible: true,
-                                    allowedPageSizes: [5, 10],
-                                    showPageSizeSelector: true,
-                                    showInfo: true,
-                                    showNavigationButtons: true
-                                },
-                                onSelectionChanged: e => PersonInChargeSelectedId = (e.selectedRowKeys && e.selectedRowKeys[0]) || null
-                            });
-                        },
-                        onHidden: () => {
-                            // Dispose grid instance
-                            try {
-                                const gridInstance = PersonInChargeGridContainer.dxDataGrid("instance");
-                                if (gridInstance) {
-                                    gridInstance.dispose();
-                                }
-                            } catch (e) {
-                                // Grid chưa được khởi tạo hoặc đã dispose
-                            }
-                            
-                            // Reset position của popup về default
-                            popupPersonInCharge.option("position", { my: "center", at: "center", of: window });
-                            
-                            renderDisplayBoxPersonInCharge();
-                        }
-                    }).dxPopup("instance");
-            }
-
-            InstancePersonInCharge = {
-                setValue: function(val) {
-                    if (val !== null && val !== undefined && val !== "") {
-                        PersonInChargeSelectedId = String(val);
-                    } else {
-                        PersonInChargeSelectedId = null;
-                    }
-                    PersonInChargeSelectedIdOriginal = PersonInChargeSelectedId;
-                    renderDisplayBoxPersonInCharge();
-                },
-                getValue: () => PersonInChargeSelectedId,
-                getValueAsString: () => PersonInChargeSelectedId || "",
-                setDataSource: data => {
-                    window["DataSource_PersonInCharge"] = data || [];
-                },
-                repaint: renderDisplayBoxPersonInCharge,
-                option: function(name, value) {
-                    if (arguments.length === 2 && name === "value") {
-                        this.setValue(value);
-                    } else if (arguments.length === 1) {
-                        if (name === "value") return this.getValueAsString();
-                        if (name === "dataSource") return window["DataSource_PersonInCharge"];
-                    }
-                    return undefined;
-                },
-                _suppressValueChangeAction: function() {},
-                _resumeValueChangeAction: function() {}
-            };
-
-            renderDisplayBoxPersonInCharge();
-        	
-            // Smart Load: Check số dòng - nếu > 1000 thì dùng API, còn không thì load bình thường
-            var spLoadDataGridName = "EmployeeListAll_DataSetting_Custom";
-            var isSmartLoadNeeded = false;
-
-            // Kiểm tra xem có cần smart load hay không (chỉ cho các control có datasource)
-            if (spLoadDataGridName && spLoadDataGridName.trim() !== "") {
-                // Lấy data source từ window nếu đã load
-                var dataSource = window["DataSource_PersonInCharge"];
-
-                // Nếu chưa load hoặc dữ liệu trống, thì skip smart load cho lần này
-                if (dataSource && Array.isArray(dataSource) && dataSource.length > 1000) {
-                    isSmartLoadNeeded = true;
-                    console.log("[SmartLoad] PersonInCharge: Dữ liệu > 1000 dòng, sẽ load theo API pagination");
-                }
-            }
-
-            // Nếu smart load, thì set flag để control sẽ tự động load qua API
-            if (isSmartLoadNeeded) {
-                window["UseAPILoad_PersonInCharge"] = true;
-                console.log("[SmartLoad] PersonInCharge: Kích hoạt load API, tránh load toàn bộ dữ liệu lớn");
-                return;
-            }
-
-            // Load bình thường (dữ liệu nhỏ <= 1000)
-            InstancePersonInCharge._suppressValueChangeAction();
-            InstancePersonInCharge.option("value", obj.PersonInCharge);
-            InstancePersonInCharge._resumeValueChangeAction();
-        	P92FE9B82A6A24C5DB844EB0566E6A3F3	NULL	NULL	1	NULL	NULL	NULL	NULL	0
-331	sp_Task_MyWork_html	NULL	TaskID	MainPersonInCharge	tblTask_AssignHeader	hpaControlSelectEmployee	0	0	NULL	NULL	EmployeeListAll_DataSetting_Custom	<div id="PC4F17A30AF044F629C214E4FB871E188"></div>	
-            window.GlobalEmployeeAvatarCache = window.GlobalEmployeeAvatarCache || {};
-            window.GlobalEmployeeAvatarLoading = window.GlobalEmployeeAvatarLoading || {};
-
-            function loadGlobalAvatarIfNeededMainPersonInCharge(employeeId, storeImgName, paramImg, callbackFn) {
-                const idStr = String(employeeId);
-
-                if (window.GlobalEmployeeAvatarCache[idStr]) {
-                    if (callbackFn) callbackFn(window.GlobalEmployeeAvatarCache[idStr]);
-                    return window.GlobalEmployeeAvatarCache[idStr];
-                }
-
-                if (window.GlobalEmployeeAvatarLoading[idStr]) {
-                    if (callbackFn) {
-                        window.GlobalEmployeeAvatarLoading[idStr].callbacks = 
-                            window.GlobalEmployeeAvatarLoading[idStr].callbacks || [];
-                        window.GlobalEmployeeAvatarLoading[idStr].callbacks.push(callbackFn);
-                    }
-                    return null;
-                }
-
-                if (!storeImgName) {
-                    return null;
-                }
-
-                window.GlobalEmployeeAvatarLoading[idStr] = {
-                    loading: true,
-                    callbacks: callbackFn ? [callbackFn] : []
-                };
-
-                let paramArray = [];
-                if (paramImg) {
-                    try {
-                        const decoded = decodeURIComponent(paramImg);
-                        paramArray = JSON.parse(decoded);
-                    } catch (e) {
-                        paramArray = [];
-                    }
-                }
-
-                AjaxHPAParadise({
-                    data: {
-                        name: storeImgName,
-                        param: paramArray
-                    },
-                    xhrFields: { responseType: "blob" },
-                    cache: true,
-                    success: function (blob) {
-                        const callbacks = window.GlobalEmployeeAvatarLoading[idStr]?.callbacks || [];
-                        delete window.GlobalEmployeeAvatarLoading[idStr];
-
-                        if (blob && blob.size > 0) {
-                            const url = URL.createObjectURL(blob);
-                            window.GlobalEmployeeAvatarCache[idStr] = url;
-                            
-                            callbacks.forEach(cb => {
-                                try { cb(url); } catch (e) { console.error(e); }
-                            });
-                        } else {
-                            callbacks.forEach(cb => {
-                                try { cb(null); } catch (e) { console.error(e); }
-                            });
-                        }
-                    },
-                    error: function () {
-                        const callbacks = window.GlobalEmployeeAvatarLoading[idStr]?.callbacks || [];
-                        delete window.GlobalEmployeeAvatarLoading[idStr];
-                        
-                        callbacks.forEach(cb => {
-                            try { cb(null); } catch (e) { console.error(e); }
-                        });
-                    }
-                });
-
-                return null;
-            }
-
-            window["DataSource_MainPersonInCharge"] = window["DataSource_MainPersonInCharge"] || [];
-            let MainPersonInChargeDataSourceLoaded = false;
-            let spNameDSEMainPersonInCharge = "EmployeeListAll_DataSetting_Custom";
-
-            function loadDataSourceMainPersonInCharge() {
-                if (MainPersonInChargeDataSourceLoaded || !spNameDSEMainPersonInCharge) return;
-                
-                AjaxHPAParadise({
-                    data: {
-                        name: spNameDSEMainPersonInCharge,
-                        param: ["LoginID", LoginID, "LanguageID", LanguageID]
-                    },
-                    success: function(res) {
-                        const json = typeof res === "string" ? JSON.parse(res) : res;
-                        window["DataSource_MainPersonInCharge"] = (json.data && json.data[0]) || [];
-                        MainPersonInChargeDataSourceLoaded = true;
-                        if (InstanceMainPersonInCharge && typeof InstanceMainPersonInCharge.setDataSource === "function") {
-                            InstanceMainPersonInCharge.setDataSource(window["DataSource_MainPersonInCharge"]);
-                        }
-                    },
-                    error: function(err) {
-                        console.error("Failed to load datasource:", err);
-                    }
-                });
-            }
-
-            loadDataSourceMainPersonInCharge();
-
-            let InstanceMainPersonInCharge, MainPersonInChargeSelectedId = null, MainPersonInChargeSelectedIdOriginal = null;
-
-            function getInitialsMainPersonInCharge(name) {
-                if (!name) return "?";
-                const words = name.trim().split(/\s+/);
-                if (words.length >= 2) return (words[0][0] + words[words.length - 1][0]).toUpperCase();
-                return name.substring(0, 2).toUpperCase();
-            }
-
-            function getColorForIdMainPersonInCharge(id) {
-                const colors = [
-                    { bg: "#e3f2fd", text: "#1976d2" },
-                    { bg: "#f3e5f5", text: "#7b1fa2" },
-                    { bg: "#e8f5e9", text: "#388e3c" },
-                    { bg: "#fff3e0", text: "#f57c00" },
-                    { bg: "#fce4ec", text: "#c2185b" }
-                ];
-                return colors[Math.abs(id) % colors.length];
-            }
-
-            function renderDisplayBoxMainPersonInCharge() {
-                const $displayBoxMainPersonInCharge = $("#MainPersonInCharge_display");
-                if (!$displayBoxMainPersonInCharge.length) return;
-                $displayBoxMainPersonInCharge.empty();
-
-                const $wrapper = $("<div>").css({
-                    border: "1px solid #dee2e6",
-                    borderRadius: "8px",
-                    padding: "10px 12px",
-                    minHeight: "44px",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "10px",
-                    cursor: "pointer"
-                }).hover(
-                    () => $wrapper.css({ borderColor: "#0d6efd", boxShadow: "0 0 0 0.2rem rgba(13,110,253,.15)" }),
-                    () => $wrapper.css({ borderColor: "#dee2e6", boxShadow: "none" })
-                );
-
-                if (!MainPersonInChargeSelectedId) {
-                    $wrapper.append($("<span>").addClass("text-muted").html("<i class=\"bi bi-person-plus me-2\"></i>Chọn nhân viên..."));
-                } else {
-                    const item = window["DataSource_MainPersonInCharge"].find(e => String(e.ID) === String(MainPersonInChargeSelectedId));
-                    if (!item) {
-                        $wrapper.append($("<span>").addClass("text-muted").text("Nhân viên không tồn tại"));
-                    } else {
-                        const name = item.Name || item.FullName || "?";
-                        
-                        const $avatar = $("<div>").css({
-                            width: "40px", height: "40px", borderRadius: "50%",
-                            boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
-                            display: "flex", alignItems: "center", justifyContent: "center",
-                            fontWeight: "600", fontSize: "14px",
-                            position: "relative", overflow: "hidden",
-                            flexShrink: 0
-                        });
-
-                        const cachedUrl = window.GlobalEmployeeAvatarCache[String(MainPersonInChargeSelectedId)];
-
-                        if (cachedUrl) {
-                            $avatar.append($("<img>")
-                                .attr("src", cachedUrl)
-                                .css({ width: "100%", height: "100%", objectFit: "cover" })
-                            );
-                        } else if (item.storeImgName) {
-                            loadGlobalAvatarIfNeededMainPersonInCharge(MainPersonInChargeSelectedId, item.storeImgName, item.paramImg, function(url) {
-                                renderDisplayBoxMainPersonInCharge();
-                            });
-                            
-                            const color = getColorForIdMainPersonInCharge(MainPersonInChargeSelectedId);
-                            const initials = getInitialsMainPersonInCharge(name);
-                            $avatar.css({ background: color.bg, color: color.text }).text(initials);
-                        } else {
-                            const color = getColorForIdMainPersonInCharge(MainPersonInChargeSelectedId);
-                            const initials = getInitialsMainPersonInCharge(name);
-                            $avatar.css({ background: color.bg, color: color.text }).text(initials);
-                        }
-
-                        const $info = $("<div>").css({ flex: 1, overflow: "hidden" });
-                        $info.append($("<div>").css({ fontWeight: "500", fontSize: "14px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }).text(name));
-                        if (item.Position) {
-                            $info.append($("<div>").css({ fontSize: "12px", color: "#6c757d", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }).text(item.Position));
-                        }
-
-                        $wrapper.append($avatar).append($info);
-                    }
-                }
-
-                $displayBoxMainPersonInCharge.append($wrapper);
-                $wrapper.off("click").on("click", () => {
-                    if (!popupMainPersonInCharge) {
-                        initPopupMainPersonInCharge();
-                        // Đợi popup init xong rồi mới show
-                        setTimeout(() => {
-                            popupMainPersonInCharge.show();
-                        }, 0);
-                    } else {
-                        popupMainPersonInCharge.show();
-                    }
-                });
-            }
-
-            const $containerMainPersonInCharge = $("#PC4F17A30AF044F629C214E4FB871E188");
-            $containerMainPersonInCharge.empty();
-            const $displayBoxMainPersonInCharge = $("<div>").attr("id", "MainPersonInCharge_display");
-            $containerMainPersonInCharge.append($displayBoxMainPersonInCharge);
-
-            let popupMainPersonInCharge;
-            let popupMainPersonInChargeOnce = false;
-            let MainPersonInChargeGridContainer = null;
-            function initPopupMainPersonInCharge() {
-                if (popupMainPersonInChargeOnce) {
-                    popupMainPersonInCharge.show();
-                    return;
-                }
-                popupMainPersonInChargeOnce = true;
-                popupMainPersonInCharge = $("<div>").attr("id", "MainPersonInCharge_popup")
-                    .appendTo(document.body)
-                    .addClass("hpa-responsive")
-                    .dxPopup({
-                        width: 750,
-                        height: "auto",
-                        animation: null,
-                        showTitle: true,
-                        title: "Chọn nhân viên",
-                        dragEnabled: true,
-                        closeOnOutsideClick: true,
-                        showCloseButton: true,
-                        toolbarItems: [
-                            {
-                                widget: "dxButton",
-                                location: "after",
-                                toolbar: "bottom",
-                                options: {
-                                    text: "Hủy",
-                                    onClick: () => {
-                                        MainPersonInChargeSelectedId = MainPersonInChargeSelectedIdOriginal;
-                                        popupMainPersonInCharge.hide();
-                                    }
-                                }
-                            },
-                            {
-                                widget: "dxButton",
-                                location: "after",
-                                toolbar: "bottom",
-                                options: {
-                                    text: "Lưu",
-                                    type: "success",
-                                    onClick: () => {
-                                        popupMainPersonInCharge.hide();
-                                    }
-                                }
-                            }
-                        ],
-                        contentTemplate: function (contentElement) {
-                            MainPersonInChargeGridContainer = $("<div>");
-                            contentElement.append(MainPersonInChargeGridContainer);
-                        },
-                        onShown: () => {
-                            const sortedData = window["DataSource_MainPersonInCharge"].sort((a, b) => {
-                                const aSelected = String(a.ID) === String(MainPersonInChargeSelectedId);
-                                const bSelected = String(b.ID) === String(MainPersonInChargeSelectedId);
-                                return bSelected - aSelected;
-                            });
-
-                            // Destroy instance cũ nếu tồn tại
-                            try {
-                                const existingInstance = MainPersonInChargeGridContainer.dxDataGrid("instance");
-                                if (existingInstance) {
-                                    existingInstance.dispose();
-                                }
-                            } catch (e) {
-                                // Instance chưa tồn tại hoặc đã bị destroy
-                            }
-
-                            MainPersonInChargeGridContainer
-                            .empty()
-                            .dxDataGrid({
-                                dataSource: sortedData,
-                                keyExpr: "ID",
-                                columnAutoWidth: true,
-                                allowColumnResizing: true,
-                                selection: { mode: "single" },
-                                selectedRowKeys: MainPersonInChargeSelectedId ? [MainPersonInChargeSelectedId] : [],
-                                hoverStateEnabled: true,
-                                onRowPrepared: function(e) {
-                                    if (e.rowType === "data") {
-                                        e.rowElement.css("cursor", "pointer");
-                                    }
-                                },
-                                columns: [
-                                    {
-                                        dataField: "ID",
-                                        caption: "ID",
-                                        width: 60,
-                                        allowSearch: false
-                                    },
-                                    {
-                                        dataField: "Name",
-                                        caption: "Tên"
-                                    },
-                                    {
-                                        dataField: "Position",
-                                        caption: "Chức vụ"
-                                    }
-                                ],
-                                searchPanel: { visible: true },
-                                paging: { 
-                                    enabled: true,
-                                    pageSize: 5,
-                                    pageIndex: 0
-                                },
-                                pager: {
-                                    visible: true,
-                                    allowedPageSizes: [5, 10],
-                                    showPageSizeSelector: true,
-                                    showInfo: true,
-                                    showNavigationButtons: true
-                                },
-                                onSelectionChanged: e => MainPersonInChargeSelectedId = (e.selectedRowKeys && e.selectedRowKeys[0]) || null
-                            });
-                        },
-                        onHidden: () => {
-                            // Dispose grid instance
-                            try {
-                                const gridInstance = MainPersonInChargeGridContainer.dxDataGrid("instance");
-                                if (gridInstance) {
-                                    gridInstance.dispose();
-                                }
-                            } catch (e) {
-                                // Grid chưa được khởi tạo hoặc đã dispose
-                            }
-                            
-                            // Reset position của popup về default
-                            popupMainPersonInCharge.option("position", { my: "center", at: "center", of: window });
-                            
-                            renderDisplayBoxMainPersonInCharge();
-                        }
-                    }).dxPopup("instance");
-            }
-
-            InstanceMainPersonInCharge = {
-                setValue: function(val) {
-                    if (val !== null && val !== undefined && val !== "") {
-                        MainPersonInChargeSelectedId = String(val);
-                    } else {
-                        MainPersonInChargeSelectedId = null;
-                    }
-                    MainPersonInChargeSelectedIdOriginal = MainPersonInChargeSelectedId;
-                    renderDisplayBoxMainPersonInCharge();
-                },
-                getValue: () => MainPersonInChargeSelectedId,
-                getValueAsString: () => MainPersonInChargeSelectedId || "",
-                setDataSource: data => {
-                    window["DataSource_MainPersonInCharge"] = data || [];
-                },
-                repaint: renderDisplayBoxMainPersonInCharge,
-                option: function(name, value) {
-                    if (arguments.length === 2 && name === "value") {
-                        this.setValue(value);
-                    } else if (arguments.length === 1) {
-                        if (name === "value") return this.getValueAsString();
-                        if (name === "dataSource") return window["DataSource_MainPersonInCharge"];
-                    }
-                    return undefined;
-                },
-                _suppressValueChangeAction: function() {},
-                _resumeValueChangeAction: function() {}
-            };
-
-            renderDisplayBoxMainPersonInCharge();
-        	
-            // Smart Load: Check số dòng - nếu > 1000 thì dùng API, còn không thì load bình thường
-            var spLoadDataGridName = "EmployeeListAll_DataSetting_Custom";
-            var isSmartLoadNeeded = false;
-
-            // Kiểm tra xem có cần smart load hay không (chỉ cho các control có datasource)
-            if (spLoadDataGridName && spLoadDataGridName.trim() !== "") {
-                // Lấy data source từ window nếu đã load
-                var dataSource = window["DataSource_MainPersonInCharge"];
-
-                // Nếu chưa load hoặc dữ liệu trống, thì skip smart load cho lần này
-                if (dataSource && Array.isArray(dataSource) && dataSource.length > 1000) {
-                    isSmartLoadNeeded = true;
-                    console.log("[SmartLoad] MainPersonInCharge: Dữ liệu > 1000 dòng, sẽ load theo API pagination");
-                }
-            }
-
-            // Nếu smart load, thì set flag để control sẽ tự động load qua API
-            if (isSmartLoadNeeded) {
-                window["UseAPILoad_MainPersonInCharge"] = true;
-                console.log("[SmartLoad] MainPersonInCharge: Kích hoạt load API, tránh load toàn bộ dữ liệu lớn");
-                return;
-            }
-
-            // Load bình thường (dữ liệu nhỏ <= 1000)
-            InstanceMainPersonInCharge._suppressValueChangeAction();
-            InstanceMainPersonInCharge.option("value", obj.MainPersonInCharge);
-            InstanceMainPersonInCharge._resumeValueChangeAction();
-        	PC4F17A30AF044F629C214E4FB871E188	NULL	NULL	1	NULL	NULL	NULL	NULL	0
-332	sp_Task_MyWork_html	NULL	TaskID	StartDate	tblTask_AssignHeader	hpaControlDateTime	0	0	NULL	NULL	NULL	<div id="P23DF6626AD7948EEAF6894A9AD476B3C"></div>	
-        let InstanceStartDate, StartDateTimeOut;
-        InstanceStartDate = $("#P23DF6626AD7948EEAF6894A9AD476B3C").dxDateBox({
+					const val = cellInfo.value;
+
+					if (val === undefined || val === null || val === "") {
+						$("<div>").addClass("dx-placeholder").text("--").appendTo(container);
+						return;
+					}
+
+					$("<div>").text(val).appendTo(container);
+				},allowEditing: false,
+        },
+            
+        {
+            dataField: "EmployeeStatus",
+            caption: "%Trạng thái%",
+            width: 150,
+            allowSorting: true,
+            allowFiltering: true,
+            cellTemplate: function(container, cellInfo){
+					const val = cellInfo.value;
+
+					if (val === undefined || val === null || val === "") {
+						$("<div>").addClass("dx-placeholder").text("--").appendTo(container);
+						return;
+					}
+
+					$("<div>").text(val).appendTo(container);
+				},allowEditing: false,
+        },
+            
+        {
+            dataField: "LastChangedDate",
+            caption: "%Ngày đăng ký%",
+            width: 150,
+            allowSorting: true,
+            allowFiltering: true,
+            cellTemplate: function(container, cellInfo) {
+						
+        let InstanceLastChangedDate, LastChangedDateTimeOut;
+        InstanceLastChangedDate = $(container).dxDateBox({
             type: "datetime", // Đổi từ date -> datetime
             displayFormat: "dd/MM/yyyy HH:mm", // Thêm hiển thị giờ
             useMaskBehavior: true,
@@ -2532,69 +693,272 @@ ID	TableName	SPLoadData	ColumnIDName	ColumnName	TableEditor	Type	AutoSave	ReadOn
             showClearButton: false,
             dateSerializationFormat: "yyyy-MM-ddTHH:mm:ss",
             width: "100%",
-            elementAttr: { class: "hpa-dx-datebox-inline" }
+            elementAttr: { class: "hpa-dx-datebox-inline" },
+            readOnly: true
         }).dxDateBox("instance");
-    	
-            // Smart Load logic (giữ nguyên logic check > 1000 dòng)
-            var spLoadDataGridName = "";
-            var isSmartLoadNeeded = false;
+    
+						if (cellInfo.value !== undefined && cellInfo.value !== null && InstanceLastChangedDate) {
+							InstanceLastChangedDate.option("value", cellInfo.value);
+						}
+					},allowEditing: false,
+        },
+],
 
-            if (spLoadDataGridName && spLoadDataGridName.trim() !== "") {
-                var dataSource = window["DataSource_StartDate"];
-                if (dataSource && Array.isArray(dataSource) && dataSource.length > 1000) {
-                    isSmartLoadNeeded = true;
+                        onCellClick: function(e) {
+                            // Nếu multiSelect + isPopupDetailGrid, chỉ drag icon mới mở detail
+                            if (0 === 0 && 1 === 0) {
+                                // Không làm gì - chỉ cho drag
+                                return;
+                            } 
+                            // Nếu isPopupDetailGrid, click bất kỳ dòng nào cũng mở detail
+                            else if (1 === 1 && 0 === 0) {
+                                const recordID = e.key || (e.data && e.data["LoginName"]);
+                                if (recordID !== undefined && recordID !== null && recordID !== "") {
+                                    if (typeof openDetailLoginName === "function") {
+                                        console.log("[Grid Detail Popup] Mở detail từ dòng - recordID:", recordID);
+                                        openDetailLoginName(recordID);
+                                    }
+                                }
+                            } 
+                            // Nếu không phải popup detail, chỉ click cột đầu (index 0) thì mở detail
+                            else if (e.columnIndex === 0) {
+                                const recordID = e.key || (e.data && e.data["LoginName"]);
+                                console.log("[Grid Detail] Click mã - recordID:", recordID);
+                                if (recordID !== undefined && recordID !== null && recordID !== "") {
+                                    if (typeof openDetailLoginName === "function") {
+                                        console.log("[Grid Detail] Mở detail bằng hàm openDetailLoginName");
+                                        openDetailLoginName(recordID);
+                                    }
+                                }
+                            }
+                        },
+
+                        onRowPrepared: function(e) {
+                            if (e.rowType === "data") {
+                                // Nếu multiSelect + isPopupDetailGrid, chỉ drag icon clickable
+                                if (0 === 0 && 1 === 0) {
+                                    // Không highlight hover - chỉ cho drag
+                                    return;
+                                }
+                                // Nếu isPopupDetailGrid, toàn dòng là clickable
+                                else if (1 === 1 && 0 === 0) {
+                                    e.rowElement.css({
+                                        cursor: "pointer"
+                                    }).hover(
+                                        function() { $(this).css({ backgroundColor: "rgba(0, 0, 0, 0.04)" }); },
+                                        function() { $(this).css({ backgroundColor: "" }); }
+                                    );
+                                } else {
+                                    // Chỉ cột đầu là clickable
+                                    const $firstCell = e.rowElement.find("td:first");
+                                    if ($firstCell.length) {
+                                        $firstCell.css({
+                                            cursor: "pointer",
+                                            color: "#1976d2",
+                                            textDecoration: "none",
+                                            fontWeight: "500"
+                                        }).hover(
+                                            function() { $(this).css({ textDecoration: "underline" }); },
+                                            function() { $(this).css({ textDecoration: "none" }); }
+                                        );
+                                    }
+                                }
+                            }
+                        },
+
+                        onToolbarPreparing: function(e) {
+                            let isReloading = false;
+                            
+                            e.toolbarOptions.items.unshift({
+                                location: "after",
+                                widget: "dxButton",
+                                options: {
+                                    icon: "refresh",
+                                    hint: "Tải lại",
+                                    onClick: function() {
+                                        if (isReloading) {
+                                            console.log("[Grid] Đang reload, vui lòng đợi...");
+                                            return;
+                                        }
+                                        
+                                        isReloading = true;
+                                        this.option("disabled", true);
+                                        
+                                        ReloadData();
+                                        
+                                        setTimeout(() => {
+                                            isReloading = false;
+                                            this.option("disabled", false);
+                                        }, 1000);
+                                    }
+                                }
+                            });
+                        }
+                    }).dxDataGrid("instance");
+                
+
+             let currentRecordID_LoginName;
+
+            // ============================================================================
+            // HÀM LOAD DATASOURCE CHUNG CHO TẤT CẢ CÁC CONTROL
+            // ============================================================================
+            function loadDataSourceCommon(columnName, dataSourceSP, onSuccessCallback) {
+                if (!columnName || !dataSourceSP || dataSourceSP.trim() === "") {
+                    console.warn("[loadDataSourceCommon] Missing columnName or dataSourceSP");
+                    return;
                 }
-            }
 
-            if (isSmartLoadNeeded) {
-                window["UseAPILoad_StartDate"] = true;
-                return;
-            }
-
-            // Load logic cho DateTime: Phải ép kiểu new Date để hiện đúng giờ
-            InstanceStartDate._suppressValueChangeAction();
-            if (obj.StartDate) {
-                // Ép kiểu chuỗi SQL sang JS Date Object
-                InstanceStartDate.option("value", new Date(obj.StartDate));
-            } else {
-                InstanceStartDate.option("value", null);
-            }
-            InstanceStartDate._resumeValueChangeAction();
-        	P23DF6626AD7948EEAF6894A9AD476B3C	NULL	NULL	1	NULL	NULL	NULL	NULL	NULL
-333	sp_Task_MyWork_html	NULL	TaskID	CommittedHours	tblTask_AssignHeader	hpaControlNumber	0	0	NULL	NULL	NULL	<div id="PF41DAB7E9FCA43409877B4D646C428C5"></div>	
-        let InstanceCommittedHours = $("#PF41DAB7E9FCA43409877B4D646C428C5").dxNumberBox({
-            format: "#,##0",
-            showSpinButtons: false,
-            showClearButton: false,
-            width: "100%",
-            elementAttr: { class: "hpa-dx-numberbox-inline" }
-        }).dxNumberBox("instance");
-    	
-            // Smart Load: Check số dòng - nếu > 1000 thì dùng API, còn không thì load bình thường
-            var spLoadDataGridName = "";
-            var isSmartLoadNeeded = false;
-
-            // Kiểm tra xem có cần smart load hay không (chỉ cho các control có datasource)
-            if (spLoadDataGridName && spLoadDataGridName.trim() !== "") {
-                // Lấy data source từ window nếu đã load
-                var dataSource = window["DataSource_CommittedHours"];
-
-                // Nếu chưa load hoặc dữ liệu trống, thì skip smart load cho lần này
-                if (dataSource && Array.isArray(dataSource) && dataSource.length > 1000) {
-                    isSmartLoadNeeded = true;
-                    console.log("[SmartLoad] CommittedHours: Dữ liệu > 1000 dòng, sẽ load theo API pagination");
+                const dataSourceKey = "DataSource_" + columnName;
+                // Sử dụng format: columnNameDataSourceLoaded để tương thích với code hiện tại
+                const loadedKey = columnName + "DataSourceLoaded";
+                
+                // Kiểm tra nếu đã load rồi thì không load lại
+                if (window[loadedKey] === true) {
+                    if (typeof onSuccessCallback === "function") {
+                        onSuccessCallback(window[dataSourceKey] || []);
+                    }
+                    return;
                 }
+
+                // Kiểm tra nếu đang load thì đợi
+                if (window[loadedKey] === "loading") {
+                    // Đợi một chút rồi thử lại
+                    setTimeout(function() {
+                        loadDataSourceCommon(columnName, dataSourceSP, onSuccessCallback);
+                    }, 100);
+                    return;
+                }
+
+                // Đánh dấu đang load để tránh load trùng lặp
+                window[loadedKey] = "loading";
+
+                AjaxHPAParadise({
+                    data: {
+                        name: dataSourceSP,
+                        param: ["LoginID", LoginID, "LanguageID", LanguageID]
+                    },
+                    success: function(res) {
+                        const json = typeof res === "string" ? JSON.parse(res) : res;
+                        window[dataSourceKey] = (json.data && json.data[0]) || [];
+                        window[loadedKey] = true;
+                        
+                        // Gọi callback nếu có
+                        if (typeof onSuccessCallback === "function") {
+                            onSuccessCallback(window[dataSourceKey]);
+                        }
+                        
+                        // Tự động cập nhật control nếu có method setDataSource hoặc option
+                        // Thử nhiều format tên instance để tương thích
+                        const instanceVariants = [
+                            "Instance" + columnName.charAt(0).toUpperCase() + columnName.slice(1),
+                            "Instance" + columnName,
+                            "instance" + columnName.charAt(0).toUpperCase() + columnName.slice(1)
+                        ];
+                        
+                        for (let i = 0; i < instanceVariants.length; i++) {
+                            const instanceKey = instanceVariants[i];
+                            if (window[instanceKey]) {
+                                const instanceObj = window[instanceKey];
+                                
+                                // Kiểm tra nếu đây là dxDataGrid
+                                if (typeof instanceObj.dxDataGrid === "function" || instanceObj.option && instanceObj.option("dataSource") !== undefined) {
+                                    try {
+                                        // Nếu là Grid, apply dynamic config
+                                        const gridConfigFn = window["getGridConfig_" + columnName.charAt(0).toUpperCase() + columnName.slice(1)];
+                                        if (typeof gridConfigFn === "function") {
+                                            const gridConfig = gridConfigFn(window[dataSourceKey]);
+                                            console.log("[LoadDataSourceCommon] " + columnName + " size:", window[dataSourceKey].length, "RemoteOps:", gridConfig.remoteOperations);
+                                            instanceObj.option("remoteOperations", gridConfig.remoteOperations);
+                                            instanceObj.option("paging.pageSize", gridConfig.pageSize);
+                                            instanceObj.option("pager.allowedPageSizes", gridConfig.allowedPageSizes);
+                                        }
+                                        
+                                        instanceObj.option("dataSource", window[dataSourceKey]);
+                                        break;
+                                    } catch(e) {
+                                        console.warn("[LoadDataSourceCommon] Grid config error:", e);
+                                        // Fallback: just set data source
+                                        instanceObj.option("dataSource", window[dataSourceKey]);
+                                        break;
+                                    }
+                                } else if (typeof instanceObj.setDataSource === "function") {
+                                    instanceObj.setDataSource(window[dataSourceKey]);
+                                    break;
+                                } else if (typeof instanceObj.option === "function") {
+                                    try {
+                                        instanceObj.option("dataSource", window[dataSourceKey]);
+                                        break;
+                                    } catch(e) {
+                                        // Continue to next variant
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    error: function(err) {
+                        console.error("[loadDataSourceCommon] Failed to load datasource for", columnName, ":", err);
+                        window[loadedKey] = false;
+                        if (typeof onSuccessCallback === "function") {
+                            onSuccessCallback([]);
+                        }
+                    }
+                });
             }
 
-            // Nếu smart load, thì set flag để control sẽ tự động load qua API
-            if (isSmartLoadNeeded) {
-                window["UseAPILoad_CommittedHours"] = true;
-                console.log("[SmartLoad] CommittedHours: Kích hoạt load API, tránh load toàn bộ dữ liệu lớn");
-                return;
-            }
+            // Load tất cả unique DataSourceSP
+            
 
-            // Load bình thường (dữ liệu nhỏ <= 1000)
-            InstanceCommittedHours._suppressValueChangeAction();
-            InstanceCommittedHours.option("value", obj.CommittedHours);
-            InstanceCommittedHours._resumeValueChangeAction();
-        	PF41DAB7E9FCA43409877B4D646C428C5	NULL	NULL	1	NULL	NULL	NULL	NULL	NULL
+            function ReloadData() {
+                AjaxHPAParadise({
+                    data: {
+                        name: "sp_getUnregisteredAccount_Control",
+                        param: []
+                    },
+                    success: function (res) {
+                        const json = typeof res === "string" ? JSON.parse(res) : res;
+
+                        // Chuẩn hóa: results LUÔN là array
+                        const results = Array.isArray(json?.data?.[0])
+                            ? json.data[0]
+                            : (json?.data?.[0] ? [json.data[0]] : []);
+
+                        const obj = results[0] || null;
+
+                         currentRecordID_LoginName = obj.LoginName || currentRecordID_LoginName;
+
+                        DataSource = results;
+                        
+
+                        if (1 === 1) {
+                            // =============== DYNAMIC GRID CONFIG BASED ON DATA SIZE ===============
+                            const gridConfig = window.getGridConfig_GridAccount(results);
+                            const gridInstance = InstanceGridAccount.dxDataGrid("instance");
+                            
+                            console.log("[Grid] Data size:", results.length, "| RemoteOps:", gridConfig.remoteOperations, "| PageSize:", gridConfig.pageSize);
+                            
+                            // Update grid config nếu cần
+                            if (gridConfig.remoteOperations !== gridInstance.option("remoteOperations")) {
+                                gridInstance.option("remoteOperations", gridConfig.remoteOperations);
+                                console.log("[Grid] Updated remoteOperations to:", gridConfig.remoteOperations);
+                            }
+                            
+                            if (gridConfig.pageSize !== gridInstance.option("paging.pageSize")) {
+                                gridInstance.option("paging.pageSize", gridConfig.pageSize);
+                                console.log("[Grid] Updated pageSize to:", gridConfig.pageSize);
+                            }
+                            
+                            if (JSON.stringify(gridConfig.allowedPageSizes) !== JSON.stringify(gridInstance.option("pager.allowedPageSizes"))) {
+                                gridInstance.option("pager.allowedPageSizes", gridConfig.allowedPageSizes);
+                                console.log("[Grid] Updated allowedPageSizes to:", gridConfig.allowedPageSizes);
+                            }
+                            
+                            // Set data source
+                            gridInstance.option("dataSource", results);
+                        }
+                    }
+                })
+            }
+            sp_UnregisteredAccount_NN_Control.ReloadData = ReloadData
+            ReloadData()
+        })();
+    

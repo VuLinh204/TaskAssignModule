@@ -1,34 +1,56 @@
+USE Paradise_Beta_Tai2
 GO
-if object_id('[dbo].[sp_hpaControlSelectBox]') is null
-	EXEC ('CREATE PROCEDURE [dbo].[sp_hpaControlSelectBox] as select 1')
+if object_id('[dbo].[sp_hpaControlTagBox]') is null
+	EXEC ('CREATE PROCEDURE [dbo].[sp_hpaControlTagBox] as select 1')
 GO
 
-ALTER PROCEDURE [dbo].[sp_hpaControlSelectBox]
+ALTER PROCEDURE [dbo].[sp_hpaControlTagBox]
     @TableName VARCHAR(256) = ''
 AS
 BEGIN
     -- =========================================================================
-    -- hpaControlSelectBox - READONLY MODE
+    -- hpaControlTagBox - READONLY MODE
     -- =========================================================================
     UPDATE #temptable SET
         loadUI = N'
         window["DataSource_%ColumnName%"] = window["DataSource_%ColumnName%"] || [];
 
-        window.Instance%ColumnName% = $("#%UID%").dxSelectBox({
+        window.Instance%ColumnName% = $("#%UID%").dxTagBox({
             dataSource: window["DataSource_%ColumnName%"],
             valueExpr: "ID",
             displayExpr: "Name",
             placeholder: "Chọn...",
             disabled: true,
-            stylingMode: "outlined"
-            }).dxSelectBox("instance");
+            stylingMode: "outlined",
+            showSelectionControls: true,
+            applyValueMode: "useButtons",
+            searchEnabled: true,
+            searchMode: "contains",
+            searchExpr: ["Name", "Code", "Description"],
+            maxDisplayedTags: 3,
+            showMultiTagOnly: false
+        }).dxTagBox("instance");
 
-            const _initial%ColumnName% = Instance%ColumnName%.option("value");
+        const _initial%ColumnName% = Instance%ColumnName%.option("value");
+
+        if ("%DataSourceSP%" !== "") {
+            AjaxHPAParadise({
+                data: {
+                    name: "%DataSourceSP%",
+                    param: ["LoginID", LoginID, "LanguageID", LanguageID]
+                },
+                success: function (res) {
+                    const json = typeof res === "string" ? JSON.parse(res) : res;
+                    window["DataSource_%ColumnName%"] = (json.data && json.data[0]) || [];
+                    Instance%ColumnName%.option("dataSource", window["DataSource_%ColumnName%"]);
+                }
+            });
+        }
         '
-    WHERE [Type] = 'hpaControlSelectBox' AND [ReadOnly] = 1;
+    WHERE [Type] = 'hpaControlTagBox' AND [ReadOnly] = 1;
 
     -- =========================================================================
-    -- hpaControlSelectBox - AUTOSAVE MODE + GRID SYNC
+    -- hpaControlTagBox - AUTOSAVE MODE + GRID SYNC
     -- =========================================================================
 	UPDATE #temptable SET
 		loadUI = N'
@@ -42,14 +64,14 @@ BEGIN
         function highlightText%ColumnName%(text, search) {
             if (!search || !text) return text;
             const regex = new RegExp("(" + search.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + ")", "gi");
-            return text.replace(regex, "<mark class=\"bg-warning fw-bold px-1 rounded\">$1</mark>");
+            return text.replace(regex, "<mark class=\"bg-warning text-dark fw-bold px-1 rounded\">$1</mark>");
         }
 
-		window.Instance%ColumnName% = $("#%UID%").dxSelectBox({
+		window.Instance%ColumnName% = $("#%UID%").dxTagBox({
 			dataSource: window["DataSource_%ColumnName%"],
             valueExpr: "ID",
             displayExpr: "Name",
-            placeholder: "Tìm kiếm hoặc chọn...",
+            placeholder: "Tìm kiếm hoặc chọn nhiều...",
             searchEnabled: true,
             searchMode: "contains",
             searchExpr: ["Name", "Code", "Description"],
@@ -58,21 +80,58 @@ BEGIN
             showDataBeforeSearch: true,
             showClearButton: false,
             stylingMode: "outlined",
+            showSelectionControls: true,
+            applyValueMode: "useButtons",
+            selectAllMode: "allPages",
+            maxDisplayedTags: 3,
+            showMultiTagOnly: false,
+            multiline: false,
+            hideSelectedItems: false,
             dropDownOptions: {
                 showTitle: false,
                 closeOnOutsideClick: true,
                 height: "auto",
                 maxHeight: 400,
-                minWidth: 280,
+                minWidth: 320,
                 onShowing: function(e) {
                     if (!%columnName%IsDataLoaded && %columnName%DataSourceSP && %columnName%DataSourceSP !== "") {
-                        // Sử dụng hàm loadDataSourceCommon từ sptblCommonControlType_Signed
-                        loadDataSourceCommon("%ColumnName%", %columnName%DataSourceSP, function(data) {
-                            %columnName%IsDataLoaded = true;
-                            Instance%ColumnName%.option("dataSource", data);
-                        });
+                        load%columnName%DataSource();
                     }
                 }
+            },
+            tagTemplate: function(data) {
+                const $tag = $("<div>")
+                    .addClass("d-inline-flex align-items-center gap-1 px-2 py-1 rounded")
+                    .css({
+                        color: "white",
+                        fontSize: "12px",
+                        fontWeight: "500",
+                        maxWidth: "150px",
+                        transition: "all 0.2s ease"
+                    });
+
+                $("<span>")
+                    .css({
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap"
+                    })
+                    .text(data.Name || "")
+                    .appendTo($tag);
+
+                $tag.on("mouseenter", function() {
+                    $(this).css({
+                        transform: "scale(1.05)",
+                        boxShadow: "0 2px 8px rgba(0,0,0,0.2)"
+                    });
+                }).on("mouseleave", function() {
+                    $(this).css({
+                        transform: "scale(1)",
+                        boxShadow: "none"
+                    });
+                });
+
+                return $tag;
             },
             itemTemplate: function(data, index) {
                 const $item = $("<div>")
@@ -102,7 +161,7 @@ BEGIN
                 const searchValue = Instance%ColumnName%.option("searchValue") || "";
 
                 $("<div>")
-                    .addClass("fw-semibold")
+                    .addClass("fw-semibold text-dark")
                     .css({
                         fontSize: "14px",
                         lineHeight: "1.4",
@@ -174,20 +233,11 @@ BEGIN
             onFocusOut: function(e) {
                 Instance%ColumnName%.option("showClearButton", false);
             },
-            onKeyDown: function(e) {
-                if (e.key === "Enter" || e.key === "Tab") {
-                    Instance%ColumnName%.option("showClearButton", false);
-                }
-            },
             onValueChanged: async function(e) {
                 if (!e.event) return;
 
-                // Nếu người dùng tìm kiếm rỗng và kết quả trả về là 0/empty/null,
-                // không thực hiện lưu và giữ lại giá trị hiện tại.
-                if (e.value === "" || e.value == null || e.value === 0 || e.value === "0") {
-                    Instance%ColumnName%.option("value", _initial%ColumnName%);
-                    return;
-                }
+                // TagBox cho phép array rỗng là hợp lệ (deselect all)
+                const val = e.value || [];
 
                 $("#%UID%").find(".dx-texteditor-input").blur();
                 if (Instance%ColumnName% && Instance%ColumnName%.blur) Instance%ColumnName%.blur();
@@ -205,14 +255,15 @@ BEGIN
                     });
                 }, 300);
 
-                // Gọi hàm callback onSelectBoxChanged nếu có
-                if (typeof window["onSelectBoxChanged_%ColumnName%"] === "function") {
-                    console.log("Calling onSelectBoxChanged_%ColumnName% callback");
-                    window["onSelectBoxChanged_%ColumnName%"](e.value, Instance%ColumnName%, e);
+                // Gọi hàm callback onTagBoxChanged nếu có
+                if (typeof window["onTagBoxChanged_%ColumnName%"] === "function") {
+                    console.log("Calling onTagBoxChanged_%ColumnName% callback");
+                    window["onTagBoxChanged_%ColumnName%"](val, Instance%ColumnName%, e);
                 }
 
-				const val = e.value;
-				const dataJSON = JSON.stringify(["%tableId%", ["%columnName%"], [val || ""]]);
+                // Convert array to comma-separated string for database
+                const valString = Array.isArray(val) ? val.join(",") : val;
+				const dataJSON = JSON.stringify(["%tableId%", ["%columnName%"], [valString || ""]]);
 				
 				let currentRecordIDValue = [currentRecordID_%ColumnIDName%];
                 let currentRecordID = ["%ColumnIDName%"];
@@ -239,43 +290,113 @@ BEGIN
                                 const rowKey = %columnName%CellInfo.key || %columnName%CellInfo.data["%ColumnIDName%"];
                                 
                                 // Cập nhật cell value trong grid
-                                grid.cellValue(%columnName%CellInfo.rowIndex, "%columnName%", val);
+                                grid.cellValue(%columnName%CellInfo.rowIndex, "%columnName%", valString);
                                 
                                 // Refresh cell để hiển thị giá trị mới
                                 grid.repaint();
                                 
-                                console.log("[Grid Sync] SelectBox %columnName%: Updated value =", val, "for row", rowKey);
+                                console.log("[Grid Sync] TagBox %columnName%: Updated value =", valString, "for row", rowKey);
                             } catch (syncErr) {
-                                console.warn("[Grid Sync] SelectBox %columnName%: Không thể sync grid:", syncErr);
+                                console.warn("[Grid Sync] TagBox %columnName%: Không thể sync grid:", syncErr);
                             }
                         }
 
                         if ("%IsAlert%" === "1") {
                             uiManager.showAlert({ type: "success", message: "Lưu thành công" });
                         }
+                        
+                        // Update initial value after successful save
+                        _initial%ColumnName% = val;
                     }
                 } catch (err) {
                     if ("%IsAlert%" === "1") {
                         uiManager.showAlert({ type: "error", message: "Có lỗi xảy ra khi lưu" });
                     }
                     Instance%ColumnName%.option("value", _initial%ColumnName%);
-                    console.error("SelectBox Save Error:", err);
+                    console.error("TagBox Save Error:", err);
                 }
 			}
-            }).dxSelectBox("instance");
+        }).dxTagBox("instance");
 
-            const _initial%ColumnName% = Instance%ColumnName%.option("value");
+        const _initial%ColumnName% = Instance%ColumnName%.option("value");
+
+        function load%columnName%DataSource() {
+            if (!%columnName%DataSourceSP || %columnName%DataSourceSP === "") {
+                console.warn("TagBox %columnName%: No DataSourceSP");
+                return;
+            }
+
+            if (%columnName%IsLoading || %columnName%IsDataLoaded) return;
+
+            %columnName%IsLoading = true;
+            Instance%ColumnName%.option("placeholder", "Đang tải dữ liệu...");
+
+            const $input = $("#%UID%").find(".dx-texteditor-input");
+            const gradientAnim = setInterval(() => {
+                if (!%columnName%IsLoading) {
+                    clearInterval(gradientAnim);
+                    $input.css("background", "");
+                    return;
+                }
+                $input.css({
+                    backgroundSize: "200% 100%",
+                    animation: "none"
+                });
+            }, 100);
+
+            AjaxHPAParadise({
+                data: {
+                    name: %columnName%DataSourceSP,
+                    param: ["LoginID", LoginID, "LanguageID", LanguageID]
+                },
+                success: function(res) {
+                    const json = typeof res === "string" ? JSON.parse(res) : res;
+                    const data = (json.data && json.data[0]) || [];
+
+                    window["DataSource_%ColumnName%"] = data;
+                    
+                    // Smart Load: Check dữ liệu > 1000 dòng
+                    if (data.length > 1000) {
+                        console.log("[SmartLoad] TagBox %ColumnName%: Dữ liệu " + data.length + " dòng - Kích hoạt API load");
+                        window["UseAPILoad_%ColumnName%"] = true;
+                        Instance%ColumnName%.option("placeholder", "Sử dụng tìm kiếm để load dữ liệu (API)");
+                    } else {
+                        Instance%ColumnName%.option("dataSource", data);
+                        Instance%ColumnName%.repaint();
+                        Instance%ColumnName%.option("placeholder", "Tìm kiếm hoặc chọn nhiều...");
+                    }
+
+                    %columnName%IsLoading = false;
+                    %columnName%IsDataLoaded = true;
+                    clearInterval(gradientAnim);
+                    $input.css("background", "");
+
+                    console.log("TagBox %columnName%: Loaded", data.length, "items");
+                },
+                error: function(err) {
+                    %columnName%IsLoading = false;
+                    clearInterval(gradientAnim);
+                    $input.css("background", "");
+                    Instance%ColumnName%.option("placeholder", "Lỗi tải dữ liệu");
+                    console.error("TagBox %columnName% error:", err);
+                }
+            });
+        }
+
+        if (%columnName%DataSourceSP && %columnName%DataSourceSP !== "") {
+            load%columnName%DataSource();
+        }
 
         // Thêm method setCellInfo vào Instance để nhận cellInfo từ Grid
         Instance%ColumnName%.setCellInfo = function(cellInfo) {
             %columnName%CellInfo = cellInfo;
-            console.log("[SelectBox %columnName%] Received cellInfo:", cellInfo);
+            console.log("[TagBox %columnName%] Received cellInfo:", cellInfo);
         };
 		'
-	WHERE [Type] = 'hpaControlSelectBox' AND [AutoSave] = 1 AND [ReadOnly] = 0;
+	WHERE [Type] = 'hpaControlTagBox' AND [AutoSave] = 1 AND [ReadOnly] = 0;
 
     -- =========================================================================
-    -- hpaControlSelectBox - MANUAL MODE (No AutoSave)
+    -- hpaControlTagBox - MANUAL MODE (No AutoSave)
     -- =========================================================================
 	UPDATE #temptable SET
 		loadUI = N'
@@ -284,19 +405,18 @@ BEGIN
 		let %columnName%DataSourceSP = "%DataSourceSP%";
         let %columnName%IsLoading = false;
         let %columnName%IsDataLoaded = false;
-        let %columnName%CellInfo = null; // FIX: Khai báo biến cellInfo cho Manual mode
 
         function highlightText%ColumnName%(text, search) {
             if (!search || !text) return text;
             const regex = new RegExp("(" + search.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + ")", "gi");
-            return text.replace(regex, "<mark class=\"bg-warning fw-bold px-1 rounded\">$1</mark>");
+            return text.replace(regex, "<mark class=\"bg-warning text-dark fw-bold px-1 rounded\">$1</mark>");
         }
 
-		window.Instance%ColumnName% = $("#%UID%").dxSelectBox({
+		window.Instance%ColumnName% = $("#%UID%").dxTagBox({
 			dataSource: window["DataSource_%ColumnName%"],
             valueExpr: "ID",
             displayExpr: "Name",
-            placeholder: "Tìm kiếm hoặc chọn...",
+            placeholder: "Tìm kiếm hoặc chọn nhiều...",
             searchEnabled: true,
             searchMode: "contains",
             searchExpr: ["Name", "Code", "Description"],
@@ -305,21 +425,58 @@ BEGIN
             showDataBeforeSearch: true,
             showClearButton: false,
             stylingMode: "outlined",
+            showSelectionControls: true,
+            applyValueMode: "useButtons",
+            selectAllMode: "allPages",
+            maxDisplayedTags: 3,
+            showMultiTagOnly: false,
+            multiline: false,
+            hideSelectedItems: false,
             dropDownOptions: {
                 showTitle: false,
                 closeOnOutsideClick: true,
                 height: "auto",
                 maxHeight: 400,
-                minWidth: 280,
+                minWidth: 320,
                 onShowing: function(e) {
                     if (!%columnName%IsDataLoaded && %columnName%DataSourceSP && %columnName%DataSourceSP !== "") {
-                        // Sử dụng hàm loadDataSourceCommon từ sptblCommonControlType_Signed
-                        loadDataSourceCommon("%ColumnName%", %columnName%DataSourceSP, function(data) {
-                            %columnName%IsDataLoaded = true;
-                            Instance%ColumnName%.option("dataSource", data);
-                        });
+                        load%columnName%DataSource();
                     }
                 }
+            },
+            tagTemplate: function(data) {
+                const $tag = $("<div>")
+                    .addClass("d-inline-flex align-items-center gap-1 px-2 py-1 rounded")
+                    .css({
+                        color: "white",
+                        fontSize: "12px",
+                        fontWeight: "500",
+                        maxWidth: "150px",
+                        transition: "all 0.2s ease"
+                    });
+
+                $("<span>")
+                    .css({
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap"
+                    })
+                    .text(data.Name || "")
+                    .appendTo($tag);
+
+                $tag.on("mouseenter", function() {
+                    $(this).css({
+                        transform: "scale(1.05)",
+                        boxShadow: "0 2px 8px rgba(0,0,0,0.2)"
+                    });
+                }).on("mouseleave", function() {
+                    $(this).css({
+                        transform: "scale(1)",
+                        boxShadow: "none"
+                    });
+                });
+
+                return $tag;
             },
             itemTemplate: function(data, index) {
                 const $item = $("<div>")
@@ -349,7 +506,7 @@ BEGIN
                 const searchValue = Instance%ColumnName%.option("searchValue") || "";
 
                 $("<div>")
-                    .addClass("fw-semibold")
+                    .addClass("fw-semibold text-dark")
                     .css({
                         fontSize: "14px",
                         lineHeight: "1.4",
@@ -421,11 +578,6 @@ BEGIN
             onFocusOut: function(e) {
                 Instance%ColumnName%.option("showClearButton", false);
             },
-            onKeyDown: function(e) {
-                if (e.key === "Enter" || e.key === "Tab") {
-                    Instance%ColumnName%.option("showClearButton", false);
-                }
-            },
 			onValueChanged: function(e) {
                 if (!e.event) return;
 
@@ -446,32 +598,92 @@ BEGIN
                     });
                 }, 300);
 
-                // Gọi hàm callback onSelectBoxChanged nếu có
-                if (typeof window["onSelectBoxChanged_%ColumnName%"] === "function") {
-                    console.log("Calling onSelectBoxChanged_%ColumnName% callback");
-                    window["onSelectBoxChanged_%ColumnName%"](e.value, Instance%ColumnName%, e);
+                // Gọi hàm callback onTagBoxChanged nếu có
+                if (typeof window["onTagBoxChanged_%ColumnName%"] === "function") {
+                    console.log("Calling onTagBoxChanged_%ColumnName% callback");
+                    window["onTagBoxChanged_%ColumnName%"](e.value, Instance%ColumnName%, e);
                 }
 
-                // FIX: Sync grid cell nếu được gọi từ grid - sử dụng biến %columnName%CellInfo
-                if (%columnName%CellInfo && %columnName%CellInfo.component) {
+                // Sync grid cell nếu được gọi từ grid
+                if (cellInfo && cellInfo.component) {
                     try {
-                        const grid = %columnName%CellInfo.component;
-                        grid.cellValue(%columnName%CellInfo.rowIndex, "%columnName%", e.value);
+                        const grid = cellInfo.component;
+                        grid.cellValue(cellInfo.rowIndex, "%columnName%", e.value);
                         grid.repaint();
-                        console.log("[Grid Sync] SelectBox %columnName%: Updated value in grid");
                     } catch (syncErr) {
                         console.warn("[Grid Sync] Không thể sync grid:", syncErr);
                     }
                 }
 			}
-		}).dxSelectBox("instance");
+		}).dxTagBox("instance");
 
-        // FIX: Thêm method setCellInfo cho Manual mode
-        Instance%ColumnName%.setCellInfo = function(cellInfo) {
-            %columnName%CellInfo = cellInfo;
-            console.log("[SelectBox %columnName%] Received cellInfo:", cellInfo);
-        };
+        function load%columnName%DataSource() {
+            if (!%columnName%DataSourceSP || %columnName%DataSourceSP === "") {
+                console.warn("TagBox %columnName%: No DataSourceSP");
+                return;
+            }
+
+            if (%columnName%IsLoading || %columnName%IsDataLoaded) return;
+
+            %columnName%IsLoading = true;
+            Instance%ColumnName%.option("placeholder", "Đang tải dữ liệu...");
+
+            const $input = $("#%UID%").find(".dx-texteditor-input");
+            const gradientAnim = setInterval(() => {
+                if (!%columnName%IsLoading) {
+                    clearInterval(gradientAnim);
+                    $input.css("background", "");
+                    return;
+                }
+                $input.css({
+                    backgroundSize: "200% 100%",
+                    animation: "none"
+                });
+            }, 100);
+
+            AjaxHPAParadise({
+                data: {
+                    name: %columnName%DataSourceSP,
+                    param: ["LoginID", LoginID, "LanguageID", LanguageID]
+                },
+                success: function(res) {
+                    const json = typeof res === "string" ? JSON.parse(res) : res;
+                    const data = (json.data && json.data[0]) || [];
+
+                    window["DataSource_%ColumnName%"] = data;
+                    
+                    // Smart Load: Check dữ liệu > 1000 dòng
+                    if (data.length > 1000) {
+                        console.log("[SmartLoad] TagBox %ColumnName%: Dữ liệu " + data.length + " dòng - Kích hoạt API load");
+                        window["UseAPILoad_%ColumnName%"] = true;
+                        Instance%ColumnName%.option("placeholder", "Sử dụng tìm kiếm để load dữ liệu (API)");
+                    } else {
+                        Instance%ColumnName%.option("dataSource", data);
+                        Instance%ColumnName%.repaint();
+                        Instance%ColumnName%.option("placeholder", "Tìm kiếm hoặc chọn nhiều...");
+                    }
+
+                    %columnName%IsLoading = false;
+                    %columnName%IsDataLoaded = true;
+                    clearInterval(gradientAnim);
+                    $input.css("background", "");
+
+                    console.log("TagBox %columnName%: Loaded", data.length, "items");
+                },
+                error: function(err) {
+                    %columnName%IsLoading = false;
+                    clearInterval(gradientAnim);
+                    $input.css("background", "");
+                    Instance%ColumnName%.option("placeholder", "Lỗi tải dữ liệu");
+                    console.error("TagBox %columnName% error:", err);
+                }
+            });
+        }
+
+        if (%columnName%DataSourceSP && %columnName%DataSourceSP !== "") {
+            load%columnName%DataSource();
+        }
 		'
-	WHERE [Type] = 'hpaControlSelectBox' AND [AutoSave] = 0 AND [ReadOnly] = 0;
+	WHERE [Type] = 'hpaControlTagBox' AND [AutoSave] = 0 AND [ReadOnly] = 0;
 END
 GO

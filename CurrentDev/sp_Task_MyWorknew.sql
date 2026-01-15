@@ -1307,7 +1307,6 @@ SET @html = N'
         attachEventHandlers();
 
         function openDetailTaskID(taskID) {
-            console.log("Open Task Detail for TaskID:", taskID);
             if (["Android", "iOS"].includes(getMobileOperatingSystem())) {
                 OpenFormParamMobile("sp_Task_TaskDetail", {
                     TaskID: taskID,
@@ -1390,7 +1389,6 @@ SET @html = N'
             function fetchAssignTemplate(pid) {
                 // Ngăn gọi lại nếu cùng task cha được chọn
                 if (lastSelectedParentID === pid) {
-                    console.log("[fetchAssignTemplate] Task cha " + pid + " đã được chọn, bỏ qua");
                     return;
                 }
                 
@@ -1412,11 +1410,9 @@ SET @html = N'
                                 renderAssignSubtasks();
                                 // Hiển thị grid container
                                 $("#subtask-assign-container").show();
-                                console.log("✓ Grid subtasks đã hiển thị với " + (childTasks.length > 0 ? childTasks.length : "template") + " dữ liệu");
                             } else {
                                 // Nếu không có task con và không có template, ẩn grid
                                 $("#subtask-assign-container").hide();
-                                console.log("Grid subtasks ẩn - không có dữ liệu task con");
                             }
                         });
                     }
@@ -1553,17 +1549,6 @@ SET @html = N'
                     taskName = tasks.find(t => String(t.TaskID) === String(selectedTaskId))?.TaskName || taskName;
                 }
 
-                console.log("[addTempSubtask] Data:", {
-                    parentId: parentId,
-                    taskName: taskName,
-                    assigneeIds: assigneeIds,
-                    fromDate: fromDate,
-                    toDate: toDate,
-                    note: note,
-                    priority: priority,
-                    selectedTaskId: selectedTaskId
-                });
-
                 // TODO: Gọi API để lưu hàng tạm
                 // AjaxHPAParadise({
                 //     data: {
@@ -1599,7 +1584,6 @@ SET @html = N'
             }
 
             window.onSelectBoxChanged_TaskName = function(value, instance, e) {
-                console.log("Selected template TaskID:", value);
                 if (value) {
                     fetchAssignTemplate(value);
                 }
@@ -1644,7 +1628,6 @@ SET @html = N'
                                 Priority: row.Priority || 1,
                                 Note: row.Note || ""
                             }));
-                            console.log("[Submit] Subtasks to send:", subtasks);
                         } catch (gridErr) {
                             console.warn("[Submit] Error collecting grid data:", gridErr);
                             subtasks = [];
@@ -1662,8 +1645,6 @@ SET @html = N'
                         LoginID: LoginID,
                         LanguageID: LanguageID
                     };
-
-                    console.log("[Submit] Full assignment payload:", JSON.stringify(payload, null, 2));
 
                     // 6. Send to API
                     AjaxHPAParadise({
@@ -1726,19 +1707,6 @@ SET @html = N'
                 }
                 
                 modalInitialized = true;
-                console.log("✓ Modal được mở, khởi tạo event handlers");
-                
-                // Xóa event cũ của selectbox Task cha trước khi gắn mới
-                $(document).off("change.parentTaskSelect", "#P777C87EE29F94C29A6EAABD16E31FDDC input, #P777C87EE29F94C29A6EAABD16E31FDDC select");
-                
-                // Gắn event change cho Task cha
-                $(document).on("change.parentTaskSelect", "#P777C87EE29F94C29A6EAABD16E31FDDC input, #P777C87EE29F94C29A6EAABD16E31FDDC select", function() {
-                    var selectedValue = $(this).val() || $("#P777C87EE29F94C29A6EAABD16E31FDDC").data("selected");
-                    if (selectedValue) {
-                        console.log("[Modal] Parent Task selected:", selectedValue);
-                        fetchAssignTemplate(selectedValue);
-                    }
-                });
             });
             
             // Reset flag khi modal đóng để cho phép khởi tạo lại nếu cần
@@ -1747,7 +1715,6 @@ SET @html = N'
                 lastSelectedParentID = null; // Reset task cha được chọn
                 // Xóa event change khi modal đóng
                 $(document).off("change.parentTaskSelect");
-                console.log("✓ Modal đã đóng, reset flag");
             });
 
             function escapeHtml(str) {

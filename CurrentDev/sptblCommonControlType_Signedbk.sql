@@ -973,7 +973,7 @@ END
 
 
 -- Xóa các dòng build control cho grid sau khi đã nối chuỗi xong
-DELETE FROM #temptable WHERE Layout = 'Grid_View' AND GridColumnName IS NOT NULL;
+DELETE FROM #temptable WHERE Layout = 'Grid_View' AND GridColumnName IS NOT NULL AND Type IS NOT NULL;
 
     -- ============================================================================
     -- THAY THẾ CÁC PLACEHOLDER

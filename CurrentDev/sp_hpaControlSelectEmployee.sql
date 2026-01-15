@@ -93,21 +93,27 @@ BEGIN
             let spNameDSE%columnName% = "%DataSourceSP%";
             let %columnName%DataSourceLoaded = false;
 
-            
+            let %columnName%SelectedIds = [];
+            const MAX_VISIBLE_%ColumnName% = 3;
+
             // Sử dụng hàm loadDataSourceCommon từ sptblCommonControlType_Signed
             if (spNameDSE%columnName% && spNameDSE%columnName%.trim() !== "") {
                 loadDataSourceCommon("%ColumnName%", spNameDSE%columnName%, function(data) {
                     window["DataSource_%ColumnName%"] = data || [];
-                    console.log("[SelectEmployee %ColumnName%] DataSource loaded, rendering display...");
-                    // Gọi lại render để load hình
+                    // Bắt đầu load ảnh cho tất cả nhân viên
+                    if (Array.isArray(data) && data.length > 0) {
+                        data.forEach(emp => {
+                            if (emp.ID && emp.StoreImgName) {
+                                loadGlobalAvatarIfNeeded%columnName%(emp.ID, emp.StoreImgName, emp.ImgParamV);
+                            }
+                        });
+                    }
+                    // Gọi render một lần duy nhất từ callback
                     if (typeof renderDisplay%ColumnName% === "function") {
                         renderDisplay%ColumnName%();
                     }
                 });
             }
-
-            let %columnName%SelectedIds = [];
-            const MAX_VISIBLE_%ColumnName% = 3;
 
             function getInitials%ColumnName%(name) {
                 if (!name) return "?";
@@ -131,7 +137,7 @@ BEGIN
                 const $container%ColumnName% = $("#%UID%");
                 $container%ColumnName%.empty();
                 const $wrapper = $("<div>").css({
-                    padding: "10px 12px",
+                    padding: "4px 6px",
                     borderRadius: "8px",
                     minHeight: "44px",
                     display: "flex",
@@ -224,8 +230,6 @@ BEGIN
                 _suppressValueChangeAction: function() {},
                 _resumeValueChangeAction: function() {}
             };
-
-            renderDisplay%ColumnName%();
         '
     WHERE [Type] = 'hpaControlSelectEmployee' AND [ReadOnly] = 1;
 
@@ -319,8 +323,15 @@ BEGIN
             if (spNameDSE%columnName% && spNameDSE%columnName%.trim() !== "") {
                 loadDataSourceCommon("%ColumnName%", spNameDSE%columnName%, function(data) {
                     window["DataSource_%ColumnName%"] = data || [];
-                    console.log("[SelectEmployee %ColumnName%] DataSource loaded, rendering display box...");
-                    // Gọi lại render để load hình
+                    // Bắt đầu load ảnh cho tất cả nhân viên
+                    if (Array.isArray(data) && data.length > 0) {
+                        data.forEach(emp => {
+                            if (emp.ID && emp.StoreImgName) {
+                                loadGlobalAvatarIfNeeded%columnName%(emp.ID, emp.StoreImgName, emp.ImgParamV);
+                            }
+                        });
+                    }
+                    // Gọi render một lần duy nhất từ callback
                     if (typeof renderDisplayBox%ColumnName% === "function") {
                         renderDisplayBox%ColumnName%();
                     }
@@ -330,6 +341,7 @@ BEGIN
             window.Instance%columnName% = {};
             let %columnName%SelectedIds = [], %columnName%SelectedIdsOriginal = [];
             let %columnName%IsSaving = false;
+            let %columnName%CellInfo = null; // Biến lưu cellInfo để sync Grid
             const MAX_VISIBLE_%ColumnName% = 3;
 
             function getInitials%ColumnName%(name) {
@@ -358,7 +370,7 @@ BEGIN
                 const $wrapper = $("<div>").css({
                     border: "1px solid #dee2e6",
                     borderRadius: "8px",
-                    padding: "10px 12px",
+                    padding: "4px 6px",
                     minHeight: "44px",
                     display: "flex",
                     alignItems: "center",
@@ -502,7 +514,6 @@ BEGIN
                             setTimeout(() => {
                                 const $popupContent = $("#%columnName%_popup").closest(".dx-popup-wrapper");
                                 $popupContent.off("mousedown.preventClose").on("mousedown.preventClose", function(e) {
-                                    console.log("Preventing popup close on outside click");
                                     e.stopPropagation();
                                 });
                             }, 100);
@@ -706,7 +717,6 @@ BEGIN
                             // Refresh cell để hiển thị giá trị mới
                             grid.repaint();
 
-                            console.log("[Grid Sync] SelectBox %columnName%: Updated value =", newValue, "for row", rowKey);
                         } catch (syncErr) {
                             console.warn("[Grid Sync] SelectBox %columnName%: Không thể sync grid:", syncErr);
                         }
@@ -754,8 +764,6 @@ BEGIN
                 _suppressValueChangeAction: function() {},
                 _resumeValueChangeAction: function() {}
             };
-
-            renderDisplayBox%ColumnName%();
         '
     WHERE [Type] = 'hpaControlSelectEmployee' AND [AutoSave] = 1 AND [ReadOnly] = 0 AND ([IsMultiSelectEmployee] = 1 OR [IsMultiSelectEmployee] IS NULL);
 
@@ -843,24 +851,32 @@ BEGIN
             window["DataSource_%ColumnName%"] = window["DataSource_%ColumnName%"] || [];
             let %columnName%DataSourceLoaded = false;
             let spNameDSE%columnName% = "%DataSourceSP%";
+            let %columnName%SelectedIds = [], %columnName%SelectedIdsOriginal = [];
+            let %columnName%CellInfo = null; // Biến lưu cellInfo để sync Grid
+            const MAX_VISIBLE_%ColumnName% = 3;
 
             
             // Sử dụng hàm loadDataSourceCommon từ sptblCommonControlType_Signed
             if (spNameDSE%columnName% && spNameDSE%columnName%.trim() !== "") {
                 loadDataSourceCommon("%ColumnName%", spNameDSE%columnName%, function(data) {
+                    window["DataSource_%ColumnName%"] = data || [];
                     if (Instance%columnName% && typeof Instance%columnName%.setDataSource === "function") {
                         Instance%columnName%.setDataSource(data);
                     }
-                    console.log("[SelectEmployee %ColumnName%] DataSource loaded, rendering display box...");
-                    // Gọi lại render để load hình
+                    // Bắt đầu load ảnh cho tất cả nhân viên
+                    if (Array.isArray(data) && data.length > 0) {
+                        data.forEach(emp => {
+                            if (emp.ID && emp.StoreImgName) {
+                                loadGlobalAvatarIfNeeded%columnName%(emp.ID, emp.StoreImgName, emp.ImgParamV);
+                            }
+                        });
+                    }
+                    // Gọi render một lần duy nhất từ callback
                     if (typeof renderDisplayBox%ColumnName% === "function") {
                         renderDisplayBox%ColumnName%();
                     }
                 });
             }
-
-            let %columnName%SelectedIds = [], %columnName%SelectedIdsOriginal = [];
-            const MAX_VISIBLE_%ColumnName% = 3;
 
             function getInitials%ColumnName%(name) {
                 if (!name) return "?";
@@ -888,7 +904,7 @@ BEGIN
                 const $wrapper = $("<div>").css({
                     border: "1px solid #dee2e6",
                     borderRadius: "8px",
-                    padding: "10px 12px",
+                    padding: "4px 6px",
                     minHeight: "44px",
                     display: "flex",
                     alignItems: "center",
@@ -1197,8 +1213,6 @@ BEGIN
                 _suppressValueChangeAction: function() {},
                 _resumeValueChangeAction: function() {}
             };
-
-            renderDisplayBox%ColumnName%();
         '
     WHERE [Type] = 'hpaControlSelectEmployee' AND [AutoSave] = 0 AND [ReadOnly] = 0 AND ([IsMultiSelectEmployee] = 1 OR [IsMultiSelectEmployee] IS NULL);
 
@@ -1285,22 +1299,28 @@ BEGIN
 
             window["DataSource_%ColumnName%"] = window["DataSource_%ColumnName%"] || [];
             let spNameDSE%columnName% = "%DataSourceSP%";
+            window.Instance%columnName% = {};
+            let %columnName%SelectedId = null, %columnName%SelectedIdOriginal = null;
 
             
             // Sử dụng hàm loadDataSourceCommon từ sptblCommonControlType_Signed
             if (spNameDSE%columnName% && spNameDSE%columnName%.trim() !== "") {
                 loadDataSourceCommon("%ColumnName%", spNameDSE%columnName%, function(data) {
                     window["DataSource_%ColumnName%"] = data || [];
-                    console.log("[SelectEmployee %ColumnName%] DataSource loaded, rendering display box...");
-                    // Gọi lại render để load hình
+                    // Bắt đầu load ảnh cho tất cả nhân viên
+                    if (Array.isArray(data) && data.length > 0) {
+                        data.forEach(emp => {
+                            if (emp.ID && emp.StoreImgName) {
+                                loadGlobalAvatarIfNeeded%columnName%(emp.ID, emp.StoreImgName, emp.ImgParamV);
+                            }
+                        });
+                    }
+                    // Gọi render một lần duy nhất từ callback
                     if (typeof renderDisplayBox%ColumnName% === "function") {
                         renderDisplayBox%ColumnName%();
                     }
                 });
             }
-
-            window.Instance%columnName% = {};
-            %columnName%SelectedId = null, %columnName%SelectedIdOriginal = null;
 
             function getInitials%ColumnName%(name) {
                 if (!name) return "?";
@@ -1328,7 +1348,7 @@ BEGIN
                 const $wrapper = $("<div>").css({
                     border: "1px solid #dee2e6",
                     borderRadius: "8px",
-                    padding: "10px 12px",
+                    padding: "4px 6px",
                     minHeight: "44px",
                     display: "flex",
                     alignItems: "center",
@@ -1670,7 +1690,6 @@ BEGIN
                             grid.cellValue(%columnName%CellInfo.rowIndex, "%columnName%", newValue);
                             grid.repaint();
 
-                            console.log("[Grid Sync] SelectBox %columnName%: Updated value =", newValue, "for row", rowKey);
                         } catch (syncErr) {
                             console.warn("[Grid Sync] SelectBox %columnName%: Không thể sync grid:", syncErr);
                         }
@@ -1716,8 +1735,6 @@ BEGIN
                 _suppressValueChangeAction: function() {},
                 _resumeValueChangeAction: function() {}
             };
-
-            renderDisplayBox%ColumnName%();
         '
     WHERE [Type] = 'hpaControlSelectEmployee' AND [AutoSave] = 1 AND [ReadOnly] = 0 AND [IsMultiSelectEmployee] = 0;
 
@@ -1804,24 +1821,31 @@ BEGIN
 
             window["DataSource_%ColumnName%"] = window["DataSource_%ColumnName%"] || [];
             let spNameDSE%columnName% = "%DataSourceSP%";
+            window.Instance%columnName% = {};
+            let %columnName%SelectedId = null, %columnName%SelectedIdOriginal = null;
 
             
             // Sử dụng hàm loadDataSourceCommon từ sptblCommonControlType_Signed
             if (spNameDSE%columnName% && spNameDSE%columnName%.trim() !== "") {
                 loadDataSourceCommon("%ColumnName%", spNameDSE%columnName%, function(data) {
+                    window["DataSource_%ColumnName%"] = data || [];
                     if (Instance%columnName% && typeof Instance%columnName%.setDataSource === "function") {
                         Instance%columnName%.setDataSource(data);
                     }
-                    console.log("[SelectEmployee %ColumnName%] DataSource loaded, rendering display box...");
-                    // Gọi lại render để load hình
+                    // Bắt đầu load ảnh cho tất cả nhân viên
+                    if (Array.isArray(data) && data.length > 0) {
+                        data.forEach(emp => {
+                            if (emp.ID && emp.StoreImgName) {
+                                loadGlobalAvatarIfNeeded%columnName%(emp.ID, emp.StoreImgName, emp.ImgParamV);
+                            }
+                        });
+                    }
+                    // Gọi render một lần duy nhất từ callback
                     if (typeof renderDisplayBox%ColumnName% === "function") {
                         renderDisplayBox%ColumnName%();
                     }
                 });
             }
-
-            window.Instance%columnName% = {};
-            let %columnName%SelectedId = null, %columnName%SelectedIdOriginal = null;
 
             function getInitials%ColumnName%(name) {
                 if (!name) return "?";
@@ -1849,7 +1873,7 @@ BEGIN
                 const $wrapper = $("<div>").css({
                     border: "1px solid #dee2e6",
                     borderRadius: "8px",
-                    padding: "10px 12px",
+                    padding: "4px 6px",
                     minHeight: "44px",
                     display: "flex",
                     alignItems: "center",
@@ -2154,8 +2178,6 @@ BEGIN
                 _suppressValueChangeAction: function() {},
                 _resumeValueChangeAction: function() {}
             };
-
-            renderDisplayBox%ColumnName%();
         '
     WHERE [Type] = 'hpaControlSelectEmployee' AND [AutoSave] = 0 AND [ReadOnly] = 0 AND [IsMultiSelectEmployee] = 0;
 END
