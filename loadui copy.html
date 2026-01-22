@@ -1,0 +1,224 @@
+<div id="sp_CRM_ContractHistory_html">
+    <div id="P53E5F56DC72B4F08904E976C0EACEF0B"></div>
+    <div id="PBE8BE54C38914BAEA0646C9B6A1DD6A2"></div>
+    <div id="P6F1F5081B8A146988DA1C280BACFF0FA"></div>
+    <div id="P6A9B5A5B2C704EF5A0C9CE949993E245"></div>
+</div>
+<script>
+    (() => {
+        let DataSource = []
+
+        // Load DataSource: sp_CRM_getContractType
+        if ("sp_CRM_getContractType" && "sp_CRM_getContractType".trim() !== "") {
+            loadDataSourceCommon("ContractID", "sp_CRM_getContractType", function (data) {
+                // Data được shared qua callback
+            });
+        }
+
+        // Load DataSource: sp_getCompanyInfo
+        if ("sp_getCompanyInfo" && "sp_getCompanyInfo".trim() !== "") {
+            loadDataSourceCommon("Company_ID", "sp_getCompanyInfo", function (data) {
+                // Data được shared qua callback
+            });
+        }
+
+        function loadDataSourceCommon(columnName, dataSourceSP, onSuccessCallback) {
+            if (!columnName || !dataSourceSP || dataSourceSP.trim() === "") {
+                console.warn("[loadDataSourceCommon] Missing columnName or dataSourceSP");
+                return;
+            }
+
+            const dataSourceKey = "DataSource_" + columnName;
+            // Sử dụng format: columnNameDataSourceLoaded để tương thích với code hiện tại
+            const loadedKey = columnName + "DataSourceLoaded";
+
+            // Kiểm tra nếu đã load rồi thì không load lại
+            if (window[loadedKey] === true) {
+                if (typeof onSuccessCallback === "function") {
+                    onSuccessCallback(window[dataSourceKey] || []);
+                }
+                return;
+            }
+
+            // Kiểm tra nếu đang load thì đợi
+            if (window[loadedKey] === "loading") {
+                // Đợi một chút rồi thử lại
+                setTimeout(function () {
+                    loadDataSourceCommon(columnName, dataSourceSP, onSuccessCallback);
+                }, 100);
+                return;
+            }
+
+            // Đánh dấu đang load để tránh load trùng lặp
+            window[loadedKey] = "loading";
+
+            AjaxHPAParadise({
+                data: {
+                    name: dataSourceSP,
+                    param: ["LoginID", LoginID, "LanguageID", LanguageID]
+                },
+                success: function (res) {
+                    const json = typeof res === "string" ? JSON.parse(res) : res;
+                    window[dataSourceKey] = (json.data && json.data[0]) || [];
+                    window[loadedKey] = true;
+
+                    // Gọi callback nếu có
+                    if (typeof onSuccessCallback === "function") {
+                        onSuccessCallback(window[dataSourceKey]);
+                    }
+
+                    // Tự động cập nhật control nếu có method setDataSource hoặc option
+                    // Thử nhiều format tên instance để tương thích
+                    const instanceVariants = [
+                        "Instance" + columnName.charAt(0).toUpperCase() + columnName.slice(1) + "P53E5F56DC72B4F08904E976C0EACEF0B",
+                        "Instance" + columnName + "P53E5F56DC72B4F08904E976C0EACEF0B",
+                        "instance" + columnName.charAt(0).toUpperCase() + columnName.slice(1) + "P53E5F56DC72B4F08904E976C0EACEF0B"
+                    ];
+
+                    for (let i = 0; i < instanceVariants.length; i++) {
+                        const instanceKey = instanceVariants[i];
+                        if (window[instanceKey]) {
+                            const instanceObj = window[instanceKey];
+
+                            // Kiểm tra nếu đây là dxDataGrid
+                            if (typeof instanceObj.dxDataGrid === "function" || instanceObj.option && instanceObj.option("dataSource") !== undefined) {
+                                try {
+                                    // Nếu là Grid, apply dynamic config
+                                    const gridConfigFn = window["getGridConfig_" + columnName.charAt(0).toUpperCase() + columnName.slice(1)];
+                                    if (typeof gridConfigFn === "function") {
+                                        const gridConfig = gridConfigFn(window[dataSourceKey]);
+                                        instanceObj.option("remoteOperations", gridConfig.remoteOperations);
+                                        instanceObj.option("paging.pageSize", gridConfig.pageSize);
+                                        instanceObj.option("pager.allowedPageSizes", gridConfig.allowedPageSizes);
+                                    }
+
+                                    instanceObj.option("dataSource", window[dataSourceKey]);
+                                    break;
+                                } catch (e) {
+                                    console.warn("[LoadDataSourceCommon] Grid config error:", e);
+                                    // Fallback: just set data source
+                                    instanceObj.option("dataSource", window[dataSourceKey]);
+                                    break;
+                                }
+                            } else if (typeof instanceObj.setDataSource === "function") {
+                                instanceObj.setDataSource(window[dataSourceKey]);
+                                break;
+                            } else if (typeof instanceObj.option === "function") {
+                                try {
+                                    instanceObj.option("dataSource", window[dataSourceKey]);
+                                    break;
+                                } catch (e) {
+                                    // Continue to next variant
+                                }
+                            }
+                        }
+                    }
+                },
+                error: function (err) {
+                    console.error("[loadDataSourceCommon] Failed to load datasource for", columnName, ":", err);
+                    window[loadedKey] = false;
+                    if (typeof onSuccessCallback === "function") {
+                        onSuccessCallback([]);
+                    }
+                }
+            });
+        }
+
+
+        window.currentRecordID_ContracID = null;
+
+        // =============== GRID COLUMN CONFIG PERSISTENCE ===============
+        function saveGridColumnConfig(tableName, columns) {
+            const visibleColumns = columns
+                .filter(col => col.visible !== false && col.dataField)
+                .map(col => col.dataField);
+            const columnOrder = columns
+                .filter(col => col.dataField)
+                .map(col => col.dataField);
+
+            const config = { visibleColumns, columnOrder };
+
+            AjaxHPAParadise({
+                data: {
+                    name: "sp_SaveGridColumnConfig",
+                    param: [
+                        "LoginID", LoginID,
+                        "TableName", tableName,
+                        "ColumnConfigJson", JSON.stringify(config)
+                    ]
+                }
+            });
+        }
+        function loadGridColumnConfig(tableName, callback) {
+            AjaxHPAParadise({
+                data: {
+                    name: "sp_GetGridColumnConfig",
+                    param: ["LoginID", LoginID, "TableName", tableName]
+                },
+                async: false,
+                success: function (res) {
+                    let config = {};
+                    try {
+                        const json = typeof res === "string" ? JSON.parse(res) : res;
+                        if (json?.data?.[0]?.ColumnConfigJson) {
+                            const raw = json.data[0].ColumnConfigJson;
+                            config = typeof raw === "string" ? JSON.parse(raw) : raw;
+                        }
+                        console.log("config log 1", config);
+                    } catch (e) {
+                        console.warn("Failed to parse grid column config", e);
+                    }
+                    console.log("config log 2", config);
+                    if (typeof callback === "function") callback(config);
+                }
+            });
+        }
+
+
+        function ReloadData() {
+            AjaxHPAParadise({
+                data: {
+                    name: "",
+                    param: []
+                },
+                success: function (res) {
+                    const json = typeof res === "string" ? JSON.parse(res) : res;
+                    const results = Array.isArray(json?.data?.[0])
+                        ? json.data[0]
+                        : (json?.data?.[0] ? [json.data[0]] : []);
+
+                    const obj = results.length === 1 ? results[0] : (results[0] || null);
+
+
+                    // Xử lý cho grid layout
+                    const gridInstance = InstancegridContractHistoryP53E5F56DC72B4F08904E976C0EACEF0B;
+                    const gridConfig = window.getGridConfig_gridContractHistory(results);
+
+                    gridInstance.beginUpdate();
+
+                    gridInstance.option("scrolling", {
+                        mode: "standard",
+                        showScrollbar: "onHover"
+                    });
+
+                    gridInstance.option("remoteOperations", false);  // Client-side cho <= 1000
+
+                    // Set paging config
+                    gridInstance.option("paging.enabled", true);
+                    gridInstance.option("paging.pageSize", gridConfig.pageSize);
+                    gridInstance.option("pager.allowedPageSizes", gridConfig.allowedPageSizes);
+                    gridInstance.pageIndex(0);
+
+                    gridInstance.option("dataSource", results);
+
+                    gridInstance.endUpdate();
+
+                    if (obj) { window.currentRecordID_ContracID = (obj.ContracID !== undefined && obj.ContracID !== null) ? obj.ContracID : window.currentRecordID_ContracID; }
+                    DataSource = results;
+
+                }
+            })
+        }
+        ReloadData()
+    })();
+</script>

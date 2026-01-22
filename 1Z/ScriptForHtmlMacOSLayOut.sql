@@ -4548,7 +4548,6 @@ $(`#shortcutWarning-${menuId}`).addClass("d-none");
                 };
             }
 			
-
             //Thắng: Hàm control date
             function hpaControlDateBox(el, config) {
                 const $el = $(el);

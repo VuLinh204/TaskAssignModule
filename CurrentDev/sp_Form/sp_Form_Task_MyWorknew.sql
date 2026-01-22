@@ -1,3 +1,4 @@
+USE Paradise_Dev
 GO
 if object_id('[dbo].[sp_Task_MyWork_html]') is null
 	EXEC ('CREATE PROCEDURE [dbo].[sp_Task_MyWork_html] as select 1')
@@ -38,6 +39,12 @@ SET @html = N'
         --shadow-hover: 0 6px 20px rgba(46, 125, 50, 0.3);
         --transition-base: 0.2s ease;
     }
+
+    .dx-popup-content-scrollable {
+        overflow: hidden
+    }
+
+    /* === BASE LAYOUT === */
     #sp_Task_MyWork_html {
         padding: 20px;
         padding-bottom: 50px;
@@ -50,7 +57,8 @@ SET @html = N'
         color: var(--task-primary);
         font-size: 1.2em;
     }
-    /* Stats Row */
+
+    /* === STATS ROW === */
     #sp_Task_MyWork_html .stats-row {
         gap: 10px;
         margin-bottom: 20px;
@@ -71,7 +79,7 @@ SET @html = N'
         box-shadow: var(--shadow-md);
     }
     #sp_Task_MyWork_html .stat-card::before {
-        content: "";
+        content: '';
         width: 4px;
         height: 40px;
         border-radius: 4px;
@@ -88,6 +96,7 @@ SET @html = N'
     #sp_Task_MyWork_html .stat-card.overdue::before {
         background: var(--danger-color);
     }
+
     #sp_Task_MyWork_html .stat-card .stat-label-task {
         font-size: 12px;
         font-weight: 600;
@@ -112,8 +121,11 @@ SET @html = N'
     #sp_Task_MyWork_html .stat-card.overdue .stat-value {
         color: var(--danger-color);
     }
-    /* Buttons */
-    #sp_Task_MyWork_html .btn-refresh {
+
+    /* === BUTTONS & SWITCHER === */
+    #sp_Task_MyWork_html .btn-refresh,
+    #sp_Task_MyWork_html .btn-assign,
+    #sp_Task_MyWork_html .view-btn {
         border: 1.5px solid var(--border-color);
         padding: 10px 16px;
         border-radius: 8px;
@@ -125,27 +137,17 @@ SET @html = N'
         gap: 8px;
         font-size: 14px;
         white-space: nowrap;
+  }
+    #sp_Task_MyWork_html .btn-assign {
+        background: var(--task-primary);
+        color: white;
+        border: none;
     }
     #sp_Task_MyWork_html .btn-refresh:hover {
         border-color: var(--task-primary);
         color: var(--task-primary);
         transform: translateY(-2px);
         box-shadow: var(--shadow-sm);
-    }
-    #sp_Task_MyWork_html .btn-assign {
-        background: var(--task-primary);
-        color: white;
-        border: none;
-        padding: 10px 20px;
-        border-radius: 8px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all var(--transition-base);
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        font-size: 14px;
-        white-space: nowrap;
     }
     #sp_Task_MyWork_html .btn-assign:hover {
         background: var(--task-primary-hover);
@@ -161,18 +163,8 @@ SET @html = N'
         box-shadow: var(--shadow-sm);
     }
     #sp_Task_MyWork_html .view-btn {
-        padding: 8px 16px;
-        border-radius: 6px;
-        border: none;
         background: transparent;
-        cursor: pointer;
-        font-weight: 600;
-        font-size: 13px;
-        transition: all var(--transition-base);
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        white-space: nowrap;
+        border: none;
     }
     #sp_Task_MyWork_html .view-btn:hover:not(.active) {
         opacity: 0.8;
@@ -182,7 +174,8 @@ SET @html = N'
         color: white;
         box-shadow: var(--shadow-sm);
     }
-    /* Empty State */
+
+    /* === EMPTY STATE === */
     #sp_Task_MyWork_html .empty-state {
         text-align: center;
         padding: 60px 20px;
@@ -198,7 +191,8 @@ SET @html = N'
         margin: 0;
         font-size: 14px;
     }
-    /* Priority Icons */
+
+    /* === BADGES & ICONS === */
     #sp_Task_MyWork_html .priority-icon {
         font-size: 18px;
         transition: transform var(--transition-base);
@@ -215,7 +209,7 @@ SET @html = N'
     #sp_Task_MyWork_html .prio-3 {
         color: #9e9e9e;
     }
-    /* Status Badge */
+
     #sp_Task_MyWork_html .badge-sts {
         padding: 6px 14px;
         border-radius: 8px;
@@ -234,8 +228,6 @@ SET @html = N'
         background: var(--sts-todo);
         color: var(--sts-todo-text);
     }
-
-
     #sp_Task_MyWork_html .sts-2 {
         background: var(--sts-doing);
         color: var(--sts-doing-text);
@@ -244,7 +236,8 @@ SET @html = N'
         background: var(--sts-done);
         color: var(--sts-done-text);
     }
-    /* Progress Bar */
+
+    /* === PROGRESS BAR === */
     #sp_Task_MyWork_html .progress-cell {
         display: flex;
         align-items: center;
@@ -267,29 +260,20 @@ SET @html = N'
     }
     #sp_Task_MyWork_html .progress-bar-fill {
         height: 100%;
-        background: linear-gradient(
-            90deg,
-            var(--task-primary),
-            var(--task-primary-hover)
-        );
+        background: linear-gradient(90deg, var(--task-primary), var(--task-primary-hover));
         border-radius: 4px;
         transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
         position: relative;
         overflow: hidden;
     }
     #sp_Task_MyWork_html .progress-bar-fill::after {
-        content: "";
+        content: '';
         position: absolute;
         top: 0;
         left: 0;
         right: 0;
         bottom: 0;
-        background: linear-gradient(
-            90deg,
-            transparent,
-            rgba(255, 255, 255, 0.3),
-            transparent
-        );
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
         animation: shimmer 2s infinite;
     }
     @keyframes shimmer {
@@ -307,22 +291,8 @@ SET @html = N'
         text-align: right;
         color: var(--task-primary);
     }
-    /* Drag handle */
-    #sp_Task_MyWork_html .drag-handle {
-        cursor: grab;
-        color: var(--text-muted);
-        font-size: 18px;
-        padding: 4px;
-        transition: all var(--transition-base);
-    }
-    #sp_Task_MyWork_html .drag-handle:hover {
-        color: var(--task-primary);
-        transform: scale(1.1);
-    }
-    #sp_Task_MyWork_html .drag-handle:active {
-        cursor: grabbing;
-    }
-    /* Employee avatars */
+
+    /* === AVATARS & TASK CELLS === */
     #sp_Task_MyWork_html .employee-list {
         display: flex;
         align-items: center;
@@ -356,7 +326,7 @@ SET @html = N'
         background: #e2e8f0;
         color: var(--text-secondary);
     }
-    /* Task name cell */
+
     #sp_Task_MyWork_html .task-name-cell {
         display: flex;
         flex-direction: column;
@@ -374,12 +344,8 @@ SET @html = N'
         font-size: 12px;
         color: var(--text-muted);
     }
-    #sp_Task_MyWork_html .task-comment-badge {
-        display: flex;
-        align-items: center;
-        gap: 4px;
-    }
-    /* Date cell */
+
+    /* === DATE & ACTION === */
     #sp_Task_MyWork_html .date-cell {
         display: flex;
         align-items: center;
@@ -402,7 +368,6 @@ SET @html = N'
             opacity: 0.5;
         }
     }
-    /* Action button */
     #sp_Task_MyWork_html .action-btn {
         padding: 6px 12px;
         border-radius: 6px;
@@ -421,14 +386,8 @@ SET @html = N'
         transform: translateY(-1px);
         box-shadow: var(--shadow-sm);
     }
-    #sp_Task_MyWork_html .subtask-header {
-        font-weight: 600;
-        margin-bottom: 12px;
-        color: var(--text-primary);
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
+
+    /* === TABLE & KANBAN === */
     #sp_Task_MyWork_html .table {
         background: white;
         border: 1px solid var(--border-color);
@@ -456,165 +415,6 @@ SET @html = N'
     }
     #sp_Task_MyWork_html .table .badge-sts {
         font-size: 10px;
-    }
-    /* Responsive */
-    @media (max-width: 768px) {
-        #sp_Task_MyWork_html {
-            padding: 12px;
-            padding-bottom: 50px;
-        }
-        #sp_Task_MyWork_html .h-title {
-            font-size: 20px;
-        }
-        #sp_Task_MyWork_html .stats-row {
-            flex-wrap: wrap;
-        }
-        #sp_Task_MyWork_html .stat-card {
-            flex: 1 1 calc(50% - 10px);
-            min-width: 140px;
-        }
-    }
-    @media (max-width: 480px) {
-        #sp_Task_MyWork_html {
-            padding: 8px;
-            padding-bottom: 50px;
-        }
-        #sp_Task_MyWork_html .h-title {
-            font-size: 18px;
-        }
-        #sp_Task_MyWork_html .cu-header {
-            flex-direction: column;
-            gap: 12px !important;
-        }
-        #sp_Task_MyWork_html .header-actions {
-            width: 100%;
-            flex-direction: column;
-        }
-        #sp_Task_MyWork_html .view-switcher {
-            width: 100%;
-        }
-        #sp_Task_MyWork_html .view-btn {
-            flex: 1;
-            justify-content: center;
-            padding: 10px 8px;
-            font-size: 12px;
-        }
-        #sp_Task_MyWork_html .btn-assign,
-        #sp_Task_MyWork_html .btn-refresh {
-            width: 100%;
-            justify-content: center;
-            padding: 12px;
-            font-size: 13px;
-        }
-        #sp_Task_MyWork_html .stats-row {
-            display: none !important;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-        #sp_Task_MyWork_html .stat-card {
-            flex: 1 1 calc(50% - 8px);
-            min-width: 110px;
-            padding: 10px 12px;
-        }
-        #sp_Task_MyWork_html .stat-card::before {
-            height: 30px;
-            width: 3px;
-        }
-        #sp_Task_MyWork_html .stat-label-task {
-            font-size: 10px;
-        }
-        #sp_Task_MyWork_html .stat-value {
-            font-size: 20px;
-        }
-        #sp_Task_MyWork_html .table {
-            font-size: 12px;
-        }
-        #sp_Task_MyWork_html .table td {
-            padding: 8px;
-        }
-        #sp_Task_MyWork_html .employee-avatar {
-            width: 28px;
-            height: 28px;
-            font-size: 10px;
-        }
-        #sp_Task_MyWork_html .task-name-title {
-            font-size: 13px;
-        }
-        #sp_Task_MyWork_html .task-name-meta {
-            font-size: 11px;
-            gap: 8px;
-        }
-        #sp_Task_MyWork_html .action-btn {
-            padding: 4px 8px;
-            font-size: 12px;
-        }
-        #sp_Task_MyWork_html .kanban-board {
-            grid-template-columns: 1fr;
-            gap: 12px;
-        }
-        #sp_Task_MyWork_html .kanban-column {
-            min-height: 300px;
-            padding: 12px;
-        }
-        #sp_Task_MyWork_html .column-title {
-            font-size: 14px;
-        }
-        #sp_Task_MyWork_html .kanban-board .cu-row {
-            padding: 10px;
-            margin-bottom: 10px;
-        }
-        #sp_Task_MyWork_html .kanban-board .task-title {
-            font-size: 13px;
-        }
-        #sp_Task_MyWork_html .kanban-board .task-sub {
-            font-size: 11px;
-            gap: 8px;
-        }
-        #sp_Task_MyWork_html .assign-row {
-            grid-template-columns: 1fr;
-            gap: 12px;
-        }
-        #sp_Task_MyWork_html .assign-container {
-            padding: 16px;
-            max-height: 80vh;
-        }
-        #sp_Task_MyWork_html .step-header {
-            flex-direction: column;
-            gap: 12px;
-        }
-        #sp_Task_MyWork_html .form-label {
-            font-size: 12px;
-        }
-        #sp_Task_MyWork_html .form-control,
-        #sp_Task_MyWork_html .form-select {
-            font-size: 13px;
-            min-height: 40px;
-        }
-        #sp_Task_MyWork_html .modal-dialog {
-            margin: 8px;
-        }
-        #sp_Task_MyWork_html .modal-content {
-            border-radius: 12px;
-        }
-        #sp_Task_MyWork_html .progress-cell {
-            flex-direction: column;
-            gap: 6px;
-        }
-        #sp_Task_MyWork_html .progress-info {
-            width: 100%;
-        }
-        #sp_Task_MyWork_html .progress-bar-container {
-            width: 100%;
-        }
-        #sp_Task_MyWork_html .progress-text {
-            min-width: auto;
-            text-align: left;
-        }
-    }
-    @media (max-width: 1200px) {
-        #sp_Task_MyWork_html .kanban-board {
-            grid-template-columns: 1fr;
-        }
     }
 
     #sp_Task_MyWork_html .kanban-board {
@@ -660,7 +460,6 @@ SET @html = N'
         margin-bottom: 12px;
         border-radius: 8px;
         border: 1px solid var(--border-color);
-        max-height: none;
         background: var(--bg-white);
         padding: 12px;
         display: flex;
@@ -687,119 +486,50 @@ SET @html = N'
     #sp_Task_MyWork_html .kanban-board .task-row .row-kpi {
         margin-top: 8px;
     }
-    /* ===== ASSIGN MODAL STYLES ===== */
-    #sp_Task_MyWork_html .assign-modal .modal-dialog {
-        max-width: 1000px;
+
+    /* === MODAL: GIAO VIỆC === */
+    #sp_Task_MyWork_html .modal {
+        z-index: 1055 !important;
+        overflow: hidden;
     }
-    #sp_Task_MyWork_html .assign-container {
-        padding: 24px 32px;
-        max-height: 70vh;
-        overflow: auto;
-    }
-    #sp_Task_MyWork_html .assign-step {
-        margin-bottom: 28px;
-        padding-bottom: 20px;
-        border-bottom: 1px solid var(--border-color);
-    }
-    #sp_Task_MyWork_html .assign-step:last-child {
-        border-bottom: none;
-        margin-bottom: 0;
-    }
-    #sp_Task_MyWork_html .step-header {
-        display: flex;
-        align-items: flex-start;
-        gap: 16px;
-        margin-bottom: 18px;
-    }
-    #sp_Task_MyWork_html .step-number {
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        background: var(--task-primary);
-        color: white;
-        display: flex;
+    #sp_Task_MyWork_html .modal.fade.show {
+        display: flex !important;
         align-items: center;
         justify-content: center;
-        font-weight: 700;
-        flex-shrink: 0;
-        box-shadow: 0 2px 8px rgba(46, 125, 50, 0.2);
     }
-    #sp_Task_MyWork_html .step-title {
-        font-size: 16px;
-        font-weight: 600;
+    #sp_Task_MyWork_html .modal-dialog {
+        max-width: 1000px;
+        margin: 0 auto !important;
+        max-height: 80vh;
+        pointer-events: auto;
+        -webkit-user-drag: none;
+        user-drag: none;
     }
-    #sp_Task_MyWork_html .assign-row {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 16px;
-        align-items: start;
-    }
-    #sp_Task_MyWork_html .form-group {
-        margin-bottom: 0;
-    }
-    #sp_Task_MyWork_html .form-label {
-        font-weight: 600;
-        margin-bottom: 8px;
-        font-size: 13px;
-    }
-    #sp_Task_MyWork_html .form-control,
-    #sp_Task_MyWork_html .form-select {
-        border-radius: 8px;
-        border: 1.5px solid var(--border-color);
-    }
-    #sp_Task_MyWork_html .form-control:focus,
-    #sp_Task_MyWork_html .form-select:focus {
-        border-color: var(--task-primary);
-        box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.1);
-        outline: none;
-    }
-    #sp_Task_MyWork_html .search-select {
+    #sp_Task_MyWork_html .modal-content {
         position: relative;
+        max-height: 80vh;
+        width: 1000px;
+        overflow-y: auto;
+        border-radius: 12px;
     }
-    #sp_Task_MyWork_html .search-select .form-select.d-none {
-        display: none !important;
-    }
-    /* ===== MODAL STYLES ===== */
     #sp_Task_MyWork_html .modal-backdrop {
         background-color: rgba(0, 0, 0, 0.7) !important;
         backdrop-filter: blur(8px);
         -webkit-backdrop-filter: blur(8px);
+        z-index: 1050 !important;
     }
     #sp_Task_MyWork_html .modal-backdrop.show {
         opacity: 0.7 !important;
     }
-    #sp_Task_MyWork_html .modal {
-        z-index: 1055 !important;
-    }
-    #sp_Task_MyWork_html .modal-backdrop {
-        z-index: 1050 !important;
-    }
-    @media (max-width: 992px) {
-        #sp_Task_MyWork_html .assign-row {
-            grid-template-columns: 1fr;
-        }
-    }
-    @media (max-width: 1200px) {
-        #sp_Task_MyWork_html .kanban-board {
-            grid-template-columns: 1fr;
-        }
-    }
-    @media (max-width: 768px) {
-        #sp_Task_MyWork_html .kanban-board {
-            grid-template-columns: 1fr;
-            gap: 12px;
-        }
-        #sp_Task_MyWork_html .kanban-column {
-            min-height: 300px;
-        }
-    }
-
-    /* ===== MODAL FIX STYLES ===== */
     #sp_Task_MyWork_html .modal-header {
+        z-Index: 10;
+        position: sticky;
+        top: 0;
+        left: 0;
+        right: 0;
         border-bottom: 2px solid var(--border-color);
         padding: 16px 24px;
     }
-
     #sp_Task_MyWork_html .modal-title {
         font-weight: 700;
         font-size: 18px;
@@ -807,100 +537,9 @@ SET @html = N'
         align-items: center;
         gap: 10px;
     }
-
     #sp_Task_MyWork_html .modal-title i {
         font-size: 20px;
     }
-
-    #sp_Task_MyWork_html .assign-container {
-        padding: 24px 32px;
-        max-height: 60vh;
-        overflow: auto;
-    }
-
-    #sp_Task_MyWork_html .assign-step {
-        margin-bottom: 28px;
-        padding-bottom: 20px;
-        border-bottom: 1px solid var(--border-color);
-    }
-
-    #sp_Task_MyWork_html .assign-step:last-of-type {
-        border-bottom: none;
-        margin-bottom: 0;
-    }
-
-    #sp_Task_MyWork_html .step-header {
-        display: flex;
-        align-items: flex-start;
-        gap: 16px;
-        margin-bottom: 18px;
-    }
-
-    #sp_Task_MyWork_html .step-number {
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        background: var(--task-primary);
-        color: white;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: 700;
-        flex-shrink: 0;
-        box-shadow: 0 2px 8px rgba(46, 125, 50, 0.2);
-        font-size: 18px;
-    }
-
-    #sp_Task_MyWork_html .step-title {
-        font-size: 16px;
-        font-weight: 600;
-        color: var(--text-primary);
-        padding-top: 8px;
-    }
-
-    #sp_Task_MyWork_html .assign-row {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 16px;
-        align-items: start;
-    }
-
-    #sp_Task_MyWork_html .form-group {
-        margin-bottom: 0;
-        display: flex;
-        flex-direction: column;
-    }
-
-    #sp_Task_MyWork_html .form-label {
-        font-weight: 600;
-        margin-bottom: 8px;
-        font-size: 13px;
-        color: var(--text-primary);
-    }
-
-    #sp_Task_MyWork_html .form-control,
-    #sp_Task_MyWork_html .form-select {
-        border-radius: 8px;
-        border: 1.5px solid var(--border-color);
-        padding: 10px 12px;
-        font-size: 13px;
-        transition: all var(--transition-base);
-    }
-
-    #sp_Task_MyWork_html .form-control:focus,
-    #sp_Task_MyWork_html .form-select:focus {
-        border-color: var(--task-primary);
-        box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.1);
-        outline: none;
-    }
-
-    #sp_Task_MyWork_html #subtask-assign-container {
-        display: grid;
-        gap: 12px;
-        overflow-y: auto;
-        padding: 12px 0;
-    }
-
     #sp_Task_MyWork_html .modal-footer {
         border-top: 1px solid var(--border-color);
         padding: 16px 24px;
@@ -908,7 +547,6 @@ SET @html = N'
         gap: 12px;
         justify-content: flex-end;
     }
-
     #sp_Task_MyWork_html .modal-footer .btn {
         padding: 10px 20px;
         border-radius: 8px;
@@ -920,42 +558,95 @@ SET @html = N'
         align-items: center;
         gap: 8px;
     }
-
     #sp_Task_MyWork_html .modal-footer .btn-secondary:hover {
         transform: translateY(-2px);
     }
-
     #sp_Task_MyWork_html .modal-footer .btn-success:hover {
         transform: translateY(-2px);
         box-shadow: var(--shadow-hover);
     }
 
-    #sp_Task_MyWork_html .empty-state {
-        text-align: center;
-        padding: 40px 20px;
-        color: var(--text-muted);
-        grid-column: 1 / -1;
+    /* === ASSIGN FORM === */
+    #sp_Task_MyWork_html .assign-container {
+        padding: 24px 32px;
+    }
+    #sp_Task_MyWork_html .assign-step {
+        margin-bottom: 28px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid var(--border-color);
+    }
+    #sp_Task_MyWork_html .assign-step:last-of-type {
+        border-bottom: none;
+        margin-bottom: 0;
+    }
+    #sp_Task_MyWork_html .step-header {
+        display: flex;
+        align-items: flex-start;
+        gap: 16px;
+        margin-bottom: 18px;
+    }
+    #sp_Task_MyWork_html .step-number {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: var(--task-primary);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        flex-shrink: 0;
+        box-shadow: 0 2px 8px rgba(46, 125, 50, 0.2);
+        font-size: 18px;
+    }
+    #sp_Task_MyWork_html .step-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--text-primary);
+        padding-top: 8px;
+    }
+    #sp_Task_MyWork_html .assign-row {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+        align-items: start;
+    }
+    #sp_Task_MyWork_html .form-group {
+        margin-bottom: 0;
+        display: flex;
+        flex-direction: column;
+    }
+    #sp_Task_MyWork_html .form-label {
+        font-weight: 600;
+        margin-bottom: 8px;
+        font-size: 13px;
+        color: var(--text-primary);
+    }
+    #sp_Task_MyWork_html .form-control,
+    #sp_Task_MyWork_html .form-select {
+        border-radius: 8px;
+        border: 1.5px solid var(--border-color);
+        padding: 10px 12px;
+        font-size: 13px;
+        transition: all var(--transition-base);
+    }
+    #sp_Task_MyWork_html .form-control:focus,
+    #sp_Task_MyWork_html .form-select:focus {
+        border-color: var(--task-primary);
+        box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.1);
+        outline: none;
     }
 
-    #sp_Task_MyWork_html .empty-state i {
-        font-size: 48px;
-        color: var(--border-color);
-        margin-bottom: 12px;
-        opacity: 0.5;
-    }
-
-    /* ===== TEMP SUBTASK FORM RESPONSIVE STYLES ===== */
+    /* === TEMP SUBTASK FORM === */
     #sp_Task_MyWork_html #temp-subtasks {
         width: 100%;
     }
-
     #sp_Task_MyWork_html #temp-subtasks > div {
         padding: 20px;
         background: var(--bg-light);
         border-radius: 8px;
         border: 1px solid var(--border-color);
     }
-
     #sp_Task_MyWork_html #temp-subtasks .subtask-header {
         font-weight: 600;
         margin-bottom: 20px;
@@ -964,197 +655,154 @@ SET @html = N'
         align-items: center;
         gap: 8px;
     }
-
     #sp_Task_MyWork_html #temp-subtasks .subtask-header i {
         color: var(--task-primary);
         font-size: 18px;
     }
-
-    #sp_Task_MyWork_html .empty-state p {
-        margin: 0;
-        font-size: 13px;
+    #sp_Task_MyWork_html #temp-subtasks small.text-muted {
+        font-size: 11px;
     }
 
+    /* === RESPONSIVE === */
+    @media (max-width: 1200px) {
+        #sp_Task_MyWork_html .kanban-board {
+            grid-template-columns: 1fr;
+        }
+    }
     @media (max-width: 992px) {
         #sp_Task_MyWork_html .assign-row {
             grid-template-columns: 1fr;
         }
     }
-
     @media (max-width: 768px) {
+        #sp_Task_MyWork_html {
+            padding: 12px;
+            padding-bottom: 50px;
+        }
+        #sp_Task_MyWork_html .h-title {
+            font-size: 20px;
+        }
+        #sp_Task_MyWork_html .stats-row {
+            flex-wrap: wrap;
+        }
+        #sp_Task_MyWork_html .stat-card {
+            flex: 1 1 calc(50% - 10px);
+            min-width: 140px;
+        }
+        #sp_Task_MyWork_html .kanban-board,
+        #sp_Task_MyWork_html .kanban-column {
+            gap: 12px;
+            min-height: 300px;
+        }
         #sp_Task_MyWork_html .assign-container {
             padding: 16px 20px;
-            max-height: 70vh;
         }
-
         #sp_Task_MyWork_html .assign-row {
             grid-template-columns: 1fr;
             gap: 12px;
         }
-
         #sp_Task_MyWork_html .step-header {
             gap: 12px;
         }
-
-        #sp_Task_MyWork_html .modal-header {
-            padding: 12px 16px;
-        }
-
+        #sp_Task_MyWork_html .modal-header,
         #sp_Task_MyWork_html .modal-footer {
             padding: 12px 16px;
+        }
+        #sp_Task_MyWork_html .modal-footer {
             flex-direction: column;
         }
-
         #sp_Task_MyWork_html .modal-footer .btn {
             width: 100%;
             justify-content: center;
         }
     }
-
-    /* Desktop: 2-3 cột */
-    @media (min-width: 1024px) {
-        #sp_Task_MyWork_html #temp-subtasks > div > div:nth-of-type(1) {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
-            margin-bottom: 20px;
+    @media (max-width: 480px) {
+        #sp_Task_MyWork_html {
+            padding: 8px;
+            padding-bottom: 50px;
         }
-
-        #sp_Task_MyWork_html #temp-subtasks > div > div:nth-of-type(2) {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 16px;
-            margin-bottom: 20px;
+        #sp_Task_MyWork_html .h-title {
+            font-size: 18px;
         }
-
-        #sp_Task_MyWork_html #temp-subtasks > div > div:nth-of-type(3) {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
-            margin-bottom: 20px;
-        }
-    }
-
-    /* Tablet: 1-2 cột */
-    @media (max-width: 1023px) and (min-width: 768px) {
-        #sp_Task_MyWork_html #temp-subtasks > div > div:nth-of-type(1) {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 12px;
-            margin-bottom: 16px;
-        }
-
-        #sp_Task_MyWork_html #temp-subtasks > div > div:nth-of-type(2) {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin-bottom: 16px;
-        }
-
-        #sp_Task_MyWork_html #temp-subtasks > div > div:nth-of-type(3) {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin-bottom: 16px;
-        }
-    }
-
-    /* Mobile: 1 cột */
-    @media (max-width: 767px) {
-        #sp_Task_MyWork_html #temp-subtasks > div {
-            padding: 16px 12px;
-        }
-
-        #sp_Task_MyWork_html #temp-subtasks .subtask-header {
-            margin-bottom: 16px;
-            font-size: 15px;
-        }
-
-        #sp_Task_MyWork_html #temp-subtasks .subtask-header i {
-            font-size: 16px;
-        }
-
-        #sp_Task_MyWork_html #temp-subtasks > div > div:nth-of-type(1),
-        #sp_Task_MyWork_html #temp-subtasks > div > div:nth-of-type(2),
-        #sp_Task_MyWork_html #temp-subtasks > div > div:nth-of-type(3) {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 10px;
-            margin-bottom: 12px;
-        }
-
-        #sp_Task_MyWork_html #temp-subtasks .form-group {
-            margin-bottom: 0;
-        }
-
-        #sp_Task_MyWork_html #temp-subtasks .form-label {
-            font-size: 12px;
-            margin-bottom: 6px;
-        }
-
-        #sp_Task_MyWork_html #temp-subtasks .form-control,
-        #sp_Task_MyWork_html #temp-subtasks .form-select {
-            font-size: 13px;
-            padding: 8px 10px;
-            min-height: 40px;
-        }
-
-        #sp_Task_MyWork_html #temp-subtasks > div > div:last-of-type {
-            display: flex;
+        #sp_Task_MyWork_html .cu-header {
             flex-direction: column;
-            gap: 8px;
-            margin-bottom: 0;
+            gap: 12px !important;
         }
-
-        #sp_Task_MyWork_html #temp-subtasks > div > div:last-of-type button {
+        #sp_Task_MyWork_html .header-actions,
+        #sp_Task_MyWork_html .view-switcher,
+        #sp_Task_MyWork_html .btn-assign,
+        #sp_Task_MyWork_html .btn-refresh {
             width: 100%;
+            flex-direction: column;
+            justify-content: center;
             padding: 12px;
             font-size: 13px;
         }
-
-        #sp_Task_MyWork_html #temp-subtasks small.text-muted {
-            font-size: 11px;
+        #sp_Task_MyWork_html .stats-row {
+            display: none !important;
         }
-    }
-
-    /* Extra small devices (max 480px) */
-    @media (max-width: 480px) {
+        #sp_Task_MyWork_html .stat-card {
+            flex: 1 1 calc(50% - 8px);
+            min-width: 110px;
+            padding: 10px 12px;
+        }
+        #sp_Task_MyWork_html .stat-card::before {
+            height: 30px;
+            width: 3px;
+        }
+        #sp_Task_MyWork_html .stat-label-task {
+            font-size: 10px;
+        }
+        #sp_Task_MyWork_html .stat-value {
+            font-size: 20px;
+        }
+        #sp_Task_MyWork_html .table {
+            font-size: 12px;
+        }
+        #sp_Task_MyWork_html .table td {
+            padding: 8px;
+        }
+        #sp_Task_MyWork_html .employee-avatar {
+            width: 28px;
+            height: 28px;
+            font-size: 10px;
+        }
+        #sp_Task_MyWork_html .task-name-title {
+            font-size: 13px;
+        }
+        #sp_Task_MyWork_html .task-name-meta {
+            font-size: 11px;
+            gap: 8px;
+        }
+        #sp_Task_MyWork_html .action-btn {
+            padding: 4px 8px;
+            font-size: 12px;
+        }
         #sp_Task_MyWork_html #temp-subtasks > div {
             padding: 12px 10px;
         }
-
         #sp_Task_MyWork_html #temp-subtasks .subtask-header {
             margin-bottom: 12px;
             font-size: 14px;
             gap: 6px;
         }
-
         #sp_Task_MyWork_html #temp-subtasks .form-label {
             font-size: 11px;
             margin-bottom: 4px;
         }
-
         #sp_Task_MyWork_html #temp-subtasks .form-control,
         #sp_Task_MyWork_html #temp-subtasks .form-select {
             font-size: 12px;
             padding: 6px 8px;
             min-height: 36px;
         }
-
-        #sp_Task_MyWork_html #temp-subtasks > div > div:last-of-type {
-            margin-top: 10px;
-        }
-
         #sp_Task_MyWork_html #temp-subtasks > div > div:last-of-type button {
             padding: 10px;
             font-size: 12px;
         }
-
-        #sp_Task_MyWork_html #temp-subtasks > div > div:last-of-type button i {
-            font-size: 12px;
-        }
     }
 </style>
+
 <div id="sp_Task_MyWork_html">
     <div class="cu-header d-flex justify-content-between align-items-center mb-4 gap-2 flex-wrap">
         <div class="stats-row d-flex align-items-center flex-wrap" id="stats-container">
@@ -1166,7 +814,7 @@ SET @html = N'
                 <div class="stat-label-task">Đang làm</div>
                 <div class="stat-value" id="stat-doing">0</div>
             </div>
-            <div class="stat-card done">
+   <div class="stat-card done">
                 <div class="stat-label-task">Hoàn thành</div>
                 <div class="stat-value" id="stat-done">0</div>
             </div>
@@ -1222,7 +870,7 @@ SET @html = N'
         </div>
     </div>
     <!-- Modal Giao việc -->
-    <div class="modal fade" id="mdlAssign" tabindex="-1" aria-labelledby="mdlAssignLabel" aria-hidden="true">
+    <div class="modal fade" id="mdlAssign" tabindex="-1" aria-labelledby="mdlAssignLabel">
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
@@ -1247,7 +895,7 @@ SET @html = N'
                                 <label class="form-label">Người yêu cầu</label>
                                 <div id="P2920410F91DB42948640CF1ABBDEE649"></div>
                             </div>
-                            <div class="form-group">
+        <div class="form-group">
                                 <label class="form-label">Người phụ trách chính</label>
                                 <div id="PC98E2DFA331343BBAE22882BE3825C1A"></div>
                             </div>
@@ -1262,7 +910,7 @@ SET @html = N'
                         </div>
                     </div>
                     <!-- Step 2: Phân bổ chi tiết -->
-                    <div class="assign-step">
+                    <div class="assign-step" id="subtask-assign-step" style="display: none;">
                         <div class="step-header">
                             <div class="step-number">2</div>
                             <div class="step-title">Phân bổ chi tiết (Subtasks)</div>
@@ -1270,14 +918,18 @@ SET @html = N'
                                 <button class="text-success" style="border: none;" id="P8117471F96C44E2D8886F4484DC46072" title="Thêm task con"><i class="bi bi-plus-lg fs-4"></i></button>
                             </div>
                         </div>
-                        <div id="subtask-assign-container" style="overflow-x: auto; display: none;">
-                            <div id="gridSubtaskAssign" style="height: 100%;"></div>
+                        <div id="subtask-assign-container">
+                            <div class="empty-state" id="emptySubtaskAssign">
+                                <i class="bi bi-arrow-up-circle"></i>
+                                <p>Vui lòng chọn Công việc chính ở trên</p>
+                            </div>
+                            <div id="gridSubtaskAssign" style="height: 100%; display: none;"></div>
                         </div>
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
-                <button type="button" class="btn btn-success" id="btnSubmitAssignment">
+                    <button type="button" class="btn btn-success" id="btnSubmitAssignment">
                         <i class="bi bi-send-fill"></i> Xác nhận
                     </button>
                 </div>
@@ -1291,7 +943,15 @@ SET @html = N'
 
         var allTasks = [];
         var currentView = "grid";
+        var modalInitialized = false;
 
+        let currentTemplate = [];
+        let currentChildTasks = [];
+        let tasks = [];
+        let selectedParentTaskID = null;
+        let lastSelectedParentID = null; // Lưu task cha được chọn lần cuối
+
+        // Khai báo datasource cho trạng thái và độ ưu tiên cho control
         window["DataSource_Status"] = [
             { ID: 1, Name: "Pending" },
             { ID: 2, Name: "Doing" },
@@ -1304,9 +964,8 @@ SET @html = N'
             { ID: 3, Name: "Khẩn cấp" }
         ];
 
-        attachEventHandlers();
-
         function openDetailTaskID(taskID) {
+            console.log(taskID)
             if (["Android", "iOS"].includes(getMobileOperatingSystem())) {
                 OpenFormParamMobile("sp_Task_TaskDetail", {
                     TaskID: taskID,
@@ -1322,8 +981,10 @@ SET @html = N'
             }
         }
 
+        // Gắn sự kiện cho các nút và thành phần giao diện
         function attachEventHandlers() {
             $("#btnAssign").on("click", function() {
+
                 if ($("#mdlAssign").length) {
                     $("#mdlAssign").modal("show");
                 }
@@ -1359,267 +1020,38 @@ SET @html = N'
                    message: "Chức năng Kanban chưa được khởi tạo"
                 });
             });
-        }
 
-            let currentTemplate = [];
-            let currentChildTasks = [];
-            let tasks = [];
-            let selectedParentTaskID = null;
-            let lastSelectedParentID = null; // Lưu task cha được chọn lần cuối
-
-            function renderAssignSubtasks() {
-                // Map data để phù hợp với Grid columns
-                const gridData = currentTemplate.map((item, idx) => ({
-                    TaskID: item.TaskID || idx,
-                    IsSelected: true, // Default checked
-                    TaskName: item.TaskName,
-                    AssignedEmployeeIDs: [],
-                    StartDate: new Date(),
-                    EndDate: new Date(),
-                    Priority: 1, // Default: Thấp
-                    Note: "",
-                    DefaultKPI: item.DefaultKPI || 0,
-                    Unit: item.Unit || ""
-                }));
-
-                // Load data vào Grid
-                window.InstancegridSubtaskAssign.option("dataSource", gridData);
-            }
-
-            function fetchAssignTemplate(pid) {
-                // Ngăn gọi lại nếu cùng task cha được chọn
-                if (lastSelectedParentID === pid) {
-                    return;
-                }
-                
-                lastSelectedParentID = pid;
-                selectedParentTaskID = pid;
-                
-                AjaxHPAParadise({
-                        data: {
-                        name: "sp_Task_GetDetailedTemplate",
-                        param: ["ParentTaskID", pid]
-                    },
-                    success: function(res) {
-                        currentTemplate = JSON.parse(res).data[0] || [];
-                        fetchChildTasks(pid, function(childTasks) {
-                            currentChildTasks = childTasks || [];
-                            
-                            // Nếu có task con hoặc template, hiển thị grid
-                            if (currentTemplate.length > 0 || childTasks.length > 0) {
-                                renderAssignSubtasks();
-                                // Hiển thị grid container
-                                $("#subtask-assign-container").show();
-                            } else {
-                                // Nếu không có task con và không có template, ẩn grid
-                                $("#subtask-assign-container").hide();
-                            }
-                        });
-                    }
-                });
-            }
-
-            function renderTempSubtasksUI(pid) {
-                fetchChildTasks(pid, function(childTasks) {
-
-                    // danh sách TaskID đã là child
-                    var existingChildIds = childTasks.map(c => String(c.TaskID));
-
-                    var candidateChilds = tasks.filter(function(t) {
-                        return String(t.TaskID) !== String(pid)               // không phải chính nó
-                            && !existingChildIds.includes(String(t.TaskID)); // chưa là child
-                    });
-
-                    var childOpts =
-                        `<option value="">-- Chọn hàng từ danh sách --</option>` +
-                        candidateChilds.map(function(t) {
-                            return `<option value="${t.TaskID}">${escapeHtml(t.TaskName)}</option>`;
-                        }).join("");
-
-                        var html = `
-                        <div id="temp-subtasks">
-                            <div style="padding: 20px; background: var(--bg-light); border-radius: 8px; border: 1px solid var(--border-color);">
-                                <div class="subtask-header" style="margin-bottom: 20px;">
-                                    <i class="bi bi-plus-circle" style="color: var(--task-primary); font-size: 18px;"></i>
-                                    <span>Thêm hàng con tạm thời</span>
-                                </div>
-                                
-                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px;">
-                                    <div class="form-group">
-                                        <label class="form-label">Chọn hàng hiện có</label>
-                                        <select class="form-select" id="tempChildSelect" onchange="handleSelectTempChild(this.value)">
-                                            ${childOpts}
-                                        </select>
-                                        <small class="text-muted d-block mt-2">Hoặc tạo hàng mới bên dưới</small>
-                                    </div>
-                                    
-                                    <div class="form-group">
-                                        <label class="form-label">Tên hàng mới</label>
-                                        <input type="text" class="form-control" id="tempTaskName" placeholder="Nhập tên hàng..." />
-                                    </div>
-                                </div>
-
-                                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 20px;">
-                                    <div class="form-group">
-                                        <label class="form-label">Người thực hiện</label>
-                                        <div id="tempTaskAssignee"></div>
-                                    </div>
-                                    
-                                    <div class="form-group">
-                                        <label class="form-label">Bắt đầu</label>
-                                        <input type="datetime-local" class="form-control" id="tempTaskFrom" />
-                                    </div>
-                                    
-                                    <div class="form-group">
-                                        <label class="form-label">Kết thúc</label>
-                                        <input type="datetime-local" class="form-control" id="tempTaskTo" />
-                                    </div>
-                                </div>
-
-                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px;">
-                                    <div class="form-group">
-                                        <label class="form-label">Ưu tiên</label>
-                                        <select class="form-select" id="tempTaskPriority">
-                                            <option value="1" selected>Cao</option>
-                                            <option value="2">Trung bình</option>
-                                            <option value="3">Thấp</option>
-                                        </select>
-                                    </div>
-                                    
-                                    <div class="form-group">
-                                        <label class="form-label">Ghi chú</label>
-                                        <input type="text" class="form-control" id="tempTaskNote" placeholder="Ghi chú thêm..." />
-                                    </div>
-                                </div>
-
-                                <div style="display: flex; gap: 10px; justify-content: flex-end;">
-                                    <button type="button" class="btn btn-secondary" onclick="clearTempForm()">
-                                        <i class="bi bi-x-circle"></i> Hủy
-                                    </button>
-                                    <button type="button" class="btn btn-primary" onclick="addTempSubtask(${pid})">
-                                        <i class="bi bi-check-circle"></i> Thêm hàng
-                                    </button>
-                                </div>
-                            </div>
-                        </div>`;
-
-                    $("#subtask-assign-container").html(html);
-
-                    // Khởi tạo Employee Selector cho temp form
-                    setTimeout(() => {
-                        // Khởi tạo control Employee Selector
-                    }, 100);
-                });
-            }
-
-            function handleSelectTempChild(taskId) {
-                if (taskId) {
-                    var selectedTask = tasks.find(t => String(t.TaskID) === String(taskId));
-                    if (selectedTask) {
-                        $("#tempTaskName").val(escapeHtml(selectedTask.TaskName));
-                    }
-                }
-            }
-
-            function clearTempForm() {
-                $("#tempChildSelect").val("");
-                $("#tempTaskName").val("");
-                $("#tempTaskAssignee").data("selected", []).html("");
-                $("#tempTaskFrom").val("");
-                $("#tempTaskTo").val("");
-                $("#tempTaskNote").val("");
-                $("#tempTaskPriority").val("3");
-            }
-
-            function addTempSubtask(parentId) {
-                var taskName = $("#tempTaskName").val().trim();
-                var assigneeIds = ($("#tempTaskAssignee").data("selected") || []).join(",");
-                var fromDate = $("#tempTaskFrom").val();
-                var toDate = $("#tempTaskTo").val();
-                var note = $("#tempTaskNote").val().trim();
-                var priority = $("#tempTaskPriority").val();
-                var selectedTaskId = $("#tempChildSelect").val();
-
-                if (!taskName && !selectedTaskId) {
-                    alert("Vui lòng nhập tên hàng hoặc chọn hàng từ danh sách");
-                    return;
-                }
-
-                if (selectedTaskId) {
-                    taskName = tasks.find(t => String(t.TaskID) === String(selectedTaskId))?.TaskName || taskName;
-                }
-
-                // TODO: Gọi API để lưu hàng tạm
-                // AjaxHPAParadise({
-                //     data: {
-                //         name: "sp_Task_CreateTempSubtask",
-                //         param: [...]
-                //     },
-                //     success: function() {
-                //         alert("Thêm hàng thành công");
-                //         clearTempForm();
-                //         // Reload modal
-                //     }
-                // });
-            }
-
-            function fetchChildTasks(pid, cb) {
-                AjaxHPAParadise({
-                    data: {
-                        name: "sp_Task_GetTaskRelations",
-                        param: ["ParentTaskID", pid]
-                    },
-                    success: function(res) {
-                        try {
-                            var rows = JSON.parse(res).data[0] || [];
-                            var ids = rows.map(function(r) { return r.TaskID; });
-                            var childTasks = tasks.filter(function(t) { return ids.indexOf(t.TaskID) !== -1; });
-                            cb(childTasks);
-                        } catch(e) {
-                            cb([]);
-                        }
-                    },
-                    error: function() { cb([]); }
-              });
-            }
-
-            window.onSelectBoxChanged_TaskName = function(value, instance, e) {
-                if (value) {
-                    fetchAssignTemplate(value);
-                }
-            };
-
-            // ==================== SUBMIT ASSIGNMENT ====================
+            // Xử lý nút xác nhận giao việc
             $("#btnSubmitAssignment").off("click").on("click", async function() {
                 try {
                     // 1. Get parent task ID from form control P777C87EE29F94C29A6EAABD16E31FDDC
-                    const parentTaskControl = window.Instance_TaskName;
+                    const parentTaskControl = InstanceTaskNameP777C87EE29F94C29A6EAABD16E31FDDC;
                     const parentTaskID = parentTaskControl ? parentTaskControl.option("value") : null;
-                    
+
                     if (!parentTaskID) {
                         uiManager.showAlert({ type: "warning", message: "Vui lòng chọn công việc chính" });
                         return;
                     }
 
                     // 2. Get requester and assignee from form controls
-                    const requesterControl = window.Instance_RequestEmployeeID;
-                    const assigneeControl = window.Instance_AssigneeEmployeeID;
-                    
+                    const requesterControl = InstancePersonInChargeP2920410F91DB42948640CF1ABBDEE649;
+                    const assigneeControl = InstanceMainPersonInChargePC98E2DFA331343BBAE22882BE3825C1A;
+
                     const requesterID = requesterControl ? requesterControl.option("value") : null;
                     const assigneeID = assigneeControl ? assigneeControl.option("value") : null;
 
                     // 3. Get dates from form controls
-                    const requestDateControl = window.Instance_RequestDate;
-                    const deadlineControl = window.Instance_DeadlineDate;
-                    
+                    const requestDateControl = InstanceStartDateP02E6F18645BA47648567B32773A1B7B4;
+                    const deadlineControl = InstanceCommittedHoursP27C40759D9C94453AB9B2DFBCD661AE3;
+
                     const requestDate = requestDateControl ? requestDateControl.option("value") : null;
                     const deadlineDate = deadlineControl ? deadlineControl.option("value") : null;
 
                     // 4. Collect grid data from InstancegridSubtaskAssign
                     let subtasks = [];
-                    if (window.InstancegridSubtaskAssign) {
+                    if (InstancegridSubtaskAssignP870C076FA1FD48DDBDEDE2C2435B4DA9) {
                         try {
-                            const gridData = window.InstancegridSubtaskAssign.option("dataSource") || [];
+                            const gridData = InstancegridSubtaskAssignP870C076FA1FD48DDBDEDE2C2435B4DA9.option("dataSource") || [];
                             subtasks = gridData.map(row => ({
                                 ChildTaskName: row.ChildTaskName || "",
                                 AssignedEmployeeIDs: row.AssignedEmployeeIDs || "",
@@ -1628,7 +1060,7 @@ SET @html = N'
                                 Priority: row.Priority || 1,
                                 Note: row.Note || ""
                             }));
-                        } catch (gridErr) {
+            } catch (gridErr) {
                             console.warn("[Submit] Error collecting grid data:", gridErr);
                             subtasks = [];
                         }
@@ -1664,15 +1096,15 @@ SET @html = N'
                         success: function(res) {
                             const json = typeof res === "string" ? JSON.parse(res) : res;
                             const errors = json.data?.[json.data.length - 1] || [];
-                            
+
                             if (errors.length > 0 && errors[0].Status === "ERROR") {
-                                uiManager.showAlert({ 
-                                    type: "error", 
+                                uiManager.showAlert({
+                                    type: "error",
                                     message: errors[0].Message || "Giao việc thất bại"
                                 });
                             } else {
-                                uiManager.showAlert({ 
-                                    type: "success", 
+                                uiManager.showAlert({
+                                    type: "success",
                                     message: "Giao việc thành công"
                                 });
                                 // Close modal after success
@@ -1683,65 +1115,281 @@ SET @html = N'
                         },
                         error: function(err) {
                             console.error("[Submit] API Error:", err);
-                            uiManager.showAlert({ 
-                                type: "error", 
+                            uiManager.showAlert({
+                                type: "error",
                                 message: "Có lỗi khi giao việc: " + (err.statusText || "Unknown error")
                             });
                         }
                     });
                 } catch (err) {
                     console.error("[Submit] Unexpected error:", err);
-                    uiManager.showAlert({ 
-                        type: "error", 
+                    uiManager.showAlert({
+                        type: "error",
                         message: "Có lỗi bất ngờ: " + err.message
                     });
                 }
             });
 
-            // Gắn event modal một lần duy nhất khi trang load
-            var modalInitialized = false;
-            
             $("#mdlAssign").off("shown.bs.modal").on("shown.bs.modal", function() {
                 if (modalInitialized) {
                     return; // Nếu đã khởi tạo, không khởi tạo lại
                 }
-                
+
                 modalInitialized = true;
             });
-            
+
             // Reset flag khi modal đóng để cho phép khởi tạo lại nếu cần
             $("#mdlAssign").off("hidden.bs.modal").on("hidden.bs.modal", function() {
                 modalInitialized = false;
+
                 lastSelectedParentID = null; // Reset task cha được chọn
                 // Xóa event change khi modal đóng
                 $(document).off("change.parentTaskSelect");
             });
 
-            function escapeHtml(str) {
-                if (!str) return "";
-                return String(str)
-                    .replace(/&/g, "&amp;")
-                    .replace(/</g, "&lt;")
-                    .replace(/>/g, "&gt;")
-                    .replace(/""/g, "&quot;")
-                    .replace(/"/g, "&#039;");
+            window.onSelectBoxChanged_TaskName = function(value, instance, e) {
+                if (value) {
+                    $("#subtask-assign-step").show();
+                    fetchAssignTemplate(value);
+                }
+            };
+        }
+
+        // Render dữ liệu template vào Grid phân bổ subtasks
+        function renderAssignSubtasks() {
+            // Map data để phù hợp với Grid columns
+            const gridData = currentTemplate.map((item, idx) => ({
+                TaskID: item.TaskID || idx,
+                IsSelected: true, // Default checked
+                TaskName: item.TaskName,
+                AssignedEmployeeIDs: [],
+                StartDate: new Date(),
+                EndDate: new Date(),
+                Priority: 1, // Default: Thấp
+                Note: "",
+                DefaultKPI: item.DefaultKPI || 0,
+                Unit: item.Unit || ""
+            }));
+
+            // Load data vào Grid
+            InstancegridSubtaskAssignP870C076FA1FD48DDBDEDE2C2435B4DA9.option("dataSource", gridData);
+        }
+
+        // Lấy danh sách task con hiện có của task cha theo template
+        function fetchAssignTemplate(pid) {
+            // Ngăn gọi lại nếu cùng task cha được chọn
+            if (lastSelectedParentID === pid) {
+                return;
             }
 
+            lastSelectedParentID = pid;
+            selectedParentTaskID = pid;
+
+            AjaxHPAParadise({
+                    data: {
+                    name: "sp_Task_GetDetailedTemplate",
+                    param: ["ParentTaskID", pid]
+                },
+                success: function(res) {
+                    currentTemplate = JSON.parse(res).data[0] || [];
+                    fetchChildTasks(pid, function(childTasks) {
+                        currentChildTasks = childTasks || [];
+
+                        // Nếu có task con hoặc template, hiển thị grid
+                        if (currentTemplate.length > 0 || childTasks.length > 0) {
+                            renderAssignSubtasks();
+                            $("#gridSubtaskAssign").show();
+                            $("#emptySubtaskAssign").hide();
+                        } else {
+                            $("#gridSubtaskAssign").hide();
+                            $("#emptySubtaskAssign").show();
+                        }
+                    });
+                }
+            });
+        }
+
+        function renderTempSubtasksUI(pid) {
+            fetchChildTasks(pid, function(childTasks) {
+
+                // danh sách TaskID đã là child
+                var existingChildIds = childTasks.map(c => String(c.TaskID));
+
+                var candidateChilds = tasks.filter(function(t) {
+                    return String(t.TaskID) !== String(pid)               // không phải chính nó
+                        && !existingChildIds.includes(String(t.TaskID)); // chưa là child
+                });
+
+                var childOpts =
+                    `<option value="">-- Chọn hàng từ danh sách --</option>` +
+                    candidateChilds.map(function(t) {
+                        return `<option value="${t.TaskID}">${t.TaskName}</option>`;
+                    }).join("");
+
+                    var html = `
+                    <div id="temp-subtasks">
+                        <div style="padding: 20px; background: var(--bg-light); border-radius: 8px; border: 1px solid var(--border-color);">
+                            <div class="subtask-header" style="margin-bottom: 20px;">
+                                <i class="bi bi-plus-circle" style="color: var(--task-primary); font-size: 18px;"></i>
+                                <span>Thêm hàng con tạm thời</span>
+                            </div>
+
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px;">
+                                <div class="form-group">
+                                    <label class="form-label">Chọn hàng hiện có</label>
+                                    <select class="form-select" id="tempChildSelect" onchange="handleSelectTempChild(this.value)">
+                                        ${childOpts}
+                                    </select>
+                                    <small class="text-muted d-block mt-2">Hoặc tạo hàng mới bên dưới</small>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label">Tên hàng mới</label>
+                                    <input type="text" class="form-control" id="tempTaskName" placeholder="Nhập tên hàng..." />
+                                </div>
+                            </div>
+
+                            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 20px;">
+                                <div class="form-group">
+                                    <label class="form-label">Người thực hiện</label>
+                                    <div id="tempTaskAssignee"></div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label">Bắt đầu</label>
+                                    <input type="datetime-local" class="form-control" id="tempTaskFrom" />
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label">Kết thúc</label>
+                                    <input type="datetime-local" class="form-control" id="tempTaskTo" />
+                                </div>
+                            </div>
+
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px;">
+                                <div class="form-group">
+                                    <label class="form-label">Ưu tiên</label>
+                                    <select class="form-select" id="tempTaskPriority">
+                                        <option value="1" selected>Cao</option>
+                                        <option value="2">Trung bình</option>
+                                        <option value="3">Thấp</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label">Ghi chú</label>
+                                    <input type="text" class="form-control" id="tempTaskNote" placeholder="Ghi chú thêm..." />
+                                </div>
+                            </div>
+
+                            <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                                <button type="button" class="btn btn-secondary" onclick="clearTempForm()">
+                                    <i class="bi bi-x-circle"></i> Hủy
+                                </button>
+                                <button type="button" class="btn btn-primary" onclick="addTempSubtask(${pid})">
+                                    <i class="bi bi-check-circle"></i> Thêm hàng
+                                </button>
+                            </div>
+                        </div>
+                    </div>`;
+
+                $("#subtask-assign-container").html(html);
+
+                // Khởi tạo Employee Selector cho temp form
+         setTimeout(() => {
+                    // Khởi tạo control Employee Selector
+                }, 100);
+            });
+        }
+
+        function handleSelectTempChild(taskId) {
+            if (taskId) {
+                var selectedTask = tasks.find(t => String(t.TaskID) === String(taskId));
+                if (selectedTask) {
+                    $("#tempTaskName").val(selectedTask.TaskName);
+                }
+            }
+        }
+
+        function clearTempForm() {
+            $("#tempChildSelect").val("");
+            $("#tempTaskName").val("");
+            $("#tempTaskAssignee").data("selected", []).html("");
+            $("#tempTaskFrom").val("");
+            $("#tempTaskTo").val("");
+            $("#tempTaskNote").val("");
+            $("#tempTaskPriority").val("3");
+        }
+
+        function addTempSubtask(parentId) {
+            var taskName = $("#tempTaskName").val().trim();
+            var assigneeIds = ($("#tempTaskAssignee").data("selected") || []).join(",");
+            var fromDate = $("#tempTaskFrom").val();
+            var toDate = $("#tempTaskTo").val();
+            var note = $("#tempTaskNote").val().trim();
+            var priority = $("#tempTaskPriority").val();
+            var selectedTaskId = $("#tempChildSelect").val();
+
+            if (!taskName && !selectedTaskId) {
+                alert("Vui lòng nhập tên hàng hoặc chọn hàng từ danh sách");
+                return;
+            }
+
+            if (selectedTaskId) {
+                taskName = tasks.find(t => String(t.TaskID) === String(selectedTaskId))?.TaskName || taskName;
+            }
+
+            // TODO: Gọi API để lưu hàng tạm
+            // AjaxHPAParadise({
+            //     data: {
+            //         name: "sp_Task_CreateTempSubtask",
+            //         param: [...]
+            //     },
+            //     success: function() {
+            //         alert("Thêm hàng thành công");
+            //         clearTempForm();
+            //         // Reload modal
+            //     }
+            // });
+        }
+
+        function fetchChildTasks(pid, cb) {
+            AjaxHPAParadise({
+                data: {
+                    name: "sp_Task_GetTaskRelations",
+                    param: ["ParentTaskID", pid]
+                },
+                success: function(res) {
+                    try {
+                        var rows = JSON.parse(res).data[0] || [];
+                        var ids = rows.map(function(r) { return r.TaskID; });
+                        var childTasks = tasks.filter(function(t) { return ids.indexOf(t.TaskID) !== -1; });
+                        cb(childTasks);
+                    } catch(e) {
+                        cb([]);
+                    }
+                },
+                error: function() { cb([]); }
+            });
+        }
+
+        // Tầng xử lý control chung
         let DataSource = []
-        '
-            +(select loadUI from tblCommonControlType_Signed where UID = 'PDB2DB35885F14803A9A52961A7871972')
-            +(select loadUI from tblCommonControlType_Signed where UID = 'P870C076FA1FD48DDBDEDE2C2435B4DA9')
-            +(select loadUI from tblCommonControlType_Signed where UID = 'P777C87EE29F94C29A6EAABD16E31FDDC')
-            +(select loadUI from tblCommonControlType_Signed where UID = 'P2920410F91DB42948640CF1ABBDEE649')
-            +(select loadUI from tblCommonControlType_Signed where UID = 'PC98E2DFA331343BBAE22882BE3825C1A')
-            +(select loadUI from tblCommonControlType_Signed where UID = 'P02E6F18645BA47648567B32773A1B7B4')
-            +(select loadUI from tblCommonControlType_Signed where UID = 'P27C40759D9C94453AB9B2DFBCD661AE3') +N'
-
-            let currentRecordID_HeaderID; let currentRecordID_HistoryID; let currentRecordID_TaskID;
-
-        // ============================================================================
-        // HÀM LOAD DATASOURCE CHUNG CHO TẤT CẢ CÁC CONTROL
-        // ============================================================================
+        
+        // Load DataSource: EmployeeListAll_DataSetting_Custom
+        if ("EmployeeListAll_DataSetting_Custom" && "EmployeeListAll_DataSetting_Custom".trim() !== "") {
+            loadDataSourceCommon("AssignedEmployeeIDs", "EmployeeListAll_DataSetting_Custom", function(data) {
+                // Data được shared qua callback
+            });
+        }
+    
+        // Load DataSource: sp_Task_GetAssignmentSetup
+        if ("sp_Task_GetAssignmentSetup" && "sp_Task_GetAssignmentSetup".trim() !== "") {
+            loadDataSourceCommon("TaskName", "sp_Task_GetAssignmentSetup", function(data) {
+                // Data được shared qua callback
+            });
+        }
+    
         function loadDataSourceCommon(columnName, dataSourceSP, onSuccessCallback) {
             if (!columnName || !dataSourceSP || dataSourceSP.trim() === "") {
                 console.warn("[loadDataSourceCommon] Missing columnName or dataSourceSP");
@@ -1751,7 +1399,7 @@ SET @html = N'
             const dataSourceKey = "DataSource_" + columnName;
             // Sử dụng format: columnNameDataSourceLoaded để tương thích với code hiện tại
             const loadedKey = columnName + "DataSourceLoaded";
-            
+
             // Kiểm tra nếu đã load rồi thì không load lại
             if (window[loadedKey] === true) {
                 if (typeof onSuccessCallback === "function") {
@@ -1781,29 +1429,51 @@ SET @html = N'
                     const json = typeof res === "string" ? JSON.parse(res) : res;
                     window[dataSourceKey] = (json.data && json.data[0]) || [];
                     window[loadedKey] = true;
-                    
+
                     // Gọi callback nếu có
                     if (typeof onSuccessCallback === "function") {
                         onSuccessCallback(window[dataSourceKey]);
                     }
-                    
+
                     // Tự động cập nhật control nếu có method setDataSource hoặc option
                     // Thử nhiều format tên instance để tương thích
                     const instanceVariants = [
-                        "Instance" + columnName.charAt(0).toUpperCase() + columnName.slice(1),
-                        "Instance" + columnName,
-                        "instance" + columnName.charAt(0).toUpperCase() + columnName.slice(1)
+                        "Instance" + columnName.charAt(0).toUpperCase() + columnName.slice(1) + "PDB2DB35885F14803A9A52961A7871972",
+                        "Instance" + columnName + "PDB2DB35885F14803A9A52961A7871972",
+                        "instance" + columnName.charAt(0).toUpperCase() + columnName.slice(1) + "PDB2DB35885F14803A9A52961A7871972"
                     ];
-                    
+
                     for (let i = 0; i < instanceVariants.length; i++) {
                         const instanceKey = instanceVariants[i];
                         if (window[instanceKey]) {
-                            if (typeof window[instanceKey].setDataSource === "function") {
-                                window[instanceKey].setDataSource(window[dataSourceKey]);
-                                break;
-                            } else if (typeof window[instanceKey].option === "function") {
+                            const instanceObj = window[instanceKey];
+
+                            // Kiểm tra nếu đây là dxDataGrid
+                            if (typeof instanceObj.dxDataGrid === "function" || instanceObj.option && instanceObj.option("dataSource") !== undefined) {
                                 try {
-                                    window[instanceKey].option("dataSource", window[dataSourceKey]);
+                                    // Nếu là Grid, apply dynamic config
+                                    const gridConfigFn = window["getGridConfig_" + columnName.charAt(0).toUpperCase() + columnName.slice(1)];
+                                    if (typeof gridConfigFn === "function") {
+                                        const gridConfig = gridConfigFn(window[dataSourceKey]);
+                                        instanceObj.option("remoteOperations", gridConfig.remoteOperations);
+                                        instanceObj.option("paging.pageSize", gridConfig.pageSize);
+                                        instanceObj.option("pager.allowedPageSizes", gridConfig.allowedPageSizes);
+                                    }
+
+                                    instanceObj.option("dataSource", window[dataSourceKey]);
+                                    break;
+                                } catch(e) {
+                                    console.warn("[LoadDataSourceCommon] Grid config error:", e);
+                                    // Fallback: just set data source
+                                    instanceObj.option("dataSource", window[dataSourceKey]);
+                        break;
+                                }
+                            } else if (typeof instanceObj.setDataSource === "function") {
+                                instanceObj.setDataSource(window[dataSourceKey]);
+                                break;
+                            } else if (typeof instanceObj.option === "function") {
+                                try {
+                                    instanceObj.option("dataSource", window[dataSourceKey]);
                                     break;
                                 } catch(e) {
                                     // Continue to next variant
@@ -1822,23 +1492,152 @@ SET @html = N'
             });
         }
 
-        // Load tất cả unique DataSourceSP
+        '
+        +(select loadUI from tblCommonControlType_Signed where UID = 'PDB2DB35885F14803A9A52961A7871972')
+        +(select loadUI from tblCommonControlType_Signed where UID = 'P870C076FA1FD48DDBDEDE2C2435B4DA9')
+        +(select loadUI from tblCommonControlType_Signed where UID = 'P777C87EE29F94C29A6EAABD16E31FDDC')
+        +(select loadUI from tblCommonControlType_Signed where UID = 'P2920410F91DB42948640CF1ABBDEE649')
+        +(select loadUI from tblCommonControlType_Signed where UID = 'PC98E2DFA331343BBAE22882BE3825C1A')
+        +(select loadUI from tblCommonControlType_Signed where UID = 'P02E6F18645BA47648567B32773A1B7B4')
+        +(select loadUI from tblCommonControlType_Signed where UID = 'P27C40759D9C94453AB9B2DFBCD661AE3') +N'
+            window.currentRecordID_HeaderID = null; window.currentRecordID_HistoryID = null; window.currentRecordID_TaskID = null;
         
-        // Load DataSource: EmployeeListAll_DataSetting_Custom
-        if ("EmployeeListAll_DataSetting_Custom" && "EmployeeListAll_DataSetting_Custom".trim() !== "") {
-            loadDataSourceCommon("MainPersonInCharge", "EmployeeListAll_DataSetting_Custom", function(data) {
-                // Data được shared qua callback
-            });
-        }
-    
-        // Load DataSource: sp_Task_GetAssignmentSetup
-        if ("sp_Task_GetAssignmentSetup" && "sp_Task_GetAssignmentSetup".trim() !== "") {
-            loadDataSourceCommon("TaskName", "sp_Task_GetAssignmentSetup", function(data) {
-                // Data được shared qua callback
-            });
-        }
-    
+        // =============== GRID COLUMN CONFIG PERSISTENCE ===============
+        function saveGridColumnConfig(tableName, columns) {
+            const visibleColumns = columns
+                .filter(col => {
+                    return col.visible !== false 
+                        && col.dataField 
+                        && col.dataField !== "rowIndex"
+                        && typeof col.dataField === "string";
+                })
+                .map(col => col.dataField);
+                
+            const columnOrder = columns
+                .filter(col => {
+                    return col.dataField 
+                        && col.dataField !== "rowIndex"
+                        && typeof col.dataField === "string";
+                })
+                .map(col => col.dataField);
 
+            const config = { visibleColumns, columnOrder };
+            console.log("[SaveConfig]", config);
+
+            AjaxHPAParadise({
+                data: {
+                    name: "sp_SaveGridColumnConfig",
+                    param: [
+                        "LoginID", LoginID,
+                        "TableName", tableName,
+                        "ColumnConfigJson", JSON.stringify(config)
+                    ]
+                }
+            });
+        }
+        
+        function loadGridColumnConfig(tableName, callback) {
+            AjaxHPAParadise({
+                data: {
+                    name: "sp_GetGridColumnConfig",
+                    param: ["LoginID", LoginID, "TableName", tableName]
+                },
+                async: false,
+                success: function(res) {
+                    let config = {};
+                    const json = typeof res === "string" ? JSON.parse(res) : res;
+                    if (json && json.data && json.data[0] && json.data[0][0] && json.data[0][0].ColumnConfigJson) {
+                        const raw = json.data[0][0].ColumnConfigJson;
+                        config = typeof raw === "string" ? JSON.parse(raw) : raw;
+                    };
+                    if (typeof callback === "function") callback(config);
+                }
+            });
+        }
+
+        // =============== ROW ORDER PERSISTENCE ===============
+        function saveGridRowOrder(gridInstance, tableName, pkColumn) {
+            const dataSource = gridInstance.option("dataSource");
+            
+            const rowOrderArray = dataSource.map(item => item[pkColumn]);
+            
+            AjaxHPAParadise({
+                data: {
+                    name: "sp_SaveGridRowOrder",
+                    param: [
+                        "LoginID", LoginID,
+                        "TableName", tableName,
+                        "RowOrderJson", JSON.stringify(rowOrderArray)
+                    ]
+                },
+                success: function(res) {
+                    console.log("[SaveRowOrder] Success");
+                },
+                error: function(err) {
+                    console.error("[SaveRowOrder] Error:", err);
+                }
+            });
+        }
+        
+        function loadGridRowOrder(tableName, dataSource, pkColumn, callback) {
+            AjaxHPAParadise({
+                data: {
+                    name: "sp_GetGridRowOrder",
+                    param: ["LoginID", LoginID, "TableName", tableName]
+                },
+                async: false,
+                success: function(res) {
+                    try {
+                        const json = typeof res === "string" ? JSON.parse(res) : res;
+                        const rowOrderJson = json.data[0][0].RowOrderJson;
+                        
+                        if (rowOrderJson && rowOrderJson !== "[]") {
+                            const savedOrder = JSON.parse(rowOrderJson);
+                            console.log("[LoadRowOrder] Loaded saved order:", savedOrder);
+                            
+                            const dataMap = {};
+                            dataSource.forEach(item => {
+                                dataMap[item[pkColumn]] = item;
+                            });
+                            
+                            const sortedData = [];
+                            savedOrder.forEach(id => {
+                                if (dataMap[id]) {
+                                    sortedData.push(dataMap[id]);
+                                    delete dataMap[id];
+                                }
+                            });
+                            
+                            Object.values(dataMap).forEach(item => {
+                                sortedData.push(item);
+                            });
+                            
+                            console.log("[LoadRowOrder] Sorted data:", sortedData.length, "rows");
+                            
+                            if (typeof callback === "function") {
+                                callback(sortedData);
+                            }
+                        } else {
+                            console.log("[LoadRowOrder] No saved order");
+                            if (typeof callback === "function") {
+                                callback(dataSource);
+                            }
+                        }
+                    } catch (e) {
+                        if (typeof callback === "function") {
+                            callback(dataSource);
+                        }
+                    }
+                },
+                error: function(err) {
+                    console.error("[LoadRowOrder] Error:", err);
+                    if (typeof callback === "function") {
+                        callback(dataSource);
+                    }
+                }
+            });
+        }
+    
         function ReloadData() {
             AjaxHPAParadise({
                 data: {
@@ -1847,16 +1646,56 @@ SET @html = N'
                 },
                 success: function (res) {
                     const json = typeof res === "string" ? JSON.parse(res) : res;
-
-                    // Chuẩn hóa: results LUÔN là array
                     const results = Array.isArray(json?.data?.[0])
                         ? json.data[0]
                         : (json?.data?.[0] ? [json.data[0]] : []);
 
-                    const obj = results[0] || null;
+                    const obj = results.length === 1 ? results[0] : (results[0] || null);
 
-                    currentRecordID_HeaderID = obj.HeaderID || currentRecordID_HeaderID; currentRecordID_HistoryID = obj.HistoryID || currentRecordID_HistoryID; currentRecordID_TaskID = obj.TaskID || currentRecordID_TaskID;
-
+                    const gridInstancegridMyWork = InstancegridMyWorkPDB2DB35885F14803A9A52961A7871972;
+                    const gridConfiggridMyWork = window.getGridConfig_gridMyWork(results);
+                    loadGridRowOrder(
+                        "gridMyWork",
+                        results,
+                        "TaskID",
+                        function(sortedData) {
+                            gridInstancegridMyWork.beginUpdate();
+                            gridInstancegridMyWork.option("scrolling", {
+                                mode: "standard",
+                                showScrollbar: "onHover"
+                            });
+                            gridInstancegridMyWork.option("remoteOperations", false);
+                            gridInstancegridMyWork.option("paging.enabled", true);
+                            gridInstancegridMyWork.option("paging.pageSize", gridConfiggridMyWork.pageSize);
+                            gridInstancegridMyWork.option("pager.allowedPageSizes", gridConfiggridMyWork.allowedPageSizes);
+                            gridInstancegridMyWork.pageIndex(0);
+                            gridInstancegridMyWork.option("dataSource", sortedData);
+                            gridInstancegridMyWork.endUpdate();
+                        }
+                    );
+                
+                    const gridInstancegridSubtaskAssign = InstancegridSubtaskAssignP870C076FA1FD48DDBDEDE2C2435B4DA9;
+                    const gridConfiggridSubtaskAssign = window.getGridConfig_gridSubtaskAssign(results);
+                    loadGridRowOrder(
+                        "gridSubtaskAssign",
+                        results,
+                        "TaskID",
+                        function(sortedData) {
+                            gridInstancegridSubtaskAssign.beginUpdate();
+                            gridInstancegridSubtaskAssign.option("scrolling", {
+                                mode: "standard",
+                                showScrollbar: "onHover"
+                            });
+                            gridInstancegridSubtaskAssign.option("remoteOperations", false);
+                            gridInstancegridSubtaskAssign.option("paging.enabled", true);
+                            gridInstancegridSubtaskAssign.option("paging.pageSize", gridConfiggridSubtaskAssign.pageSize);
+                            gridInstancegridSubtaskAssign.option("pager.allowedPageSizes", gridConfiggridSubtaskAssign.allowedPageSizes);
+                            gridInstancegridSubtaskAssign.pageIndex(0);
+                            gridInstancegridSubtaskAssign.option("dataSource", sortedData);
+                            gridInstancegridSubtaskAssign.endUpdate();
+                        }
+                    );
+        
                     DataSource = results;
                     '
                     +(select loadData from tblCommonControlType_Signed where UID = 'PDB2DB35885F14803A9A52961A7871972')
@@ -1866,20 +1705,14 @@ SET @html = N'
                     +(select loadData from tblCommonControlType_Signed where UID = 'PC98E2DFA331343BBAE22882BE3825C1A')
                     +(select loadData from tblCommonControlType_Signed where UID = 'P02E6F18645BA47648567B32773A1B7B4')
                     +(select loadData from tblCommonControlType_Signed where UID = 'P27C40759D9C94453AB9B2DFBCD661AE3') +N'
-                
-
-                    if (1 === 1) {
-                        InstancegridMyWork.option("dataSource", results);
-                    } 
                 }
             })
         }
-        sp_Task_MyWork_html.ReloadData = ReloadData
         ReloadData()
-  })();
+    })();
 </script>
 ';
 SELECT @html AS html;
 END
 GO
-EXEC sp_GenerateHTMLScript 'sp_Task_MyWork_html'
+EXEC sp_GenerateHTMLScript_new 'sp_Task_MyWork_html'

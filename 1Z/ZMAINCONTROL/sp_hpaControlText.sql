@@ -1,4 +1,4 @@
-USE Paradise_Beta_Tai2
+USE Paradise_Dev
 GO
 if object_id('[dbo].[sp_hpaControlText]') is null
 	EXEC ('CREATE PROCEDURE [dbo].[sp_hpaControlText] as select 1')
@@ -11,7 +11,7 @@ BEGIN
     -- =========================================================================
     -- hpaControlText - NORMAL MODE: READONLY
     -- =========================================================================
-    UPDATE #temptable SET 
+    UPDATE #temptable SET
         loadUI = N'
             if (!$("head").find("#hpa-inherit-font-style").length) $("head").append("<style id=\"hpa-inherit-font-style\">.dx-widget{font-size:inherit!important;font-weight:inherit!important;line-height:inherit!important;border-radius:inherit!important}.dx-texteditor, .dx-texteditor-input{font-size:inherit!important;font-weight:inherit!important;line-height:inherit!important;box-sizing:border-box!important;}</style>");
             window.Instance%columnName% = $("#%UID%").dxTextBox({
@@ -27,7 +27,7 @@ BEGIN
     -- =========================================================================
     -- hpaControlText - NORMAL MODE: AUTOSAVE + Inline Edit + Popup Save/Cancel
     -- =========================================================================
-    UPDATE #temptable SET 
+    UPDATE #temptable SET
         loadUI = N'
             if (!$("head").find("#hpa-inherit-font-style").length) $("head").append("<style id=\"hpa-inherit-font-style\">.dx-widget{font-size:inherit!important;font-weight:inherit!important;line-height:inherit!important;border-radius:inherit!important}.dx-texteditor, .dx-texteditor-input{font-size:inherit!important;font-weight:inherit!important;line-height:inherit!important;box-sizing:border-box!important;}</style>");
             const $container%columnName% = $("#%UID%");
@@ -67,7 +67,7 @@ BEGIN
                         return $("<div class=\"d-flex\" style=\"gap: 6px; padding: 6px; min-height: fit-content; display: flex; align-items: center; justify-content: center; \">").append(
                             $("<div>").dxButton({
                                 icon: "check",
-                                type: "success",
+                              type: "success",
                                 stylingMode: "contained",
                                 width: 32, height: 32,
                                 elementAttr: { style: "border-radius: 4px !important;" },
@@ -82,10 +82,10 @@ BEGIN
                                     if (saveCallback%columnName%) {
                                         await saveCallback%columnName%(true); // Pass true để báo từ button
                                     }
-                                    
+
                                     actionPopup%columnName%.hide();
-                                    
-                                    setTimeout(function(){ 
+
+                                    setTimeout(function(){
                                         _justSaved%columnName% = false;
                                         _saving%columnName% = false;
                                     }, 300);
@@ -106,11 +106,11 @@ BEGIN
                                     if (cancelCallback%columnName%) {
                                         cancelCallback%columnName%();
                                     }
-                                    
+
                                     actionPopup%columnName%.hide();
-                                    
-                                    setTimeout(function(){ 
-                                        _cancelingSave%columnName% = false; 
+
+                                    setTimeout(function(){
+                                        _cancelingSave%columnName% = false;
                                     }, 300);
                                 }
                             })
@@ -192,20 +192,20 @@ BEGIN
             }
 
             async function saveValue%columnName%(fromButton = false) {
-                if (_cancelingSave%columnName%) { 
-                    _cancelingSave%columnName% = false; 
-                    exitEdit%columnName%(true); 
-                    return; 
+                if (_cancelingSave%columnName%) {
+                    _cancelingSave%columnName% = false;
+                    exitEdit%columnName%(true);
+                    return;
                 }
-                
+
                 // Chỉ check flag _saving khi KHÔNG phải từ button
                 // Vì khi từ button thì flag đã được set ở mousedown
                 if (!fromButton && _saving%columnName%) {
                     return;
                 }
-                
+
                 const newVal = %columnName%RealInstance.option("value");
-                
+
                 if (newVal === %columnName%OriginalValue) {
                     exitEdit%columnName%();
                     _saving%columnName% = false;
@@ -218,7 +218,7 @@ BEGIN
                     if (!fromButton) {
                         _saving%columnName% = true;
                     }
-                    
+
                     const dataJSON = JSON.stringify(["%tableId%", ["%columnName%"], [newVal]]);
 
                     let currentRecordIDValue = [
@@ -253,20 +253,20 @@ BEGIN
                     if ("%IsAlert%" === "1") {
                         uiManager.showAlert({ type: "success", message: "Lưu thành công" });
                     }
-                    
+
                     exitEdit%columnName%();
 
                     if (cellInfo && cellInfo.component) {
                         try {
                             const grid = cellInfo.component;
                             const rowKey = cellInfo.key || cellInfo.data["%ColumnIDName%"];
-                            
+
                             // Cập nhật cell value trong grid
                             grid.cellValue(cellInfo.rowIndex, "%columnName%", newVal);
-                            
+
                             // Refresh cell để hiển thị giá trị mới
                             grid.repaint();
-                            
+
                         } catch (syncErr) {
                             console.warn("[Grid Sync] Không thể sync grid:", syncErr);
                         }
@@ -276,7 +276,7 @@ BEGIN
                         uiManager.showAlert({ type: "error", message: "Có lỗi xảy ra khi lưu" });
                     }
                 } finally {
-                    setTimeout(function(){ 
+                    setTimeout(function(){
                         _saving%columnName% = false;
                         _justSaved%columnName% = false;
                     }, 100);
@@ -286,7 +286,7 @@ BEGIN
             /* =============== Handle Click Outside =============== */
             function handleMouseDown%columnName%(e) {
                 if (!%columnName%IsEditing) return;
-                
+
                 // Nếu đang save hoặc cancel thì không xử lý
                 if (_saving%columnName% || _cancelingSave%columnName%) return;
 
@@ -389,7 +389,7 @@ BEGIN
                 }, 100);
             });
 
-            window.%columnName%RealInstance = $("<div>")
+            %columnName%RealInstance = $("<div>")
                 .appendTo($container%columnName%)
                 .dxTextBox({
                     value: "",
@@ -423,18 +423,18 @@ BEGIN
                     },
                     onFocusOut: function(e) {
                         // Kiểm tra các flag để tránh save trùng
-                        if (_cancelingSave%columnName%) { 
-                            _cancelingSave%columnName% = false; 
-                            return; 
+                        if (_cancelingSave%columnName%) {
+                            _cancelingSave%columnName% = false;
+                            return;
                         }
-                        if (_justSaved%columnName%) { 
-                            _justSaved%columnName% = false; 
-                            return; 
+                        if (_justSaved%columnName%) {
+                            _justSaved%columnName% = false;
+                            return;
                         }
                         if (_saving%columnName%) {
                             return;
                         }
-                        
+
                         // Auto-save khi mất focus
                         if (%columnName%IsEditing) {
                             const $input = $container%columnName%.find("input");
@@ -492,10 +492,10 @@ BEGIN
 
     -- =========================================================================
     -- hpaControlText - NORMAL MODE: NO AUTOSAVE (ReadOnly=0, AutoSave=0)
-    -- Cho phép edit nhưng chỉ lưu text local, không gọi API (giống AutoSave=1 nhưng không lưu DB)
+    -- Cho phép edit nhưng chỉ lưu text local, không gọi API
     -- =========================================================================
-    UPDATE #temptable SET 
-        loadUI = N'
+    UPDATE #temptable SET
+    loadUI = N'
             if (!$("head").find("#hpa-inherit-font-style").length) $("head").append("<style id=\"hpa-inherit-font-style\">.dx-widget{font-size:inherit!important;font-weight:inherit!important;line-height:inherit!important;border-radius:inherit!important}.dx-texteditor, .dx-texteditor-input{font-size:inherit!important;font-weight:inherit!important;line-height:inherit!important;box-sizing:border-box!important;}</style>");
             const $container%columnName% = $("#%UID%");
 
@@ -504,137 +504,9 @@ BEGIN
             let %columnName%TextDisplay = null;
             let %columnName%MouseDownInside = false;
             let _cancelingSave%columnName% = false;
-            let _justSaved%columnName% = false;
-            let _saving%columnName% = false;
             window.%columnName%RealInstance = null;
 
-            /* =============== Popup Save/Cancel (No API) =============== */
-            let actionPopup%columnName%     = null;
-            let currentFieldId%columnName%  = null;
-            let saveCallback%columnName%    = null;
-            let cancelCallback%columnName%  = null;
-
-            function initActionPopup%columnName%() {
-                if (actionPopup%columnName%) return;
-                actionPopup%columnName% = $("<div>").appendTo("body").dxPopup({
-                    width: "auto",
-                    height: "auto",
-                    showTitle: false,
-                    visible: false,
-                    shading: false,
-                    dragEnabled: false,
-                    hideOnOutsideClick: false,
-                    animation: null,
-                    showCloseButton: false,
-                    position: { at: "bottom right", my: "top right", offset: "0 4" },
-                    onShown: function(e) {
-                        $(e.component.content()).closest(".dx-overlay-wrapper").css("z-index", "9999");
-                    },
-                    contentTemplate: () => {
-                        return $("<div class=\"d-flex\" style=\"gap: 6px; padding: 6px; min-height: fit-content; display: flex; align-items: center; justify-content: center; \">").append(
-                            $("<div>").dxButton({
-                                icon: "check",
-                                type: "success",
-                                stylingMode: "contained",
-                                width: 32, height: 32,
-                                elementAttr: { style: "border-radius: 4px !important;" },
-                                onInitialized: function(e) {
-                                    $(e.element).on("mousedown", function() {
-                                        _justSaved%columnName% = true;
-                                        _saving%columnName% = true;
-                                    });
-                                },
-                                onClick: async function() {
-                                    if (saveCallback%columnName%) {
-                                        await saveCallback%columnName%(true);
-                                    }
-                                    
-                                    actionPopup%columnName%.hide();
-                                    
-                                    setTimeout(function(){ 
-                                        _justSaved%columnName% = false;
-                                        _saving%columnName% = false;
-                                    }, 300);
-                                }
-                            }),
-                            $("<div>").dxButton({
-                                icon: "close",
-                                stylingMode: "outlined",
-                                width: 32, height: 32,
-                                elementAttr: { style: "border-radius: 4px !important;" },
-                                onInitialized: function(e) {
-                                    $(e.element).on("mousedown", function() {
-                                        _cancelingSave%columnName% = true;
-                                    });
-                                },
-                                onClick: function() {
-                                    if (cancelCallback%columnName%) {
-                                        cancelCallback%columnName%();
-                                    }
-                                    
-                                    actionPopup%columnName%.hide();
-                                    
-                                    setTimeout(function(){ 
-                                        _cancelingSave%columnName% = false; 
-                                    }, 300);
-                                }
-                            })
-                        );
-                    },
-                    onHiding: function() {
-                        currentFieldId%columnName% = saveCallback%columnName% = cancelCallback%columnName% = null;
-                    }
-                }).dxPopup("instance");
-            }
-
-            function showActionPopup%columnName%(inputElement, fieldId, onSave, onCancel) {
-                if (!actionPopup%columnName%) initActionPopup%columnName%();
-
-                if (currentFieldId%columnName% && currentFieldId%columnName% !== fieldId && cancelCallback%columnName%) {
-                    cancelCallback%columnName%();
-                }
-
-                currentFieldId%columnName% = fieldId;
-                saveCallback%columnName%   = onSave;
-                cancelCallback%columnName% = onCancel;
-
-                const updatePos = () => {
-                    if (!actionPopup%columnName%?.option("visible")) return;
-                    const $input = $(inputElement).find("input");
-                    if ($input.length === 0) return;
-                    actionPopup%columnName%.option({
-                        position: {
-                            my: "top right",
-                            at: "bottom right",
-                            of: $input,
-                            offset: "0 4"
-                        }
-                    });
-                    actionPopup%columnName%.repaint();
-                };
-
-                actionPopup%columnName%.show();
-                setTimeout(updatePos, 10);
-
-                $(window).off("scroll.ap" + fieldId).on("scroll.ap" + fieldId, updatePos);
-                $(window).off("resize.ap" + fieldId).on("resize.ap" + fieldId, updatePos);
-                $(".dx-scrollable").off("scroll.ap" + fieldId).on("scroll.ap" + fieldId, updatePos);
-
-                const intervalId = setInterval(() => {
-                    if (actionPopup%columnName%?.option("visible")) updatePos();
-                    else clearInterval(intervalId);
-                }, 100);
-
-                actionPopup%columnName%.option("onHiding", function() {
-                    clearInterval(intervalId);
-                    $(window).off("scroll.ap" + fieldId);
-                    $(window).off("resize.ap" + fieldId);
-                    $(".dx-scrollable").off("scroll.ap" + fieldId);
-                    currentFieldId%columnName% = saveCallback%columnName% = cancelCallback%columnName% = null;
-                });
-            }
-
-            /* =============== Inline Edit logic (Local Only) =============== */
+            /* =============== Inline Edit logic (No API Save) =============== */
             function exitEdit%columnName%(cancel = false) {
                 if (!%columnName%IsEditing) return;
                 %columnName%IsEditing = false;
@@ -649,76 +521,27 @@ BEGIN
                     %columnName%OriginalValue = %columnName%RealInstance.option("value");
                 }
 
-                if (actionPopup%columnName% && actionPopup%columnName%.option("visible")) {
-                    actionPopup%columnName%.option("visible", false);
-                }
-
                 $container%columnName%.find(".dx-texteditor").hide();
                 %columnName%TextDisplay.text(%columnName%OriginalValue || "").show();
             }
 
-            async function saveValue%columnName%(fromButton = false) {
-                if (_cancelingSave%columnName%) { 
-                    _cancelingSave%columnName% = false; 
-                    exitEdit%columnName%(true); 
-                    return; 
-                }
-                
-                if (!fromButton && _saving%columnName%) {
-                    return;
-                }
-                
+            function saveValueLocal%columnName%() {
                 const newVal = %columnName%RealInstance.option("value");
-                
-                if (newVal === %columnName%OriginalValue) {
-                    exitEdit%columnName%();
-                    _saving%columnName% = false;
-                    _justSaved%columnName% = false;
-                    return;
-                }
+                if (_cancelingSave%columnName%) { _cancelingSave%columnName% = false; exitEdit%columnName%(true); return; }
 
-                try {
-                    if (!fromButton) {
-                        _saving%columnName% = true;
-                    }
-                    
-                    // KHÔNG gọi API, chỉ cập nhật giá trị local
-                    %columnName%OriginalValue = newVal;
-                    
-                    exitEdit%columnName%();
-
-                    // Sync grid cell nếu được gọi từ grid
-                    if (cellInfo && cellInfo.component) {
-                        try {
-                            const grid = cellInfo.component;
-                            grid.cellValue(cellInfo.rowIndex, "%columnName%", newVal);
-                            grid.repaint();
-                        } catch (syncErr) {
-                            console.warn("[Grid Sync] Không thể sync grid:", syncErr);
-                        }
-                    }
-
-                } catch (err) {
-                    console.warn("[%columnName%] Có lỗi:", err);
-                } finally {
-                    setTimeout(function(){ 
-                        _saving%columnName% = false;
-                        _justSaved%columnName% = false;
-                    }, 100);
-                }
+                // Chỉ cập nhật giá trị local, không gọi API
+                %columnName%OriginalValue = newVal;
+                exitEdit%columnName%();
             }
 
             /* =============== Handle Click Outside =============== */
             function handleMouseDown%columnName%(e) {
                 if (!%columnName%IsEditing) return;
-                
-                if (_saving%columnName% || _cancelingSave%columnName%) return;
 
                 const $t = $(e.target);
                 const isInsideControl = $t.closest($container%columnName%).length > 0;
-                const isInsidePopup = $t.closest(".dx-popup-wrapper").length > 0;
 
-                if (isInsideControl || isInsidePopup) {
+                if (isInsideControl) {
                     %columnName%MouseDownInside = true;
                 } else {
                     %columnName%MouseDownInside = false;
@@ -728,17 +551,12 @@ BEGIN
             function handleMouseUp%columnName%(e) {
                 if (!%columnName%IsEditing) return;
 
-                if (_saving%columnName% || _cancelingSave%columnName% || _justSaved%columnName%) {
-                    %columnName%MouseDownInside = false;
-                    return;
-                }
-
                 const $t = $(e.target);
                 const isInsideControl = $t.closest($container%columnName%).length > 0;
-                const isInsidePopup = $t.closest(".dx-popup-wrapper").length > 0;
 
-                if (!%columnName%MouseDownInside && !isInsideControl && !isInsidePopup) {
-                    saveValue%columnName%();
+                // Chỉ save local khi cả mousedown và mouseup đều ở ngoài
+                if (!%columnName%MouseDownInside && !isInsideControl) {
+                    saveValueLocal%columnName%();
                 }
 
                 %columnName%MouseDownInside = false;
@@ -756,11 +574,12 @@ BEGIN
                 "transition": "border-color 0.2s"
             }).appendTo($container%columnName%);
 
+            // Hover effect để người dùng biết có thể click
             %columnName%TextDisplay.hover(
                 function() {
                     if (!%columnName%IsEditing) {
                         $(this).css("border-color", "#ddd");
-                    }
+                }
                 },
                 function() {
                     if (!%columnName%IsEditing) {
@@ -796,13 +615,7 @@ BEGIN
                     "box-sizing": "border-box"
                 });
 
-                showActionPopup%columnName%(
-                    $container%columnName%,
-                    "%columnName%",
-                    async (fromButton) => { await saveValue%columnName%(fromButton); },
-                    () => exitEdit%columnName%(true)
-                );
-
+                // Bind events sau khi mở edit mode
                 setTimeout(() => {
                     $(document).on("mousedown.edit%columnName%", handleMouseDown%columnName%);
                     $(document).on("mouseup.edit%columnName%", handleMouseUp%columnName%);
@@ -820,18 +633,20 @@ BEGIN
 
                         if (e.event.key === "Enter") {
                             e.event.preventDefault();
+                            // Cập nhật value từ input trước khi save local
                             const $input = $container%columnName%.find("input");
                             const currentValue = $input.val();
                             %columnName%RealInstance.option("value", currentValue);
-                            saveValue%columnName%();
+                            saveValueLocal%columnName%();
                         }
 
                         if (e.event.key === "Tab") {
                             e.event.preventDefault();
+                            // Tab cũng save local
                             const $input = $container%columnName%.find("input");
                             const currentValue = $input.val();
                             %columnName%RealInstance.option("value", currentValue);
-                            saveValue%columnName%();
+                            saveValueLocal%columnName%();
                         }
 
                         if (e.event.key === "Escape") {
@@ -840,24 +655,16 @@ BEGIN
                         }
                     },
                     onFocusOut: function(e) {
-                        if (_cancelingSave%columnName%) { 
-                            _cancelingSave%columnName% = false; 
-                            return; 
-                        }
-                        if (_justSaved%columnName%) { 
-                            _justSaved%columnName% = false; 
-                            return; 
-                        }
-                        if (_saving%columnName%) {
-                            return;
-                        }
-                        
+                        // Do not save if Cancel was just clicked
+                        if (_cancelingSave%columnName%) { _cancelingSave%columnName% = false; return; }
+
+                        // Auto-save local khi mất focus
                         if (%columnName%IsEditing) {
                             const $input = $container%columnName%.find("input");
                             if ($input.val() !== %columnName%OriginalValue) {
                                 const currentValue = $input.val();
                                 %columnName%RealInstance.option("value", currentValue);
-                                saveValue%columnName%();
+                                saveValueLocal%columnName%();
                             } else {
                                 exitEdit%columnName%(false);
                             }

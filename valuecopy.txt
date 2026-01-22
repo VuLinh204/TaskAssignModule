@@ -1,912 +1,152 @@
 
-		(() => {
-        // Khai báo biến global - phải khai báo TRƯỚC
-        let unreg_tomselect = null;
-        let groupTomSelect = null;
-        let originalTelegram = "";
-        let originalGroups = [];
-        let currentLogin = "";
-        let currentAccount = null;
-		let employees = [];
-        let accounts = [];
-
-        // Khởi tạo các mảng này để tránh lỗi undefined
-        window.permissionGroups = window.permissionGroups || [];
-        window.linkedEmployees = window.linkedEmployees || [];
-
-        function checkCanUpdate() {
-            if (!currentAccount || !currentAccount.EmployeeID) return;
-
-            const telegramChanged = $("#unreg_TelegramChatID").val() !== originalTelegram;
-            const currentGroups = groupTomSelect ? groupTomSelect.items : [];
-            const groupsChanged = JSON.stringify(currentGroups.sort()) !== JSON.stringify(originalGroups.sort());
-
-            const hasChanges = telegramChanged || groupsChanged;
-            $("#unreg_save_btn").prop("disabled", !hasChanges).css("opacity", hasChanges ? "1" : "0.5");
-        }
-
-        function closeModal() {
-            document.getElementById("unreg_modal_overlay").classList.remove("show");
-        }
-
-		function openDetailLoginName(acc) {
-            // 1. Gắn ngay LoginName lấy từ Grid lên giao diện (như bạn confirm là đã lấy được)
-            $("#unreg_LoginName").text(acc.LoginName);
-            currentLogin = acc.LoginName;
-
-            // Reset các biến tạm
-            originalTelegram = "";
-            originalGroups = [];
-
-            // Xóa badge cũ
-            $("#unreg_LoginName").closest(".unreg-info-card").find(".employee-status-badge").remove();
-
-            // 2. BÓC DỮ LIỆU TỪ DATASOURCE
-            // Dùng LoginName vừa click để tìm object gốc trong window.DataSource
-            // Việc này đảm bảo lấy đủ các trường (ví dụ ParentLoginID) mà trên lưới có thể bị thiếu
-            const dataSource = window.DataSource || [];
-            currentAccount = dataSource.find(x => x.LoginName === acc.LoginName) || acc;
-
-            // 3. XỬ LÝ TRẠNG THÁI LIÊN KẾT
-            // Nếu là User/Managers hoặc đã có EmployeeID thì coi như đã liên kết
-            const isSpecialAccount = (currentAccount.LoginName === 'User' || currentAccount.LoginName === 'Managers');
-            const hasLink = !!currentAccount.EmployeeID || isSpecialAccount;
-
-            // 4. KHỞI TẠO TOMSELECT (Reset & Init)
-            if (unreg_tomselect) unreg_tomselect.destroy();
-            if (groupTomSelect) groupTomSelect.destroy();
-
-            // Init Employee Select
-            unreg_tomselect = new TomSelect('#unreg_employeeLookup', {
-                valueField: 'EmployeeID', labelField: 'FullName',
-                searchField: ['EmployeeID', 'FullName', 'MobilePhone'],
-                placeholder: 'Nhập mã hoặc tên nhân viên...',
-                maxOptions: 300,
-                render: {
-                    option: (d, e) => `<div><strong>${e(d.EmployeeID)}</strong> - ${e(d.FullName)}</div>`,
-                    item: (d, e) => `<div><strong>${e(d.EmployeeID)}</strong> - ${e(d.FullName)}</div>`
-                },
-                onChange: function(value) {
-                    if (!value) {
-                        $("#unreg_EmployeeID, #unreg_FullName, #unreg_Phone, #unreg_Email, #unreg_Birthday, #unreg_HireDate, #unreg_TelegramChatID").val("");
-                        return;
-                    }
-                    const emp = employees.find(x => x.EmployeeID === value) || window.linkedEmployees.find(x => x.EmployeeID === value);
-                    if (emp) {
-                        $("#unreg_EmployeeID").val(emp.EmployeeID);
-                        $("#unreg_FullName").val(emp.FullName);
-                        $("#unreg_Phone").val(emp.MobilePhone || "");
-                        $("#unreg_Email").val(emp.Email || "");
-                        $("#unreg_Birthday").val(emp.Birthday ? emp.Birthday.substring(0, 10) : "");
-                        $("#unreg_HireDate").val(emp.HireDate ? emp.HireDate.substring(0, 10) : "");
-                        $("#unreg_TelegramChatID").val(emp.TelegramChatID || "");
-                    }
-          }
-            });
-
-            // Init Group Select
-            const permissionOptions = (window.permissionGroups || []).map(g => ({ value: g.LoginID, text: g.GroupName }));
-            groupTomSelect = new TomSelect('#unreg_GroupRight', {
-                plugins: ['remove_button'], persist: false, create: false,
-                dropdownDirection: 'upward', options: permissionOptions
-            });
-
-            // 5. FILL DATA VÀO FORM
-            $("#unreg_EmployeeID, #unreg_FullName, #unreg_Phone, #unreg_Email, #unreg_Birthday, #unreg_HireDate, #unreg_TelegramChatID").val("");
-
-            // Fill Quyền (Group)
-            if (currentAccount.ParentLoginID) {
-                const ids = currentAccount.ParentLoginID.split('&').map(x => x.trim()).filter(Boolean);
-                groupTomSelect.clear();
-                groupTomSelect.on("item_add", function() {
-                    if (groupTomSelect.items.length === ids.length) {
-                        originalGroups = ids.slice();
-                        checkCanUpdate();
-                        groupTomSelect.off("item_add");
-                    }
-                });
-                groupTomSelect.addItems(ids);
-            }
-
-            if (hasLink) {
-                // === ĐÃ LIÊN KẾT ===
-                $("#unreg_EmployeeID").val(currentAccount.EmployeeID || (isSpecialAccount ? "SYSTEM" : "")).prop("readonly", true);
-                $("#unreg_FullName").val(currentAccount.FullName || "").prop("readonly", true);
-
-                // Ưu tiên lấy thông tin từ linkedEmployees nếu có, không thì lấy từ currentAccount
-                const linkedEmp = window.linkedEmployees.find(e => e.EmployeeID === currentAccount.EmployeeID);
-                const source = linkedEmp || currentAccount;
-
-                $("#unreg_Phone").val(source.MobilePhone || "");
-                $("#unreg_Email").val(source.Email || "");
-                $("#unreg_Birthday").val(source.Birthday ? source.Birthday.substring(0, 10) : "");
-                $("#unreg_HireDate").val(source.HireDate ? source.HireDate.substring(0, 10) : "");
-                $("#unreg_TelegramChatID").val(source.TelegramChatID || "");
-                originalTelegram = source.TelegramChatID || "";
-
-                // Disable Inputs
-                $("#unreg_EmployeeID, #unreg_FullName, #unreg_Phone, #unreg_Email, #unreg_Birthday, #unreg_HireDate").prop("disabled", true).addClass("bg-light text-muted");
-
-                unreg_tomselect.disable();
-                unreg_tomselect.clear();
-
-                $("#unreg_save_btn").html('<i class="bi bi-save me-2"></i>Cập nhật').prop("disabled", true).css("opacity", "0.5");
-                $("#unreg_unlink_btn").show();
-                $("#unreg_delete_btn").hide();
-                $(".unreg-modal-title").html('<i class="bi bi-link-45deg me-2"></i>Thông tin liên kết');
-
-                $("#unreg_TelegramChatID").off("input").on("input", checkCanUpdate);
-                groupTomSelect.on("change", checkCanUpdate);
-                checkCanUpdate();
-
-            } else {
-                // === CHƯA LIÊN KẾT ===
-                employees.forEach(e => unreg_tomselect.addOption(e));
-                unreg_tomselect.enable();
-
-                $("#unreg_EmployeeID, #unreg_FullName").prop("disabled", true).addClass("bg-light text-muted").val("");
-                $("#unreg_Phone, #unreg_Email, #unreg_Birthday, #unreg_HireDate, #unreg_TelegramChatID").prop("disabled", false).removeClass("bg-light text-muted disabled");
-
-                // Gợi ý thông tin từ chính tài khoản login
-                $("#unreg_Email").val(currentAccount.Email || "");
-                $("#unreg_Phone").val(currentAccount.MobilePhone || "");
-
-                $("#unreg_save_btn").html('<i class="bi bi-check2 me-2"></i>Xác nhận').prop("disabled", false).css("opacity", "1");
-                $("#unreg_unlink_btn").hide();
-                $("#unreg_delete_btn").show();
-                $(".unreg-modal-title").html('<i class="bi bi-link-45deg me-2"></i>Xác nhận liên kết');
-            }
-
-            document.getElementById("unreg_modal_overlay").classList.add("show");
-        }
-        
+    <div id="sp_UnregisteredAccount_NN_Control">
+        <div id="GridAccount" style="height: 100%;"></div><div id="P8EC0724E578142E4AAD1FE3E0D6A4C94"></div><div id="PF9A3029C9FAB40E0B476C0D074A8DE5B"></div><div id="P804D6FADD5ED4412BB218159C16E04EF"></div><div id="P3FA0343C98A44849A4355D47E2E24061"></div><div id="PD987FC71CE5E444A9376403FF65C59D6"></div><div id="P5CD93C11BA754CDC9BC5D922A010638D"></div><div id="PDA076A9DA8724C408B0629DEB737E87D"></div><div id="PBD59BFBAB7E24842B06A82E458CB86F3"></div><div id="P05E1D5AAA0374717B94077A9FDD5559D"></div><div id="P4031E37943134B329C9F457B0CF5CF5C"></div><div id="P56F2EB96E5BB4C97BECA22B15340AAD4"></div><div id="PAC8E76094CDD4769864B4DDF6F660DFF"></div>
+    </div>
+    <script>
+        (() => {
             let DataSource = []
+            '
+        +(select loadUI from tblCommonControlType_Signed where UID = 'P23DEDE11C5E44D8D8ADB55D186AC4198')
+        +(select loadUI from tblCommonControlType_Signed where UID = 'P8EC0724E578142E4AAD1FE3E0D6A4C94')
+        +(select loadUI from tblCommonControlType_Signed where UID = 'PF9A3029C9FAB40E0B476C0D074A8DE5B')
+        +(select loadUI from tblCommonControlType_Signed where UID = 'P804D6FADD5ED4412BB218159C16E04EF')
+        +(select loadUI from tblCommonControlType_Signed where UID = 'P3FA0343C98A44849A4355D47E2E24061')
+        +(select loadUI from tblCommonControlType_Signed where UID = 'PD987FC71CE5E444A9376403FF65C59D6')
+        +(select loadUI from tblCommonControlType_Signed where UID = 'P5CD93C11BA754CDC9BC5D922A010638D')
+        +(select loadUI from tblCommonControlType_Signed where UID = 'PDA076A9DA8724C408B0629DEB737E87D')
+        +(select loadUI from tblCommonControlType_Signed where UID = 'PBD59BFBAB7E24842B06A82E458CB86F3')
+        +(select loadUI from tblCommonControlType_Signed where UID = 'PC25903981FC547BC8338EE13BAB0E331')
+        +(select loadUI from tblCommonControlType_Signed where UID = 'P05E1D5AAA0374717B94077A9FDD5559D')
+        +(select loadUI from tblCommonControlType_Signed where UID = 'P4031E37943134B329C9F457B0CF5CF5C')
+        +(select loadUI from tblCommonControlType_Signed where UID = 'P56F2EB96E5BB4C97BECA22B15340AAD4')
+        +(select loadUI from tblCommonControlType_Signed where UID = 'PAC8E76094CDD4769864B4DDF6F660DFF')
+        +(select loadUI from tblCommonControlType_Signed where UID = 'P3B8CB442562743D1BA18EA8CEAAD3D7C') +N'
+
+             window.currentRecordID_CompanyID = null; window.currentRecordID_CRM_CustomerID = null; window.currentRecordID_EmployeeID = null; window.currentRecordID_LoginName = null;
             
-                    // Thêm responsive styles cho grid header
-                    const styleGridAccount = document.createElement("style");
-                    styleGridAccount.textContent = `
-                        /* =============== RESPONSIVE POPUP STYLES =============== */
-                        .dx-popup.hpa-responsive {
-                            max-width: 95vw !important;
-                            max-height: 95vh !important;
-                            width: 95vw !important;
-                            left: 0 !important;
-                            top: 0 !important;
-                        }
-
-                        .dx-popup.hpa-responsive .dx-popup-content {
-                            height: calc(95vh - 120px) !important;
-                            max-height: calc(95vh - 120px) !important;
-                            overflow-y: auto !important;
-                            padding: 8px !important;
-                            display: flex !important;
-                            flex-direction: column !important;
-                        }
-
-                        .dx-popup.hpa-responsive .dx-popup-content-scrollable {
-                            flex: 1 !important;
-                            min-height: 0 !important;
-                            overflow: auto !important;
-                        }
-
-                        .dx-popup-content.dx-popup-content-scrollable {
-                            height: auto !important;
-                        }
-
-                        .dx-popup.hpa-responsive .dx-toolbar-items {
-                            padding: 4px 0 !important;
-                            flex-wrap: wrap;
-                        }
-
-                        .dx-popup.hpa-responsive .dx-toolbar-item {
-                            margin: 2px 2px !important;
-                        }
-
-                        /* =============== GRID HEADER STYLES =============== */
-                        .dx-datagrid {
-                            font-size: 14px;
-                        }
-
-                        .dx-datagrid-headers {
-                            white-space: normal;
-                            word-break: break-word;
-                        }
-
-                        .dx-datagrid-header-panel {
-                            padding: 8px;
-                        }
-
-                        .dx-datagrid .dx-header-row {
-                            height: auto;
-                            min-height: 44px;
-                        }
-
-                        .dx-datagrid .dx-col-fixed {
-                            z-index: 800 !important;
-                        }
-
-                        /* Group row - sát mép */
-                        .dx-datagrid .dx-group-row {
-                            padding: 0 !important;
-                        }
-
-                        .dx-datagrid .dx-group-row > td {
-                            padding: 4px 6px !important;
-                        }
-
-                        .dx-datagrid .dx-group-row .dx-group-text {
-                            padding: 0 !important;
-                            margin: 0 !important;
-                        }
-
-                        /* Mobile responsive */
-                        @media (max-width: 1024px) {
-                            .dx-popup.hpa-responsive {
-                                max-width: 90vw !important;
-                                max-height: 90vh !important;
-                                width: 90vw !important;
-                                left: 5vw !important;
-                            }
-                            .dx-overlay-content.dx-popup-normal.dx-popup-draggable.dx-resizable {
-                                width: 90vw !important;
-                                max-width: 90vw !important;
-                            }
-                            .dx-popup.hpa-responsive .dx-popup-content {
-                                max-height: calc(95vh - 120px) !important;
-                            }
-                        }
-
-                        @media (max-width: 768px) {
-                            .dx-datagrid {
-                                font-size: 12px;
-                            }
-
-                            .dx-datagrid-headers {
-                                padding: 4px !important;
-                            }
-
-                            .dx-datagrid .dx-header-row {
-                                height: auto;
-                                min-height: 36px;
-                                padding: 0 !important;
-                            }
-
-                            .dx-datagrid-text-content {
-                                padding: 4px 2px !important;
-                                font-size: 11px !important;
-                                line-height: 1.3 !important;
-                                overflow: visible !important;
-                                white-space: normal !important;
-                                word-break: break-word !important;
-                            }
-
-                            .dx-datagrid-text-content.dx-header-filter {
-                                padding: 2px 1px !important;
-                            }
-
-                            .dx-checkbox {
-                                width: 24px !important;
-                                height: 24px !important;
-                            }
-
-                            .dx-datagrid-rowsview {
-                                padding: 0 !important;
-                            }
-
-                            .dx-datagrid .dx-row {
-                                height: auto;
-                                min-height: 36px !important;
-                                padding: 0 !important;
-                            }
-
-                            .dx-datagrid .dx-data-row > td {
-                                padding: 0 !important;
-                                white-space: normal !important;
-                                word-break: break-word !important;
-                                vertical-align: middle !important;
-                            }
-
-                            .dx-datagrid .dx-group-row > td {
-                                padding: 4px 2px !important;
-                            }
-
-                            .dx-pager {
-                                padding: 4px 0 !important;
-                            }
-
-                            .dx-pager-page,
-                            .dx-pager-navigation {
-                                padding: 2px 4px !important;
-                                font-size: 11px !important;
-                            }
-
-                            .dx-searchbox {
-                                width: 100% !important;
-                                max-width: none !important;
-                            }
-
-                            .dx-searchbox .dx-texteditor-input {
-                                padding: 4px !important;
-                                font-size: 12px !important;
-                                height: 32px !important;
-                            }
-
-                            .dx-popup.hpa-responsive {
-                                max-width: 95vw !important;
-                                max-height: 85vh !important;
-                                width: 95vw !important;
-                                left: 2.5vw !important;
-                                top: 5vh !important;
-                            }
-                            .dx-overlay-content.dx-popup-normal.dx-popup-draggable.dx-resizable {
-                                width: 95vw !important;
-                                max-width: 95vw !important;
-                                height: auto !important;
-                                max-height: 85vh !important;
-                            }
-                            .dx-popup.hpa-responsive .dx-overlay-wrapper {
-                                position: fixed !important;
-                            }
-                            .dx-popup.hpa-responsive .dx-popup-content {
-                                height: calc(95vh - 120px) !important;
-                                max-height: calc(95vh - 120px) !important;
-                                font-size: 13px !important;
-                                padding: 6px !important;
-                                display: flex !important;
-                                flex-direction: column !important;
-                            }
-
-                            .dx-popup.hpa-responsive .dx-popup-content-scrollable {
-                                flex: 1 !important;
-                                min-height: 0 !important;
-                                overflow: auto !important;
-                            }
-
-                            .dx-popup-content.dx-popup-content-scrollable {
-                                height: auto !important;
-                            }
-                            /* Toolbar buttons */
-                            .dx-popup.hpa-responsive .dx-toolbar-item .dx-button {
-                                padding: 6px 12px !important;
-                                font-size: 12px !important;
-                                min-height: 36px !important;
-                                width: auto !important;
-                            }
-                            .dx-popup.hpa-responsive .dx-toolbar-item .dx-button .dx-button-text {
-                                font-size: 12px !important;
-                            }
-                            .dx-popup.hpa-responsive .dx-button {
-                                padding: 6px 12px !important;
-                                font-size: 12px !important;
-                                min-height: 36px !important;
-                                width: auto !important;
-                            }
-                            .dx-popup.hpa-responsive .dx-button .dx-button-text {
-                                font-size: 12px !important;
-                            }
-                            .dx-popup.hpa-responsive .dx-datagrid {
-                                font-size: 11px !important;
-                            }
-                            .dx-popup.hpa-responsive .dx-datagrid .dx-data-row td {
-                                padding: 4px 2px !important;
-                            }
-                        }
-
-                        @media (max-width: 480px) {
-                            .dx-datagrid {
-                                font-size: 12px;
-                            }
-
-                            .dx-datagrid-headers {
-                                padding: 2px !important;
-                            }
-
-                            .dx-datagrid .dx-header-row {
-                                min-height: 32px;
-                            }
-
-                            .dx-datagrid-text-content {
-                                padding: 2px 1px !important;
-                                font-size: 12px !important;
-                            }
-
-                            .dx-checkbox {
-                                width: 20px !important;
-                                height: 20px !important;
-                            }
-
-                            .dx-datagrid .dx-row {
-                                min-height: 32px;
-                            }
-
-                            .dx-datagrid .dx-data-row > td {
-                                padding: 2px 1px !important;
-                                font-size: 12px !important;
-                            }
-
-                            .dx-pager-page,
-                            .dx-pager-navigation {
-                                padding: 1px 2px !important;
-                                font-size: 12px !important;
-                            }
-
-                            .dx-popup.hpa-responsive {
-                                max-width: 98vw !important;
-                                max-height: 80vh !important;
-                                width: 98vw !important;
-                                left: 1vw !important;
-                                top: 10vh !important;
-                            }
-                            .dx-overlay-content.dx-popup-normal.dx-popup-draggable.dx-resizable {
-                                width: 98vw !important;
-                                max-width: 98vw !important;
-                                height: auto !important;
-                                max-height: 80vh !important;
-                            }
-                            .dx-popup.hpa-responsive .dx-overlay-wrapper {
-                                position: fixed !important;
-                            }
-                            .dx-popup.hpa-responsive .dx-popup-content {
-                                height: calc(95vh - 120px) !important;
-                                max-height: calc(95vh - 120px) !important;
-                                font-size: 12px !important;
-                                padding: 4px !important;
-                                display: flex !important;
-                                flex-direction: column !important;
-                            }
-
-                            .dx-popup.hpa-responsive .dx-popup-content-scrollable {
-                                flex: 1 !important;
-                                min-height: 0 !important;
-                                overflow: auto !important;
-                            }
-
-                            .dx-popup-content.dx-popup-content-scrollable {
-                                height: auto !important;
-                            }
-                            /* Toolbar buttons */
-                            .dx-popup.hpa-responsive .dx-toolbar-item .dx-button {
-                                padding: 4px 8px !important;
-                                font-size: 11px !important;
-                                min-height: 32px !important;
-                                width: auto !important;
-                            }
-                            .dx-popup.hpa-responsive .dx-toolbar-item .dx-button .dx-button-text {
-                                font-size: 11px !important;
-                            }
-                            .dx-popup.hpa-responsive .dx-button {
-                                padding: 4px 8px !important;
-                                font-size: 11px !important;
-                                min-height: 32px !important;
-                                width: auto !important;
-                            }
-                            .dx-popup.hpa-responsive .dx-button .dx-button-text {
-                                font-size: 11px !important;
-                            }
-                            .dx-popup.hpa-responsive .dx-datagrid {
-                                font-size: 10px !important;
-                            }
-                            .dx-popup.hpa-responsive .dx-datagrid .dx-data-row td {
-                                padding: 2px 1px !important;
-                                font-size: 10px !important;
-                            }
-                            .dx-popup.hpa-responsive .dx-datagrid .dx-header-row {
-                                min-height: 28px !important;
-                            }
-                            .dx-popup.hpa-responsive .dx-checkbox {
-                                width: 18px !important;
-                                height: 18px !important;
-                            }
-                        }
-                    `;
-                    document.head.appendChild(styleGridAccount);
-
-                    // =============== GRID CONFIG DYNAMIC BASED ON DATA SIZE ===============
-                    // Hàm tính remoteOperations dựa trên số lượng dòng
-                    window.getGridConfig_GridAccount = function(dataArray) {
-                        const dataSize = Array.isArray(dataArray) ? dataArray.length : 0;
-                        const isLargeDataset = dataSize > 1000;
-                        
-                        return {
-                            remoteOperations: isLargeDataset,
-                            pageSize: isLargeDataset ? 25 : 10,
-                            allowedPageSizes: isLargeDataset ? [10, 25, 50] : [5, 10, 50, 100]
-                        };
-                    };
-
-                    window.InstanceGridAccount = $("#GridAccount").dxDataGrid({
-                        dataSource: [],
-                        keyExpr: "LoginName",
-                        height: "100%",
-                        width: "100%",
-                        remoteOperations: false,
-                        showBorders: true,
-                        showRowLines: true,
-                        rowAlternationEnabled: false,
-                        hoverStateEnabled: true,
-                        columnAutoWidth: true,
-                        allowColumnReordering: false,
-                        allowColumnResizing: false,
-                        columnResizingMode: "widget",
-                        wordWrapEnabled: true,
-
-                        scrolling: {
-                            mode: "virtual",
-                            rowRenderingMode: "virtual",
-                            showScrollbar: "onHover"
-                        },
-
-                        paging: {
-                            enabled: true,
-                            pageSize: 10
-                        },
-
-                        pager: {
-                            visible: true,
-                            allowedPageSizes: [5, 10, 50, 100],
-                            showPageSizeSelector: true,
-                            showInfo: true,
-                            showNavigationButtons: true
-                        },
-
-                        selection: {
-                            mode: "single",
-                            showCheckBoxesMode: "none",
-                            allowSelectAll: false
-                        },
-
-                        searchPanel: {
-                            visible: true,
-                            width: 240,
-                            placeholder: "Tìm kiếm..."
-                        },
-
-                        headerFilter: { visible: true },
-
-                        columnChooser: {
-                            enabled: true,
-                            mode: "select",
-                            title: "Chọn cột hiển thị"
-                        },
-
-                        stateStoring: {
-                            enabled: false,
-                            type: "localStorage",
-                            storageKey: "gridState_Grid_View"
-                        },
-
-                        grouping: {
-                            autoExpandAll: true,
-                            contextMenuEnabled: false,
-                            allowCollapsing: true
-                        },
-
-                        groupPanel: { visible: false },
-                        columnFixing: { enabled: true },
-
-                        editing: {
-                            mode: "cell",
-                            allowUpdating: true
-                        },
-
-                        rowDragging: {
-                            allowReordering: true,
-                            showDragIcons: true,
-                            onReorder: function(e) {
-                                let dataSource = e.component.option("dataSource");
-                                const item = dataSource[e.fromIndex];
-                                dataSource.splice(e.fromIndex, 1);
-                                dataSource.splice(e.toIndex, 0, item);
-                                e.component.option("dataSource", dataSource);
-                            }
-                        },
-
-                        noDataText: "Không có dữ liệu",
-
-                        columns: [
-        {
-            dataField: "LoginName",
-            caption: "%Tài kho?n%",
-            width: 300,
-            allowSorting: true,
-            allowFiltering: true,
-            cellTemplate: function(container, cellInfo){
-					const val = cellInfo.value;
-
-					if (val === undefined || val === null || val === "") {
-						$("<div>").addClass("dx-placeholder").text("--").appendTo(container);
-						return;
-					}
-
-					$("<div>").text(val).appendTo(container);
-				},allowEditing: false,
-        },
-            
-        {
-            dataField: "EmployeeID",
-            caption: "%MaNV%",
-            width: 150,
-            allowSorting: true,
-            allowFiltering: true,
-            cellTemplate: function(container, cellInfo){
-					const val = cellInfo.value;
-
-					if (val === undefined || val === null || val === "") {
-						$("<div>").addClass("dx-placeholder").text("--").appendTo(container);
-						return;
-					}
-
-					$("<div>").text(val).appendTo(container);
-				},allowEditing: false,
-        },
-            
-        {
-            dataField: "FullName",
-            caption: "%Họ và tên%",
-            width: 150,
-            allowSorting: true,
-            allowFiltering: true,
-            cellTemplate: function(container, cellInfo){
-					const val = cellInfo.value;
-
-					if (val === undefined || val === null || val === "") {
-						$("<div>").addClass("dx-placeholder").text("--").appendTo(container);
-						return;
-					}
-
-					$("<div>").text(val).appendTo(container);
-				},allowEditing: false,
-        },
-            
-        {
-            dataField: "EmployeeStatus",
-            caption: "%Trạng thái%",
-            width: 150,
-            allowSorting: true,
-            allowFiltering: true,
-            cellTemplate: function(container, cellInfo){
-					const val = cellInfo.value;
-
-					if (val === undefined || val === null || val === "") {
-						$("<div>").addClass("dx-placeholder").text("--").appendTo(container);
-						return;
-					}
-
-					$("<div>").text(val).appendTo(container);
-				},allowEditing: false,
-        },
-            
-        {
-            dataField: "LastChangedDate",
-            caption: "%Ngày đăng ký%",
-            width: 150,
-            allowSorting: true,
-            allowFiltering: true,
-            cellTemplate: function(container, cellInfo) {
-						
-        let InstanceLastChangedDate, LastChangedDateTimeOut;
-        InstanceLastChangedDate = $(container).dxDateBox({
-            type: "datetime", // Đổi từ date -> datetime
-            displayFormat: "dd/MM/yyyy HH:mm", // Thêm hiển thị giờ
-            useMaskBehavior: true,
-            openOnFieldClick: true,
-            showClearButton: false,
-            dateSerializationFormat: "yyyy-MM-ddTHH:mm:ss",
-            width: "100%",
-            elementAttr: { class: "hpa-dx-datebox-inline" },
-            readOnly: true
-        }).dxDateBox("instance");
-    
-						if (cellInfo.value !== undefined && cellInfo.value !== null && InstanceLastChangedDate) {
-							InstanceLastChangedDate.option("value", cellInfo.value);
-						}
-					},allowEditing: false,
-        },
-],
-
-                        onCellClick: function(e) {
-                            // Nếu multiSelect + isPopupDetailGrid, chỉ drag icon mới mở detail
-                            if (0 === 0 && 1 === 0) {
-                                // Không làm gì - chỉ cho drag
-                                return;
-                            } 
-                            // Nếu isPopupDetailGrid, click bất kỳ dòng nào cũng mở detail
-                            else if (1 === 1 && 0 === 0) {
-                                const recordID = e.key || (e.data && e.data["LoginName"]);
-                                if (recordID !== undefined && recordID !== null && recordID !== "") {
-                                    if (typeof openDetailLoginName === "function") {
-                                        console.log("[Grid Detail Popup] Mở detail từ dòng - recordID:", recordID);
-                                        openDetailLoginName(recordID);
-                                    }
-                                }
-                            } 
-                            // Nếu không phải popup detail, chỉ click cột đầu (index 0) thì mở detail
-                            else if (e.columnIndex === 0) {
-                                const recordID = e.key || (e.data && e.data["LoginName"]);
-                                console.log("[Grid Detail] Click mã - recordID:", recordID);
-                                if (recordID !== undefined && recordID !== null && recordID !== "") {
-                                    if (typeof openDetailLoginName === "function") {
-                                        console.log("[Grid Detail] Mở detail bằng hàm openDetailLoginName");
-                                        openDetailLoginName(recordID);
-                                    }
-                                }
-                            }
-                        },
-
-                        onRowPrepared: function(e) {
-                            if (e.rowType === "data") {
-                                // Nếu multiSelect + isPopupDetailGrid, chỉ drag icon clickable
-                                if (0 === 0 && 1 === 0) {
-                                    // Không highlight hover - chỉ cho drag
-                                    return;
-                                }
-                                // Nếu isPopupDetailGrid, toàn dòng là clickable
-                                else if (1 === 1 && 0 === 0) {
-                                    e.rowElement.css({
-                                        cursor: "pointer"
-                                    }).hover(
-                                        function() { $(this).css({ backgroundColor: "rgba(0, 0, 0, 0.04)" }); },
-                                        function() { $(this).css({ backgroundColor: "" }); }
-                                    );
-                                } else {
-                                    // Chỉ cột đầu là clickable
-                                    const $firstCell = e.rowElement.find("td:first");
-                                    if ($firstCell.length) {
-                                        $firstCell.css({
-                                            cursor: "pointer",
-                                            color: "#1976d2",
-                                            textDecoration: "none",
-                                            fontWeight: "500"
-                                        }).hover(
-                                            function() { $(this).css({ textDecoration: "underline" }); },
-                                            function() { $(this).css({ textDecoration: "none" }); }
-                                        );
-                                    }
-                                }
-                            }
-                        },
-
-                        onToolbarPreparing: function(e) {
-                            let isReloading = false;
-                            
-                            e.toolbarOptions.items.unshift({
-                                location: "after",
-                                widget: "dxButton",
-                                options: {
-                                    icon: "refresh",
-                                    hint: "Tải lại",
-                                    onClick: function() {
-                                        if (isReloading) {
-                                            console.log("[Grid] Đang reload, vui lòng đợi...");
-                                            return;
-                                        }
-                                        
-                                        isReloading = true;
-                                        this.option("disabled", true);
-                                        
-                                        ReloadData();
-                                        
-                                        setTimeout(() => {
-                                            isReloading = false;
-                                            this.option("disabled", false);
-                                        }, 1000);
-                                    }
-                                }
-                            });
-                        }
-                    }).dxDataGrid("instance");
-                
-
-             let currentRecordID_LoginName;
-
-            // ============================================================================
-            // HÀM LOAD DATASOURCE CHUNG CHO TẤT CẢ CÁC CONTROL
-            // ============================================================================
-            function loadDataSourceCommon(columnName, dataSourceSP, onSuccessCallback) {
-                if (!columnName || !dataSourceSP || dataSourceSP.trim() === "") {
-                    console.warn("[loadDataSourceCommon] Missing columnName or dataSourceSP");
-                    return;
-                }
-
-                const dataSourceKey = "DataSource_" + columnName;
-                // Sử dụng format: columnNameDataSourceLoaded để tương thích với code hiện tại
-                const loadedKey = columnName + "DataSourceLoaded";
-                
-                // Kiểm tra nếu đã load rồi thì không load lại
-                if (window[loadedKey] === true) {
-                    if (typeof onSuccessCallback === "function") {
-                        onSuccessCallback(window[dataSourceKey] || []);
-                    }
-                    return;
-                }
-
-                // Kiểm tra nếu đang load thì đợi
-                if (window[loadedKey] === "loading") {
-                    // Đợi một chút rồi thử lại
-                    setTimeout(function() {
-                        loadDataSourceCommon(columnName, dataSourceSP, onSuccessCallback);
-                    }, 100);
-                    return;
-                }
-
-                // Đánh dấu đang load để tránh load trùng lặp
-                window[loadedKey] = "loading";
-
-                AjaxHPAParadise({
-                    data: {
-                        name: dataSourceSP,
-                        param: ["LoginID", LoginID, "LanguageID", LanguageID]
-                    },
-                    success: function(res) {
-                        const json = typeof res === "string" ? JSON.parse(res) : res;
-                        window[dataSourceKey] = (json.data && json.data[0]) || [];
-                        window[loadedKey] = true;
-                        
-                        // Gọi callback nếu có
-                        if (typeof onSuccessCallback === "function") {
-                            onSuccessCallback(window[dataSourceKey]);
-                        }
-                        
-                        // Tự động cập nhật control nếu có method setDataSource hoặc option
-                        // Thử nhiều format tên instance để tương thích
-                        const instanceVariants = [
-                            "Instance" + columnName.charAt(0).toUpperCase() + columnName.slice(1),
-                            "Instance" + columnName,
-                            "instance" + columnName.charAt(0).toUpperCase() + columnName.slice(1)
-                        ];
-                        
-                        for (let i = 0; i < instanceVariants.length; i++) {
-                            const instanceKey = instanceVariants[i];
-                            if (window[instanceKey]) {
-                                const instanceObj = window[instanceKey];
-                                
-                                // Kiểm tra nếu đây là dxDataGrid
-                                if (typeof instanceObj.dxDataGrid === "function" || instanceObj.option && instanceObj.option("dataSource") !== undefined) {
-                                    try {
-                                        // Nếu là Grid, apply dynamic config
-                                        const gridConfigFn = window["getGridConfig_" + columnName.charAt(0).toUpperCase() + columnName.slice(1)];
-                                        if (typeof gridConfigFn === "function") {
-                                            const gridConfig = gridConfigFn(window[dataSourceKey]);
-                                            console.log("[LoadDataSourceCommon] " + columnName + " size:", window[dataSourceKey].length, "RemoteOps:", gridConfig.remoteOperations);
-                                            instanceObj.option("remoteOperations", gridConfig.remoteOperations);
-                                            instanceObj.option("paging.pageSize", gridConfig.pageSize);
-                                            instanceObj.option("pager.allowedPageSizes", gridConfig.allowedPageSizes);
-                                        }
-                                        
-                                        instanceObj.option("dataSource", window[dataSourceKey]);
-                                        break;
-                                    } catch(e) {
-                                        console.warn("[LoadDataSourceCommon] Grid config error:", e);
-                                        // Fallback: just set data source
-                                        instanceObj.option("dataSource", window[dataSourceKey]);
-                                        break;
-                                    }
-                                } else if (typeof instanceObj.setDataSource === "function") {
-                                    instanceObj.setDataSource(window[dataSourceKey]);
-                                    break;
-                                } else if (typeof instanceObj.option === "function") {
-                                    try {
-                                        instanceObj.option("dataSource", window[dataSourceKey]);
-                                        break;
-                                    } catch(e) {
-                                        // Continue to next variant
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    error: function(err) {
-                        console.error("[loadDataSourceCommon] Failed to load datasource for", columnName, ":", err);
-                        window[loadedKey] = false;
-                        if (typeof onSuccessCallback === "function") {
-                            onSuccessCallback([]);
-                        }
-                    }
+            // Load DataSource: sp_getCompanyInfo
+            if ("sp_getCompanyInfo" && "sp_getCompanyInfo".trim() !== "") {
+                loadDataSourceCommon("Company", "sp_getCompanyInfo", function(data) {
+                    // Data được shared qua callback
                 });
             }
+        
+            // Load DataSource: sp_getInfoEmployeeAccount
+            if ("sp_getInfoEmployeeAccount" && "sp_getInfoEmployeeAccount".trim() !== "") {
+                loadDataSourceCommon("SelectEmployee", "sp_getInfoEmployeeAccount", function(data) {
+                    // Data được shared qua callback
+                });
+            }
+        
+            // Load DataSource: sp_getParentLogin
+            if ("sp_getParentLogin" && "sp_getParentLogin".trim() !== "") {
+                loadDataSourceCommon("ParentLogin", "sp_getParentLogin", function(data) {
+                    // Data được shared qua callback
+                });
+            }
+        
+        function loadDataSourceCommon(columnName, dataSourceSP, onSuccessCallback) {
+            if (!columnName || !dataSourceSP || dataSourceSP.trim() === "") {
+                console.warn("[loadDataSourceCommon] Missing columnName or dataSourceSP");
+                return;
+            }
 
-            // Load tất cả unique DataSourceSP
-            
+            const dataSourceKey = "DataSource_" + columnName;
+            // Sử dụng format: columnNameDataSourceLoaded để tương thích với code hiện tại
+            const loadedKey = columnName + "DataSourceLoaded";
+
+            // Kiểm tra nếu đã load rồi thì không load lại
+            if (window[loadedKey] === true) {
+                if (typeof onSuccessCallback === "function") {
+                    onSuccessCallback(window[dataSourceKey] || []);
+                }
+                return;
+            }
+
+            // Kiểm tra nếu đang load thì đợi
+            if (window[loadedKey] === "loading") {
+                // Đợi một chút rồi thử lại
+                setTimeout(function() {
+                    loadDataSourceCommon(columnName, dataSourceSP, onSuccessCallback);
+                }, 100);
+                return;
+            }
+
+            // Đánh dấu đang load để tránh load trùng lặp
+            window[loadedKey] = "loading";
+
+            AjaxHPAParadise({
+                data: {
+                    name: dataSourceSP,
+                    param: ["LoginID", LoginID, "LanguageID", LanguageID]
+                },
+                success: function(res) {
+                    const json = typeof res === "string" ? JSON.parse(res) : res;
+                    window[dataSourceKey] = (json.data && json.data[0]) || [];
+                    window[loadedKey] = true;
+
+                    // Gọi callback nếu có
+                    if (typeof onSuccessCallback === "function") {
+                        onSuccessCallback(window[dataSourceKey]);
+                    }
+
+                    // Tự động cập nhật control nếu có method setDataSource hoặc option
+                    // Thử nhiều format tên instance để tương thích
+                    const instanceVariants = [
+                        "Instance" + columnName.charAt(0).toUpperCase() + columnName.slice(1) + "P23DEDE11C5E44D8D8ADB55D186AC4198",
+                        "Instance" + columnName + "P23DEDE11C5E44D8D8ADB55D186AC4198",
+                        "instance" + columnName.charAt(0).toUpperCase() + columnName.slice(1) + "P23DEDE11C5E44D8D8ADB55D186AC4198"
+                    ];
+
+                    for (let i = 0; i < instanceVariants.length; i++) {
+                        const instanceKey = instanceVariants[i];
+                        if (window[instanceKey]) {
+                            const instanceObj = window[instanceKey];
+
+                            // Kiểm tra nếu đây là dxDataGrid
+                            if (typeof instanceObj.dxDataGrid === "function" || instanceObj.option && instanceObj.option("dataSource") !== undefined) {
+                                try {
+                                    // Nếu là Grid, apply dynamic config
+                                    const gridConfigFn = window["getGridConfig_" + columnName.charAt(0).toUpperCase() + columnName.slice(1)];
+                                    if (typeof gridConfigFn === "function") {
+                                        const gridConfig = gridConfigFn(window[dataSourceKey]);
+                                        instanceObj.option("remoteOperations", gridConfig.remoteOperations);
+                                    instanceObj.option("paging.pageSize", gridConfig.pageSize);
+                                        instanceObj.option("pager.allowedPageSizes", gridConfig.allowedPageSizes);
+                                    }
+
+                                    instanceObj.option("dataSource", window[dataSourceKey]);
+                                    break;
+                                } catch(e) {
+                                    console.warn("[LoadDataSourceCommon] Grid config error:", e);
+                                    // Fallback: just set data source
+                                    instanceObj.option("dataSource", window[dataSourceKey]);
+                                    break;
+                                }
+                            } else if (typeof instanceObj.setDataSource === "function") {
+                                instanceObj.setDataSource(window[dataSourceKey]);
+                                break;
+                            } else if (typeof instanceObj.option === "function") {
+                                try {
+                                    instanceObj.option("dataSource", window[dataSourceKey]);
+                                    break;
+                                } catch(e) {
+                                    // Continue to next variant
+                                }
+                            }
+                        }
+                    }
+                },
+                error: function(err) {
+                    console.error("[loadDataSourceCommon] Failed to load datasource for", columnName, ":", err);
+                    window[loadedKey] = false;
+                    if (typeof onSuccessCallback === "function") {
+                        onSuccessCallback([]);
+                    }
+                }
+            });
+        }
+    
 
             function ReloadData() {
                 AjaxHPAParadise({
@@ -916,49 +156,57 @@
                     },
                     success: function (res) {
                         const json = typeof res === "string" ? JSON.parse(res) : res;
-
-                        // Chuẩn hóa: results LUÔN là array
                         const results = Array.isArray(json?.data?.[0])
                             ? json.data[0]
                             : (json?.data?.[0] ? [json.data[0]] : []);
 
                         const obj = results[0] || null;
-
-                         currentRecordID_LoginName = obj.LoginName || currentRecordID_LoginName;
-
+                         window.currentRecordID_CompanyID = obj.CompanyID || window.currentRecordID_CompanyID; window.currentRecordID_CRM_CustomerID = obj.CRM_CustomerID || window.currentRecordID_CRM_CustomerID; window.currentRecordID_EmployeeID = obj.EmployeeID || window.currentRecordID_EmployeeID; window.currentRecordID_LoginName = obj.LoginName || window.currentRecordID_LoginName;
                         DataSource = results;
-                        
+                        '
+        +(select loadData from tblCommonControlType_Signed where UID = 'P23DEDE11C5E44D8D8ADB55D186AC4198')
+        +(select loadData from tblCommonControlType_Signed where UID = 'P8EC0724E578142E4AAD1FE3E0D6A4C94')
+        +(select loadData from tblCommonControlType_Signed where UID = 'PF9A3029C9FAB40E0B476C0D074A8DE5B')
+        +(select loadData from tblCommonControlType_Signed where UID = 'P804D6FADD5ED4412BB218159C16E04EF')
+        +(select loadData from tblCommonControlType_Signed where UID = 'P3FA0343C98A44849A4355D47E2E24061')
+        +(select loadData from tblCommonControlType_Signed where UID = 'PD987FC71CE5E444A9376403FF65C59D6')
+        +(select loadData from tblCommonControlType_Signed where UID = 'P5CD93C11BA754CDC9BC5D922A010638D')
+        +(select loadData from tblCommonControlType_Signed where UID = 'PDA076A9DA8724C408B0629DEB737E87D')
+        +(select loadData from tblCommonControlType_Signed where UID = 'PBD59BFBAB7E24842B06A82E458CB86F3')
+        +(select loadData from tblCommonControlType_Signed where UID = 'PC25903981FC547BC8338EE13BAB0E331')
+        +(select loadData from tblCommonControlType_Signed where UID = 'P05E1D5AAA0374717B94077A9FDD5559D')
+        +(select loadData from tblCommonControlType_Signed where UID = 'P4031E37943134B329C9F457B0CF5CF5C')
+        +(select loadData from tblCommonControlType_Signed where UID = 'P56F2EB96E5BB4C97BECA22B15340AAD4')
+        +(select loadData from tblCommonControlType_Signed where UID = 'PAC8E76094CDD4769864B4DDF6F660DFF')
+        +(select loadData from tblCommonControlType_Signed where UID = 'P3B8CB442562743D1BA18EA8CEAAD3D7C') +N'
 
                         if (1 === 1) {
-                            // =============== DYNAMIC GRID CONFIG BASED ON DATA SIZE ===============
+                            // Xử lý cho grid layout
+                            const gridInstance = InstanceGridAccountP23DEDE11C5E44D8D8ADB55D186AC4198;
                             const gridConfig = window.getGridConfig_GridAccount(results);
-                            const gridInstance = InstanceGridAccount.dxDataGrid("instance");
-                            
-                            console.log("[Grid] Data size:", results.length, "| RemoteOps:", gridConfig.remoteOperations, "| PageSize:", gridConfig.pageSize);
-                            
-                            // Update grid config nếu cần
-                            if (gridConfig.remoteOperations !== gridInstance.option("remoteOperations")) {
-                                gridInstance.option("remoteOperations", gridConfig.remoteOperations);
-                                console.log("[Grid] Updated remoteOperations to:", gridConfig.remoteOperations);
-                            }
-                            
-                            if (gridConfig.pageSize !== gridInstance.option("paging.pageSize")) {
-                                gridInstance.option("paging.pageSize", gridConfig.pageSize);
-                                console.log("[Grid] Updated pageSize to:", gridConfig.pageSize);
-                            }
-                            
-                            if (JSON.stringify(gridConfig.allowedPageSizes) !== JSON.stringify(gridInstance.option("pager.allowedPageSizes"))) {
-                                gridInstance.option("pager.allowedPageSizes", gridConfig.allowedPageSizes);
-                                console.log("[Grid] Updated allowedPageSizes to:", gridConfig.allowedPageSizes);
-                            }
-                            
-                            // Set data source
+
+                            gridInstance.beginUpdate();
+
+                            gridInstance.option("scrolling", {
+                                mode: "standard",
+                                showScrollbar: "onHover"
+                            });
+
+                            gridInstance.option("remoteOperations", false);  // Client-side cho <= 1000
+
+                            // Set paging config
+                            gridInstance.option("paging.enabled", true);
+                            gridInstance.option("paging.pageSize", gridConfig.pageSize);
+                            gridInstance.option("pager.allowedPageSizes", gridConfig.allowedPageSizes);
+                            gridInstance.pageIndex(0);
+
                             gridInstance.option("dataSource", results);
+
+                            gridInstance.endUpdate();
                         }
                     }
                 })
             }
-            sp_UnregisteredAccount_NN_Control.ReloadData = ReloadData
             ReloadData()
         })();
-    
+    </script>

@@ -1,0 +1,54 @@
+<script>
+    onInitialized: function(e) {
+        const grid = e.component;
+        const tableName = "%TableName%";
+        // Lưu trữ cấu hình ban đầu
+        if (!window._FullColumnConfig_ % ColumnName %) {
+            window._FullColumnConfig_ % ColumnName % = JSON.parse(JSON.stringify(grid.option("columns")));
+        }
+
+        // Khôi phục cấu hình cột
+        loadGridColumnConfig(tableName, function (config) {
+            if (Array.isArray(config.visibleColumns) || Array.isArray(config.columnOrder)) {
+                let currentColumns = grid.getVisibleColumns(); // Lấy danh sách cột hiện tại
+
+                // Lấy lại cấu hình đầy đủ từ _FullColumnConfig_%ColumnName%
+                let fullColumns = window._FullColumnConfig_ % ColumnName % || [];
+
+                // Xây dựng lại mảng columns với tất cả các thuộc tính, bao gồm cellTemplate và editCellTemplate
+                let finalColumns = fullColumns.map(col => {
+                    if (typeof col === "string") return col;
+
+                    let newCol = { ...col };
+
+                    // Cập nhật visible
+                    newCol.visible = config.visibleColumns ? config.visibleColumns.includes(col.dataField) : true;
+
+                    // Cập nhật order nếu cần
+                    if (Array.isArray(config.columnOrder)) {
+                        // (Nếu cần, có thể thêm logic sắp xếp ở đây, nhưng thường không cần vì grid tự quản lý)
+                    }
+
+                    // Quan trọng: Thiết lập lại cellTemplate và editCellTemplate nếu chúng tồn tại trong config ban đầu
+                    // Kiểm tra xem cột này có chứa template không (dựa vào tên cột và dữ liệu từ #temptable)
+                    // Đây là bước quan trọng để khắc phục lỗi!
+                    if (newCol.cellTemplate || newCol.editCellTemplate) {
+                        // Nếu đã có template trong config ban đầu, giữ nguyên
+                        // Hoặc bạn có thể gọi lại hàm tạo template ở đây nếu cần
+                    } else {
+                        // Nếu không có, có thể thiết lập lại từ dữ liệu trong #temptable (nếu có sẵn)
+                        // Ví dụ: newCol.cellTemplate = function(...) { ... };
+                    }
+
+                    return newCol;
+                });
+
+                // Áp dụng cấu hình mới
+                grid.option("columns", finalColumns);
+
+                // Sau khi áp dụng cấu hình, buộc grid phải render lại để các template được áp dụng
+                grid.repaint();
+            }
+        });
+    },
+</script>

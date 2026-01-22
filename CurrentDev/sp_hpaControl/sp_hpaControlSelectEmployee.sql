@@ -15,8 +15,9 @@ BEGIN
         loadUI = N'
             window.GlobalEmployeeAvatarCache = window.GlobalEmployeeAvatarCache || {};
             window.GlobalEmployeeAvatarLoading = window.GlobalEmployeeAvatarLoading || {};
+            let Instance%ColumnName%%UID% = {};
 
-            function loadGlobalAvatarIfNeeded%columnName%(employeeId, storeImgName, paramImg, callbackFn) {
+            function loadGlobalAvatarIfNeeded%ColumnName%%UID%(employeeId, storeImgName, paramImg, callbackFn) {
                 const idStr = String(employeeId);
 
                 if (window.GlobalEmployeeAvatarCache[idStr]) {
@@ -90,21 +91,21 @@ BEGIN
             }
 
             window["DataSource_%ColumnName%"] = window["DataSource_%ColumnName%"] || [];
-            let spNameDSE%columnName% = "%DataSourceSP%";
-            let %columnName%DataSourceLoaded = false;
+            let spNameDSE%ColumnName%%UID% = "%DataSourceSP%";
+            let %ColumnName%%UID%DataSourceLoaded = false;
 
-            let %columnName%SelectedIds = [];
+            let %ColumnName%%UID%SelectedIds = [];
             const MAX_VISIBLE_%ColumnName% = 3;
 
             // Sử dụng hàm loadDataSourceCommon từ sptblCommonControlType_Signed
-            if (spNameDSE%columnName% && spNameDSE%columnName%.trim() !== "") {
-                loadDataSourceCommon("%ColumnName%", spNameDSE%columnName%, function(data) {
+            if (spNameDSE%ColumnName%%UID% && spNameDSE%ColumnName%%UID%.trim() !== "") {
+                loadDataSourceCommon("%ColumnName%", spNameDSE%ColumnName%%UID%, function(data) {
                     window["DataSource_%ColumnName%"] = data || [];
                     // Bắt đầu load ảnh cho tất cả nhân viên
                     if (Array.isArray(data) && data.length > 0) {
                         data.forEach(emp => {
                             if (emp.ID && emp.StoreImgName) {
-                                loadGlobalAvatarIfNeeded%columnName%(emp.ID, emp.StoreImgName, emp.ImgParamV);
+                                loadGlobalAvatarIfNeeded%ColumnName%%UID%(emp.ID, emp.StoreImgName, emp.ImgParamV);
                             }
                         });
                     }
@@ -137,19 +138,19 @@ BEGIN
                 const $container%ColumnName% = $("#%UID%");
                 $container%ColumnName%.empty();
                 const $wrapper = $("<div>").css({
-                    padding: "4px 6px",
                     borderRadius: "8px",
-                    minHeight: "44px",
+                    padding: "0 6px",
+                    minHeight: "40px",
                     display: "flex",
                     alignItems: "center",
                     gap: "8px",
                     flexWrap: "wrap"
                 });
 
-                if (%columnName%SelectedIds.length === 0) {
-                    $wrapper.append($("<span>").addClass("text-muted").text("Chưa gán nhân viên"));
+                if (%ColumnName%%UID%SelectedIds.length === 0) {
+                    $wrapper.append($("<span>").addClass("text-muted").text("Chưa có nhân viên"));
                 } else {
-                    const visible = %columnName%SelectedIds.slice(0, MAX_VISIBLE_%ColumnName%);
+                    const visible = %ColumnName%%UID%SelectedIds.slice(0, MAX_VISIBLE_%ColumnName%);
                     const $group = $("<div>").css({ display: "flex", alignItems: "center" });
 
                     visible.forEach((id, i) => {
@@ -174,7 +175,7 @@ BEGIN
                                 .css({ width: "100%", height: "100%", objectFit: "cover" })
                             );
                         } else if (item && item.storeImgName) {
-                            loadGlobalAvatarIfNeeded%columnName%(id, item.storeImgName, item.paramImg, function(url) {
+                            loadGlobalAvatarIfNeeded%ColumnName%%UID%(id, item.storeImgName, item.paramImg, function(url) {
                                 renderDisplay%ColumnName%();
                             });
                             
@@ -190,8 +191,8 @@ BEGIN
                         $group.append($av);
                     });
 
-                    if (%columnName%SelectedIds.length > MAX_VISIBLE_%ColumnName%) {
-                        const more = %columnName%SelectedIds.length - MAX_VISIBLE_%ColumnName%;
+                    if (%ColumnName%%UID%SelectedIds.length > MAX_VISIBLE_%ColumnName%) {
+                        const more = %ColumnName%%UID%SelectedIds.length - MAX_VISIBLE_%ColumnName%;
                         $group.append($("<div>").css({
                             width: "36px", height: "36px", borderRadius: "50%",
                             border: "3px solid #fff", marginLeft: "-10px",
@@ -205,19 +206,19 @@ BEGIN
                 $container%ColumnName%.append($wrapper);
             }
 
-            window.Instance%columnName% = {
+            Instance%ColumnName%%UID% = {
                 setValue: function(val) {
                     if (typeof val === "string" && val.trim()) {
-                        %columnName%SelectedIds = val.split(",").map(v => v.trim()).filter(v => v);
+                        %ColumnName%%UID%SelectedIds = val.split(",").map(v => v.trim()).filter(v => v);
                     } else if (Array.isArray(val)) {
-                        %columnName%SelectedIds = val.map(String);
+                        %ColumnName%%UID%SelectedIds = val.map(String);
                     } else {
-                        %columnName%SelectedIds = [];
+                        %ColumnName%%UID%SelectedIds = [];
                     }
                     renderDisplay%ColumnName%();
                 },
-                getValue: () => %columnName%SelectedIds,
-                getValueAsString: () => %columnName%SelectedIds.join(","),
+                getValue: () => %ColumnName%%UID%SelectedIds,
+                getValueAsString: () => %ColumnName%%UID%SelectedIds.join(","),
                 repaint: renderDisplay%ColumnName%,
                 option: function(name, value) {
                     if (arguments.length === 2 && name === "value") {
@@ -240,8 +241,9 @@ BEGIN
         loadUI = N'
             window.GlobalEmployeeAvatarCache = window.GlobalEmployeeAvatarCache || {};
             window.GlobalEmployeeAvatarLoading = window.GlobalEmployeeAvatarLoading || {};
+            let Instance%ColumnName%%UID% = {};
 
-            function loadGlobalAvatarIfNeeded%columnName%(employeeId, storeImgName, paramImg, callbackFn) {
+            function loadGlobalAvatarIfNeeded%ColumnName%%UID%(employeeId, storeImgName, paramImg, callbackFn) {
                 const idStr = String(employeeId);
 
                 if (window.GlobalEmployeeAvatarCache[idStr]) {
@@ -315,19 +317,19 @@ BEGIN
             }
 
             window["DataSource_%ColumnName%"] = window["DataSource_%ColumnName%"] || [];
-            let %columnName%DataSourceLoaded = false;
-            let spNameDSE%columnName% = "%DataSourceSP%";
+            let %ColumnName%%UID%DataSourceLoaded = false;
+            let spNameDSE%ColumnName%%UID% = "%DataSourceSP%";
 
             
             // Sử dụng hàm loadDataSourceCommon từ sptblCommonControlType_Signed
-            if (spNameDSE%columnName% && spNameDSE%columnName%.trim() !== "") {
-                loadDataSourceCommon("%ColumnName%", spNameDSE%columnName%, function(data) {
+            if (spNameDSE%ColumnName%%UID% && spNameDSE%ColumnName%%UID%.trim() !== "") {
+                loadDataSourceCommon("%ColumnName%", spNameDSE%ColumnName%%UID%, function(data) {
                     window["DataSource_%ColumnName%"] = data || [];
                     // Bắt đầu load ảnh cho tất cả nhân viên
                     if (Array.isArray(data) && data.length > 0) {
                         data.forEach(emp => {
                             if (emp.ID && emp.StoreImgName) {
-                                loadGlobalAvatarIfNeeded%columnName%(emp.ID, emp.StoreImgName, emp.ImgParamV);
+                                loadGlobalAvatarIfNeeded%ColumnName%%UID%(emp.ID, emp.StoreImgName, emp.ImgParamV);
                             }
                         });
                     }
@@ -338,10 +340,8 @@ BEGIN
                 });
             }
 
-            window.Instance%columnName% = {};
-            let %columnName%SelectedIds = [], %columnName%SelectedIdsOriginal = [];
-            let %columnName%IsSaving = false;
-            let %columnName%CellInfo = null; // Biến lưu cellInfo để sync Grid
+            let %ColumnName%%UID%SelectedIds = [], %ColumnName%%UID%SelectedIdsOriginal = [];
+            let %ColumnName%%UID%IsSaving = false;
             const MAX_VISIBLE_%ColumnName% = 3;
 
             function getInitials%ColumnName%(name) {
@@ -363,15 +363,15 @@ BEGIN
             }
 
             function renderDisplayBox%ColumnName%() {
-                const $displayBox%ColumnName% = $("#%columnName%_display");
+                const $displayBox%ColumnName% = $("#%ColumnName%%UID%_display");
                 if (!$displayBox%ColumnName%.length) return;
                 $displayBox%ColumnName%.empty();
 
                 const $wrapper = $("<div>").css({
                     border: "1px solid #dee2e6",
                     borderRadius: "8px",
-                    padding: "4px 6px",
-                    minHeight: "44px",
+                    padding: "0 6px",
+                    minHeight: "40px",
                     display: "flex",
                     alignItems: "center",
                     cursor: "pointer"
@@ -380,10 +380,10 @@ BEGIN
                     () => $wrapper.css({ borderColor: "#dee2e6", boxShadow: "none" })
                 );
 
-                if (%columnName%SelectedIds.length === 0) {
+                if (%ColumnName%%UID%SelectedIds.length === 0) {
                     $wrapper.append($("<span>").addClass("text-muted").html("<i class=\"bi bi-person-plus me-2\"></i>Chọn nhân viên..."));
                 } else {
-                    const displayIds = %columnName%SelectedIds.slice(0, MAX_VISIBLE_%ColumnName%);
+                    const displayIds = %ColumnName%%UID%SelectedIds.slice(0, MAX_VISIBLE_%ColumnName%);
                     const $group = $("<div>").css({ display: "flex", alignItems: "center" });
 
                     displayIds.forEach((id, index) => {
@@ -409,7 +409,7 @@ BEGIN
                                 .css({ width: "100%", height: "100%", objectFit: "cover" })
                             );
                         } else if (item.storeImgName) {
-                            loadGlobalAvatarIfNeeded%columnName%(id, item.storeImgName, item.paramImg, function(url) {
+                            loadGlobalAvatarIfNeeded%ColumnName%%UID%(id, item.storeImgName, item.paramImg, function(url) {
                                 renderDisplayBox%ColumnName%();
                             });
                             
@@ -425,8 +425,8 @@ BEGIN
                         $group.append($chip);
                     });
 
-                    if (%columnName%SelectedIds.length > MAX_VISIBLE_%ColumnName%) {
-                        const remaining = %columnName%SelectedIds.length - MAX_VISIBLE_%ColumnName%;
+                    if (%ColumnName%%UID%SelectedIds.length > MAX_VISIBLE_%ColumnName%) {
+                        const remaining = %ColumnName%%UID%SelectedIds.length - MAX_VISIBLE_%ColumnName%;
                         $group.append($("<div>").css({
                             width: "36px", height: "36px", borderRadius: "50%",
                             border: "3px solid #fff", marginLeft: "-10px",
@@ -454,19 +454,19 @@ BEGIN
 
             const $container%ColumnName% = $("#%UID%");
             $container%ColumnName%.empty();
-            const $displayBox%ColumnName% = $("<div>").attr("id", "%columnName%_display");
+            const $displayBox%ColumnName% = $("<div>").attr("id", "%ColumnName%%UID%_display");
             $container%ColumnName%.append($displayBox%ColumnName%);
 
             let popup%ColumnName%;
             let popup%ColumnName%Once = false;
-            let %columnName%GridContainer = null;
+            let %ColumnName%%UID%GridContainer = null;
             function initPopup%ColumnName%() {
                 if (popup%ColumnName%Once) {
                     popup%ColumnName%.show();
                     return;
                 }
                 popup%ColumnName%Once = true;
-                popup%ColumnName% = $("<div>").attr("id", "%columnName%_popup")
+                popup%ColumnName% = $("<div>").attr("id", "%ColumnName%%UID%_popup")
                     .appendTo(document.body)
                     .addClass("hpa-responsive")
                     .dxPopup({
@@ -487,7 +487,7 @@ BEGIN
                                     text: "Hủy",
                                     onClick: () => {
                                         popup%ColumnName%._isCancelling = true;
-                                        %columnName%SelectedIds = [...%columnName%SelectedIdsOriginal];
+                                        %ColumnName%%UID%SelectedIds = [...%ColumnName%%UID%SelectedIdsOriginal];
                                         popup%ColumnName%.hide();
                                     }
                                 }
@@ -507,25 +507,25 @@ BEGIN
                             }
                         ],
                         contentTemplate: function (contentElement) {
-                            %columnName%GridContainer = $("<div>");
-                            contentElement.append(%columnName%GridContainer);
+                            %ColumnName%%UID%GridContainer = $("<div>");
+                            contentElement.append(%ColumnName%%UID%GridContainer);
                         },
                         onShown: () => {
                             setTimeout(() => {
-                                const $popupContent = $("#%columnName%_popup").closest(".dx-popup-wrapper");
+                                const $popupContent = $("#%ColumnName%%UID%_popup").closest(".dx-popup-wrapper");
                                 $popupContent.off("mousedown.preventClose").on("mousedown.preventClose", function(e) {
                                     e.stopPropagation();
                                 });
                             }, 100);
 
                             const sortedData = window["DataSource_%ColumnName%"].sort((a, b) => {
-                                const aSelected = %columnName%SelectedIds.includes(String(a.ID));
-                                const bSelected = %columnName%SelectedIds.includes(String(b.ID));
+                                const aSelected = %ColumnName%%UID%SelectedIds.includes(String(a.ID));
+                                const bSelected = %ColumnName%%UID%SelectedIds.includes(String(b.ID));
                                 return bSelected - aSelected;
                             });
 
                             try {
-                                const existingInstance = %columnName%GridContainer.dxDataGrid("instance");
+                                const existingInstance = %ColumnName%%UID%GridContainer.dxDataGrid("instance");
                                 if (existingInstance) {
                                     existingInstance.dispose();
                                 }
@@ -533,7 +533,7 @@ BEGIN
                                 // Instance chưa tồn tại hoặc đã bị destroy
                             }
 
-                            %columnName%GridContainer
+                            %ColumnName%%UID%GridContainer
                             .empty()
                             .dxDataGrid({
                                 dataSource: sortedData,
@@ -542,7 +542,7 @@ BEGIN
                                 columnAutoWidth: true,
                                 allowColumnResizing: true,
                                 selection: { mode: "multiple", showCheckBoxesMode: "always" },
-                                selectedRowKeys: %columnName%SelectedIds,
+                                selectedRowKeys: %ColumnName%%UID%SelectedIds,
                                 columns: [
                                     {
                                         caption: "Ảnh",
@@ -572,8 +572,8 @@ BEGIN
                                                     })
                                                 );
                                             } else if (item.storeImgName) {
-                                                loadGlobalAvatarIfNeeded%columnName%(item.ID, item.storeImgName, item.paramImg, function(url) {
-                                                    %columnName%GridContainer.dxDataGrid("instance").refresh();
+                                                loadGlobalAvatarIfNeeded%ColumnName%%UID%(item.ID, item.storeImgName, item.paramImg, function(url) {
+                                                    %ColumnName%%UID%GridContainer.dxDataGrid("instance").refresh();
                                                 });
                                                 
                                                 const initials = getInitials%ColumnName%(item.Name || item.FullName || "?");
@@ -622,7 +622,64 @@ BEGIN
                                     { dataField: "Email", caption: "Email" },
                                     { dataField: "Position", caption: "Chức vụ" }
                                 ],
-                                searchPanel: { visible: true },
+                                searchPanel: { 
+                                    visible: true
+                                },
+                                onContentReady: function(e) {
+                                    const grid = e.component;
+                                    
+                                    // Clear default search behavior
+                                    grid.option("searchPanel.text", "");
+                                    
+                                    const searchBox = grid.getView("headerPanel")._$element.find(".dx-datagrid-search-panel input");
+                                    
+                                    if (searchBox.length) {
+                                        const $searchWrapper = searchBox.parent();
+                                        if (!$("#custom-search-style-%ColumnName%%UID%").length) {
+                                            $("<style>")
+                                                .attr("id", "custom-search-style-%ColumnName%%UID%")
+                                                .text(`
+                                                    .dx-datagrid-search-panel input:not(:placeholder-shown) {
+                                                        color: #000 !important;
+                                                    }
+                                                    .dx-datagrid-search-panel input::placeholder {
+                                                        color: #999 !important;
+                                                        opacity: 1 !important;
+                                                    }
+                                                `)
+                                                .appendTo("head");
+                                        }
+                                        
+                                        // Unbind ALL events
+                                        searchBox.off();
+                                        
+                                        // Bind custom event
+                                        searchBox.on("input", function() {
+                                            const searchValue = $(this).val();
+                                            
+                                            if (!searchValue) {
+                                                grid.clearFilter();
+                                                return;
+                                            }
+                                            
+                                            const searchNormalized = RemoveToneMarks_Js(searchValue);
+
+                                            grid.filter(function(item) {
+                                                const fields = ["Name", "Email", "Position"];
+                                                for (let i = 0; i < fields.length; i++) {
+                                                    const fieldValue = item[fields[i]];
+                                                    if (fieldValue) {
+                                                        const fieldNormalized = RemoveToneMarks_Js(String(fieldValue));
+                                                        if (fieldNormalized.indexOf(searchNormalized) !== -1) {
+                                                            return true;
+                                                        }
+                                                    }
+                                                }
+                                                return false;
+                                            });
+                                        });
+                                    }
+                                },
                                 paging: { 
                                     enabled: true,
                                     pageSize: 5,
@@ -635,16 +692,16 @@ BEGIN
                                     showInfo: true,
                                     showNavigationButtons: true
                                 },
-                                onSelectionChanged: e => %columnName%SelectedIds = e.selectedRowKeys || []
+                                onSelectionChanged: e => %ColumnName%%UID%SelectedIds = e.selectedRowKeys || []
                             });
                         },
                         onHidden: () => {
-                            const $popupContent = $("#%columnName%_popup").closest(".dx-popup-wrapper");
+                            const $popupContent = $("#%ColumnName%%UID%_popup").closest(".dx-popup-wrapper");
                             $popupContent.off("mousedown.preventClose");
                             
                             // Dispose grid instance
                             try {
-                                const gridInstance = %columnName%GridContainer.dxDataGrid("instance");
+                                const gridInstance = %ColumnName%%UID%GridContainer.dxDataGrid("instance");
                                 if (gridInstance) {
                                     gridInstance.dispose();
                                 }
@@ -662,13 +719,13 @@ BEGIN
                 // Tự động save khi đóng popup (trừ khi bấm Hủy)
                 popup%ColumnName%.on("hiding", async function(e) {
                     // Skip nếu đang lưu hoặc đã hủy
-                    if (%columnName%IsSaving || e.component._isCancelling) {
+                    if (%ColumnName%%UID%IsSaving || e.component._isCancelling) {
                         delete e.component._isCancelling;
                         return;
                     }
                     
-                    const original = %columnName%SelectedIdsOriginal.slice().sort().join(",");
-                    const current = %columnName%SelectedIds.slice().sort().join(",");
+                    const original = %ColumnName%%UID%SelectedIdsOriginal.slice().sort().join(",");
+                    const current = %ColumnName%%UID%SelectedIds.slice().sort().join(",");
                     
                     if (original !== current) {
                         e.cancel = true;
@@ -679,19 +736,29 @@ BEGIN
             }
 
             async function saveValue%ColumnName%() {
-                const original = %columnName%SelectedIdsOriginal.slice().sort().join(",");
-                const current = %columnName%SelectedIds.slice().sort().join(",");
-                if (original === current || %columnName%IsSaving) return;
+                const original = %ColumnName%%UID%SelectedIdsOriginal.slice().sort().join(",");
+                const current = %ColumnName%%UID%SelectedIds.slice().sort().join(",");
+                if (original === current || %ColumnName%%UID%IsSaving) return;
 
-                %columnName%IsSaving = true;
+                %ColumnName%%UID%IsSaving = true;
                 try {
-                    const newValue = %columnName%SelectedIds.join(",");
-                    const dataJSON = JSON.stringify(["%tableId%", ["%columnName%"], [newValue || null]]);
+                    const newValue = %ColumnName%%UID%SelectedIds.join(",");
+                    const dataJSON = JSON.stringify(["%tableId%", ["%ColumnName%"], [newValue || null]]);
 
-                    let idValues = [currentRecordID_%ColumnIDName%];
+                    // Context-aware record IDs
+                    let id1 = currentRecordID_%ColumnIDName%;
+                    if (typeof cellInfo !== "undefined" && cellInfo && cellInfo.data) {
+                        id1 = cellInfo.data["%ColumnIDName%"] || id1;
+                    }
+                    let idValues = [id1];
                     let idFields = ["%ColumnIDName%"];
+                    
                     if ("%ColumnIDName2%" && "%ColumnIDName2%".trim() !== "") {
-                        idValues.push(currentRecordID_%ColumnIDName2%);
+                        let id2 = currentRecordID_%ColumnIDName2%;
+                        if (typeof cellInfo !== "undefined" && cellInfo && cellInfo.data) {
+                            id2 = cellInfo.data["%ColumnIDName2%"] || id2;
+                        }
+                        idValues.push(id2);
                         idFields.push("%ColumnIDName2%");
                     }
                     const idValsJSON = JSON.stringify([idValues, idFields]);
@@ -705,24 +772,18 @@ BEGIN
                         return;
                     }
 
-                    // SYNC GRID: Cập nhật lại giá trị trong Grid sau khi save thành công
-                    if (%columnName%CellInfo && %columnName%CellInfo.component) {
+                    // SYNC GRID
+                    if (typeof cellInfo !== "undefined" && cellInfo && cellInfo.component) {
                         try {
-                            const grid = %columnName%CellInfo.component;
-                            const rowKey = %columnName%CellInfo.key || %columnName%CellInfo.data["%ColumnIDName%"];
-                            
-                            // Cập nhật cell value trong grid
-                            grid.cellValue(%columnName%CellInfo.rowIndex, "%columnName%", newValue);
-                            
-                            // Refresh cell để hiển thị giá trị mới
+                            const grid = cellInfo.component;
+                            grid.cellValue(cellInfo.rowIndex, "%ColumnName%", newValue);
                             grid.repaint();
-
                         } catch (syncErr) {
-                            console.warn("[Grid Sync] SelectBox %columnName%: Không thể sync grid:", syncErr);
+                            console.warn("[Grid Sync] SelectBox %ColumnName%%UID%: Không thể sync grid:", syncErr);
                         }
                     }
 
-                    %columnName%SelectedIdsOriginal = [...%columnName%SelectedIds];
+                    %ColumnName%%UID%SelectedIdsOriginal = [...%ColumnName%%UID%SelectedIds];
                     if ("%IsAlert%" === "1") {
                         uiManager.showAlert({ type: "success", message: "Lưu thành công" });
                     }
@@ -731,23 +792,25 @@ BEGIN
                     if ("%IsAlert%" === "1") {
                         uiManager.showAlert({ type: "error", message: "Có lỗi khi lưu" });
                     }
+                } finally {
+                    %ColumnName%%UID%IsSaving = false;
                 }
             }
 
-            window.Instance%columnName% = {
+            Instance%ColumnName%%UID% = {
                 setValue: function(val) {
                     if (typeof val === "string" && val.trim()) {
-                        %columnName%SelectedIds = val.split(",").map(v => v.trim()).filter(v => v);
+                        %ColumnName%%UID%SelectedIds = val.split(",").map(v => v.trim()).filter(v => v);
                     } else if (Array.isArray(val)) {
-                        %columnName%SelectedIds = val.map(String);
+                        %ColumnName%%UID%SelectedIds = val.map(String);
                     } else {
-                        %columnName%SelectedIds = [];
+                        %ColumnName%%UID%SelectedIds = [];
                     }
-                    %columnName%SelectedIdsOriginal = [...%columnName%SelectedIds];
+                    %ColumnName%%UID%SelectedIdsOriginal = [...%ColumnName%%UID%SelectedIds];
                     renderDisplayBox%ColumnName%();
                 },
-                getValue: () => %columnName%SelectedIds,
-                getValueAsString: () => %columnName%SelectedIds.join(","),
+                getValue: () => %ColumnName%%UID%SelectedIds,
+                getValueAsString: () => %ColumnName%%UID%SelectedIds.join(","),
                 setDataSource: data => {
                     window["DataSource_%ColumnName%"] = data || [];
                 },
@@ -774,8 +837,9 @@ BEGIN
         loadUI = N'
             window.GlobalEmployeeAvatarCache = window.GlobalEmployeeAvatarCache || {};
             window.GlobalEmployeeAvatarLoading = window.GlobalEmployeeAvatarLoading || {};
+            let Instance%ColumnName%%UID% = {};
 
-            function loadGlobalAvatarIfNeeded%columnName%(employeeId, storeImgName, paramImg, callbackFn) {
+            function loadGlobalAvatarIfNeeded%ColumnName%%UID%(employeeId, storeImgName, paramImg, callbackFn) {
                 const idStr = String(employeeId);
 
                 if (window.GlobalEmployeeAvatarCache[idStr]) {
@@ -849,25 +913,21 @@ BEGIN
             }
 
             window["DataSource_%ColumnName%"] = window["DataSource_%ColumnName%"] || [];
-            let %columnName%DataSourceLoaded = false;
-            let spNameDSE%columnName% = "%DataSourceSP%";
-            let %columnName%SelectedIds = [], %columnName%SelectedIdsOriginal = [];
-            let %columnName%CellInfo = null; // Biến lưu cellInfo để sync Grid
+            let %ColumnName%%UID%DataSourceLoaded = false;
+            let spNameDSE%ColumnName%%UID% = "%DataSourceSP%";
+            let %ColumnName%%UID%SelectedIds = [], %ColumnName%%UID%SelectedIdsOriginal = [];
             const MAX_VISIBLE_%ColumnName% = 3;
 
             
             // Sử dụng hàm loadDataSourceCommon từ sptblCommonControlType_Signed
-            if (spNameDSE%columnName% && spNameDSE%columnName%.trim() !== "") {
-                loadDataSourceCommon("%ColumnName%", spNameDSE%columnName%, function(data) {
+            if (spNameDSE%ColumnName%%UID% && spNameDSE%ColumnName%%UID%.trim() !== "") {
+                loadDataSourceCommon("%ColumnName%", spNameDSE%ColumnName%%UID%, function(data) {
                     window["DataSource_%ColumnName%"] = data || [];
-                    if (Instance%columnName% && typeof Instance%columnName%.setDataSource === "function") {
-                        Instance%columnName%.setDataSource(data);
-                    }
                     // Bắt đầu load ảnh cho tất cả nhân viên
                     if (Array.isArray(data) && data.length > 0) {
                         data.forEach(emp => {
                             if (emp.ID && emp.StoreImgName) {
-                                loadGlobalAvatarIfNeeded%columnName%(emp.ID, emp.StoreImgName, emp.ImgParamV);
+                                loadGlobalAvatarIfNeeded%ColumnName%%UID%(emp.ID, emp.StoreImgName, emp.ImgParamV);
                             }
                         });
                     }
@@ -897,15 +957,15 @@ BEGIN
             }
 
             function renderDisplayBox%ColumnName%() {
-                const $displayBox%ColumnName% = $("#%columnName%_display");
+                const $displayBox%ColumnName% = $("#%ColumnName%%UID%_display");
                 if (!$displayBox%ColumnName%.length) return;
                 $displayBox%ColumnName%.empty();
 
                 const $wrapper = $("<div>").css({
                     border: "1px solid #dee2e6",
                     borderRadius: "8px",
-                    padding: "4px 6px",
-                    minHeight: "44px",
+                    padding: "0 6px",
+                    minHeight: "40px",
                     display: "flex",
                     alignItems: "center",
                     cursor: "pointer"
@@ -914,10 +974,10 @@ BEGIN
                     () => $wrapper.css({ borderColor: "#dee2e6", boxShadow: "none" })
                 );
 
-                if (%columnName%SelectedIds.length === 0) {
+                if (%ColumnName%%UID%SelectedIds.length === 0) {
                     $wrapper.append($("<span>").addClass("text-muted").html("<i class=\"bi bi-person-plus me-2\"></i>Chọn nhân viên..."));
                 } else {
-                    const displayIds = %columnName%SelectedIds.slice(0, MAX_VISIBLE_%ColumnName%);
+                    const displayIds = %ColumnName%%UID%SelectedIds.slice(0, MAX_VISIBLE_%ColumnName%);
                     const $group = $("<div>").css({ display: "flex", alignItems: "center" });
 
                     displayIds.forEach((id, index) => {
@@ -943,7 +1003,7 @@ BEGIN
                                 .css({ width: "100%", height: "100%", objectFit: "cover" })
                             );
                         } else if (item.storeImgName) {
-                            loadGlobalAvatarIfNeeded%columnName%(id, item.storeImgName, item.paramImg, function(url) {
+                            loadGlobalAvatarIfNeeded%ColumnName%%UID%(id, item.storeImgName, item.paramImg, function(url) {
                                 renderDisplayBox%ColumnName%();
                             });
                             
@@ -959,8 +1019,8 @@ BEGIN
                         $group.append($chip);
                     });
 
-                    if (%columnName%SelectedIds.length > MAX_VISIBLE_%ColumnName%) {
-                        const remaining = %columnName%SelectedIds.length - MAX_VISIBLE_%ColumnName%;
+                    if (%ColumnName%%UID%SelectedIds.length > MAX_VISIBLE_%ColumnName%) {
+                        const remaining = %ColumnName%%UID%SelectedIds.length - MAX_VISIBLE_%ColumnName%;
                         $group.append($("<div>").css({
                             width: "36px", height: "36px", borderRadius: "50%",
                             border: "3px solid #fff", marginLeft: "-10px",
@@ -988,19 +1048,19 @@ BEGIN
 
             const $container%ColumnName% = $("#%UID%");
             $container%ColumnName%.empty();
-            const $displayBox%ColumnName% = $("<div>").attr("id", "%columnName%_display");
+            const $displayBox%ColumnName% = $("<div>").attr("id", "%ColumnName%%UID%_display");
             $container%ColumnName%.append($displayBox%ColumnName%);
 
             let popup%ColumnName%;
             let popup%ColumnName%Once = false;
-            let %columnName%GridContainer = null;
+            let %ColumnName%%UID%GridContainer = null;
             function initPopup%ColumnName%() {
                 if (popup%ColumnName%Once) {
                     popup%ColumnName%.show();
                     return;
                 }
                 popup%ColumnName%Once = true;
-                popup%ColumnName% = $("<div>").attr("id", "%columnName%_popup")
+                popup%ColumnName% = $("<div>").attr("id", "%ColumnName%%UID%_popup")
                     .appendTo(document.body)
                     .addClass("hpa-responsive")
                     .dxPopup({
@@ -1020,7 +1080,7 @@ BEGIN
                                 options: {
                                     text: "Hủy",
                                     onClick: () => {
-                                        %columnName%SelectedIds = [...%columnName%SelectedIdsOriginal];
+                                        %ColumnName%%UID%SelectedIds = [...%ColumnName%%UID%SelectedIdsOriginal];
                                         popup%ColumnName%.hide();
                                     }
                                 }
@@ -1033,25 +1093,25 @@ BEGIN
                                     text: "Lưu",
                                     type: "success",
                                     onClick: () => {
-                                        %columnName%SelectedIdsOriginal = [...%columnName%SelectedIds];
+                                        %ColumnName%%UID%SelectedIdsOriginal = [...%ColumnName%%UID%SelectedIds];
                                         popup%ColumnName%.hide();
                                     }
                                 }
                             }
                         ],
                         contentTemplate: function (contentElement) {
-                            %columnName%GridContainer = $("<div>");
-                            contentElement.append(%columnName%GridContainer);
+                            %ColumnName%%UID%GridContainer = $("<div>");
+                            contentElement.append(%ColumnName%%UID%GridContainer);
                         },
                         onShown: () => {
                             const sortedData = window["DataSource_%ColumnName%"].sort((a, b) => {
-                                const aSelected = %columnName%SelectedIds.includes(String(a.ID));
-                                const bSelected = %columnName%SelectedIds.includes(String(b.ID));
+                                const aSelected = %ColumnName%%UID%SelectedIds.includes(String(a.ID));
+                                const bSelected = %ColumnName%%UID%SelectedIds.includes(String(b.ID));
                                 return bSelected - aSelected;
                             });
 
                             try {
-                                const existingInstance = %columnName%GridContainer.dxDataGrid("instance");
+                                const existingInstance = %ColumnName%%UID%GridContainer.dxDataGrid("instance");
                                 if (existingInstance) {
                                     existingInstance.dispose();
                                 }
@@ -1059,7 +1119,7 @@ BEGIN
                                 // Instance chưa tồn tại hoặc đã bị destroy
                             }
 
-                            %columnName%GridContainer
+                            %ColumnName%%UID%GridContainer
                             .empty()
                             .dxDataGrid({
                                 dataSource: sortedData,
@@ -1068,7 +1128,7 @@ BEGIN
                                 columnAutoWidth: true,
                                 allowColumnResizing: true,
                                 selection: { mode: "multiple", showCheckBoxesMode: "always" },
-                                selectedRowKeys: %columnName%SelectedIds,
+                                selectedRowKeys: %ColumnName%%UID%SelectedIds,
                                 columns: [
                                     {
                                         caption: "Ảnh",
@@ -1098,8 +1158,8 @@ BEGIN
                                                     })
                                                 );
                                             } else if (item.storeImgName) {
-                                                loadGlobalAvatarIfNeeded%columnName%(item.ID, item.storeImgName, item.paramImg, function(url) {
-                                                    %columnName%GridContainer.dxDataGrid("instance").refresh();
+                                                loadGlobalAvatarIfNeeded%ColumnName%%UID%(item.ID, item.storeImgName, item.paramImg, function(url) {
+                                                    %ColumnName%%UID%GridContainer.dxDataGrid("instance").refresh();
                                                 });
                                                 
                                                 const initials = getInitials%ColumnName%(item.Name || item.FullName || "?");
@@ -1148,7 +1208,64 @@ BEGIN
                                     { dataField: "Email", caption: "Email" },
                                     { dataField: "Position", caption: "Chức vụ" }
                                 ],
-                                searchPanel: { visible: true },
+                                searchPanel: { 
+                                    visible: true
+                                },
+                                onContentReady: function(e) {
+                                    const grid = e.component;
+                                    
+                                    // Clear default search behavior
+                                    grid.option("searchPanel.text", "");
+                                    
+                                    const searchBox = grid.getView("headerPanel")._$element.find(".dx-datagrid-search-panel input");
+                                    
+                                    if (searchBox.length) {
+                                        const $searchWrapper = searchBox.parent();
+                                        if (!$("#custom-search-style-%ColumnName%%UID%").length) {
+                                            $("<style>")
+                                                .attr("id", "custom-search-style-%ColumnName%%UID%")
+                                                .text(`
+                                                    .dx-datagrid-search-panel input:not(:placeholder-shown) {
+                                                        color: #000 !important;
+                                                    }
+                                                    .dx-datagrid-search-panel input::placeholder {
+                                                        color: #999 !important;
+                                                        opacity: 1 !important;
+                                                    }
+                                                `)
+                                                .appendTo("head");
+                                        }
+                                        
+                                        // Unbind ALL events
+                                        searchBox.off();
+                                        
+                                        // Bind custom event
+                                        searchBox.on("input", function() {
+                                            const searchValue = $(this).val();
+                                            
+                                            if (!searchValue) {
+                                                grid.clearFilter();
+                                                return;
+                                            }
+                                            
+                                            const searchNormalized = RemoveToneMarks_Js(searchValue);
+
+                                            grid.filter(function(item) {
+                                                const fields = ["Name", "Email", "Position"];
+                                                for (let i = 0; i < fields.length; i++) {
+                                                    const fieldValue = item[fields[i]];
+                                                    if (fieldValue) {
+                                                        const fieldNormalized = RemoveToneMarks_Js(String(fieldValue));
+                                                        if (fieldNormalized.indexOf(searchNormalized) !== -1) {
+                                                            return true;
+                                                        }
+                                                    }
+                                                }
+                                                return false;
+                                            });
+                                        });
+                                    }
+                                },
                                 paging: { 
                                     enabled: true,
                                     pageSize: 5,
@@ -1161,13 +1278,13 @@ BEGIN
                                     showInfo: true,
                                     showNavigationButtons: true
                                 },
-                                onSelectionChanged: e => %columnName%SelectedIds = e.selectedRowKeys || []
+                                onSelectionChanged: e => %ColumnName%%UID%SelectedIds = e.selectedRowKeys || []
                             });
                         },
                         onHidden: () => {
                             // Dispose grid instance
                             try {
-                                const gridInstance = %columnName%GridContainer.dxDataGrid("instance");
+                                const gridInstance = %ColumnName%%UID%GridContainer.dxDataGrid("instance");
                                 if (gridInstance) {
                                     gridInstance.dispose();
                                 }
@@ -1183,20 +1300,20 @@ BEGIN
                     }).dxPopup("instance");
             }
 
-            window.Instance%columnName% = {
+            Instance%ColumnName%%UID% = {
                 setValue: function(val) {
                     if (typeof val === "string" && val.trim()) {
-                        %columnName%SelectedIds = val.split(",").map(v => v.trim()).filter(v => v);
+                        %ColumnName%%UID%SelectedIds = val.split(",").map(v => v.trim()).filter(v => v);
                     } else if (Array.isArray(val)) {
-                        %columnName%SelectedIds = val.map(String);
+                        %ColumnName%%UID%SelectedIds = val.map(String);
                     } else {
-                        %columnName%SelectedIds = [];
+                        %ColumnName%%UID%SelectedIds = [];
                     }
-                    %columnName%SelectedIdsOriginal = [...%columnName%SelectedIds];
+                    %ColumnName%%UID%SelectedIdsOriginal = [...%ColumnName%%UID%SelectedIds];
                     renderDisplayBox%ColumnName%();
                 },
-                getValue: () => %columnName%SelectedIds,
-                getValueAsString: () => %columnName%SelectedIds.join(","),
+                getValue: () => %ColumnName%%UID%SelectedIds,
+                getValueAsString: () => %ColumnName%%UID%SelectedIds.join(","),
                 setDataSource: data => {
                     window["DataSource_%ColumnName%"] = data || [];
                 },
@@ -1223,8 +1340,9 @@ BEGIN
         loadUI = N'
             window.GlobalEmployeeAvatarCache = window.GlobalEmployeeAvatarCache || {};
             window.GlobalEmployeeAvatarLoading = window.GlobalEmployeeAvatarLoading || {};
+            let Instance%ColumnName%%UID% = {};
 
-            function loadGlobalAvatarIfNeeded%columnName%(employeeId, storeImgName, paramImg, callbackFn) {
+            function loadGlobalAvatarIfNeeded%ColumnName%%UID%(employeeId, storeImgName, paramImg, callbackFn) {
                 const idStr = String(employeeId);
 
                 if (window.GlobalEmployeeAvatarCache[idStr]) {
@@ -1298,20 +1416,19 @@ BEGIN
             }
 
             window["DataSource_%ColumnName%"] = window["DataSource_%ColumnName%"] || [];
-            let spNameDSE%columnName% = "%DataSourceSP%";
-            window.Instance%columnName% = {};
-            let %columnName%SelectedId = null, %columnName%SelectedIdOriginal = null;
+            let spNameDSE%ColumnName%%UID% = "%DataSourceSP%";
+            let %ColumnName%%UID%SelectedId = null, %ColumnName%%UID%SelectedIdOriginal = null;
 
             
             // Sử dụng hàm loadDataSourceCommon từ sptblCommonControlType_Signed
-            if (spNameDSE%columnName% && spNameDSE%columnName%.trim() !== "") {
-                loadDataSourceCommon("%ColumnName%", spNameDSE%columnName%, function(data) {
+            if (spNameDSE%ColumnName%%UID% && spNameDSE%ColumnName%%UID%.trim() !== "") {
+                loadDataSourceCommon("%ColumnName%", spNameDSE%ColumnName%%UID%, function(data) {
                     window["DataSource_%ColumnName%"] = data || [];
                     // Bắt đầu load ảnh cho tất cả nhân viên
                     if (Array.isArray(data) && data.length > 0) {
                         data.forEach(emp => {
                             if (emp.ID && emp.StoreImgName) {
-                                loadGlobalAvatarIfNeeded%columnName%(emp.ID, emp.StoreImgName, emp.ImgParamV);
+                                loadGlobalAvatarIfNeeded%ColumnName%%UID%(emp.ID, emp.StoreImgName, emp.ImgParamV);
                             }
                         });
                     }
@@ -1341,15 +1458,15 @@ BEGIN
             }
 
             function renderDisplayBox%ColumnName%() {
-                const $displayBox%ColumnName% = $("#%columnName%_display");
+                const $displayBox%ColumnName% = $("#%ColumnName%%UID%_display");
                 if (!$displayBox%ColumnName%.length) return;
                 $displayBox%ColumnName%.empty();
 
                 const $wrapper = $("<div>").css({
                     border: "1px solid #dee2e6",
                     borderRadius: "8px",
-                    padding: "4px 6px",
-                    minHeight: "44px",
+                    padding: "0 6px",
+                    minHeight: "40px",
                     display: "flex",
                     alignItems: "center",
                     gap: "10px",
@@ -1359,10 +1476,10 @@ BEGIN
                     () => $wrapper.css({ borderColor: "#dee2e6", boxShadow: "none" })
                 );
 
-                if (!%columnName%SelectedId) {
+                if (!%ColumnName%%UID%SelectedId) {
                     $wrapper.append($("<span>").addClass("text-muted").html("<i class=\"bi bi-person-plus me-2\"></i>Chọn nhân viên..."));
                 } else {
-                    const item = window["DataSource_%ColumnName%"].find(e => String(e.ID) === String(%columnName%SelectedId));
+                    const item = window["DataSource_%ColumnName%"].find(e => String(e.ID) === String(%ColumnName%%UID%SelectedId));
                     if (!item) {
                         $wrapper.append($("<span>").addClass("text-muted").text("Nhân viên không tồn tại"));
                     } else {
@@ -1377,7 +1494,7 @@ BEGIN
                             flexShrink: 0
                         });
 
-                        const cachedUrl = window.GlobalEmployeeAvatarCache[String(%columnName%SelectedId)];
+                        const cachedUrl = window.GlobalEmployeeAvatarCache[String(%ColumnName%%UID%SelectedId)];
 
                         if (cachedUrl) {
                             $avatar.append($("<img>")
@@ -1385,15 +1502,15 @@ BEGIN
                                 .css({ width: "100%", height: "100%", objectFit: "cover" })
                             );
                         } else if (item.storeImgName) {
-                            loadGlobalAvatarIfNeeded%columnName%(%columnName%SelectedId, item.storeImgName, item.paramImg, function(url) {
+                            loadGlobalAvatarIfNeeded%ColumnName%%UID%(%ColumnName%%UID%SelectedId, item.storeImgName, item.paramImg, function(url) {
                                 renderDisplayBox%ColumnName%();
                             });
                             
-                            const color = getColorForId%ColumnName%(%columnName%SelectedId);
+                            const color = getColorForId%ColumnName%(%ColumnName%%UID%SelectedId);
                             const initials = getInitials%ColumnName%(name);
                             $avatar.css({ background: color.bg, color: color.text }).text(initials);
                         } else {
-                            const color = getColorForId%ColumnName%(%columnName%SelectedId);
+                            const color = getColorForId%ColumnName%(%ColumnName%%UID%SelectedId);
                             const initials = getInitials%ColumnName%(name);
                             $avatar.css({ background: color.bg, color: color.text }).text(initials);
                         }
@@ -1424,19 +1541,19 @@ BEGIN
 
             const $container%ColumnName% = $("#%UID%");
             $container%ColumnName%.empty();
-            const $displayBox%ColumnName% = $("<div>").attr("id", "%columnName%_display");
+            const $displayBox%ColumnName% = $("<div>").attr("id", "%ColumnName%%UID%_display");
             $container%ColumnName%.append($displayBox%ColumnName%);
 
             let popup%ColumnName%;
             let popup%ColumnName%Once = false;
-            let %columnName%GridContainer = null;
+            let %ColumnName%%UID%GridContainer = null;
             function initPopup%ColumnName%() {
                 if (popup%ColumnName%Once) {
                     popup%ColumnName%.show();
                     return;
                 }
                 popup%ColumnName%Once = true;
-                popup%ColumnName% = $("<div>").attr("id", "%columnName%_popup")
+                popup%ColumnName% = $("<div>").attr("id", "%ColumnName%%UID%_popup")
                     .appendTo(document.body)
                     .addClass("hpa-responsive")
                     .dxPopup({
@@ -1457,7 +1574,7 @@ BEGIN
                                     text: "Hủy",
                                     onClick: () => {
                                         popup%ColumnName%._isCancelling = true;
-                                        %columnName%SelectedId = %columnName%SelectedIdOriginal;
+                                        %ColumnName%%UID%SelectedId = %ColumnName%%UID%SelectedIdOriginal;
                                         popup%ColumnName%.hide();
                                     }
                                 }
@@ -1477,26 +1594,26 @@ BEGIN
                             }
                         ],
                         contentTemplate: function (contentElement) {
-                            %columnName%GridContainer = $("<div>");
-                            contentElement.append(%columnName%GridContainer);
+                            %ColumnName%%UID%GridContainer = $("<div>");
+                            contentElement.append(%ColumnName%%UID%GridContainer);
                         },
                         onShown: () => {
                             setTimeout(() => {
-                                const $popupContent = $("#%columnName%_popup").closest(".dx-popup-wrapper");
+                                const $popupContent = $("#%ColumnName%%UID%_popup").closest(".dx-popup-wrapper");
                                 $popupContent.off("mousedown.preventClose").on("mousedown.preventClose", function(e) {
                                     e.stopPropagation();
                                 });
                             }, 100);
 
                             const sortedData = window["DataSource_%ColumnName%"].sort((a, b) => {
-                                const aSelected = String(a.ID) === String(%columnName%SelectedId);
-                                const bSelected = String(b.ID) === String(%columnName%SelectedId);
+                                const aSelected = String(a.ID) === String(%ColumnName%%UID%SelectedId);
+                                const bSelected = String(b.ID) === String(%ColumnName%%UID%SelectedId);
                                 return bSelected - aSelected;
                             });
 
                             // Destroy instance cũ nếu tồn tại
                             try {
-                                const existingInstance = %columnName%GridContainer.dxDataGrid("instance");
+                                const existingInstance = %ColumnName%%UID%GridContainer.dxDataGrid("instance");
                                 if (existingInstance) {
                                     existingInstance.dispose();
                                 }
@@ -1504,7 +1621,7 @@ BEGIN
                                 // Instance chưa tồn tại hoặc đã bị destroy
                             }
 
-                            %columnName%GridContainer
+                            %ColumnName%%UID%GridContainer
                             .empty()
                             .dxDataGrid({
                                 dataSource: sortedData,
@@ -1513,7 +1630,7 @@ BEGIN
                                 columnAutoWidth: true,
                                 allowColumnResizing: true,
                                 selection: { mode: "single" },
-                                selectedRowKeys: %columnName%SelectedId ? [%columnName%SelectedId] : [],
+                                selectedRowKeys: %ColumnName%%UID%SelectedId ? [%ColumnName%%UID%SelectedId] : [],
                                 hoverStateEnabled: true,
                                 onRowPrepared: function(e) {
                                     if (e.rowType === "data") {
@@ -1549,8 +1666,8 @@ BEGIN
                                                     })
                                                 );
                                             } else if (item.storeImgName) {
-                                                loadGlobalAvatarIfNeeded%columnName%(item.ID, item.storeImgName, item.paramImg, function(url) {
-                                                    %columnName%GridContainer.dxDataGrid("instance").refresh();
+                                                loadGlobalAvatarIfNeeded%ColumnName%%UID%(item.ID, item.storeImgName, item.paramImg, function(url) {
+                                                    %ColumnName%%UID%GridContainer.dxDataGrid("instance").refresh();
                                                 });
                                                 
                                                 const initials = getInitials%ColumnName%(item.Name || item.FullName || "?");
@@ -1599,7 +1716,64 @@ BEGIN
                                     { dataField: "Email", caption: "Email" },
                                     { dataField: "Position", caption: "Chức vụ" }
                                 ],
-                                searchPanel: { visible: true },
+                                searchPanel: { 
+                                    visible: true
+                                },
+                                onContentReady: function(e) {
+                                    const grid = e.component;
+                                    
+                                    // Clear default search behavior
+                                    grid.option("searchPanel.text", "");
+                                    
+                                    const searchBox = grid.getView("headerPanel")._$element.find(".dx-datagrid-search-panel input");
+                                    
+                                    if (searchBox.length) {
+                                        const $searchWrapper = searchBox.parent();
+                                        if (!$("#custom-search-style-%ColumnName%%UID%").length) {
+                                            $("<style>")
+                                                .attr("id", "custom-search-style-%ColumnName%%UID%")
+                                                .text(`
+                                                    .dx-datagrid-search-panel input:not(:placeholder-shown) {
+                                                        color: #000 !important;
+                                                    }
+                                                    .dx-datagrid-search-panel input::placeholder {
+                                                        color: #999 !important;
+                                                        opacity: 1 !important;
+                                                    }
+                                                `)
+                                                .appendTo("head");
+                                        }
+                                        
+                                        // Unbind ALL events
+                                        searchBox.off();
+                                        
+                                        // Bind custom event
+                                        searchBox.on("input", function() {
+                                            const searchValue = $(this).val();
+                                            
+                                            if (!searchValue) {
+                                                grid.clearFilter();
+                                                return;
+                                            }
+                                            
+                                            const searchNormalized = RemoveToneMarks_Js(searchValue);
+
+                                            grid.filter(function(item) {
+                                                const fields = ["Name", "Email", "Position"];
+                                                for (let i = 0; i < fields.length; i++) {
+                                                    const fieldValue = item[fields[i]];
+                                                    if (fieldValue) {
+                                                        const fieldNormalized = RemoveToneMarks_Js(String(fieldValue));
+                                                        if (fieldNormalized.indexOf(searchNormalized) !== -1) {
+                                                            return true;
+                                                        }
+                                                    }
+                                                }
+                                                return false;
+                                            });
+                                        });
+                                    }
+                                },
                                 paging: { 
                                     enabled: true,
                                     pageSize: 5,
@@ -1614,16 +1788,16 @@ BEGIN
                                 },
                                 onSelectionChanged: e => {
                                     const keys = e.selectedRowKeys || [];
-                                    %columnName%SelectedId = keys.length > 0 ? String(keys[0]) : null;
+                                    %ColumnName%%UID%SelectedId = keys.length > 0 ? String(keys[0]) : null;
                                 }
                             });
                         },
                         onHidden: () => {
-                            const $popupContent = $("#%columnName%_popup").closest(".dx-popup-wrapper");
+                            const $popupContent = $("#%ColumnName%%UID%_popup").closest(".dx-popup-wrapper");
                             $popupContent.off("mousedown.preventClose");
                             
                             try {
-                                const gridInstance = %columnName%GridContainer.dxDataGrid("instance");
+                                const gridInstance = %ColumnName%%UID%GridContainer.dxDataGrid("instance");
                                 if (gridInstance) {
                                     gridInstance.dispose();
                                 }
@@ -1644,8 +1818,8 @@ BEGIN
                         return;
                     }
                     
-                    const original = String(%columnName%SelectedIdOriginal || "");
-                    const current = String(%columnName%SelectedId || "");
+                    const original = String(%ColumnName%%UID%SelectedIdOriginal || "");
+                    const current = String(%ColumnName%%UID%SelectedId || "");
                     
                     if (original !== current) {
                         e.cancel = true;
@@ -1656,18 +1830,28 @@ BEGIN
             }
 
             async function saveValue%ColumnName%() {
-                const original = String(%columnName%SelectedIdOriginal || "");
-                const current = String(%columnName%SelectedId || "");
+                const original = String(%ColumnName%%UID%SelectedIdOriginal || "");
+                const current = String(%ColumnName%%UID%SelectedId || "");
                 if (original === current) return;
 
                 try {
-                    const newValue = %columnName%SelectedId || null;
-                    const dataJSON = JSON.stringify(["%tableId%", ["%columnName%"], [newValue]]);
+                    const newValue = %ColumnName%%UID%SelectedId || null;
+                    const dataJSON = JSON.stringify(["%tableId%", ["%ColumnName%"], [newValue]]);
 
-                    let idValues = [currentRecordID_%ColumnIDName%];
+                    // Context-aware record IDs
+                    let id1 = currentRecordID_%ColumnIDName%;
+                    if (typeof cellInfo !== "undefined" && cellInfo && cellInfo.data) {
+                        id1 = cellInfo.data["%ColumnIDName%"] || id1;
+                    }
+                    let idValues = [id1];
                     let idFields = ["%ColumnIDName%"];
+                    
                     if ("%ColumnIDName2%" && "%ColumnIDName2%".trim() !== "") {
-                        idValues.push(currentRecordID_%ColumnIDName2%);
+                        let id2 = currentRecordID_%ColumnIDName2%;
+                        if (typeof cellInfo !== "undefined" && cellInfo && cellInfo.data) {
+                            id2 = cellInfo.data["%ColumnIDName2%"] || id2;
+                        }
+                        idValues.push(id2);
                         idFields.push("%ColumnIDName2%");
                     }
                     const idValsJSON = JSON.stringify([idValues, idFields]);
@@ -1681,21 +1865,18 @@ BEGIN
                         return;
                     }
 
-                    // SYNC GRID: Cập nhật lại giá trị trong Grid sau khi save thành công
-                    if (%columnName%CellInfo && %columnName%CellInfo.component) {
+                    // SYNC GRID
+                    if (typeof cellInfo !== "undefined" && cellInfo && cellInfo.component) {
                         try {
-                            const grid = %columnName%CellInfo.component;
-                            const rowKey = %columnName%CellInfo.key || %columnName%CellInfo.data["%ColumnIDName%"];
-                            
-                            grid.cellValue(%columnName%CellInfo.rowIndex, "%columnName%", newValue);
+                            const grid = cellInfo.component;
+                            grid.cellValue(cellInfo.rowIndex, "%ColumnName%", newValue);
                             grid.repaint();
-
                         } catch (syncErr) {
-                            console.warn("[Grid Sync] SelectBox %columnName%: Không thể sync grid:", syncErr);
+                            console.warn("[Grid Sync] SelectBox %ColumnName%%UID%: Không thể sync grid:", syncErr);
                         }
                     }
 
-                    %columnName%SelectedIdOriginal = %columnName%SelectedId;
+                    %ColumnName%%UID%SelectedIdOriginal = %ColumnName%%UID%SelectedId;
                     if ("%IsAlert%" === "1") {
                         uiManager.showAlert({ type: "success", message: "Lưu thành công" });
                     }
@@ -1707,18 +1888,18 @@ BEGIN
                 }
             }
 
-            window.Instance%columnName% = {
+            Instance%ColumnName%%UID% = {
                 setValue: function(val) {
                     if (val !== null && val !== undefined && val !== "") {
-                        %columnName%SelectedId = String(val);
+                        %ColumnName%%UID%SelectedId = String(val);
                     } else {
-                        %columnName%SelectedId = null;
+                        %ColumnName%%UID%SelectedId = null;
                     }
-                    %columnName%SelectedIdOriginal = %columnName%SelectedId;
+                    %ColumnName%%UID%SelectedIdOriginal = %ColumnName%%UID%SelectedId;
                     renderDisplayBox%ColumnName%();
                 },
-                getValue: () => %columnName%SelectedId,
-                getValueAsString: () => %columnName%SelectedId || "",
+                getValue: () => %ColumnName%%UID%SelectedId,
+                getValueAsString: () => %ColumnName%%UID%SelectedId || "",
                 setDataSource: data => {
                     window["DataSource_%ColumnName%"] = data || [];
                 },
@@ -1745,8 +1926,9 @@ BEGIN
         loadUI = N'
             window.GlobalEmployeeAvatarCache = window.GlobalEmployeeAvatarCache || {};
             window.GlobalEmployeeAvatarLoading = window.GlobalEmployeeAvatarLoading || {};
+            let Instance%ColumnName%%UID% = {};
 
-            function loadGlobalAvatarIfNeeded%columnName%(employeeId, storeImgName, paramImg, callbackFn) {
+            function loadGlobalAvatarIfNeeded%ColumnName%%UID%(employeeId, storeImgName, paramImg, callbackFn) {
                 const idStr = String(employeeId);
 
                 if (window.GlobalEmployeeAvatarCache[idStr]) {
@@ -1820,23 +2002,20 @@ BEGIN
             }
 
             window["DataSource_%ColumnName%"] = window["DataSource_%ColumnName%"] || [];
-            let spNameDSE%columnName% = "%DataSourceSP%";
-            window.Instance%columnName% = {};
-            let %columnName%SelectedId = null, %columnName%SelectedIdOriginal = null;
-
+            let spNameDSE%ColumnName%%UID% = "%DataSourceSP%";
+            let %ColumnName%%UID%SelectedId = null, %ColumnName%%UID%SelectedIdOriginal = null;
+            let _autoSave%ColumnName%%UID% = false;
+            let _readOnly%ColumnName%%UID% = false;
             
             // Sử dụng hàm loadDataSourceCommon từ sptblCommonControlType_Signed
-            if (spNameDSE%columnName% && spNameDSE%columnName%.trim() !== "") {
-                loadDataSourceCommon("%ColumnName%", spNameDSE%columnName%, function(data) {
+            if (spNameDSE%ColumnName%%UID% && spNameDSE%ColumnName%%UID%.trim() !== "") {
+                loadDataSourceCommon("%ColumnName%", spNameDSE%ColumnName%%UID%, function(data) {
                     window["DataSource_%ColumnName%"] = data || [];
-                    if (Instance%columnName% && typeof Instance%columnName%.setDataSource === "function") {
-                        Instance%columnName%.setDataSource(data);
-                    }
                     // Bắt đầu load ảnh cho tất cả nhân viên
                     if (Array.isArray(data) && data.length > 0) {
                         data.forEach(emp => {
                             if (emp.ID && emp.StoreImgName) {
-                                loadGlobalAvatarIfNeeded%columnName%(emp.ID, emp.StoreImgName, emp.ImgParamV);
+                                loadGlobalAvatarIfNeeded%ColumnName%%UID%(emp.ID, emp.StoreImgName, emp.ImgParamV);
                             }
                         });
                     }
@@ -1866,15 +2045,15 @@ BEGIN
             }
 
             function renderDisplayBox%ColumnName%() {
-                const $displayBox%ColumnName% = $("#%columnName%_display");
+                const $displayBox%ColumnName% = $("#%ColumnName%%UID%_display");
                 if (!$displayBox%ColumnName%.length) return;
                 $displayBox%ColumnName%.empty();
 
                 const $wrapper = $("<div>").css({
                     border: "1px solid #dee2e6",
                     borderRadius: "8px",
-                    padding: "4px 6px",
-                    minHeight: "44px",
+                    padding: "0 6px",
+                    minHeight: "40px",
                     display: "flex",
                     alignItems: "center",
                     gap: "10px",
@@ -1884,10 +2063,10 @@ BEGIN
                     () => $wrapper.css({ borderColor: "#dee2e6", boxShadow: "none" })
                 );
 
-                if (!%columnName%SelectedId) {
+                if (!%ColumnName%%UID%SelectedId) {
                     $wrapper.append($("<span>").addClass("text-muted").html("<i class=\"bi bi-person-plus me-2\"></i>Chọn nhân viên..."));
                 } else {
-                    const item = window["DataSource_%ColumnName%"].find(e => String(e.ID) === String(%columnName%SelectedId));
+                    const item = window["DataSource_%ColumnName%"].find(e => String(e.ID) === String(%ColumnName%%UID%SelectedId));
                     if (!item) {
                         $wrapper.append($("<span>").addClass("text-muted").text("Nhân viên không tồn tại"));
                     } else {
@@ -1902,7 +2081,7 @@ BEGIN
                             flexShrink: 0
                         });
 
-                        const cachedUrl = window.GlobalEmployeeAvatarCache[String(%columnName%SelectedId)];
+                        const cachedUrl = window.GlobalEmployeeAvatarCache[String(%ColumnName%%UID%SelectedId)];
 
                         if (cachedUrl) {
                             $avatar.append($("<img>")
@@ -1910,15 +2089,15 @@ BEGIN
                                 .css({ width: "100%", height: "100%", objectFit: "cover" })
                             );
                         } else if (item.storeImgName) {
-                            loadGlobalAvatarIfNeeded%columnName%(%columnName%SelectedId, item.storeImgName, item.paramImg, function(url) {
+                            loadGlobalAvatarIfNeeded%ColumnName%%UID%(%ColumnName%%UID%SelectedId, item.storeImgName, item.paramImg, function(url) {
                                 renderDisplayBox%ColumnName%();
                             });
                             
-                            const color = getColorForId%ColumnName%(%columnName%SelectedId);
+                            const color = getColorForId%ColumnName%(%ColumnName%%UID%SelectedId);
                             const initials = getInitials%ColumnName%(name);
                             $avatar.css({ background: color.bg, color: color.text }).text(initials);
                         } else {
-                            const color = getColorForId%ColumnName%(%columnName%SelectedId);
+                            const color = getColorForId%ColumnName%(%ColumnName%%UID%SelectedId);
                             const initials = getInitials%ColumnName%(name);
                             $avatar.css({ background: color.bg, color: color.text }).text(initials);
                         }
@@ -1935,6 +2114,9 @@ BEGIN
 
                 $displayBox%ColumnName%.append($wrapper);
                 $wrapper.off("click").on("click", () => {
+                    // Feature: ReadOnly Check
+                    if (_readOnly%ColumnName%%UID%) return;
+                    
                     if (!popup%ColumnName%) {
                         initPopup%ColumnName%();
                         // Đợi popup init xong rồi mới show
@@ -1949,19 +2131,19 @@ BEGIN
 
             const $container%ColumnName% = $("#%UID%");
             $container%ColumnName%.empty();
-            const $displayBox%ColumnName% = $("<div>").attr("id", "%columnName%_display");
+            const $displayBox%ColumnName% = $("<div>").attr("id", "%ColumnName%%UID%_display");
             $container%ColumnName%.append($displayBox%ColumnName%);
 
             let popup%ColumnName%;
             let popup%ColumnName%Once = false;
-            let %columnName%GridContainer = null;
+            let %ColumnName%%UID%GridContainer = null;
             function initPopup%ColumnName%() {
                 if (popup%ColumnName%Once) {
                     popup%ColumnName%.show();
                     return;
                 }
                 popup%ColumnName%Once = true;
-                popup%ColumnName% = $("<div>").attr("id", "%columnName%_popup")
+                popup%ColumnName% = $("<div>").attr("id", "%ColumnName%%UID%_popup")
                     .appendTo(document.body)
                     .addClass("hpa-responsive")
                     .dxPopup({
@@ -1981,7 +2163,7 @@ BEGIN
                                 options: {
                                     text: "Hủy",
                                     onClick: () => {
-                                        %columnName%SelectedId = %columnName%SelectedIdOriginal;
+                                        %ColumnName%%UID%SelectedId = %ColumnName%%UID%SelectedIdOriginal;
                                         popup%ColumnName%.hide();
                                     }
                                 }
@@ -1993,26 +2175,41 @@ BEGIN
                                 options: {
                                     text: "Lưu",
                                     type: "success",
-                                    onClick: () => {
+                                    onClick: async () => {
+                                        // Feature: AutoSave Check
+                                        if (_autoSave%ColumnName%%UID% && typeof saveValue%ColumnName% === "function") {
+                                            await saveValue%ColumnName%(); 
+                                        } else {
+                                            // Local Save (Sync Grid)
+                                            if (typeof cellInfo !== "undefined" && cellInfo && cellInfo.component) {
+                                                try {
+                                                    const grid = cellInfo.component;
+                                                    grid.cellValue(cellInfo.rowIndex, "%ColumnName%", %ColumnName%%UID%SelectedId || null);
+                                                    grid.repaint();
+                                                } catch (e) { console.warn(e); }
+                                            }
+                                            %ColumnName%%UID%SelectedIdOriginal = %ColumnName%%UID%SelectedId;
+                                            renderDisplayBox%ColumnName%();
+                                        }
                                         popup%ColumnName%.hide();
                                     }
                                 }
                             }
                         ],
                         contentTemplate: function (contentElement) {
-                            %columnName%GridContainer = $("<div>");
-                            contentElement.append(%columnName%GridContainer);
+                            %ColumnName%%UID%GridContainer = $("<div>");
+                            contentElement.append(%ColumnName%%UID%GridContainer);
                         },
                         onShown: () => {
                             const sortedData = window["DataSource_%ColumnName%"].sort((a, b) => {
-                                const aSelected = String(a.ID) === String(%columnName%SelectedId);
-                                const bSelected = String(b.ID) === String(%columnName%SelectedId);
+                                const aSelected = String(a.ID) === String(%ColumnName%%UID%SelectedId);
+                                const bSelected = String(b.ID) === String(%ColumnName%%UID%SelectedId);
                                 return bSelected - aSelected;
                             });
 
                             // Destroy instance cũ nếu tồn tại
                             try {
-                                const existingInstance = %columnName%GridContainer.dxDataGrid("instance");
+                                const existingInstance = %ColumnName%%UID%GridContainer.dxDataGrid("instance");
                                 if (existingInstance) {
                                     existingInstance.dispose();
                                 }
@@ -2020,7 +2217,7 @@ BEGIN
                                 // Instance chưa tồn tại hoặc đã bị destroy
                             }
 
-                            %columnName%GridContainer
+                            %ColumnName%%UID%GridContainer
                             .empty()
                             .dxDataGrid({
                                 dataSource: sortedData,
@@ -2029,7 +2226,7 @@ BEGIN
                                 columnAutoWidth: true,
                                 allowColumnResizing: true,
                                 selection: { mode: "single" },
-                                selectedRowKeys: %columnName%SelectedId ? [%columnName%SelectedId] : [],
+                                selectedRowKeys: %ColumnName%%UID%SelectedId ? [%ColumnName%%UID%SelectedId] : [],
                                 hoverStateEnabled: true,
                                 onRowPrepared: function(e) {
                                     if (e.rowType === "data") {
@@ -2065,8 +2262,8 @@ BEGIN
                                                     })
                                                 );
                                             } else if (item.storeImgName) {
-                                                loadGlobalAvatarIfNeeded%columnName%(item.ID, item.storeImgName, item.paramImg, function(url) {
-                                                    %columnName%GridContainer.dxDataGrid("instance").refresh();
+                                                loadGlobalAvatarIfNeeded%ColumnName%%UID%(item.ID, item.storeImgName, item.paramImg, function(url) {
+                                                    %ColumnName%%UID%GridContainer.dxDataGrid("instance").refresh();
                                                 });
                                                 
                                                 const initials = getInitials%ColumnName%(item.Name || item.FullName || "?");
@@ -2115,7 +2312,64 @@ BEGIN
                                     { dataField: "Email", caption: "Email" },
                                     { dataField: "Position", caption: "Chức vụ" }
                                 ],
-                                searchPanel: { visible: true },
+                                searchPanel: { 
+                                    visible: true
+                                },
+                                onContentReady: function(e) {
+                                    const grid = e.component;
+                                    
+                                    // Clear default search behavior
+                                    grid.option("searchPanel.text", "");
+                                    
+                                    const searchBox = grid.getView("headerPanel")._$element.find(".dx-datagrid-search-panel input");
+                                    
+                                    if (searchBox.length) {
+                                        const $searchWrapper = searchBox.parent();
+                                        if (!$("#custom-search-style-%ColumnName%%UID%").length) {
+                                            $("<style>")
+                                                .attr("id", "custom-search-style-%ColumnName%%UID%")
+                                                .text(`
+                                                    .dx-datagrid-search-panel input:not(:placeholder-shown) {
+                                                        color: #000 !important;
+                                                    }
+                                                    .dx-datagrid-search-panel input::placeholder {
+                                                        color: #999 !important;
+                                                        opacity: 1 !important;
+                                                    }
+                                                `)
+                                                .appendTo("head");
+                                        }
+                                        
+                                        // Unbind ALL events
+                                        searchBox.off();
+                                        
+                                        // Bind custom event
+                                        searchBox.on("input", function() {
+                                            const searchValue = $(this).val();
+                                            
+                                            if (!searchValue) {
+                                                grid.clearFilter();
+                                                return;
+                                            }
+                                            
+                                            const searchNormalized = RemoveToneMarks_Js(searchValue);
+
+                                            grid.filter(function(item) {
+                                                const fields = ["Name", "Email", "Position"];
+                                                for (let i = 0; i < fields.length; i++) {
+                                                    const fieldValue = item[fields[i]];
+                                                    if (fieldValue) {
+                                                        const fieldNormalized = RemoveToneMarks_Js(String(fieldValue));
+                                                        if (fieldNormalized.indexOf(searchNormalized) !== -1) {
+                                                            return true;
+                                                        }
+                                                    }
+                                                }
+                                                return false;
+                                            });
+                                        });
+                                    }
+                                },
                                 paging: { 
                                     enabled: true,
                                     pageSize: 5,
@@ -2128,13 +2382,13 @@ BEGIN
                                     showInfo: true,
                                     showNavigationButtons: true
                                 },
-                                onSelectionChanged: e => %columnName%SelectedId = (e.selectedRowKeys && e.selectedRowKeys[0]) || null
+                                onSelectionChanged: e => %ColumnName%%UID%SelectedId = (e.selectedRowKeys && e.selectedRowKeys[0]) || null
                             });
                         },
                         onHidden: () => {
                             // Dispose grid instance
                             try {
-                                const gridInstance = %columnName%GridContainer.dxDataGrid("instance");
+                                const gridInstance = %ColumnName%%UID%GridContainer.dxDataGrid("instance");
                                 if (gridInstance) {
                                     gridInstance.dispose();
                                 }
@@ -2150,18 +2404,67 @@ BEGIN
                     }).dxPopup("instance");
             }
 
-            window.Instance%columnName% = {
+            async function saveValue%ColumnName%() {
+                const original = String(%ColumnName%%UID%SelectedIdOriginal || "");
+                const current = String(%ColumnName%%UID%SelectedId || "");
+                if (original === current) return;
+
+                try {
+                    const newValue = %ColumnName%%UID%SelectedId || null;
+                    const dataJSON = JSON.stringify(["%tableId%", ["%ColumnName%"], [newValue]]);
+
+                    let idValues = [currentRecordID_%ColumnIDName%];
+                    let idFields = ["%ColumnIDName%"];
+                    if ("%ColumnIDName2%" && "%ColumnIDName2%".trim() !== "") {
+                        idValues.push(currentRecordID_%ColumnIDName2%);
+                        idFields.push("%ColumnIDName2%");
+                    }
+                    const idValsJSON = JSON.stringify([idValues, idFields]);
+
+                    const json = await saveFunction(dataJSON, idValsJSON);
+                    const errors = json.data?.[json.data.length - 1] || [];
+                    if (errors.length > 0 && errors[0].Status === "ERROR") {
+                        if ("%IsAlert%" === "1") {
+                            uiManager.showAlert({ type: "error", message: errors[0].Message || "Lưu thất bại" });
+                        }
+                        return;
+                    }
+
+                    // SYNC GRID: Cập nhật lại giá trị trong Grid sau khi save thành công
+                    if (typeof cellInfo !== "undefined" && cellInfo && cellInfo.component) {
+                        try {
+                            const grid = cellInfo.component;
+                            grid.cellValue(cellInfo.rowIndex, "%ColumnName%", newValue);
+                            grid.repaint();
+                        } catch (syncErr) {
+                            console.warn("[Grid Sync] SelectBox %ColumnName%%UID%: Không thể sync grid:", syncErr);
+                        }
+                    }
+
+                    %ColumnName%%UID%SelectedIdOriginal = %ColumnName%%UID%SelectedId;
+                    if ("%IsAlert%" === "1") {
+                        uiManager.showAlert({ type: "success", message: "Lưu thành công" });
+                    }
+                    renderDisplayBox%ColumnName%();
+                } catch (err) {
+                    if ("%IsAlert%" === "1") {
+                        uiManager.showAlert({ type: "error", message: "Có lỗi khi lưu" });
+                    }
+                }
+            }
+
+            Instance%ColumnName%%UID% = {
                 setValue: function(val) {
                     if (val !== null && val !== undefined && val !== "") {
-                        %columnName%SelectedId = String(val);
+                        %ColumnName%%UID%SelectedId = String(val);
                     } else {
-                        %columnName%SelectedId = null;
+                        %ColumnName%%UID%SelectedId = null;
                     }
-                    %columnName%SelectedIdOriginal = %columnName%SelectedId;
+                    %ColumnName%%UID%SelectedIdOriginal = %ColumnName%%UID%SelectedId;
                     renderDisplayBox%ColumnName%();
                 },
-                getValue: () => %columnName%SelectedId,
-                getValueAsString: () => %columnName%SelectedId || "",
+                getValue: () => %ColumnName%%UID%SelectedId,
+                getValueAsString: () => %ColumnName%%UID%SelectedId || "",
                 setDataSource: data => {
                     window["DataSource_%ColumnName%"] = data || [];
                 },

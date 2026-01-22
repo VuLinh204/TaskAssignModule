@@ -1,15 +1,15 @@
 USE Paradise_Dev
 GO
-if object_id('[dbo].[sptblCommonControlType_Signed]') is null
-	EXEC ('CREATE PROCEDURE [dbo].[sptblCommonControlType_Signed] as select 1')
+if object_id('[dbo].[sptblCommonControlType_Signed_Linh]') is null
+	EXEC ('CREATE PROCEDURE [dbo].[sptblCommonControlType_Signed_Linh] as select 1')
 GO
 
-ALTER PROCEDURE [dbo].[sptblCommonControlType_Signed]
+ALTER PROCEDURE [dbo].[sptblCommonControlType_Signed_Linh]
     @TableName VARCHAR(256) = ''
 AS
 BEGIN
     -- ============================================================================
-    -- PROCEDURE: sptblCommonControlType_Signed
+    -- PROCEDURE: sptblCommonControlType_Signed_Linh
     -- MÔ TẢ: Build HTML/JavaScript cho Grid View và các control chung dựa trên cấu hình
     -- THAM SỐ:
     --   @TableName: Tên thủ tục cần build UI (VD: 'sp_Task_MyWork_html')
@@ -1822,6 +1822,5 @@ BEGIN
 END
 GO
 
-EXEC sptblCommonControlType_Signed 'sp_Task_MyWork_html'
+EXEC sptblCommonControlType_Signed_Linh 'sp_Task_MyWork_html'
 EXEC sp_GenerateHTMLScript_new 'sp_Task_MyWork_html'
-
