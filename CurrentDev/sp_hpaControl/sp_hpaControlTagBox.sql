@@ -1,8 +1,7 @@
 USE Paradise_Dev
 GO
-
-IF OBJECT_ID('[dbo].[sp_hpaControlTagBox]') IS NULL
-    EXEC ('CREATE PROCEDURE [dbo].[sp_hpaControlTagBox] AS SELECT 1')
+if object_id('[dbo].[sp_hpaControlTagBox]') is null
+	EXEC ('CREATE PROCEDURE [dbo].[sp_hpaControlTagBox] as select 1')
 GO
 
 ALTER PROCEDURE [dbo].[sp_hpaControlTagBox]
@@ -54,16 +53,16 @@ BEGIN
                 store: new DevExpress.data.CustomStore({
                     key: "ID",
                     load: function(loadOptions) {
-                        const searchValue = (Instance%ColumnName%%UID% && Instance%ColumnName%%UID%.option) 
+                        const searchValue = (Instance%ColumnName%%UID% && Instance%ColumnName%%UID%.option)
                             ? (Instance%ColumnName%%UID%.option("text") || Instance%ColumnName%%UID%.option("searchValue") || "")
                             : (loadOptions.searchValue || "");
-                        
+
                         let result = data || [];
-                        
+
                         if (searchValue && searchValue.trim()) {
                             result = result.filter(item => customSearch%ColumnName%(item, searchValue));
                         }
-                        
+
                         // Handle Add New
                         if (%ColumnName%%UID%TableAddNew && %ColumnName%%UID%ColumnAddNew && searchValue) {
                             const searchNorm = RemoveToneMarks_Js(searchValue.trim().toLowerCase());
@@ -79,7 +78,7 @@ BEGIN
                                 });
                             }
                         }
-                        
+
                         // RETURN OBJECT thay vì array
                         return Promise.resolve({
                             data: result,
@@ -87,16 +86,16 @@ BEGIN
                         });
                     },
                     totalCount: function(loadOptions) {
-                        const searchValue = (Instance%ColumnName%%UID% && Instance%ColumnName%%UID%.option) 
+                        const searchValue = (Instance%ColumnName%%UID% && Instance%ColumnName%%UID%.option)
                             ? (Instance%ColumnName%%UID%.option("text") || Instance%ColumnName%%UID%.option("searchValue") || "")
                             : (loadOptions.searchValue || "");
-                        
+
                         let result = data || [];
-                        
+
                         if (searchValue && searchValue.trim()) {
                             result = result.filter(item => customSearch%ColumnName%(item, searchValue));
                         }
-                        
+
                         return Promise.resolve(result.length);
                     },
                     byKey: function(key) {
@@ -108,13 +107,13 @@ BEGIN
 
         async function processAddNew%ColumnName%(newValue) {
             if (!newValue || !newValue.trim()) return;
-            
+
             Instance%ColumnName%%UID%.option("disabled", true);
-            
+
             const dataJSON = JSON.stringify([%ColumnName%%UID%TableAddNew, [%ColumnName%%UID%ColumnAddNew], [newValue.trim()]]);
             const idValsJSON = JSON.stringify([[], []]);
             console.log(dataJSON);
-            
+
             try {
                 const json = await saveFunction(dataJSON, idValsJSON);
                 const dtError = json.data[json.data.length - 1] || [];
@@ -126,7 +125,7 @@ BEGIN
                     if ("%IsAlert%" === "1") {
                         uiManager.showAlert({ type: "success", message: "Đã thêm mới: " + newValue });
                     }
-                    
+
                     if (%ColumnName%%UID%DataSourceSP && %ColumnName%%UID%DataSourceSP !== "") {
                         loadDataSourceCommon("%ColumnName%", %ColumnName%%UID%DataSourceSP, function(data) {
                             Instance%ColumnName%%UID%.option("dataSource", getDataSourceConfig%ColumnName%%UID%(data));
@@ -157,13 +156,13 @@ BEGIN
 
         function customSearch%ColumnName%(item, searchValue) {
             if (!searchValue) return true;
-            
+
             // THÊM .toLowerCase()
             let searchNormalized = searchValue.toLowerCase();
             if (typeof RemoveToneMarks_Js === "function") {
                 searchNormalized = RemoveToneMarks_Js(searchValue).toLowerCase();
             }
-            
+
             const fields = ["ID", "Name", "Code", "Description"];
             for (let i = 0; i < fields.length; i++) {
                 const fieldValue = item[fields[i]];
@@ -249,16 +248,15 @@ BEGIN
                     const $item = $("<div>")
                         .addClass("d-flex align-items-center gap-2 px-3 py-2 text-primary fw-bold")
                         .css({ cursor: "pointer", borderTop: "1px dashed #dee2e6" });
-                    
+
                     $("<i>").addClass("bi bi-plus-circle-fill fs-5").appendTo($item);
                     $("<span>").text("Thêm mới: \"" + data.Name + "\"").appendTo($item);
-                    
+
                     $item.on("dxclick", async function(e) {
                         e.stopPropagation();
                         if (Instance%ColumnName%%UID% && Instance%ColumnName%%UID%.blur) Instance%ColumnName%%UID%.blur();
                         await processAddNew%ColumnName%(data.Name);
                     });
-                    
                     return $item;
                 }
                 const $item = $("<div>")
@@ -354,7 +352,7 @@ BEGIN
                         padding: "8px 0",
                         borderColor: "#dee2e6"
                     });
-                
+
                 const $input = $("#%UID%").find(".dx-texteditor-input");
                 $input.off("input.addNew%ColumnName%").on("input.addNew%ColumnName%", function() {
                     %ColumnName%%UID%CurrentSearch = $(this).val();
@@ -514,16 +512,16 @@ BEGIN
                 store: new DevExpress.data.CustomStore({
                     key: "ID",
                     load: function(loadOptions) {
-                        const searchValue = (Instance%ColumnName%%UID% && Instance%ColumnName%%UID%.option) 
+                        const searchValue = (Instance%ColumnName%%UID% && Instance%ColumnName%%UID%.option)
                             ? (Instance%ColumnName%%UID%.option("text") || Instance%ColumnName%%UID%.option("searchValue") || "")
                             : (loadOptions.searchValue || "");
-                        
+
                         let result = data || [];
-                        
+
                         if (searchValue && searchValue.trim()) {
                             result = result.filter(item => customSearch%ColumnName%(item, searchValue));
                         }
-                        
+
                         // Handle Add New
                         if (%ColumnName%%UID%TableAddNew && %ColumnName%%UID%ColumnAddNew && searchValue) {
                             const searchNorm = RemoveToneMarks_Js(searchValue.trim().toLowerCase());
@@ -539,7 +537,7 @@ BEGIN
                                 });
                             }
                         }
-                        
+
                         // RETURN OBJECT thay vì array
                         return Promise.resolve({
                             data: result,
@@ -547,16 +545,16 @@ BEGIN
                         });
                     },
                     totalCount: function(loadOptions) {
-                        const searchValue = (Instance%ColumnName%%UID% && Instance%ColumnName%%UID%.option) 
+                        const searchValue = (Instance%ColumnName%%UID% && Instance%ColumnName%%UID%.option)
                             ? (Instance%ColumnName%%UID%.option("text") || Instance%ColumnName%%UID%.option("searchValue") || "")
                             : (loadOptions.searchValue || "");
-                        
+
                         let result = data || [];
-                        
+
                         if (searchValue && searchValue.trim()) {
                             result = result.filter(item => customSearch%ColumnName%(item, searchValue));
                         }
-                        
+
                         return Promise.resolve(result.length);
                     },
                     byKey: function(key) {
@@ -568,13 +566,13 @@ BEGIN
 
         async function processAddNew%ColumnName%(newValue) {
             if (!newValue || !newValue.trim()) return;
-            
+
             Instance%ColumnName%%UID%.option("disabled", true);
-            
+
             const dataJSON = JSON.stringify([%ColumnName%%UID%TableAddNew, [%ColumnName%%UID%ColumnAddNew], [newValue.trim()]]);
             const idValsJSON = JSON.stringify([[], []]);
             console.log(dataJSON);
-            
+
             try {
                 const json = await saveFunction(dataJSON, idValsJSON);
                 const dtError = json.data[json.data.length - 1] || [];
@@ -586,7 +584,7 @@ BEGIN
                     if ("%IsAlert%" === "1") {
                         uiManager.showAlert({ type: "success", message: "Đã thêm mới: " + newValue });
                     }
-                    
+
                     if (%ColumnName%%UID%DataSourceSP && %ColumnName%%UID%DataSourceSP !== "") {
                         loadDataSourceCommon("%ColumnName%", %ColumnName%%UID%DataSourceSP, function(data) {
                             Instance%ColumnName%%UID%.option("dataSource", getDataSourceConfig%ColumnName%%UID%(data));
@@ -617,13 +615,13 @@ BEGIN
 
         function customSearch%ColumnName%(item, searchValue) {
             if (!searchValue) return true;
-            
+
             // THÊM .toLowerCase()
             let searchNormalized = searchValue.toLowerCase();
             if (typeof RemoveToneMarks_Js === "function") {
                 searchNormalized = RemoveToneMarks_Js(searchValue).toLowerCase();
             }
-            
+
             const fields = ["ID", "Name", "Code", "Description"];
             for (let i = 0; i < fields.length; i++) {
                 const fieldValue = item[fields[i]];
@@ -709,16 +707,16 @@ BEGIN
                     const $item = $("<div>")
                         .addClass("d-flex align-items-center gap-2 px-3 py-2 text-primary fw-bold")
                         .css({ cursor: "pointer", borderTop: "1px dashed #dee2e6" });
-                    
+
                     $("<i>").addClass("bi bi-plus-circle-fill fs-5").appendTo($item);
                     $("<span>").text("Thêm mới: \"" + data.Name + "\"").appendTo($item);
-                    
+
                     $item.on("dxclick", async function(e) {
                         e.stopPropagation();
                         if (Instance%ColumnName%%UID% && Instance%ColumnName%%UID%.blur) Instance%ColumnName%%UID%.blur();
                         await processAddNew%ColumnName%(data.Name);
                     });
-                    
+
                     return $item;
                 }
                 const $item = $("<div>")
@@ -814,7 +812,7 @@ BEGIN
                         padding: "8px 0",
                         borderColor: "#dee2e6"
                     });
-                
+
                 const $input = $("#%UID%").find(".dx-texteditor-input");
                 $input.off("input.addNew%ColumnName%").on("input.addNew%ColumnName%", function() {
                     %ColumnName%%UID%CurrentSearch = $(this).val();

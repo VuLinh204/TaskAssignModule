@@ -137,7 +137,7 @@ SET @html = N'
         gap: 8px;
         font-size: 14px;
         white-space: nowrap;
-}
+  }
     #sp_Task_MyWork_html .btn-assign {
         background: var(--task-primary);
         color: white;
@@ -663,44 +663,6 @@ SET @html = N'
         font-size: 11px;
     }
 
-    /* === FILTER BUTTONS === */
-    #sp_Task_MyWork_html .filter-button-group {
-        display: flex;
-        gap: 10px;
-        flex-wrap: wrap;
-        align-items: center;
-    }
-    #sp_Task_MyWork_html .filter-btn {
-        padding: 10px 16px;
-        border-radius: 8px;
-        border: 1.5px solid var(--border-color);
-        background: white;
-        cursor: pointer;
-        transition: all var(--transition-base);
-        font-weight: 600;
-        font-size: 13px;
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        white-space: nowrap;
-    }
-    #sp_Task_MyWork_html .filter-btn:hover {
-        border-color: var(--task-primary);
-        color: var(--task-primary);
-        transform: translateY(-2px);
-        box-shadow: var(--shadow-sm);
-    }
-    #sp_Task_MyWork_html .filter-btn.active {
-        background: var(--task-primary);
-        color: white;
-        border-color: var(--task-primary);
-        box-shadow: var(--shadow-hover);
-    }
-    #sp_Task_MyWork_html .filter-btn.active:hover {
-        background: var(--task-primary-hover);
-        border-color: var(--task-primary-hover);
-    }
-
     /* === RESPONSIVE === */
     @media (max-width: 1200px) {
         #sp_Task_MyWork_html .kanban-board {
@@ -852,7 +814,7 @@ SET @html = N'
                 <div class="stat-label-task">Đang làm</div>
                 <div class="stat-value" id="stat-doing">0</div>
             </div>
-            <div class="stat-card done">
+   <div class="stat-card done">
                 <div class="stat-label-task">Hoàn thành</div>
                 <div class="stat-value" id="stat-done">0</div>
             </div>
@@ -862,20 +824,6 @@ SET @html = N'
             </div>
         </div>
         <div class="header-actions d-flex align-items-center gap-2 flex-wrap">
-            <div class="filter-button-group">
-                <button class="filter-btn active" id="filterAll" data-filter="all">
-                    <i class="bi bi-funnel"></i> Tất cả
-                </button>
-                <button class="filter-btn" id="filterTodo" data-filter="todo">
-                    <i class="bi bi-circle-fill" style="font-size: 10px; color: #42526e;"></i> Chưa làm
-                </button>
-                <button class="filter-btn" id="filterDoing" data-filter="doing">
-                    <i class="bi bi-circle-fill" style="font-size: 10px; color: #0747a6;"></i> Đang làm
-                </button>
-                <button class="filter-btn" id="filterOverdue" data-filter="overdue">
-                    <i class="bi bi-exclamation-circle-fill" style="color: #e53935;"></i> Quá hạn
-                </button>
-            </div>
             <div class="view-switcher">
                 <button class="view-btn active" id="viewGrid">
                     <i class="bi bi-table"></i> Grid </button>
@@ -996,7 +944,6 @@ SET @html = N'
         var allTasks = [];
         var currentView = "grid";
         var modalInitialized = false;
-        var currentFilter = "all"; // Lưu filter hiện tại
 
         let currentTemplate = [];
         let currentChildTasks = [];
@@ -1018,6 +965,7 @@ SET @html = N'
         ];
 
         function openDetailTaskID(taskID) {
+            console.log(taskID)
             if (["Android", "iOS"].includes(getMobileOperatingSystem())) {
                 OpenFormParamMobile("sp_Task_TaskDetail", {
                     TaskID: taskID,
@@ -1032,30 +980,11 @@ SET @html = N'
                 });
             }
         }
-    
+
+        // Gắn sự kiện cho các nút và thành phần giao diện
         function attachEventHandlers() {
-            // Event handler cho filter buttons
-            $(".filter-btn").on("click", function() {
-                $(".filter-btn").removeClass("active");
-                $(this).addClass("active");
-                const filterType = $(this).data("filter");
-                applyFilter(filterType);
-            });
-
-            // Event handler cho search input - lưu vào localStorage
-            setTimeout(function() {
-                const gridInstance = InstancegridMyWorkPDB2DB35885F14803A9A52961A7871972;
-                if (gridInstance) {
-                    gridInstance.on("optionChanged", function(e) {
-                        if (e.name === "searchPanel") {
-                            const searchText = gridInstance.option("searchPanel.text") || "";
-                            saveSearchState(searchText);
-                        }
-                    });
-                }
-            }, 500);
-
             $("#btnAssign").on("click", function() {
+
                 if ($("#mdlAssign").length) {
                     $("#mdlAssign").modal("show");
                 }
@@ -1071,16 +1000,382 @@ SET @html = N'
             });
 
             $("#viewKanban").on("click", function() {
+                //$(".view-btn").removeClass("active");
+                // $(this).addClass("active");
+                // currentView = "kanban";
+                // $("#gridMyWork").hide();
+                // $("#taskGrid").hide();
+                // if (!$("#kanban-view").length) {
+                //     uiManager.showAlert({
+                //         type: "info",
+                //         message: "Chức năng Kanban chưa được khởi tạo"
+                //     });
+                // } else {
+                //     $("#kanban-view").show();
+                //     renderKanbanView(allTasks);
+                // }
+
                 uiManager.showAlert({
                    type: "info",
                    message: "Chức năng Kanban chưa được khởi tạo"
                 });
             });
+
+            // Xử lý nút xác nhận giao việc
+            $("#btnSubmitAssignment").off("click").on("click", async function() {
+                try {
+                    // 1. Get parent task ID from form control P777C87EE29F94C29A6EAABD16E31FDDC
+                    const parentTaskControl = InstanceTaskNameP777C87EE29F94C29A6EAABD16E31FDDC;
+                    const parentTaskID = parentTaskControl ? parentTaskControl.option("value") : null;
+
+                    if (!parentTaskID) {
+                        uiManager.showAlert({ type: "warning", message: "Vui lòng chọn công việc chính" });
+                        return;
+                    }
+
+                    // 2. Get requester and assignee from form controls
+                    const requesterControl = InstancePersonInChargeP2920410F91DB42948640CF1ABBDEE649;
+                    const assigneeControl = InstanceMainPersonInChargePC98E2DFA331343BBAE22882BE3825C1A;
+
+                    const requesterID = requesterControl ? requesterControl.option("value") : null;
+                    const assigneeID = assigneeControl ? assigneeControl.option("value") : null;
+
+                    // 3. Get dates from form controls
+                    const requestDateControl = InstanceStartDateP02E6F18645BA47648567B32773A1B7B4;
+                    const deadlineControl = InstanceCommittedHoursP27C40759D9C94453AB9B2DFBCD661AE3;
+
+                    const requestDate = requestDateControl ? requestDateControl.option("value") : null;
+                    const deadlineDate = deadlineControl ? deadlineControl.option("value") : null;
+
+                    // 4. Collect grid data from InstancegridSubtaskAssign
+                    let subtasks = [];
+                    if (InstancegridSubtaskAssignP870C076FA1FD48DDBDEDE2C2435B4DA9) {
+                        try {
+                            const gridData = InstancegridSubtaskAssignP870C076FA1FD48DDBDEDE2C2435B4DA9.option("dataSource") || [];
+                            subtasks = gridData.map(row => ({
+                                ChildTaskName: row.ChildTaskName || "",
+                                AssignedEmployeeIDs: row.AssignedEmployeeIDs || "",
+                                StartDate: row.StartDate ? new Date(row.StartDate).toISOString() : null,
+                                EndDate: row.EndDate ? new Date(row.EndDate).toISOString() : null,
+                                Priority: row.Priority || 1,
+                                Note: row.Note || ""
+                            }));
+            } catch (gridErr) {
+                            console.warn("[Submit] Error collecting grid data:", gridErr);
+                            subtasks = [];
+                        }
+                    }
+
+                    // 5. Prepare payload
+                    const payload = {
+                        ParentTaskID: parentTaskID,
+                        RequesterEmployeeID: requesterID,
+                        AssigneeEmployeeID: assigneeID,
+                        RequestDate: requestDate,
+                        DeadlineDate: deadlineDate,
+                        Subtasks: subtasks,
+                        LoginID: LoginID,
+                        LanguageID: LanguageID
+                    };
+
+                    // 6. Send to API
+                    AjaxHPAParadise({
+                        data: {
+                            name: "sp_Task_AssignSubtasks", // Change to your actual API name
+                            param: [
+                                "ParentTaskID", payload.ParentTaskID,
+                                "RequesterEmployeeID", payload.RequesterEmployeeID || null,
+                                "AssigneeEmployeeID", payload.AssigneeEmployeeID || null,
+                                "RequestDate", payload.RequestDate || null,
+                                "DeadlineDate", payload.DeadlineDate || null,
+                                "SubtasksJSON", JSON.stringify(payload.Subtasks),
+                                "LoginID", LoginID,
+                                "LanguageID", LanguageID
+                            ]
+                        },
+                        success: function(res) {
+                            const json = typeof res === "string" ? JSON.parse(res) : res;
+                            const errors = json.data?.[json.data.length - 1] || [];
+
+                            if (errors.length > 0 && errors[0].Status === "ERROR") {
+                                uiManager.showAlert({
+                                    type: "error",
+                                    message: errors[0].Message || "Giao việc thất bại"
+                                });
+                            } else {
+                                uiManager.showAlert({
+                                    type: "success",
+                                    message: "Giao việc thành công"
+                                });
+                                // Close modal after success
+                                $("#mdlAssign").modal("hide");
+                                // Reload task list
+                                ReloadData();
+                            }
+                        },
+                        error: function(err) {
+                            console.error("[Submit] API Error:", err);
+                            uiManager.showAlert({
+                                type: "error",
+                                message: "Có lỗi khi giao việc: " + (err.statusText || "Unknown error")
+                            });
+                        }
+                    });
+                } catch (err) {
+                    console.error("[Submit] Unexpected error:", err);
+                    uiManager.showAlert({
+                        type: "error",
+                        message: "Có lỗi bất ngờ: " + err.message
+                    });
+                }
+            });
+
+            $("#mdlAssign").off("shown.bs.modal").on("shown.bs.modal", function() {
+                if (modalInitialized) {
+                    return; // Nếu đã khởi tạo, không khởi tạo lại
+                }
+
+                modalInitialized = true;
+            });
+
+            // Reset flag khi modal đóng để cho phép khởi tạo lại nếu cần
+            $("#mdlAssign").off("hidden.bs.modal").on("hidden.bs.modal", function() {
+                modalInitialized = false;
+
+                lastSelectedParentID = null; // Reset task cha được chọn
+                // Xóa event change khi modal đóng
+                $(document).off("change.parentTaskSelect");
+            });
+
+            window.onSelectBoxChanged_TaskName = function(value, instance, e) {
+                if (value) {
+                    $("#subtask-assign-step").show();
+                    fetchAssignTemplate(value);
+                }
+            };
         }
 
-        // Phần xử lý control
+        // Render dữ liệu template vào Grid phân bổ subtasks
+        function renderAssignSubtasks() {
+            // Map data để phù hợp với Grid columns
+            const gridData = currentTemplate.map((item, idx) => ({
+                TaskID: item.TaskID || idx,
+                IsSelected: true, // Default checked
+                TaskName: item.TaskName,
+                AssignedEmployeeIDs: [],
+                StartDate: new Date(),
+                EndDate: new Date(),
+                Priority: 1, // Default: Thấp
+                Note: "",
+                DefaultKPI: item.DefaultKPI || 0,
+                Unit: item.Unit || ""
+            }));
+
+            // Load data vào Grid
+            InstancegridSubtaskAssignP870C076FA1FD48DDBDEDE2C2435B4DA9.option("dataSource", gridData);
+        }
+
+        // Lấy danh sách task con hiện có của task cha theo template
+        function fetchAssignTemplate(pid) {
+            // Ngăn gọi lại nếu cùng task cha được chọn
+            if (lastSelectedParentID === pid) {
+                return;
+            }
+
+            lastSelectedParentID = pid;
+            selectedParentTaskID = pid;
+
+            AjaxHPAParadise({
+                    data: {
+                    name: "sp_Task_GetDetailedTemplate",
+                    param: ["ParentTaskID", pid]
+                },
+                success: function(res) {
+                    currentTemplate = JSON.parse(res).data[0] || [];
+                    fetchChildTasks(pid, function(childTasks) {
+                        currentChildTasks = childTasks || [];
+
+                        // Nếu có task con hoặc template, hiển thị grid
+                        if (currentTemplate.length > 0 || childTasks.length > 0) {
+                            renderAssignSubtasks();
+                            $("#gridSubtaskAssign").show();
+                            $("#emptySubtaskAssign").hide();
+                        } else {
+                            $("#gridSubtaskAssign").hide();
+                            $("#emptySubtaskAssign").show();
+                        }
+                    });
+                }
+            });
+        }
+
+        function renderTempSubtasksUI(pid) {
+            fetchChildTasks(pid, function(childTasks) {
+
+                // danh sách TaskID đã là child
+                var existingChildIds = childTasks.map(c => String(c.TaskID));
+
+                var candidateChilds = tasks.filter(function(t) {
+                    return String(t.TaskID) !== String(pid)               // không phải chính nó
+                        && !existingChildIds.includes(String(t.TaskID)); // chưa là child
+                });
+
+                var childOpts =
+                    `<option value="">-- Chọn hàng từ danh sách --</option>` +
+                    candidateChilds.map(function(t) {
+                        return `<option value="${t.TaskID}">${t.TaskName}</option>`;
+                    }).join("");
+
+                    var html = `
+                    <div id="temp-subtasks">
+                        <div style="padding: 20px; background: var(--bg-light); border-radius: 8px; border: 1px solid var(--border-color);">
+                            <div class="subtask-header" style="margin-bottom: 20px;">
+                                <i class="bi bi-plus-circle" style="color: var(--task-primary); font-size: 18px;"></i>
+                                <span>Thêm hàng con tạm thời</span>
+                            </div>
+
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px;">
+                                <div class="form-group">
+                                    <label class="form-label">Chọn hàng hiện có</label>
+                                    <select class="form-select" id="tempChildSelect" onchange="handleSelectTempChild(this.value)">
+                                        ${childOpts}
+                                    </select>
+                                    <small class="text-muted d-block mt-2">Hoặc tạo hàng mới bên dưới</small>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label">Tên hàng mới</label>
+                                    <input type="text" class="form-control" id="tempTaskName" placeholder="Nhập tên hàng..." />
+                                </div>
+                            </div>
+
+                            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 20px;">
+                                <div class="form-group">
+                                    <label class="form-label">Người thực hiện</label>
+                                    <div id="tempTaskAssignee"></div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label">Bắt đầu</label>
+                                    <input type="datetime-local" class="form-control" id="tempTaskFrom" />
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label">Kết thúc</label>
+                                    <input type="datetime-local" class="form-control" id="tempTaskTo" />
+                                </div>
+                            </div>
+
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px;">
+                                <div class="form-group">
+                                    <label class="form-label">Ưu tiên</label>
+                                    <select class="form-select" id="tempTaskPriority">
+                                        <option value="1" selected>Cao</option>
+                                        <option value="2">Trung bình</option>
+                                        <option value="3">Thấp</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label">Ghi chú</label>
+                                    <input type="text" class="form-control" id="tempTaskNote" placeholder="Ghi chú thêm..." />
+                                </div>
+                            </div>
+
+                            <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                                <button type="button" class="btn btn-secondary" onclick="clearTempForm()">
+                                    <i class="bi bi-x-circle"></i> Hủy
+                                </button>
+                                <button type="button" class="btn btn-primary" onclick="addTempSubtask(${pid})">
+                                    <i class="bi bi-check-circle"></i> Thêm hàng
+                                </button>
+                            </div>
+                        </div>
+                    </div>`;
+
+                $("#subtask-assign-container").html(html);
+
+                // Khởi tạo Employee Selector cho temp form
+         setTimeout(() => {
+                    // Khởi tạo control Employee Selector
+                }, 100);
+            });
+        }
+
+        function handleSelectTempChild(taskId) {
+            if (taskId) {
+                var selectedTask = tasks.find(t => String(t.TaskID) === String(taskId));
+                if (selectedTask) {
+                    $("#tempTaskName").val(selectedTask.TaskName);
+                }
+            }
+        }
+
+        function clearTempForm() {
+            $("#tempChildSelect").val("");
+            $("#tempTaskName").val("");
+            $("#tempTaskAssignee").data("selected", []).html("");
+            $("#tempTaskFrom").val("");
+            $("#tempTaskTo").val("");
+            $("#tempTaskNote").val("");
+            $("#tempTaskPriority").val("3");
+        }
+
+        function addTempSubtask(parentId) {
+            var taskName = $("#tempTaskName").val().trim();
+            var assigneeIds = ($("#tempTaskAssignee").data("selected") || []).join(",");
+            var fromDate = $("#tempTaskFrom").val();
+            var toDate = $("#tempTaskTo").val();
+            var note = $("#tempTaskNote").val().trim();
+            var priority = $("#tempTaskPriority").val();
+            var selectedTaskId = $("#tempChildSelect").val();
+
+            if (!taskName && !selectedTaskId) {
+                alert("Vui lòng nhập tên hàng hoặc chọn hàng từ danh sách");
+                return;
+            }
+
+            if (selectedTaskId) {
+                taskName = tasks.find(t => String(t.TaskID) === String(selectedTaskId))?.TaskName || taskName;
+            }
+
+            // TODO: Gọi API để lưu hàng tạm
+            // AjaxHPAParadise({
+            //     data: {
+            //         name: "sp_Task_CreateTempSubtask",
+            //         param: [...]
+            //     },
+            //     success: function() {
+            //         alert("Thêm hàng thành công");
+            //         clearTempForm();
+            //         // Reload modal
+            //     }
+            // });
+        }
+
+        function fetchChildTasks(pid, cb) {
+            AjaxHPAParadise({
+                data: {
+                    name: "sp_Task_GetTaskRelations",
+                    param: ["ParentTaskID", pid]
+                },
+                success: function(res) {
+                    try {
+                        var rows = JSON.parse(res).data[0] || [];
+                        var ids = rows.map(function(r) { return r.TaskID; });
+                        var childTasks = tasks.filter(function(t) { return ids.indexOf(t.TaskID) !== -1; });
+                        cb(childTasks);
+                    } catch(e) {
+                        cb([]);
+                    }
+                },
+                error: function() { cb([]); }
+            });
+        }
+
+        // Tầng xử lý control chung
         let DataSource = []
-            
+        
         // Load DataSource: EmployeeListAll_DataSetting_Custom
         if ("EmployeeListAll_DataSetting_Custom" && "EmployeeListAll_DataSetting_Custom".trim() !== "") {
             loadDataSourceCommon("AssignedEmployeeIDs", "EmployeeListAll_DataSetting_Custom", function(data) {
@@ -1205,28 +1500,29 @@ SET @html = N'
         +(select loadUI from tblCommonControlType_Signed where UID = 'PC98E2DFA331343BBAE22882BE3825C1A')
         +(select loadUI from tblCommonControlType_Signed where UID = 'P02E6F18645BA47648567B32773A1B7B4')
         +(select loadUI from tblCommonControlType_Signed where UID = 'P27C40759D9C94453AB9B2DFBCD661AE3') +N'
-        window.currentRecordID_HeaderID = null; window.currentRecordID_HistoryID = null; window.currentRecordID_TaskID = null;
+            window.currentRecordID_HeaderID = null; window.currentRecordID_HistoryID = null; window.currentRecordID_TaskID = null;
         
         // =============== GRID COLUMN CONFIG PERSISTENCE ===============
         function saveGridColumnConfig(tableName, columns) {
             const visibleColumns = columns
                 .filter(col => {
-                    return col.visible !== false
-                        && col.dataField
+                    return col.visible !== false 
+                        && col.dataField 
                         && col.dataField !== "rowIndex"
                         && typeof col.dataField === "string";
                 })
                 .map(col => col.dataField);
-
+                
             const columnOrder = columns
                 .filter(col => {
-                    return col.dataField
+                    return col.dataField 
                         && col.dataField !== "rowIndex"
                         && typeof col.dataField === "string";
                 })
                 .map(col => col.dataField);
 
             const config = { visibleColumns, columnOrder };
+            console.log("[SaveConfig]", config);
 
             AjaxHPAParadise({
                 data: {
@@ -1239,7 +1535,7 @@ SET @html = N'
                 }
             });
         }
-
+        
         function loadGridColumnConfig(tableName, callback) {
             AjaxHPAParadise({
                 data: {
@@ -1253,118 +1549,18 @@ SET @html = N'
                     if (json && json.data && json.data[0] && json.data[0][0] && json.data[0][0].ColumnConfigJson) {
                         const raw = json.data[0][0].ColumnConfigJson;
                         config = typeof raw === "string" ? JSON.parse(raw) : raw;
-                    }
+                    };
                     if (typeof callback === "function") callback(config);
                 }
             });
         }
 
-        // =============== FILTER STATE - LOCALSTORAGE ONLY ===============
-        function saveGridFilterState(tableName, gridInstance) {
-            try {
-                const filterValue = gridInstance.getCombinedFilter();
-                const searchValue = gridInstance.option("searchPanel.text") || "";
-                
-                // Lấy filter của từng cột
-                const columnFilters = {};
-                const columns = gridInstance.option("columns");
-                
-                columns.forEach(col => {
-                    if (col.dataField && col.filterValue !== undefined) {
-                        columnFilters[col.dataField] = {
-                            filterValue: col.filterValue,
-                            filterType: col.filterType || "include",
-                            selectedFilterOperation: col.selectedFilterOperation
-                        };
-                    }
-                });
-                
-                const filterState = {
-                    combinedFilter: filterValue,
-                    searchText: searchValue,
-                    columnFilters: columnFilters,
-                    timestamp: new Date().getTime()
-                };
-                
-                // CHỈ LƯU VÀO LOCALSTORAGE
-                localStorage.setItem("GridFilter_" + tableName + "_" + LoginID, JSON.stringify(filterState));
-            } catch(e) {
-                console.error("[SaveFilterState] Error:", e);
-            }
-        }
-
-        function loadGridFilterState(tableName, gridInstance) {
-            try {
-                const storageKey = "GridFilter_" + tableName + "_" + LoginID;
-                const savedState = localStorage.getItem(storageKey);
-                
-                if (!savedState) {
-                    return null;
-                }
-                
-                const filterState = JSON.parse(savedState);
-                
-                return filterState;
-            } catch(e) {
-                console.error("[LoadFilterState] Error:", e);
-                return null;
-            }
-        }
-
-        function applyGridFilterState(gridInstance, filterState) {
-            if (!filterState) return;
-            
-            try {
-                gridInstance.beginUpdate();
-                
-                // 1. Apply search text
-                if (filterState.searchText) {
-                    gridInstance.option("searchPanel.text", filterState.searchText);
-                }
-                
-                // 2. Apply column filters
-                if (filterState.columnFilters) {
-                    Object.keys(filterState.columnFilters).forEach(dataField => {
-                        const colFilter = filterState.columnFilters[dataField];
-                        const colIndex = gridInstance.columnOption(dataField, "index");
-                        
-                        if (colIndex !== undefined) {
-                            gridInstance.columnOption(dataField, "filterValue", colFilter.filterValue);
-                            if (colFilter.filterType) {
-                                gridInstance.columnOption(dataField, "filterType", colFilter.filterType);
-                            }
-                            if (colFilter.selectedFilterOperation) {
-                                gridInstance.columnOption(dataField, "selectedFilterOperation", colFilter.selectedFilterOperation);
-                            }
-                        }
-                    });
-                }
-                
-                // 3. Apply combined filter (fallback)
-                if (filterState.combinedFilter && !filterState.columnFilters) {
-                    gridInstance.option("filterValue", filterState.combinedFilter);
-                }
-                
-                gridInstance.endUpdate();
-            } catch(e) {
-                console.error("[ApplyFilterState] Error:", e);
-            }
-        }
-
-        function clearGridFilterState(tableName) {
-            try {
-                const storageKey = "GridFilter_" + tableName + "_" + LoginID;
-                localStorage.removeItem(storageKey);
-            } catch(e) {
-                console.error("[ClearFilterState] Error:", e);
-            }
-        }
-
         // =============== ROW ORDER PERSISTENCE ===============
         function saveGridRowOrder(gridInstance, tableName, pkColumn) {
             const dataSource = gridInstance.option("dataSource");
+            
             const rowOrderArray = dataSource.map(item => item[pkColumn]);
-
+            
             AjaxHPAParadise({
                 data: {
                     name: "sp_SaveGridRowOrder",
@@ -1374,13 +1570,15 @@ SET @html = N'
                         "RowOrderJson", JSON.stringify(rowOrderArray)
                     ]
                 },
-                success: function(res) {},
+                success: function(res) {
+                    console.log("[SaveRowOrder] Success");
+                },
                 error: function(err) {
                     console.error("[SaveRowOrder] Error:", err);
                 }
             });
         }
-
+        
         function loadGridRowOrder(tableName, dataSource, pkColumn, callback) {
             AjaxHPAParadise({
                 data: {
@@ -1392,15 +1590,16 @@ SET @html = N'
                     try {
                         const json = typeof res === "string" ? JSON.parse(res) : res;
                         const rowOrderJson = json.data[0][0].RowOrderJson;
-
+                        
                         if (rowOrderJson && rowOrderJson !== "[]") {
                             const savedOrder = JSON.parse(rowOrderJson);
-
+                            console.log("[LoadRowOrder] Loaded saved order:", savedOrder);
+                            
                             const dataMap = {};
                             dataSource.forEach(item => {
                                 dataMap[item[pkColumn]] = item;
                             });
-
+                            
                             const sortedData = [];
                             savedOrder.forEach(id => {
                                 if (dataMap[id]) {
@@ -1408,15 +1607,18 @@ SET @html = N'
                                     delete dataMap[id];
                                 }
                             });
-
+                            
                             Object.values(dataMap).forEach(item => {
                                 sortedData.push(item);
                             });
-
+                            
+                            console.log("[LoadRowOrder] Sorted data:", sortedData.length, "rows");
+                            
                             if (typeof callback === "function") {
                                 callback(sortedData);
                             }
                         } else {
+                            console.log("[LoadRowOrder] No saved order");
                             if (typeof callback === "function") {
                                 callback(dataSource);
                             }
@@ -1435,104 +1637,7 @@ SET @html = N'
                 }
             });
         }
-
-        // =============== MYWORK FILTER STATE PERSISTENCE ===============
-        function saveFilterState(filterType) {
-            try {
-                localStorage.setItem("MyWork_Filter_" + LoginID, filterType);
-            } catch (e) {
-                console.error("[SaveFilterState] Error:", e);
-            }
-        }
-
-        function loadFilterState() {
-            try {
-                const saved = localStorage.getItem("MyWork_Filter_" + LoginID);
-                if (saved) {
-                    return saved;
-                }
-            } catch (e) {
-                console.error("[LoadFilterState] Error:", e);
-            }
-            return "all";
-        }
-
-        function applyFilter(filterType) {
-            currentFilter = filterType;
-            const gridInstance = InstancegridMyWorkPDB2DB35885F14803A9A52961A7871972;
-
-            if (!gridInstance) return;
-
-            let filteredData = allTasks;
-
-            if (filterType === "todo") {
-                filteredData = allTasks.filter(task => task.Status === 1);
-            } else if (filterType === "doing") {
-                filteredData = allTasks.filter(task => task.Status === 2);
-            } else if (filterType === "overdue") {
-                // Filter tasks that are overdue (có deadline < hôm nay và status !== 3 (Done))
-                const today = new Date();
-                today.setHours(0, 0, 0, 0);
-                filteredData = allTasks.filter(task => {
-                    if (task.Status === 3) return false; // Exclude done tasks
-                    const deadlineDate = new Date(task.DeadlineDate);
-                    return deadlineDate < today;
-                });
-            }
-            // else filterType === "all" -> show all tasks
-
-            gridInstance.option("dataSource", filteredData);
-
-            // Lưu filter vào localStorage
-            saveFilterState(filterType);
-        }
-
-        function restoreFilterState() {
-            const savedFilter = loadFilterState();
-            currentFilter = savedFilter;
-
-            // Cập nhật UI button
-            $(".filter-btn").removeClass("active");
-            $(`.filter-btn[data-filter="${savedFilter}"]`).addClass("active");
-
-            // Áp dụng filter
-            applyFilter(savedFilter);
-        }
-
-        // =============== SEARCH STATE PERSISTENCE ===============
-        function saveSearchState(searchText) {
-            try {
-                localStorage.setItem("MyWork_Search_" + LoginID, searchText);
-                console.log("[SaveSearchState] Saved:", searchText);
-            } catch (e) {
-                console.error("[SaveSearchState] Error:", e);
-            }
-        }
-
-        function loadSearchState() {
-            try {
-                const saved = localStorage.getItem("MyWork_Search_" + LoginID);
-                if (saved) {
-                    console.log("[LoadSearchState] Loaded:", saved);
-                    return saved;
-                }
-            } catch (e) {
-                console.error("[LoadSearchState] Error:", e);
-            }
-            return "";
-        }
-
-        function restoreSearchState() {
-            const gridInstance = InstancegridMyWorkPDB2DB35885F14803A9A52961A7871972;
-            if (!gridInstance) return;
-
-            const savedSearch = loadSearchState();
-            if (savedSearch) {
-                gridInstance.option("searchPanel.text", savedSearch);
-                console.log("[RestoreSearchState] Restored:", savedSearch);
-            }
-        }
-
+    
         function ReloadData() {
             AjaxHPAParadise({
                 data: {
@@ -1547,12 +1652,10 @@ SET @html = N'
 
                     const obj = results.length === 1 ? results[0] : (results[0] || null);
 
-                    
                     const gridInstancegridMyWork = InstancegridMyWorkPDB2DB35885F14803A9A52961A7871972;
                     const gridConfiggridMyWork = window.getGridConfig_gridMyWork(results);
-                    
                     loadGridRowOrder(
-                        "sp_Task_MyWork_html",
+                        "gridMyWork",
                         results,
                         "TaskID",
                         function(sortedData) {
@@ -1568,22 +1671,13 @@ SET @html = N'
                             gridInstancegridMyWork.pageIndex(0);
                             gridInstancegridMyWork.option("dataSource", sortedData);
                             gridInstancegridMyWork.endUpdate();
-                            
-                            // RESTORE FILTER STATE T? LOCALSTORAGE
-                            setTimeout(function() {
-                                const savedFilter = loadGridFilterState("sp_Task_MyWork_html", gridInstancegridMyWork);
-                                if (savedFilter) {
-                                    applyGridFilterState(gridInstancegridMyWork, savedFilter);
-                                }
-                            }, 100);
                         }
                     );
                 
                     const gridInstancegridSubtaskAssign = InstancegridSubtaskAssignP870C076FA1FD48DDBDEDE2C2435B4DA9;
                     const gridConfiggridSubtaskAssign = window.getGridConfig_gridSubtaskAssign(results);
-                    
                     loadGridRowOrder(
-                        "sp_Task_MyWork_html",
+                        "gridSubtaskAssign",
                         results,
                         "TaskID",
                         function(sortedData) {
@@ -1599,26 +1693,10 @@ SET @html = N'
                             gridInstancegridSubtaskAssign.pageIndex(0);
                             gridInstancegridSubtaskAssign.option("dataSource", sortedData);
                             gridInstancegridSubtaskAssign.endUpdate();
-                            
-                            // RESTORE FILTER STATE T? LOCALSTORAGE
-                            setTimeout(function() {
-                                const savedFilter = loadGridFilterState("sp_Task_MyWork_html", gridInstancegridSubtaskAssign);
-                                if (savedFilter) {
-                                    applyGridFilterState(gridInstancegridSubtaskAssign, savedFilter);
-                                }
-                            }, 100);
                         }
                     );
         
-                    if (obj) { window.currentRecordID_HeaderID = (obj.HeaderID !== undefined && obj.HeaderID !== null) ? obj.HeaderID : window.currentRecordID_HeaderID; } if (obj) { window.currentRecordID_HistoryID = (obj.HistoryID !== undefined && obj.HistoryID !== null) ? obj.HistoryID : window.currentRecordID_HistoryID; } if (obj) { window.currentRecordID_TaskID = (obj.TaskID !== undefined && obj.TaskID !== null) ? obj.TaskID : window.currentRecordID_TaskID; }
-                        DataSource = results;
-                        allTasks = results;
-                        
-                        // Restore filter và search sau khi set allTasks
-                        setTimeout(function() {
-                            restoreFilterState();
-                            restoreSearchState();
-                        }, 150);
+                    DataSource = results;
                     '
                     +(select loadData from tblCommonControlType_Signed where UID = 'PDB2DB35885F14803A9A52961A7871972')
                     +(select loadData from tblCommonControlType_Signed where UID = 'P870C076FA1FD48DDBDEDE2C2435B4DA9')
@@ -1631,7 +1709,6 @@ SET @html = N'
             })
         }
         ReloadData()
-        attachEventHandlers();
     })();
 </script>
 ';

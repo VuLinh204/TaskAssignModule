@@ -1,35 +1,25 @@
 USE Paradise_Dev
 GO
-if object_id('[dbo].[sptblCommonControlType_Signed]') is null
-	EXEC ('CREATE PROCEDURE [dbo].[sptblCommonControlType_Signed] as select 1')
+if object_id('[dbo].[sptblCommonControlType_Signed_Linh]') is null
+	EXEC ('CREATE PROCEDURE [dbo].[sptblCommonControlType_Signed_Linh] as select 1')
 GO
 
-ALTER PROCEDURE [dbo].[sptblCommonControlType_Signed]
+ALTER PROCEDURE [dbo].[sptblCommonControlType_Signed_Linh]
     @TableName VARCHAR(256) = ''
 AS
 BEGIN
     -- ============================================================================
-    -- PROCEDURE: sptblCommonControlType_Signed
+    -- PROCEDURE: sptblCommonControlType_Signed_Linh
     -- MÔ TẢ: Build HTML/JavaScript cho Grid View và các control chung dựa trên cấu hình
     -- THAM SỐ:
     --   @TableName: Tên thủ tục cần build UI (VD: 'sp_Task_MyWork_html')
     -- ============================================================================
 
-    BEGIN TRY
-        -- ============================================================================
-        -- VALIDATION & ERROR HANDLING
-        -- ============================================================================
-        IF @TableName IS NULL OR LTRIM(RTRIM(@TableName)) = ''
-        BEGIN
-            RAISERROR('TableName không được để trống', 16, 1);
-            RETURN;
-        END
-
-        -- ============================================================================
-        -- KHAI BÁO BIẾN
-        -- ============================================================================
-        DECLARE @UseLayout BIT = 0;  -- Flag để xác định có dùng Grid Layout hay không
-        DECLARE @object_Id VARCHAR(MAX) = CAST(OBJECT_ID(@TableName) AS NVARCHAR(64)) -- Object ID của table
+    -- ============================================================================
+    -- KHAI BÁO BIẾN
+    -- ============================================================================
+    DECLARE @UseLayout BIT = 0;  -- Flag để xác định có dùng Grid Layout hay không
+    DECLARE @object_Id VARCHAR(MAX) = CAST(OBJECT_ID(@TableName) AS NVARCHAR(64)) -- Object ID của table
 
     -- ============================================================================
     -- KIỂM TRA XEM CÓ SỬ DỤNG LAYOUT HAY KHÔNG
@@ -152,7 +142,6 @@ BEGIN
             else Instance%ColumnName%%UID%.option("value", "");            						
 
 			Instance%ColumnName%%UID%._resumeValueChangeAction();	
-
         '
     WHERE [Type] IN ('hpaControlDate', 'hpaControlPhone', 'hpaControlNumber',
                      'hpaControlMoney', 'hpaControlText', 'hpaControlTextArea',
@@ -233,7 +222,7 @@ BEGIN
             AjaxHPAParadise({
                 data: {
                     name: "sp_GetFile",
-                    param: ["LoginID", LoginID, "IdentityID", currentRecordID_%ColumnIDName%]
+                    param: ["LoginID", LoginID, "IdentityID", currentRecordID_"+"%ColumnIDName%".split(",")[0].trim()+""]
                 },
                 success: function (res) {
                     const json = typeof res === "string" ? JSON.parse(res) : res;
@@ -295,7 +284,7 @@ BEGIN
                 return;
             }
             if (obj && obj.%ColumnName%) {
-             var retryCount_%ColumnName%%UID% = 0;
+                var retryCount_%ColumnName%%UID% = 0;
                 var fillDataInterval_%ColumnName%%UID% = setInterval(function() {
                     /* Kiểm tra xem biến rteObj đã tồn tại và chưa bị destroy chưa */
                     /* Lưu ý: ''undefined'' là do escaping trong SQL */
@@ -342,7 +331,7 @@ BEGIN
                                     })(img, realPath);
                                 }
                             }
-                        } catch(ex) { console.warn(ex); }
+                        } catch(ex) { console.log(ex); }
 
                         clearInterval(fillDataInterval_%ColumnName%%UID%);
                     } else {
@@ -374,8 +363,8 @@ BEGIN
         -- ========================================================================
         DECLARE @PKColumnNameGrid VARCHAR(100) = 'ID'
 
-        -- Lấy tên cột Primary Key từ config
-        SELECT TOP 1 @PKColumnNameGrid = ColumnIDName
+        -- Lấy tên cột Primary Key từ config - chỉ lấy key đầu tiên nếu có nhiều key
+        SELECT TOP 1 @PKColumnNameGrid = LEFT(ColumnIDName, ISNULL(NULLIF(CHARINDEX(',', ColumnIDName) - 1, -1), LEN(ColumnIDName)))
         FROM #temptable
         WHERE ColumnIDName IS NOT NULL
 
@@ -403,11 +392,11 @@ BEGIN
         BEGIN
             SELECT TOP 1 @CurrentGridUID = [UID]
             FROM #temptable
-            WHERE Layout = 'Grid_View'
+            WHERE Layout = 'Grid_View' 
             AND Type = 'hpaControlGrid'
             AND ColumnName = @GridColumnName
             AND TableName = @TableName;
-
+            
             SET @CurrentGridUID = ISNULL(@CurrentGridUID, '');
 
             -- RESET @gridColumns cho mỗi Grid
@@ -421,7 +410,6 @@ BEGIN
             SELECT
                 N'' + ISNULL(col.TableEditor, '') AS tableId,
                 ISNULL(col.ColumnIDName, '') AS ColumnIDName,
-                ISNULL(col.ColumnIDName2, '') AS ColumnIDName2,
                 ISNULL(col.DataSourceSP, '') AS DataSourceSP,
                 col.GridColumnName,
                 col.ColumnName AS DataFieldName,
@@ -445,7 +433,6 @@ BEGIN
                 col.TableEditor,
                 col.DataSourceSP,
                 col.ColumnIDName,
-                col.ColumnIDName2,
                 col.GridColumnName,
                 col.ColumnName,
                 col.DisplayName,
@@ -481,7 +468,6 @@ BEGIN
 
                             $("<div>").text(val).appendTo(cellElement);
                         },'
-
                     WHEN ControlType NOT IN (
                         'hpaControlDateTime',
                         'hpaControlDate',
@@ -536,7 +522,7 @@ BEGIN
                                     text = DevExpress.localization.formatDate(d, "dd/MM/yyyy");
                                     '
                                 WHEN ControlType = 'hpaControlTime' THEN
-                                  N'
+                                    N'
                                     text = DevExpress.localization.formatDate(d, "HH:mm");
                                     '
                                 WHEN ControlType = 'hpaControlDateTime' THEN
@@ -561,7 +547,7 @@ BEGIN
                 ISNULL(
                         N'
                         allowEditing: true,
-                            editCellTemplate: function(cellElement, cellInfo) {
+                        editCellTemplate: function(cellElement, cellInfo) {
                             // Cập nhật record context ID cho row hiện tại
                             let rowID = null;
                             if (cellInfo.key !== undefined && cellInfo.key !== null) {
@@ -571,14 +557,17 @@ BEGIN
                             }
 
                             if (rowID !== null) {
-                                currentRecordID_%ColumnIDName% = rowID;
+                                // Nếu ColumnIDName có nhiều cột (được phân tách bằng dấu phẩy), set cho tất cả
+                                const columnIDNameList = "%ColumnIDName%".split(",");
+                                columnIDNameList.forEach(col => {
+                                    const cleanCol = col.trim();
+                                    if (cleanCol) {
+                                        window["currentRecordID_" + cleanCol] = rowID;
+                                    }
+                                });
                             }
 
-                            if ("%ColumnIDName2%" && "%ColumnIDName2%".trim() !== "" && cellInfo.data && cellInfo.data["%ColumnIDName2%"] !== undefined) {
-                                currentRecordID_%ColumnIDName2% = cellInfo.data["%ColumnIDName2%"];
-                            }
-
-                        ' + REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(loadUI_Edit, '%ColumnName%', DataFieldName), '"#%UID%"', 'cellElement'), '%tableId%', CHECKSUM(tableId)), '%ColumnIDName%', ColumnIDName), '%ColumnIDName2%', ColumnIDName2) + N'
+                        ' + REPLACE(REPLACE(REPLACE(loadUI_Edit, '%ColumnName%', DataFieldName), '"#%UID%"', 'cellElement'), '%tableId%', CHECKSUM(tableId)) + N'
                             // Set initial value
                             if (cellInfo.value !== undefined && cellInfo.value !== null && Instance' + REPLACE(DataFieldName, '''', '''''') + N'%UID%) {
                                 Instance' + REPLACE(DataFieldName, '''', '''''') + N'%UID%.option("value", cellInfo.value);
@@ -614,7 +603,7 @@ BEGIN
                     allowEditing: false,
                     '
                 END
-            +'
+                +'
             },
                 '
             FROM #GridColumnsGrouped
@@ -724,7 +713,7 @@ BEGIN
 
                             /* Group row - sát mép */
                             .dx-datagrid .dx-group-row {
-                                padding: 0 !important;
+                  padding: 0 !important;
                             }
 
                             .dx-datagrid .dx-group-row > td {
@@ -793,7 +782,7 @@ BEGIN
 
                                 .dx-datagrid .dx-row {
                                     height: auto;
-                                    min-height: 36px !important;
+       min-height: 36px !important;
                                     padding: 0 !important;
                                 }
 
@@ -809,7 +798,7 @@ BEGIN
                                     padding: 4px 2px !important;
                                 }
 
-                                .dx-pager {
+                  .dx-pager {
                                     padding: 4px 0 !important;
                                 }
 
@@ -864,7 +853,6 @@ BEGIN
                                 .dx-popup-content.dx-popup-content-scrollable {
                                     height: auto !important;
                                 }
-
                                 /* Toolbar buttons */
                                 .dx-popup.hpa-responsive .dx-toolbar-item .dx-button {
                                     padding: 6px 12px !important;
@@ -949,7 +937,7 @@ BEGIN
                                 }
                                 .dx-popup.hpa-responsive .dx-popup-content {
                                     height: calc(95vh - 120px) !important;
-                                    max-height: calc(95vh - 120px) !important;
+             max-height: calc(95vh - 120px) !important;
                                     font-size: 12px !important;
                                     padding: 4px !important;
                                     display: flex !important;
@@ -1078,7 +1066,7 @@ BEGIN
                                 onReorder: function(e) {
                                     let dataSource = e.component.option("dataSource");
                                     const tableName = "%TableName%"
-                                    const pkColumn = "%ColumnIDName%"
+                                    const pkColumn = "%ColumnIDName%".split(",")[0].trim();
                                     const item = dataSource[e.fromIndex];
                                     dataSource.splice(e.fromIndex, 1);
                                     dataSource.splice(e.toIndex, 0, item);
@@ -1088,7 +1076,7 @@ BEGIN
                                 }
                             },
                             noDataText: "Không có dữ liệu",
-                                columns: [
+                            columns: [
                                 {
                                     dataField: "rowIndex",
                                     caption: "STT",
@@ -1118,6 +1106,7 @@ BEGIN
                                             window.currentRecordID_%PKColumnName% = recordID;
 
                                             if (typeof openDetail%PKColumnName% === "function") {
+                                                console.log("%PKColumnName%")
                                                 openDetail%PKColumnName%(recordID);
                                             }
                                         }
@@ -1172,18 +1161,46 @@ BEGIN
                                     }
                                 }
                             },
+                            onToolbarPreparing: function(e) {
+                                let isReloading = false;
+                                e.toolbarOptions.items.unshift({
+                                    location: "after",
+                                    widget: "dxButton",
+                                    options: {
+                                        icon: "refresh",
+                                        hint: "Tải lại",
+                                        onClick: function() {
+                                            if (isReloading) {
+                                                return;
+                                            }
+
+                                            isReloading = true;
+                                            this.option("disabled", true);
+
+                                            ReloadData();
+
+                                            setTimeout(() => {
+                                                isReloading = false;
+                                                this.option("disabled", false);
+                                            }, 1000);
+                                        }
+                                    }
+                                });
+                            },
                             onContentReady: function(e) {
                                 const grid = e.component;
-
+                                
                                 // CHỈ LOAD CONFIG MỘT LẦN DUY NHẤT
                                 if (!window._GridConfigLoaded_%ColumnName%) {
                                     window._GridConfigLoaded_%ColumnName% = true;
-
+                                    
                                     const tableName = "%TableName%";
                                     loadGridColumnConfig(tableName, function (config) {
+                                        console.log("[LoadConfig] Loaded:", config);
+                                        
                                         if (config.visibleColumns && Array.isArray(config.visibleColumns) && config.visibleColumns.length > 0) {
                                             const originalColumns = window._OriginalColumnConfig_%ColumnName%;
-
+                                            
                                             // Set visible cho TẤT CẢ các cột
                                             let hasChanges = false;
                                             originalColumns.forEach(col => {
@@ -1192,6 +1209,7 @@ BEGIN
                                                     if (col.visible !== shouldBeVisible) {
                                                         col.visible = shouldBeVisible;
                                                         hasChanges = true;
+                                                        console.log("[SetVisible]", col.dataField, "→", shouldBeVisible);
                                                     }
                                                 }
                                             });
@@ -1205,7 +1223,7 @@ BEGIN
                                         }
                                     });
                                 }
-
+                                
                                 // XỬ LÝ SEARCH PANEL (giữ nguyên code cũ)
                                 setTimeout(function() {
                                     const searchPanel = grid.getView("headerPanel");
@@ -1239,8 +1257,6 @@ BEGIN
                             },
                             onToolbarPreparing: function(e) {
                                 let isReloading = false;
-                                
-                                // Button Reload
                                 e.toolbarOptions.items.unshift({
                                     location: "after",
                                     widget: "dxButton",
@@ -1248,10 +1264,15 @@ BEGIN
                                         icon: "refresh",
                                         hint: "Tải lại",
                                         onClick: function() {
-                                            if (isReloading) return;
+                                            if (isReloading) {
+                                                return;
+                                            }
+
                                             isReloading = true;
                                             this.option("disabled", true);
+
                                             ReloadData();
+
                                             setTimeout(() => {
                                                 isReloading = false;
                                                 this.option("disabled", false);
@@ -1263,7 +1284,7 @@ BEGIN
                             onInitialized: function(e) {
                                 const grid = e.component;
                                 const tableName = "%TableName%";
-
+                                
                                 // Lưu reference GỐC (không stringify - giữ functions)
                                 if (!window._OriginalColumnConfig_%ColumnName%) {
                                     window._OriginalColumnConfig_%ColumnName% = grid.option("columns");
@@ -1273,34 +1294,12 @@ BEGIN
                                 window._GridConfigLoaded_%ColumnName% = false;
                             },
                             onOptionChanged: function(e) {
-                                // Lưu column config (kéo thả, ẩn/hiện)
                                 if (e.fullName.startsWith("columns[")) {
-                                    const isVisibleChange = e.fullName.includes(".visible") && e.name === "visible";
-                                    const isVisibleIndexChange = e.fullName.includes(".visibleIndex") && e.name === "visibleIndex";
-                                    const isColumnReorder = e.name === "columns" && e.value && Array.isArray(e.value);
-                                    
-                                    if (isVisibleChange || isVisibleIndexChange || isColumnReorder) {
-                                        clearTimeout(window.__saveGridColumnTimeout__%ColumnName%);
-                                        window.__saveGridColumnTimeout__%ColumnName% = setTimeout(() => {
-                                            const cols = e.component.getVisibleColumns();
-                                            saveGridColumnConfig("%TableName%", cols);
-                                        }, 800);
-                                    }
-                                }
-                                
-                                // LƯU FILTER STATE KHI CÓ THAY ĐỔI (LOCALSTORAGE)
-                                const isFilterChange = e.name === "filterValue" || 
-                                                    e.fullName === "searchPanel.text" ||
-                                                    (e.fullName.includes("columns[") && 
-                                                    (e.fullName.includes("filterValue") || 
-                                                        e.fullName.includes("filterValues") ||
-                                                        e.fullName.includes("selectedFilterOperation")));
-                                
-                                if (isFilterChange) {
-                                    clearTimeout(window.__saveFilterTimeout__%ColumnName%);
-                                    window.__saveFilterTimeout__%ColumnName% = setTimeout(() => {
-                                        saveGridFilterState("%TableName%", e.component);
-                                    }, 500);
+                                    clearTimeout(window.__saveGridColumnTimeout__%ColumnName%);
+                                    window.__saveGridColumnTimeout__%ColumnName% = setTimeout(() => {
+                                        const cols = e.component.getVisibleColumns();
+                                        saveGridColumnConfig("%TableName%", cols);
+                                    }, 800);
                                 }
                             }
                         }).dxDataGrid("instance");
@@ -1346,121 +1345,75 @@ BEGIN
       AND ColumnName IS NOT NULL
     GROUP BY DatasourceSP;
 	
--- Xóa các dòng build control cho grid sau khi đã nối chuỗi xong
+    -- Xóa các dòng build control cho grid sau khi đã nối chuỗi xong
     DELETE FROM #temptable WHERE Layout = 'Grid_View' AND GridColumnName IS NOT NULL AND Type <> 'hpaControlGrid';
 	
     -- ============================================================================
-    -- THAY THẾ CÁC PLACEHOLDER (OPTIMIZED: Consolidated nested REPLACE + CHECKSUM Caching)
+    -- THAY THẾ CÁC PLACEHOLDER
     -- ============================================================================
-    -- Tạo bảng tạm để cache CHECKSUM calculation (tính 1 lần thay vì N lần)
-    DECLARE @ChecksumCache TABLE (TableEditor NVARCHAR(256), ChecksumVal VARCHAR(64));
-    
-    INSERT INTO @ChecksumCache (TableEditor, ChecksumVal)
-    SELECT DISTINCT t.TableEditor, CAST(CHECKSUM(o.name) AS VARCHAR(64))
-    FROM #temptable t
-    LEFT JOIN sys.objects o ON o.name = t.TableEditor AND o.type = 'U'
-    WHERE t.TableEditor IS NOT NULL;
+    UPDATE t
+        SET loadUI = REPLACE(loadUI, '%tableId%', CAST(CHECKSUM(o.name) AS VARCHAR(64)))
+        FROM #temptable t
+        INNER JOIN sys.objects o ON o.name = t.TableEditor AND o.type = 'U'
+    UPDATE #temptable SET loadUI = REPLACE(loadUI, '%tableId%', ISNULL(@object_Id, ''))
+    UPDATE #temptable SET loadUI = REPLACE(loadUI, '%UID%', ISNULL([UID], ''))
+    UPDATE #temptable SET loadUI = REPLACE(loadUI, '%TableName%', ISNULL(TableName, ''))
+    UPDATE #temptable SET loadUI = REPLACE(loadUI, '%ColumnName%', ISNULL(ColumnName, ''))
+    UPDATE #temptable SET loadUI = REPLACE(loadUI, '%DatasourceSP%', ISNULL(DatasourceSP, ''))
+    UPDATE #temptable SET loadUI = REPLACE(loadUI, '%columnId%', ISNULL(columnId, ''))
+    UPDATE #temptable SET loadUI = REPLACE(loadUI, '%ColumnIDName%', ISNULL(ColumnIDName, ''))
+    UPDATE #temptable SET loadUI = REPLACE(loadUI, '%Layout%', ISNULL(Layout, ''))
+    UPDATE #temptable SET loadUI = REPLACE(loadUI, '%IsAlert%', ISNULL(IsAlert, 0))
+    UPDATE #temptable SET loadUI = REPLACE(loadUI, '%TableAddNew%', ISNULL(TableAddNew, ''))
+    UPDATE #temptable SET loadUI = REPLACE(loadUI, '%ColumnNameAddNew%', ISNULL(ColumnNameAddNew, ''))
+    UPDATE #temptable SET loadUI = REPLACE(loadUI, '%ActionRichTextEditor%', ISNULL(ActionRichTextEditor, ''))
 
-    UPDATE #temptable
-    SET loadUI =
-        REPLACE(
-            REPLACE(
-                REPLACE(
-                    REPLACE(
-                        REPLACE(
-                            REPLACE(
-                                REPLACE(
-                                    REPLACE(
-                                        REPLACE(
-                                            REPLACE(
-                                                REPLACE(
-                                                    REPLACE(
-                                                        REPLACE(loadUI, '%tableId%', ISNULL((SELECT TOP 1 ChecksumVal FROM @ChecksumCache WHERE TableEditor = #temptable.TableEditor), '')),
-                                                        '%UID%', ISNULL([UID], '')),
-                                                    '%TableName%', ISNULL(TableName, '')),
-                                                '%ColumnName%', ISNULL(ColumnName, '')),
-                                            '%DatasourceSP%', ISNULL(DatasourceSP, '')),
-                                        '%columnId%', ISNULL(columnId, '')),
-                                    '%ColumnIDName%', ISNULL(ColumnIDName, '')),
-                                '%ColumnIDName2%', ISNULL(ColumnIDName2, '')),
-                            '%Layout%', ISNULL(Layout, '')),
-                        '%IsAlert%', ISNULL(CAST(IsAlert AS VARCHAR(10)), '0')),
-                    '%TableAddNew%', ISNULL(TableAddNew, '')),
-                '%ColumnNameAddNew%', ISNULL(ColumnNameAddNew, '')),
-            '%ActionRichTextEditor%', ISNULL(ActionRichTextEditor, ''));
+    UPDATE #temptable SET loadData = REPLACE(loadData, '%UID%', ISNULL([UID], ''))
+    UPDATE #temptable SET loadData = REPLACE(loadData, '%ColumnName%', ISNULL(ColumnName, ''))
+    UPDATE #temptable SET loadData = REPLACE(loadData, '%DatasourceSP%', ISNULL(DatasourceSP, ''))
+    UPDATE #temptable SET loadData = REPLACE(loadData, '%columnId%', ISNULL(columnId, ''))
+    UPDATE #temptable SET loadData = REPLACE(loadData, '%ColumnIDName%', ISNULL(ColumnIDName, ''))
+    UPDATE #temptable SET loadData = REPLACE(loadData, '%Layout%', ISNULL(Layout, ''))
 
-    UPDATE #temptable
-    SET loadData = REPLACE(
-            REPLACE(
-                REPLACE(
-                    REPLACE(
-                        REPLACE(
-                            REPLACE(
-                                REPLACE(loadData, '%UID%', ISNULL([UID], '')),
-                            '%ColumnName%', ISNULL(ColumnName, '')),
-                        '%DatasourceSP%', ISNULL(DatasourceSP, '')),
-                    '%columnId%', ISNULL(columnId, '')),
-                '%ColumnIDName%', ISNULL(ColumnIDName, '')),
-            '%ColumnIDName2%', ISNULL(ColumnIDName2, '')),
-        '%Layout%', ISNULL(Layout, ''));
-
-    UPDATE #temptable
-    SET html = REPLACE(
-            REPLACE(
-                REPLACE(html, '%UID%', ISNULL([UID], '')),
-            '%Layout%', ISNULL(Layout, '')),
-        '%ColumnName%', ISNULL(ColumnName, ''));
+    UPDATE #temptable SET html = REPLACE(html, '%UID%', ISNULL([UID], ''))
+    UPDATE #temptable SET html = REPLACE(html, '%Layout%', ISNULL(Layout, ''))
+    UPDATE #temptable SET html = REPLACE(html, '%ColumnName%', ISNULL(ColumnName, ''))
 
     -- ============================================================================
-    -- XUẤT KẾT QUẢ CUỐI CÙNG (OPTIMIZED: Gộp 4 SELECT thành 1)
+    -- XUẤT KẾT QUẢ CUỐI CÙNG
     -- ============================================================================
     DECLARE @SPLoadData VARCHAR(100), @ColumnIDName VARCHAR(100), @UID VARCHAR(100), @ColumnName VARCHAR(100);
     DECLARE @ColumnIDNames TABLE (ColumnIDName VARCHAR(200));
-    DECLARE @ColumnIDNames2 TABLE (ColumnIDName2 VARCHAR(200));
 
-    -- Lấy thông tin cơ bản 1 lần duy nhất
-    SELECT TOP 1 
-        @SPLoadData = SPLoadData,
-        @UID = [UID],
-        @ColumnName = [ColumnName],
-        @GridColumnName = ISNULL((SELECT TOP 1 [ColumnName] FROM #temptable WHERE TableName = @TableName AND Layout = 'Grid_View'), '')
-    FROM #temptable 
-    WHERE TableName = @TableName
+    -- Lấy thông tin cơ bản
+    SELECT TOP 1 @SPLoadData = SPLoadData FROM #temptable WHERE TableName = @TableName
+    SELECT TOP 1 @UID = [UID] FROM #temptable WHERE TableName = @TableName
+    SELECT TOP 1 @ColumnName = [ColumnName] FROM #temptable WHERE TableName = @TableName
+    SELECT TOP 1 @GridColumnName = [ColumnName] FROM #temptable WHERE TableName = @TableName AND Layout = 'Grid_View'
 
-    -- Lấy danh sách ColumnIDName
+    -- Lấy danh sách ColumnIDName (có thể chứa nhiều key được phân tách bằng dấu phẩy)
     INSERT INTO @ColumnIDNames(ColumnIDName)
     SELECT DISTINCT ColumnIDName
     FROM #temptable
     WHERE TableName = @TableName
       AND ColumnIDName IS NOT NULL;
 
-    INSERT INTO @ColumnIDNames2(ColumnIDName2)
-    SELECT DISTINCT ColumnIDName2
-    FROM #temptable
-    WHERE TableName = @TableName
-      AND ColumnIDName2 IS NOT NULL;
-
     -- Build JavaScript variables cho currentRecordID
     DECLARE @jsCurrentRecordID NVARCHAR(MAX) = N'';
-    DECLARE @jsCurrentRecordID2 NVARCHAR(MAX) = N'';
 
-    -- Thay đổi cách build @jsCurrentRecordID
-    SELECT @jsCurrentRecordID += ' window.currentRecordID_' + ColumnIDName + ' = null;'
-    FROM @ColumnIDNames
-    WHERE ColumnIDName IS NOT NULL;
-
-    SELECT @jsCurrentRecordID2 += ' window.currentRecordID_' + ColumnIDName2 + ' = null;'
-    FROM @ColumnIDNames2
-    WHERE ColumnIDName2 IS NOT NULL;
+    -- Build @jsCurrentRecordID với tất cả các cột từ danh sách ColumnIDName (được phân tách bằng dấu phẩy)
+    SELECT @jsCurrentRecordID += ' window.currentRecordID_' + TRIM(value) + ' = null;'
+    FROM @ColumnIDNames c
+    CROSS APPLY STRING_SPLIT(c.ColumnIDName, ',')
+    WHERE c.ColumnIDName IS NOT NULL;
 
     DECLARE @jsHandleRecord NVARCHAR(MAX) = N'';
-    DECLARE @jsHandleRecord2 NVARCHAR(MAX) = N'';
 
-    SELECT @jsHandleRecord += ' if (obj) { window.currentRecordID_' + ColumnIDName + ' = (obj.' + ColumnIDName + ' !== undefined && obj.' + ColumnIDName + ' !== null) ? obj.' + ColumnIDName + ' : window.currentRecordID_' + ColumnIDName + '; }'
-    FROM @ColumnIDNames;
-
-    SELECT @jsHandleRecord2 += ' if (obj) { window.currentRecordID_' + ColumnIDName2 + ' = (obj.' + ColumnIDName2 + ' !== undefined && obj.' + ColumnIDName2 + ' !== null) ? obj.' + ColumnIDName2 + ' : window.currentRecordID_' + ColumnIDName2 + '; }'
-    FROM @ColumnIDNames2;
+    -- Build @jsHandleRecord cho tất cả các cột được phân tách bằng dấu phẩy
+    SELECT @jsHandleRecord += ' if (obj) { window.currentRecordID_' + TRIM(value) + ' = (obj.' + TRIM(value) + ' !== undefined && obj.' + TRIM(value) + ' !== null) ? obj.' + TRIM(value) + ' : window.currentRecordID_' + TRIM(value) + '; }'
+    FROM @ColumnIDNames c
+    CROSS APPLY STRING_SPLIT(c.ColumnIDName, ',')
+    WHERE c.ColumnIDName IS NOT NULL;
 
     -- Build JavaScript code để load tất cả unique DataSourceSP
     DECLARE @jsLoadAllDataSources NVARCHAR(MAX) = N'';
@@ -1598,21 +1551,20 @@ BEGIN
 
         OPEN @GridHandlingCursor;
         FETCH NEXT FROM @GridHandlingCursor INTO @CurrentGridName, @CurrentGridUID_JS, @CurrentGridPKColumnName;
-
+        
         WHILE @@FETCH_STATUS = 0
         BEGIN
+            -- Lấy key đầu tiên từ ColumnIDName nếu có nhiều key
+            DECLARE @FirstPKColumn VARCHAR(100) = ISNULL(LEFT(@CurrentGridPKColumnName, ISNULL(NULLIF(CHARINDEX(',', @CurrentGridPKColumnName) - 1, -1), LEN(@CurrentGridPKColumnName))), @CurrentGridPKColumnName);
+            
             SET @jsLayoutHandling += N'
                 const gridInstance' + @CurrentGridName + ' = Instance' + @CurrentGridName + @CurrentGridUID_JS + N';
                 const gridConfig' + @CurrentGridName + ' = window.getGridConfig_' + @CurrentGridName + N'(results);
-                
                 loadGridRowOrder(
-                    "' + @TableName + '",
+                    "' + @CurrentGridName + '",
                     results,
-                    "' + @CurrentGridPKColumnName + '",
+                    "' + @FirstPKColumn + '",
                     function(sortedData) {
-                        // Clear search panel khi reload
-                        gridInstance' + @CurrentGridName + '.option("searchPanel.text", "");
-                        
                         gridInstance' + @CurrentGridName + '.beginUpdate();
                         gridInstance' + @CurrentGridName + '.option("scrolling", {
                             mode: "standard",
@@ -1625,18 +1577,6 @@ BEGIN
                         gridInstance' + @CurrentGridName + '.pageIndex(0);
                         gridInstance' + @CurrentGridName + '.option("dataSource", sortedData);
                         gridInstance' + @CurrentGridName + '.endUpdate();
-                        
-                        // RESTORE FILTER STATE TỪ LOCALSTORAGE (nếu không skip)
-                        setTimeout(function() {
-                            if (window._SkipRestoreFilter) {
-                                window._SkipRestoreFilter = false;
-                                return;
-                            }
-                            const savedFilter = loadGridFilterState("' + @TableName + '", gridInstance' + @CurrentGridName + ');
-                            if (savedFilter) {
-                                applyGridFilterState(gridInstance' + @CurrentGridName + ', savedFilter);
-                            }
-                        }, 100);
                     }
                 );
             ';
@@ -1649,302 +1589,145 @@ BEGIN
     END
 
     DECLARE @jsFunctionGridConfig NVARCHAR(MAX) = N'';
-    IF @UseLayout = 1 AND @CurrentGridName IS NOT NULL
+    IF @UseLayout = 1
     BEGIN
         SET @jsFunctionGridConfig = N'
-        // =============== GRID COLUMN CONFIG PERSISTENCE ===============
-        function saveGridColumnConfig(tableName, columns) {
-            const visibleColumns = columns
-                .filter(col => {
-                    return col.visible !== false
-                        && col.dataField
-                        && col.dataField !== "rowIndex"
-                        && typeof col.dataField === "string";
-                })
-                .map(col => col.dataField);
+            // =============== GRID COLUMN CONFIG PERSISTENCE ===============
+            function saveGridColumnConfig(tableName, columns) {
+                const visibleColumns = columns
+                    .filter(col => {
+                        return col.visible !== false 
+                            && col.dataField 
+                            && col.dataField !== "rowIndex"
+                            && typeof col.dataField === "string";
+                    })
+                    .map(col => col.dataField);
+                    
+                const columnOrder = columns
+                    .filter(col => {
+                        return col.dataField 
+                            && col.dataField !== "rowIndex"
+                            && typeof col.dataField === "string";
+                    })
+                    .map(col => col.dataField);
 
-				const columnOrder = columns
-                .filter(col => {
-                    return col.dataField
-                        && col.dataField !== "rowIndex"
-                        && typeof col.dataField === "string";
-                })
-                .map(col => col.dataField);
+                const config = { visibleColumns, columnOrder };
+                console.log("[SaveConfig]", config);
 
-            const config = { visibleColumns, columnOrder };
-
-            AjaxHPAParadise({
-                data: {
-                    name: "sp_SaveGridColumnConfig",
-                    param: [
-                        "LoginID", LoginID,
-                        "TableName", tableName,
-                        "ColumnConfigJson", JSON.stringify(config)
-                    ]
-                }
-            });
-        }
-
-        function loadGridColumnConfig(tableName, callback) {
-            AjaxHPAParadise({
-                data: {
-                    name: "sp_GetGridColumnConfig",
-                    param: ["LoginID", LoginID, "TableName", tableName]
-                },
-                async: false,
-                success: function(res) {
-                    let config = {};
-                    const json = typeof res === "string" ? JSON.parse(res) : res;
-                    if (json && json.data && json.data[0] && json.data[0][0] && json.data[0][0].ColumnConfigJson) {
-                        const raw = json.data[0][0].ColumnConfigJson;
-                        config = typeof raw === "string" ? JSON.parse(raw) : raw;
-                    }
-                    if (typeof callback === "function") callback(config);
-                }
-            });
-        }
-
-        // =============== FILTER STATE - LOCALSTORAGE ONLY ===============
-        function saveGridFilterState(tableName, gridInstance) {
-            try {
-                const filterValue = gridInstance.getCombinedFilter();
-                const searchValue = gridInstance.option("searchPanel.text") || "";
-                
-                // Lấy filter của từng cột
-                const columnFilters = {};
-                const columns = gridInstance.option("columns");
-                
-                columns.forEach(col => {
-                    if (col.dataField && col.filterValue !== undefined) {
-                        columnFilters[col.dataField] = {
-                            filterValue: col.filterValue,
-                            filterType: col.filterType || "include",
-                            selectedFilterOperation: col.selectedFilterOperation
-                        };
+                AjaxHPAParadise({
+                    data: {
+                        name: "sp_SaveGridColumnConfig",
+                        param: [
+                            "LoginID", LoginID,
+                            "TableName", tableName,
+                            "ColumnConfigJson", JSON.stringify(config)
+                        ]
                     }
                 });
-                
-                const filterState = {
-                    combinedFilter: filterValue,
-                    searchText: searchValue,
-                    columnFilters: columnFilters,
-                    timestamp: new Date().getTime()
-                };
-                
-                // CHỈ LƯU VÀO LOCALSTORAGE
-                localStorage.setItem("GridFilter_" + tableName + "_" + LoginID, JSON.stringify(filterState));
-            } catch(e) {
-                console.error("[SaveFilterState] Error:", e);
             }
-        }
-
-        function loadGridFilterState(tableName, gridInstance) {
-            try {
-                const storageKey = "GridFilter_" + tableName + "_" + LoginID;
-                const savedState = localStorage.getItem(storageKey);
-                
-                if (!savedState) {
-                    return null;
-                }
-                
-                const filterState = JSON.parse(savedState);
-                
-                return filterState;
-            } catch(e) {
-                console.error("[LoadFilterState] Error:", e);
-                return null;
-            }
-        }
-
-        function applyGridFilterState(gridInstance, filterState) {
-            if (!filterState) return;
             
-            try {
-                gridInstance.beginUpdate();
-                
-                // 1. Apply search text
-                if (filterState.searchText) {
-                    gridInstance.option("searchPanel.text", filterState.searchText);
-                }
-                
-                // 2. Apply column filters
-                if (filterState.columnFilters) {
-                    Object.keys(filterState.columnFilters).forEach(dataField => {
-                        const colFilter = filterState.columnFilters[dataField];
-                        const colIndex = gridInstance.columnOption(dataField, "index");
-                        
-                        if (colIndex !== undefined) {
-                            gridInstance.columnOption(dataField, "filterValue", colFilter.filterValue);
-                            if (colFilter.filterType) {
-                                gridInstance.columnOption(dataField, "filterType", colFilter.filterType);
-                            }
-                            if (colFilter.selectedFilterOperation) {
-                                gridInstance.columnOption(dataField, "selectedFilterOperation", colFilter.selectedFilterOperation);
-                            }
-                        }
-                    });
-                }
-                
-                // 3. Apply combined filter (fallback)
-                if (filterState.combinedFilter && !filterState.columnFilters) {
-                    gridInstance.option("filterValue", filterState.combinedFilter);
-                }
-                
-                gridInstance.endUpdate();
-                
-            } catch(e) {
-                console.error("[ApplyFilterState] Error:", e);
-            }
-        }
-
-        function clearGridFilterState(tableName) {
-            try {
-                const storageKey = "GridFilter_" + tableName + "_" + LoginID;
-                localStorage.removeItem(storageKey);
-            } catch(e) {
-                console.error("[ClearFilterState] Error:", e);
-            }
-        }
-
-        // =============== ROW ORDER PERSISTENCE ===============
-        function saveGridRowOrder(gridInstance, tableName, pkColumn) {
-            const dataSource = gridInstance.option("dataSource");
-            const rowOrderArray = dataSource.map(item => item[pkColumn]);
-
-            AjaxHPAParadise({
-                data: {
-                    name: "sp_SaveGridRowOrder",
-                    param: [
-                        "LoginID", LoginID,
-                        "TableName", tableName,
-                        "RowOrderJson", JSON.stringify(rowOrderArray)
-                    ]
-                },
-                success: function(res) {},
-                error: function(err) {
-                    console.error("[SaveRowOrder] Error:", err);
-                }
-            });
-        }
-
-        function loadGridRowOrder(tableName, dataSource, pkColumn, callback) {
-            AjaxHPAParadise({
-                data: {
-                    name: "sp_GetGridRowOrder",
-                    param: ["LoginID", LoginID, "TableName", tableName]
-                },
-                async: false,
-                success: function(res) {
-                    try {
+            function loadGridColumnConfig(tableName, callback) {
+                AjaxHPAParadise({
+                    data: {
+                        name: "sp_GetGridColumnConfig",
+                        param: ["LoginID", LoginID, "TableName", tableName]
+                    },
+                    async: false,
+                    success: function(res) {
+                        let config = {};
                         const json = typeof res === "string" ? JSON.parse(res) : res;
-                        const rowOrderJson = json.data[0][0].RowOrderJson;
+                        if (json && json.data && json.data[0] && json.data[0][0] && json.data[0][0].ColumnConfigJson) {
+                            const raw = json.data[0][0].ColumnConfigJson;
+                            config = typeof raw === "string" ? JSON.parse(raw) : raw;
+                        }
+                        if (typeof callback === "function") callback(config);
+                    }
+                });
+            }
 
-                        if (rowOrderJson && rowOrderJson !== "[]") {
-                            const savedOrder = JSON.parse(rowOrderJson);
-
-                            const dataMap = {};
-                            dataSource.forEach(item => {
-                                dataMap[item[pkColumn]] = item;
-                            });
-
-                            const sortedData = [];
-                            savedOrder.forEach(id => {
-                                if (dataMap[id]) {
-                                    sortedData.push(dataMap[id]);
-                                    delete dataMap[id];
+            // =============== ROW ORDER PERSISTENCE ===============
+            function saveGridRowOrder(gridInstance, tableName, pkColumn) {
+                const dataSource = gridInstance.option("dataSource");
+                
+                const rowOrderArray = dataSource.map(item => item[pkColumn]);
+                
+                AjaxHPAParadise({
+                    data: {
+                        name: "sp_SaveGridRowOrder",
+                        param: [
+                            "LoginID", LoginID,
+                            "TableName", tableName,
+                            "RowOrderJson", JSON.stringify(rowOrderArray)
+                        ]
+                    },
+                    success: function(res) {
+                        console.log("[SaveRowOrder] Success");
+                    },
+                    error: function(err) {
+                        console.error("[SaveRowOrder] Error:", err);
+                    }
+                });
+            }
+            
+            function loadGridRowOrder(tableName, dataSource, pkColumn, callback) {
+                AjaxHPAParadise({
+                    data: {
+                        name: "sp_GetGridRowOrder",
+                        param: ["LoginID", LoginID, "TableName", tableName]
+                    },
+                    async: false,
+                    success: function(res) {
+                        try {
+                            const json = typeof res === "string" ? JSON.parse(res) : res;
+                            const rowOrderJson = json.data[0][0].RowOrderJson;
+                            
+                            if (rowOrderJson && rowOrderJson !== "[]") {
+                                const savedOrder = JSON.parse(rowOrderJson);
+                                console.log("[LoadRowOrder] Loaded saved order:", savedOrder);
+                                
+                                const dataMap = {};
+                                dataSource.forEach(item => {
+                                    dataMap[item[pkColumn]] = item;
+                                });
+                                
+                                const sortedData = [];
+                                savedOrder.forEach(id => {
+                                    if (dataMap[id]) {
+                                        sortedData.push(dataMap[id]);
+                                        delete dataMap[id];
+                                    }
+                                });
+                                
+                                Object.values(dataMap).forEach(item => {
+                                    sortedData.push(item);
+                                });
+                                
+                                console.log("[LoadRowOrder] Sorted data:", sortedData.length, "rows");
+                                
+                                if (typeof callback === "function") {
+                                    callback(sortedData);
                                 }
-                            });
-
-                            Object.values(dataMap).forEach(item => {
-                                sortedData.push(item);
-                            });
-
-                            if (typeof callback === "function") {
-                                callback(sortedData);
+                            } else {
+                                console.log("[LoadRowOrder] No saved order");
+                                if (typeof callback === "function") {
+                                    callback(dataSource);
+                                }
                             }
-                        } else {
+                        } catch (e) {
                             if (typeof callback === "function") {
                                 callback(dataSource);
                             }
                         }
-                    } catch (e) {
+                    },
+                    error: function(err) {
+                        console.error("[LoadRowOrder] Error:", err);
                         if (typeof callback === "function") {
                             callback(dataSource);
                         }
                     }
-                },
-                error: function(err) {
-                    console.error("[LoadRowOrder] Error:", err);
-                    if (typeof callback === "function") {
-                        callback(dataSource);
-                    }
-                }
-            });
-        }
-
-        // =============== MYWORK FILTER STATE PERSISTENCE ===============
-        function saveFilterState(filterType) {
-            try {
-                localStorage.setItem("MyWork_Filter_" + LoginID, filterType);
-            } catch (e) {
-                console.error("[SaveFilterState] Error:", e);
-            }
-        }
-
-        function loadFilterState() {
-            try {
-                const saved = localStorage.getItem("MyWork_Filter_" + LoginID);
-                if (saved) {
-                    return saved;
-                }
-            } catch (e) {
-                console.error("[LoadFilterState] Error:", e);
-            }
-            return "all";
-        }
-
-        function applyFilter(filterType) {
-            currentFilter = filterType;
-            const gridInstance = InstancegridMyWorkPDB2DB35885F14803A9A52961A7871972;
-            
-            if (!gridInstance) return;
-            
-            let filteredData = allTasks;
-            
-            if (filterType === "todo") {
-                filteredData = allTasks.filter(task => task.Status === 1);
-            } else if (filterType === "doing") {
-                filteredData = allTasks.filter(task => task.Status === 2);
-            } else if (filterType === "overdue") {
-                // Filter tasks that are overdue (có deadline < hôm nay và status !== 3 (Done))
-                const today = new Date();
-                today.setHours(0, 0, 0, 0);
-                filteredData = allTasks.filter(task => {
-                    if (task.Status === 3) return false; // Exclude done tasks
-                    const deadlineDate = new Date(task.DeadlineDate);
-                    return deadlineDate < today;
                 });
             }
-            // else filterType === "all" -> show all tasks
-            
-            gridInstance.option("dataSource", filteredData);
-            
-            // Lưu filter vào localStorage
-            saveFilterState(filterType);
-        }
-
-        function restoreFilterState() {
-            const savedFilter = loadFilterState();
-            currentFilter = savedFilter;
-            
-            // Cập nhật UI button
-            $(".filter-btn").removeClass("active");
-            $(`.filter-btn[data-filter="${savedFilter}"]`).addClass("active");
-            
-            // Áp dụng filter
-            applyFilter(savedFilter);
-        }
-    ';
+        ';
     END
 
     -- ============================================================================
@@ -2025,47 +1808,20 @@ BEGIN
     -- ============================================================================
 
     UPDATE t
-    SET 
-        html = tt.html,
+    SET html = tt.html,
         loadUI = tt.loadUI,
         loadData = tt.loadData
     FROM tblCommonControlType_Signed t
     INNER JOIN #temptable tt ON tt.ID = t.ID
-    WHERE t.TableName = @TableName;
+    WHERE tt.TableName = @TableName
 
     -- ============================================================================
     -- RETURN KẾT QUẢ
- -- @nsqlHtml: HTML với dynamic SQL (dùng cho sp_GenerateHTMLScript)
+    -- @nsqlHtml: HTML với dynamic SQL (dùng cho sp_GenerateHTMLScript)
     -- ============================================================================
     SELECT @nsqlHtml AS htmlProc
-
-    -- ============================================================================
-    -- CLEANUP: Giải phóng tài nguyên tường minh
-    -- ============================================================================
-    IF OBJECT_ID('tempdb..#temptable') IS NOT NULL
-        DROP TABLE #temptable;
-    
-    IF OBJECT_ID('tempdb..#GridColumnsGrouped') IS NOT NULL
-        DROP TABLE #GridColumnsGrouped;
-
-    END TRY
-    BEGIN CATCH
-        -- Log error message
-        DECLARE @ErrorMessage NVARCHAR(4000) = ERROR_MESSAGE();
-        DECLARE @ErrorSeverity INT = ERROR_SEVERITY();
-        DECLARE @ErrorState INT = ERROR_STATE();
-        
-        -- Cleanup resources
-        IF OBJECT_ID('tempdb..#temptable') IS NOT NULL
-            DROP TABLE #temptable;
-        IF OBJECT_ID('tempdb..#GridColumnsGrouped') IS NOT NULL
-            DROP TABLE #GridColumnsGrouped;
-        
-        -- Re-throw error
-        RAISERROR(@ErrorMessage, @ErrorSeverity, @ErrorState);
-    END CATCH
 END
 GO
 
-EXEC sptblCommonControlType_Signed 'sp_Task_MyWork_html'
+EXEC sptblCommonControlType_Signed_Linh 'sp_Task_MyWork_html'
 EXEC sp_GenerateHTMLScript_new 'sp_Task_MyWork_html'

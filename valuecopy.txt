@@ -1,46 +1,21 @@
 
-    <div id="sp_UnregisteredAccount_NN_Control">
-        <div id="GridAccount" style="height: 100%;"></div><div id="P8EC0724E578142E4AAD1FE3E0D6A4C94"></div><div id="PF9A3029C9FAB40E0B476C0D074A8DE5B"></div><div id="P804D6FADD5ED4412BB218159C16E04EF"></div><div id="P3FA0343C98A44849A4355D47E2E24061"></div><div id="PD987FC71CE5E444A9376403FF65C59D6"></div><div id="P5CD93C11BA754CDC9BC5D922A010638D"></div><div id="PDA076A9DA8724C408B0629DEB737E87D"></div><div id="PBD59BFBAB7E24842B06A82E458CB86F3"></div><div id="P05E1D5AAA0374717B94077A9FDD5559D"></div><div id="P4031E37943134B329C9F457B0CF5CF5C"></div><div id="P56F2EB96E5BB4C97BECA22B15340AAD4"></div><div id="PAC8E76094CDD4769864B4DDF6F660DFF"></div>
+    <div id="sp_Task_MyWork_html">
+        <div id="gridMyWork" style="height: 100%;"></div><div id="gridSubtaskAssign" style="height: 100%;"></div><div id="P777C87EE29F94C29A6EAABD16E31FDDC"></div><div id="P2920410F91DB42948640CF1ABBDEE649"></div><div id="PC98E2DFA331343BBAE22882BE3825C1A"></div><div id="P02E6F18645BA47648567B32773A1B7B4"></div><div id="P27C40759D9C94453AB9B2DFBCD661AE3"></div>
     </div>
     <script>
         (() => {
-            let DataSource = []
-            '
-        +(select loadUI from tblCommonControlType_Signed where UID = 'P23DEDE11C5E44D8D8ADB55D186AC4198')
-        +(select loadUI from tblCommonControlType_Signed where UID = 'P8EC0724E578142E4AAD1FE3E0D6A4C94')
-        +(select loadUI from tblCommonControlType_Signed where UID = 'PF9A3029C9FAB40E0B476C0D074A8DE5B')
-        +(select loadUI from tblCommonControlType_Signed where UID = 'P804D6FADD5ED4412BB218159C16E04EF')
-        +(select loadUI from tblCommonControlType_Signed where UID = 'P3FA0343C98A44849A4355D47E2E24061')
-        +(select loadUI from tblCommonControlType_Signed where UID = 'PD987FC71CE5E444A9376403FF65C59D6')
-        +(select loadUI from tblCommonControlType_Signed where UID = 'P5CD93C11BA754CDC9BC5D922A010638D')
-        +(select loadUI from tblCommonControlType_Signed where UID = 'PDA076A9DA8724C408B0629DEB737E87D')
-        +(select loadUI from tblCommonControlType_Signed where UID = 'PBD59BFBAB7E24842B06A82E458CB86F3')
-        +(select loadUI from tblCommonControlType_Signed where UID = 'PC25903981FC547BC8338EE13BAB0E331')
-        +(select loadUI from tblCommonControlType_Signed where UID = 'P05E1D5AAA0374717B94077A9FDD5559D')
-        +(select loadUI from tblCommonControlType_Signed where UID = 'P4031E37943134B329C9F457B0CF5CF5C')
-        +(select loadUI from tblCommonControlType_Signed where UID = 'P56F2EB96E5BB4C97BECA22B15340AAD4')
-        +(select loadUI from tblCommonControlType_Signed where UID = 'PAC8E76094CDD4769864B4DDF6F660DFF')
-        +(select loadUI from tblCommonControlType_Signed where UID = 'P3B8CB442562743D1BA18EA8CEAAD3D7C') +N'
-
-             window.currentRecordID_CompanyID = null; window.currentRecordID_CRM_CustomerID = null; window.currentRecordID_EmployeeID = null; window.currentRecordID_LoginName = null;
+   let DataSource = []
             
-            // Load DataSource: sp_getCompanyInfo
-            if ("sp_getCompanyInfo" && "sp_getCompanyInfo".trim() !== "") {
-                loadDataSourceCommon("Company", "sp_getCompanyInfo", function(data) {
+            // Load DataSource: EmployeeListAll_DataSetting_Custom
+            if ("EmployeeListAll_DataSetting_Custom" && "EmployeeListAll_DataSetting_Custom".trim() !== "") {
+                loadDataSourceCommon("AssignedEmployeeIDs", "EmployeeListAll_DataSetting_Custom", function(data) {
                     // Data được shared qua callback
                 });
             }
         
-            // Load DataSource: sp_getInfoEmployeeAccount
-            if ("sp_getInfoEmployeeAccount" && "sp_getInfoEmployeeAccount".trim() !== "") {
-                loadDataSourceCommon("SelectEmployee", "sp_getInfoEmployeeAccount", function(data) {
-                    // Data được shared qua callback
-                });
-            }
-        
-            // Load DataSource: sp_getParentLogin
-            if ("sp_getParentLogin" && "sp_getParentLogin".trim() !== "") {
-                loadDataSourceCommon("ParentLogin", "sp_getParentLogin", function(data) {
+            // Load DataSource: sp_Task_GetAssignmentSetup
+            if ("sp_Task_GetAssignmentSetup" && "sp_Task_GetAssignmentSetup".trim() !== "") {
+                loadDataSourceCommon("TaskName", "sp_Task_GetAssignmentSetup", function(data) {
                     // Data được shared qua callback
                 });
             }
@@ -93,9 +68,9 @@
                     // Tự động cập nhật control nếu có method setDataSource hoặc option
                     // Thử nhiều format tên instance để tương thích
                     const instanceVariants = [
-                        "Instance" + columnName.charAt(0).toUpperCase() + columnName.slice(1) + "P23DEDE11C5E44D8D8ADB55D186AC4198",
-                        "Instance" + columnName + "P23DEDE11C5E44D8D8ADB55D186AC4198",
-                        "instance" + columnName.charAt(0).toUpperCase() + columnName.slice(1) + "P23DEDE11C5E44D8D8ADB55D186AC4198"
+                        "Instance" + columnName.charAt(0).toUpperCase() + columnName.slice(1) + "PDB2DB35885F14803A9A52961A7871972",
+                        "Instance" + columnName + "PDB2DB35885F14803A9A52961A7871972",
+                        "instance" + columnName.charAt(0).toUpperCase() + columnName.slice(1) + "PDB2DB35885F14803A9A52961A7871972"
                     ];
 
                     for (let i = 0; i < instanceVariants.length; i++) {
@@ -111,7 +86,7 @@
                                     if (typeof gridConfigFn === "function") {
                                         const gridConfig = gridConfigFn(window[dataSourceKey]);
                                         instanceObj.option("remoteOperations", gridConfig.remoteOperations);
-                                    instanceObj.option("paging.pageSize", gridConfig.pageSize);
+                                        instanceObj.option("paging.pageSize", gridConfig.pageSize);
                                         instanceObj.option("pager.allowedPageSizes", gridConfig.allowedPageSizes);
                                     }
 
@@ -121,7 +96,7 @@
                                     console.warn("[LoadDataSourceCommon] Grid config error:", e);
                                     // Fallback: just set data source
                                     instanceObj.option("dataSource", window[dataSourceKey]);
-                                    break;
+                       break;
                                 }
                             } else if (typeof instanceObj.setDataSource === "function") {
                                 instanceObj.setDataSource(window[dataSourceKey]);
@@ -147,11 +122,264 @@
             });
         }
     
+            '
+        +(select loadUI from tblCommonControlType_Signed where UID = 'PDB2DB35885F14803A9A52961A7871972')
+        +(select loadUI from tblCommonControlType_Signed where UID = 'P870C076FA1FD48DDBDEDE2C2435B4DA9')
+        +(select loadUI from tblCommonControlType_Signed where UID = 'P777C87EE29F94C29A6EAABD16E31FDDC')
+        +(select loadUI from tblCommonControlType_Signed where UID = 'P2920410F91DB42948640CF1ABBDEE649')
+        +(select loadUI from tblCommonControlType_Signed where UID = 'PC98E2DFA331343BBAE22882BE3825C1A')
+        +(select loadUI from tblCommonControlType_Signed where UID = 'P02E6F18645BA47648567B32773A1B7B4')
+        +(select loadUI from tblCommonControlType_Signed where UID = 'P27C40759D9C94453AB9B2DFBCD661AE3') +N'
+             window.currentRecordID_HeaderID = null; window.currentRecordID_HistoryID = null; window.currentRecordID_TaskID = null;
+            
+        // =============== GRID COLUMN CONFIG PERSISTENCE ===============
+        function saveGridColumnConfig(tableName, columns) {
+            const visibleColumns = columns
+                .filter(col => {
+                    return col.visible !== false
+                        && col.dataField
+                        && col.dataField !== "rowIndex"
+                        && typeof col.dataField === "string";
+                })
+                .map(col => col.dataField);
+
+            const columnOrder = columns
+                .filter(col => {
+                    return col.dataField
+                        && col.dataField !== "rowIndex"
+                        && typeof col.dataField === "string";
+                })
+                .map(col => col.dataField);
+
+            const config = { visibleColumns, columnOrder };
+            console.log("[SaveConfig]", config);
+
+            AjaxHPAParadise({
+                data: {
+                    name: "sp_SaveGridColumnConfig",
+                    param: [
+                        "LoginID", LoginID,
+                        "TableName", tableName,
+                        "ColumnConfigJson", JSON.stringify(config)
+                    ]
+                }
+            });
+        }
+
+        function loadGridColumnConfig(tableName, callback) {
+            AjaxHPAParadise({
+                data: {
+                    name: "sp_GetGridColumnConfig",
+                    param: ["LoginID", LoginID, "TableName", tableName]
+                },
+                async: false,
+                success: function(res) {
+                    let config = {};
+                    const json = typeof res === "string" ? JSON.parse(res) : res;
+                    if (json && json.data && json.data[0] && json.data[0][0] && json.data[0][0].ColumnConfigJson) {
+                        const raw = json.data[0][0].ColumnConfigJson;
+                        config = typeof raw === "string" ? JSON.parse(raw) : raw;
+                    }
+                    if (typeof callback === "function") callback(config);
+                }
+            });
+        }
+
+        // =============== FILTER STATE - LOCALSTORAGE ONLY ===============
+        function saveGridFilterState(tableName, gridInstance) {
+            try {
+                const filterValue = gridInstance.getCombinedFilter();
+                const searchValue = gridInstance.option("searchPanel.text") || "";
+                
+                // Lấy filter của từng cột
+                const columnFilters = {};
+                const columns = gridInstance.option("columns");
+                
+                columns.forEach(col => {
+                    if (col.dataField && col.filterValue !== undefined) {
+                        columnFilters[col.dataField] = {
+                            filterValue: col.filterValue,
+                            filterType: col.filterType || "include",
+                            selectedFilterOperation: col.selectedFilterOperation
+                        };
+                    }
+                });
+                
+                const filterState = {
+                    combinedFilter: filterValue,
+                    searchText: searchValue,
+                    columnFilters: columnFilters,
+                    timestamp: new Date().getTime()
+                };
+                
+                console.log("[SaveFilterState]", filterState);
+                
+                // CHỈ LƯU VÀO LOCALSTORAGE
+                localStorage.setItem("GridFilter_" + tableName + "_" + LoginID, JSON.stringify(filterState));
+            } catch(e) {
+                console.error("[SaveFilterState] Error:", e);
+            }
+        }
+
+        function loadGridFilterState(tableName, gridInstance) {
+            try {
+                const storageKey = "GridFilter_" + tableName + "_" + LoginID;
+                const savedState = localStorage.getItem(storageKey);
+                
+                if (!savedState) {
+                    console.log("[LoadFilterState] No saved filter");
+                    return null;
+                }
+                
+                const filterState = JSON.parse(savedState);
+                console.log("[LoadFilterState] Loaded:", filterState);
+                
+                return filterState;
+            } catch(e) {
+                console.error("[LoadFilterState] Error:", e);
+                return null;
+            }
+        }
+
+        function applyGridFilterState(gridInstance, filterState) {
+            if (!filterState) return;
+            
+            try {
+                gridInstance.beginUpdate();
+                
+                // 1. Apply search text
+                if (filterState.searchText) {
+                    gridInstance.option("searchPanel.text", filterState.searchText);
+                }
+                
+                // 2. Apply column filters
+                if (filterState.columnFilters) {
+                    Object.keys(filterState.columnFilters).forEach(dataField => {
+                        const colFilter = filterState.columnFilters[dataField];
+                        const colIndex = gridInstance.columnOption(dataField, "index");
+                        
+                        if (colIndex !== undefined) {
+                            gridInstance.columnOption(dataField, "filterValue", colFilter.filterValue);
+                            if (colFilter.filterType) {
+                                gridInstance.columnOption(dataField, "filterType", colFilter.filterType);
+                            }
+                            if (colFilter.selectedFilterOperation) {
+                                gridInstance.columnOption(dataField, "selectedFilterOperation", colFilter.selectedFilterOperation);
+                            }
+                        }
+                    });
+                }
+                
+                // 3. Apply combined filter (fallback)
+                if (filterState.combinedFilter && !filterState.columnFilters) {
+                    gridInstance.option("filterValue", filterState.combinedFilter);
+                }
+                
+                gridInstance.endUpdate();
+                
+                console.log("[ApplyFilterState] Filter applied successfully");
+            } catch(e) {
+                console.error("[ApplyFilterState] Error:", e);
+            }
+        }
+
+        function clearGridFilterState(tableName) {
+            try {
+                const storageKey = "GridFilter_" + tableName + "_" + LoginID;
+                localStorage.removeItem(storageKey);
+                console.log("[ClearFilterState] Cleared filter for", tableName);
+            } catch(e) {
+                console.error("[ClearFilterState] Error:", e);
+            }
+        }
+
+        // =============== ROW ORDER PERSISTENCE ===============
+        function saveGridRowOrder(gridInstance, tableName, pkColumn) {
+            const dataSource = gridInstance.option("dataSource");
+            const rowOrderArray = dataSource.map(item => item[pkColumn]);
+
+            AjaxHPAParadise({
+                data: {
+                    name: "sp_SaveGridRowOrder",
+                    param: [
+                        "LoginID", LoginID,
+                        "TableName", tableName,
+                        "RowOrderJson", JSON.stringify(rowOrderArray)
+                    ]
+                },
+                success: function(res) {
+                    console.log("[SaveRowOrder] Success");
+                },
+                error: function(err) {
+                    console.error("[SaveRowOrder] Error:", err);
+                }
+            });
+        }
+
+        function loadGridRowOrder(tableName, dataSource, pkColumn, callback) {
+            AjaxHPAParadise({
+                data: {
+                    name: "sp_GetGridRowOrder",
+                    param: ["LoginID", LoginID, "TableName", tableName]
+                },
+                async: false,
+                success: function(res) {
+                    try {
+                        const json = typeof res === "string" ? JSON.parse(res) : res;
+                        const rowOrderJson = json.data[0][0].RowOrderJson;
+
+                        if (rowOrderJson && rowOrderJson !== "[]") {
+                            const savedOrder = JSON.parse(rowOrderJson);
+                            console.log("[LoadRowOrder] Loaded saved order:", savedOrder);
+
+                            const dataMap = {};
+                            dataSource.forEach(item => {
+                                dataMap[item[pkColumn]] = item;
+                            });
+
+                            const sortedData = [];
+                            savedOrder.forEach(id => {
+                                if (dataMap[id]) {
+                                    sortedData.push(dataMap[id]);
+                                    delete dataMap[id];
+                                }
+                            });
+
+                            Object.values(dataMap).forEach(item => {
+                                sortedData.push(item);
+                            });
+
+                            console.log("[LoadRowOrder] Sorted data:", sortedData.length, "rows");
+
+                            if (typeof callback === "function") {
+                                callback(sortedData);
+                            }
+                        } else {
+                            console.log("[LoadRowOrder] No saved order");
+                            if (typeof callback === "function") {
+                                callback(dataSource);
+                            }
+                        }
+                    } catch (e) {
+                        if (typeof callback === "function") {
+                            callback(dataSource);
+                        }
+                    }
+                },
+                error: function(err) {
+                    console.error("[LoadRowOrder] Error:", err);
+                    if (typeof callback === "function") {
+                        callback(dataSource);
+                    }
+                }
+            });
+        }
+    
 
             function ReloadData() {
                 AjaxHPAParadise({
                     data: {
-                        name: "sp_getUnregisteredAccount_Control",
+                        name: "sp_Task_GetMyTasks",
                         param: []
                     },
                     success: function (res) {
@@ -160,50 +388,87 @@
                             ? json.data[0]
                             : (json?.data?.[0] ? [json.data[0]] : []);
 
-                        const obj = results[0] || null;
-                         window.currentRecordID_CompanyID = obj.CompanyID || window.currentRecordID_CompanyID; window.currentRecordID_CRM_CustomerID = obj.CRM_CustomerID || window.currentRecordID_CRM_CustomerID; window.currentRecordID_EmployeeID = obj.EmployeeID || window.currentRecordID_EmployeeID; window.currentRecordID_LoginName = obj.LoginName || window.currentRecordID_LoginName;
+                        const obj = results.length === 1 ? results[0] : (results[0] || null);
+
+                        
+                const gridInstancegridMyWork = InstancegridMyWorkPDB2DB35885F14803A9A52961A7871972;
+                const gridConfiggridMyWork = window.getGridConfig_gridMyWork(results);
+                
+                loadGridRowOrder(
+                    "sp_Task_MyWork_html",
+                    results,
+                    "TaskID",
+                    function(sortedData) {
+                        gridInstancegridMyWork.beginUpdate();
+                        gridInstancegridMyWork.option("scrolling", {
+                            mode: "standard",
+                            showScrollbar: "onHover"
+                        });
+                        gridInstancegridMyWork.option("remoteOperations", false);
+                        gridInstancegridMyWork.option("paging.enabled", true);
+                        gridInstancegridMyWork.option("paging.pageSize", gridConfiggridMyWork.pageSize);
+                        gridInstancegridMyWork.option("pager.allowedPageSizes", gridConfiggridMyWork.allowedPageSizes);
+                        gridInstancegridMyWork.pageIndex(0);
+                        gridInstancegridMyWork.option("dataSource", sortedData);
+                        gridInstancegridMyWork.endUpdate();
+                        
+                        // RESTORE FILTER STATE T? LOCALSTORAGE
+                        setTimeout(function() {
+                            const savedFilter = loadGridFilterState("sp_Task_MyWork_html", gridInstancegridMyWork);
+                            if (savedFilter) {
+                                console.log("[ReloadData] Restoring filter:", savedFilter);
+                                applyGridFilterState(gridInstancegridMyWork, savedFilter);
+                            } else {
+                                console.log("[ReloadData] No filter to restore");
+                            }
+                        }, 100);
+                    }
+                );
+            
+                const gridInstancegridSubtaskAssign = InstancegridSubtaskAssignP870C076FA1FD48DDBDEDE2C2435B4DA9;
+                const gridConfiggridSubtaskAssign = window.getGridConfig_gridSubtaskAssign(results);
+                
+                loadGridRowOrder(
+                    "sp_Task_MyWork_html",
+                    results,
+                    "TaskID",
+                    function(sortedData) {
+                        gridInstancegridSubtaskAssign.beginUpdate();
+                        gridInstancegridSubtaskAssign.option("scrolling", {
+                            mode: "standard",
+                            showScrollbar: "onHover"
+                        });
+                        gridInstancegridSubtaskAssign.option("remoteOperations", false);
+                        gridInstancegridSubtaskAssign.option("paging.enabled", true);
+                        gridInstancegridSubtaskAssign.option("paging.pageSize", gridConfiggridSubtaskAssign.pageSize);
+                        gridInstancegridSubtaskAssign.option("pager.allowedPageSizes", gridConfiggridSubtaskAssign.allowedPageSizes);
+                        gridInstancegridSubtaskAssign.pageIndex(0);
+                        gridInstancegridSubtaskAssign.option("dataSource", sortedData);
+                        gridInstancegridSubtaskAssign.endUpdate();
+                        
+                        // RESTORE FILTER STATE T? LOCALSTORAGE
+                        setTimeout(function() {
+                            const savedFilter = loadGridFilterState("sp_Task_MyWork_html", gridInstancegridSubtaskAssign);
+                            if (savedFilter) {
+                                console.log("[ReloadData] Restoring filter:", savedFilter);
+                                applyGridFilterState(gridInstancegridSubtaskAssign, savedFilter);
+                            } else {
+                                console.log("[ReloadData] No filter to restore");
+                            }
+                        }, 100);
+                    }
+                );
+            
+                         if (obj) { window.currentRecordID_HeaderID = (obj.HeaderID !== undefined && obj.HeaderID !== null) ? obj.HeaderID : window.currentRecordID_HeaderID; } if (obj) { window.currentRecordID_HistoryID = (obj.HistoryID !== undefined && obj.HistoryID !== null) ? obj.HistoryID : window.currentRecordID_HistoryID; } if (obj) { window.currentRecordID_TaskID = (obj.TaskID !== undefined && obj.TaskID !== null) ? obj.TaskID : window.currentRecordID_TaskID; }
                         DataSource = results;
                         '
-        +(select loadData from tblCommonControlType_Signed where UID = 'P23DEDE11C5E44D8D8ADB55D186AC4198')
-        +(select loadData from tblCommonControlType_Signed where UID = 'P8EC0724E578142E4AAD1FE3E0D6A4C94')
-        +(select loadData from tblCommonControlType_Signed where UID = 'PF9A3029C9FAB40E0B476C0D074A8DE5B')
-        +(select loadData from tblCommonControlType_Signed where UID = 'P804D6FADD5ED4412BB218159C16E04EF')
-        +(select loadData from tblCommonControlType_Signed where UID = 'P3FA0343C98A44849A4355D47E2E24061')
-        +(select loadData from tblCommonControlType_Signed where UID = 'PD987FC71CE5E444A9376403FF65C59D6')
-        +(select loadData from tblCommonControlType_Signed where UID = 'P5CD93C11BA754CDC9BC5D922A010638D')
-        +(select loadData from tblCommonControlType_Signed where UID = 'PDA076A9DA8724C408B0629DEB737E87D')
-        +(select loadData from tblCommonControlType_Signed where UID = 'PBD59BFBAB7E24842B06A82E458CB86F3')
-        +(select loadData from tblCommonControlType_Signed where UID = 'PC25903981FC547BC8338EE13BAB0E331')
-        +(select loadData from tblCommonControlType_Signed where UID = 'P05E1D5AAA0374717B94077A9FDD5559D')
-        +(select loadData from tblCommonControlType_Signed where UID = 'P4031E37943134B329C9F457B0CF5CF5C')
-        +(select loadData from tblCommonControlType_Signed where UID = 'P56F2EB96E5BB4C97BECA22B15340AAD4')
-        +(select loadData from tblCommonControlType_Signed where UID = 'PAC8E76094CDD4769864B4DDF6F660DFF')
-        +(select loadData from tblCommonControlType_Signed where UID = 'P3B8CB442562743D1BA18EA8CEAAD3D7C') +N'
-
-                        if (1 === 1) {
-                            // Xử lý cho grid layout
-                            const gridInstance = InstanceGridAccountP23DEDE11C5E44D8D8ADB55D186AC4198;
-                            const gridConfig = window.getGridConfig_GridAccount(results);
-
-                            gridInstance.beginUpdate();
-
-                            gridInstance.option("scrolling", {
-                                mode: "standard",
-                                showScrollbar: "onHover"
-                            });
-
-                            gridInstance.option("remoteOperations", false);  // Client-side cho <= 1000
-
-                            // Set paging config
-                            gridInstance.option("paging.enabled", true);
-                            gridInstance.option("paging.pageSize", gridConfig.pageSize);
-                            gridInstance.option("pager.allowedPageSizes", gridConfig.allowedPageSizes);
-                            gridInstance.pageIndex(0);
-
-                            gridInstance.option("dataSource", results);
-
-                            gridInstance.endUpdate();
-                        }
+        +(select loadData from tblCommonControlType_Signed where UID = 'PDB2DB35885F14803A9A52961A7871972')
+        +(select loadData from tblCommonControlType_Signed where UID = 'P870C076FA1FD48DDBDEDE2C2435B4DA9')
+        +(select loadData from tblCommonControlType_Signed where UID = 'P777C87EE29F94C29A6EAABD16E31FDDC')
+        +(select loadData from tblCommonControlType_Signed where UID = 'P2920410F91DB42948640CF1ABBDEE649')
+        +(select loadData from tblCommonControlType_Signed where UID = 'PC98E2DFA331343BBAE22882BE3825C1A')
+        +(select loadData from tblCommonControlType_Signed where UID = 'P02E6F18645BA47648567B32773A1B7B4')
+        +(select loadData from tblCommonControlType_Signed where UID = 'P27C40759D9C94453AB9B2DFBCD661AE3') +N'
                     }
                 })
             }

@@ -1,7 +1,8 @@
 USE Paradise_Dev
 GO
-if object_id('[dbo].[sp_hpaControlSelectBox]') is null
-	EXEC ('CREATE PROCEDURE [dbo].[sp_hpaControlSelectBox] as select 1')
+
+IF OBJECT_ID('[dbo].[sp_hpaControlSelectBox]') IS NULL
+    EXEC ('CREATE PROCEDURE [dbo].[sp_hpaControlSelectBox] AS SELECT 1')
 GO
 
 ALTER PROCEDURE [dbo].[sp_hpaControlSelectBox]
@@ -50,18 +51,16 @@ BEGIN
                     key: "ID",
                     load: function(loadOptions) {
                         // LẤY searchValue từ INSTANCE (option "text" hoặc "searchValue")
-
-						const searchValue = (loadOptions.searchValue !== undefined && loadOptions.searchValue !== null)
-                            ? loadOptions.searchValue
-                            : ((Instance%ColumnName%%UID% && Instance%ColumnName%%UID%.option)
-                                ? (Instance%ColumnName%%UID%.option("searchValue") || "")
-                                : "");
-
+                        const searchValue = (Instance%ColumnName%%UID% && Instance%ColumnName%%UID%.option) 
+                            ? (Instance%ColumnName%%UID%.option("text") || Instance%ColumnName%%UID%.option("searchValue") || "")
+                            : (loadOptions.searchValue || "");
+                                                
                         let result = data || [];
-
+                        
                         if (searchValue && searchValue.trim()) {
                             result = result.filter(item => customSearch%ColumnName%(item, searchValue));
                         }
+                        
                         return Promise.resolve(result);
                     },
                     byKey: function(key) {
@@ -73,9 +72,12 @@ BEGIN
 
         async function processAddNew%ColumnName%(newValue) {
             if (!newValue || !newValue.trim()) return;
+            
             Instance%ColumnName%%UID%.option("disabled", true);
+            
             const dataJSON = JSON.stringify([%ColumnName%%UID%TableAddNew, [%ColumnName%%UID%ColumnAddNew], [newValue.trim()]]);
             const idValsJSON = JSON.stringify([[], []]);
+            
             try {
                 const json = await saveFunction(dataJSON, idValsJSON);
                 const dtError = json.data[json.data.length - 1] || [];
@@ -87,6 +89,7 @@ BEGIN
                     if ("%IsAlert%" === "1") {
                         uiManager.showAlert({ type: "success", message: "Đã thêm mới: " + newValue });
                     }
+                    
                     if (%ColumnName%%UID%DataSourceSP && %ColumnName%%UID%DataSourceSP !== "") {
                         loadDataSourceCommon("%ColumnName%", %ColumnName%%UID%DataSourceSP, function(data) {
                             Instance%ColumnName%%UID%.option("dataSource", getDataSourceConfig%ColumnName%%UID%(data));
@@ -116,23 +119,31 @@ BEGIN
 
         function customSearch%ColumnName%(item, searchValue) {
             if (!searchValue) return true;
+            
             // Chuẩn hóa searchValue - loại bỏ dấu và chuyển thành lowercase
             let searchNormalized = searchValue.toLowerCase();
+            
             if (typeof RemoveToneMarks_Js === "function") {
                 searchNormalized = RemoveToneMarks_Js(searchValue).toLowerCase();
             } else {
                 console.warn("[SelectBox Search Debug] RemoveToneMarks_Js is NOT defined!");
             }
+            
             const fields = ["ID", "Name", "Code", "Description"];
+            
             for (let i = 0; i < fields.length; i++) {
                 const fieldValue = item[fields[i]];
+                
                 if (fieldValue) {
                     // Chuẩn hóa fieldValue - loại bỏ dấu và chuyển thành lowercase
                     let fieldNormalized = String(fieldValue).toLowerCase();
+                    
                     if (typeof RemoveToneMarks_Js === "function") {
                         fieldNormalized = RemoveToneMarks_Js(String(fieldValue)).toLowerCase();
                     }
+                    
                     const matchIndex = fieldNormalized.indexOf(searchNormalized);
+                    
                     // So sánh sau khi đã chuẩn hóa
                     if (matchIndex !== -1) {
                         return true;
@@ -304,9 +315,6 @@ BEGIN
                 $("#%UID%").find(".dx-texteditor-input").blur();
                 if (Instance%ColumnName%%UID% && Instance%ColumnName%%UID%.blur) Instance%ColumnName%%UID%.blur();
 
-				Instance%ColumnName%%UID%.option("searchValue", "");
-                Instance%ColumnName%%UID%.option("text", "");
-
                 const $el = $(e.element);
                 $el.css({
                     transform: "scale(1.02)",
@@ -332,13 +340,17 @@ BEGIN
                 let currentRecordIDValue = [id1];
                 let currentRecordID = ["%ColumnIDName%"];
 
-                if ("%ColumnIDName2%" && "%ColumnIDName2%".trim() !== "") {
-                    let id2 = currentRecordID_%ColumnIDName2%;
-                    if (typeof cellInfo !== "undefined" && cellInfo && cellInfo.data) {
-                        id2 = cellInfo.data["%ColumnIDName2%"] || id2;
-                    }
-                    currentRecordIDValue.push(id2);
-                    currentRecordID.push("%ColumnIDName2%");
+                // Xử lý multiple IDs nếu ColumnIDName chứa dấu phẩy
+                if ("%ColumnIDName%".includes(",")) {
+                    const ids = "%ColumnIDName%".split(",").map(id => id.trim());
+                    ids.forEach(id => {
+                        let idVal = window["currentRecordID_" + id];
+                        if (typeof cellInfo !== "undefined" && cellInfo && cellInfo.data && cellInfo.data[id] !== undefined) {
+                            idVal = cellInfo.data[id] || idVal;
+                        }
+                        currentRecordIDValue.push(idVal);
+                    });
+                    currentRecordID = "%ColumnIDName%".split(",").map(id => id.trim());
                 }
                 const idValsJSON = JSON.stringify([currentRecordIDValue, currentRecordID]);
 
@@ -402,15 +414,16 @@ BEGIN
                     key: "ID",
                     load: function(loadOptions) {
                         // LẤY searchValue từ INSTANCE (option "text" hoặc "searchValue")
-						   const searchValue = (loadOptions.searchValue !== undefined && loadOptions.searchValue !== null)
-                            ? loadOptions.searchValue
-                            : ((Instance%ColumnName%%UID% && Instance%ColumnName%%UID%.option)
-                                ? (Instance%ColumnName%%UID%.option("searchValue") || "")
-                                : "");
+                        const searchValue = (Instance%ColumnName%%UID% && Instance%ColumnName%%UID%.option) 
+                            ? (Instance%ColumnName%%UID%.option("text") || Instance%ColumnName%%UID%.option("searchValue") || "")
+                            : (loadOptions.searchValue || "");
+                                                
                         let result = data || [];
+                        
                         if (searchValue && searchValue.trim()) {
                             result = result.filter(item => customSearch%ColumnName%(item, searchValue));
                         }
+                        
                         return Promise.resolve(result);
                     },
                     byKey: function(key) {
@@ -422,9 +435,12 @@ BEGIN
 
         async function processAddNew%ColumnName%(newValue) {
             if (!newValue || !newValue.trim()) return;
+            
             Instance%ColumnName%%UID%.option("disabled", true);
+            
             const dataJSON = JSON.stringify([%ColumnName%%UID%TableAddNew, [%ColumnName%%UID%ColumnAddNew], [newValue.trim()]]);
             const idValsJSON = JSON.stringify([[], []]);
+            
             try {
                 const json = await saveFunction(dataJSON, idValsJSON);
                 const dtError = json.data[json.data.length - 1] || [];
@@ -436,6 +452,7 @@ BEGIN
                     if ("%IsAlert%" === "1") {
                         uiManager.showAlert({ type: "success", message: "Đã thêm mới: " + newValue });
                     }
+                    
                     if (%ColumnName%%UID%DataSourceSP && %ColumnName%%UID%DataSourceSP !== "") {
                         loadDataSourceCommon("%ColumnName%", %ColumnName%%UID%DataSourceSP, function(data) {
                             Instance%ColumnName%%UID%.option("dataSource", getDataSourceConfig%ColumnName%%UID%(data));
@@ -465,27 +482,36 @@ BEGIN
 
         function customSearch%ColumnName%(item, searchValue) {
             if (!searchValue) return true;
+            
             // Chuẩn hóa searchValue - loại bỏ dấu và chuyển thành lowercase
             let searchNormalized = searchValue.toLowerCase();
+            
             if (typeof RemoveToneMarks_Js === "function") {
                 searchNormalized = RemoveToneMarks_Js(searchValue).toLowerCase();
             }
+            
             const fields = ["ID", "Name", "Code", "Description"];
+            
             for (let i = 0; i < fields.length; i++) {
                 const fieldValue = item[fields[i]];
+                
                 if (fieldValue) {
                     // Chuẩn hóa fieldValue - loại bỏ dấu và chuyển thành lowercase
                     let fieldNormalized = String(fieldValue).toLowerCase();
+                    
                     if (typeof RemoveToneMarks_Js === "function") {
                         fieldNormalized = RemoveToneMarks_Js(String(fieldValue)).toLowerCase();
                     }
+                    
                     const matchIndex = fieldNormalized.indexOf(searchNormalized);
+                    
                     // So sánh sau khi đã chuẩn hóa
                     if (matchIndex !== -1) {
                         return true;
                     }
                 }
             }
+            
             return false;
         }
 
@@ -681,13 +707,17 @@ BEGIN
                     let currentRecordIDValue = [id1];
                     let currentRecordID = ["%ColumnIDName%"];
 
-                    if ("%ColumnIDName2%" && "%ColumnIDName2%".trim() !== "") {
-                        let id2 = currentRecordID_%ColumnIDName2%;
-                        if (typeof cellInfo !== "undefined" && cellInfo && cellInfo.data) {
-                            id2 = cellInfo.data["%ColumnIDName2%"] || id2;
-                        }
-                        currentRecordIDValue.push(id2);
-                        currentRecordID.push("%ColumnIDName2%");
+                    // Xử lý multiple IDs nếu ColumnIDName chứa dấu phẩy
+                    if ("%ColumnIDName%".includes(",")) {
+                        const ids = "%ColumnIDName%".split(",").map(id => id.trim());
+                        ids.forEach(id => {
+                            let idVal = window["currentRecordID_" + id];
+                            if (typeof cellInfo !== "undefined" && cellInfo && cellInfo.data && cellInfo.data[id] !== undefined) {
+                                idVal = cellInfo.data[id] || idVal;
+                            }
+                            currentRecordIDValue.push(idVal);
+                        });
+                        currentRecordID = "%ColumnIDName%".split(",").map(id => id.trim());
                     }
                     const idValsJSON = JSON.stringify([currentRecordIDValue, currentRecordID]);
 
