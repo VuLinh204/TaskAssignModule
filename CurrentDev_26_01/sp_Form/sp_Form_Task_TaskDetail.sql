@@ -196,8 +196,8 @@ BEGIN
         #sp_Task_TaskDetail_html .kpi-current {
             font-size: 48px;
             font-weight: 800;
+            height: 100%;
             color: var(--task-primary);
-            line-height: 1;
         }
 
         #sp_Task_TaskDetail_html .kpi-target {
@@ -515,12 +515,16 @@ BEGIN
                     </div>
                     <div class="kpi-section">
                         <div class="kpi-display">
-                            <div class="kpi-current" id="P03BF9B69192E4913A055661D191CF71C">0</div>
-                            <div class="kpi-target" id="kpiTarget">Target: 0</div>
+                            <div class="kpi-current" id="P03BF9B69192E4913A055661D191CF71C"></div>
+                            <div class="kpi-target" id="kpiTarget">
+                                <span style="font-size:12px;font-weight:600;color:var(--text-secondary);">Target: </span>
+                                <span style="font-size:12px;font-weight:700;color:var(--task-primary);" id="kpiTarget"></span>
+                            </div>
+                            <div class="kpi-value" id="kpiValue">0</div>
                             <div class="kpi-progress">
                                 <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
                                     <span style="font-size:12px;font-weight:600;color:var(--text-secondary);">Hoàn thành:</span>
-                                    <span style="font-size:12px;font-weight:700;color:var(--task-primary);" id="kpiPercent">0%</span>
+                                    <span style="font-size:12px;font-weight:700;color:var(--task-primary);" id="kpiPercent"></span>
                                 </div>
                                 <div class="kpi-progress-bar">
                                     <div class="kpi-progress-fill" id="kpiProgressFill" style="width:0%"></div>
@@ -989,7 +993,7 @@ BEGIN
                                         console.warn("[LoadDataSourceCommon] Grid config error:", e);
                                         // Fallback: just set data source
                                         instanceObj.option("dataSource", window[dataSourceKey]);
-                                        break;
+                        break;
                                     }
                                 } else if (typeof instanceObj.setDataSource === "function") {
                                     instanceObj.setDataSource(window[dataSourceKey]);
@@ -1014,6 +1018,13 @@ BEGIN
                     }
                 });
             }
+        
+                
+            // ValidationEngine utility for validation messages
+            window.ValidationEngine = window.ValidationEngine || {};
+            window.ValidationEngine.getRequiredMessage = function(displayName) {
+                return "Không được để trống " + (displayName || "trường này");
+            };
     
             '
             +(select loadUI from tblCommonControlType_Signed where UID = 'PE1CCC4EC88E74587B8D01E069D9ABB21')
@@ -1027,7 +1038,8 @@ BEGIN
             +(select loadUI from tblCommonControlType_Signed where UID = 'P03BF9B69192E4913A055661D191CF71C')
             +(select loadUI from tblCommonControlType_Signed where UID = 'PDAABC1BEBBEB4EEEAD346668733FB16E')
             +(select loadUI from tblCommonControlType_Signed where UID = 'PA138923BF2734D64AE81616178380420') +N'
-            window.currentRecordID_HistoryID = null; window.currentRecordID_TaskID = null;
+             window.currentRecordID_HistoryID = null; window.currentRecordID_TaskID = null;
+            
 
             function ReloadData() {
                 AjaxHPAParadise({
@@ -1042,13 +1054,9 @@ BEGIN
                             : (json?.data?.[0] ? [json.data[0]] : []);
 
                         const obj = results.length === 1 ? results[0] : (results[0] || null);
+
                         
-                        // Chế độ Grid: chỉ cập nhật ID nếu có đúng 1 bản ghi (form view)
-                        // hoặc nếu không dùng layout Grid (form truyền thống)
-                        if (0 !== 1 || results.length === 1) {
-                             if (obj) { window.currentRecordID_HistoryID = (obj.HistoryID !== undefined && obj.HistoryID !== null) ? obj.HistoryID : window.currentRecordID_HistoryID; } if (obj) { window.currentRecordID_TaskID = (obj.TaskID !== undefined && obj.TaskID !== null) ? obj.TaskID : window.currentRecordID_TaskID; }
-                        }
-                        
+                         if (obj) { window.currentRecordID_HistoryID = (obj.HistoryID !== undefined && obj.HistoryID !== null) ? obj.HistoryID : window.currentRecordID_HistoryID; } if (obj) { window.currentRecordID_TaskID = (obj.TaskID !== undefined && obj.TaskID !== null) ? obj.TaskID : window.currentRecordID_TaskID; }
                         DataSource = results;
                         '
                         +(select loadData from tblCommonControlType_Signed where UID = 'PE1CCC4EC88E74587B8D01E069D9ABB21')
@@ -1062,31 +1070,6 @@ BEGIN
                         +(select loadData from tblCommonControlType_Signed where UID = 'P03BF9B69192E4913A055661D191CF71C')
                         +(select loadData from tblCommonControlType_Signed where UID = 'PDAABC1BEBBEB4EEEAD346668733FB16E')
                         +(select loadData from tblCommonControlType_Signed where UID = 'PA138923BF2734D64AE81616178380420') +N'
-
-                        if (0 === 1) {
-                            // Xử lý cho grid layout
-                            const gridInstance = InstancePE1CCC4EC88E74587B8D01E069D9ABB21;
-                            const gridConfig = window.getGridConfig_(results);
-
-                            gridInstance.beginUpdate();
-
-                            gridInstance.option("scrolling", {
-                                mode: "standard",
-                                showScrollbar: "onHover"
-                            });
-
-                            gridInstance.option("remoteOperations", false);  // Client-side cho <= 1000
-
-                            // Set paging config
-                            gridInstance.option("paging.enabled", true);
-                            gridInstance.option("paging.pageSize", gridConfig.pageSize);
-                            gridInstance.option("pager.allowedPageSizes", gridConfig.allowedPageSizes);
-                            gridInstance.pageIndex(0);
-
-                            gridInstance.option("dataSource", results);
-
-                            gridInstance.endUpdate();
-                        }
                     }
                 })
             }

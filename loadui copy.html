@@ -1,547 +1,285 @@
-<div id="sp_Task_MyWork_html">
-    <div id="gridMyWork" style="height: 100%"></div>
-    <div id="gridSubtaskAssign" style="height: 100%"></div>
-    <div id="P777C87EE29F94C29A6EAABD16E31FDDC"></div>
-    <div id="P2920410F91DB42948640CF1ABBDEE649"></div>
-    <div id="PC98E2DFA331343BBAE22882BE3825C1A"></div>
-    <div id="P02E6F18645BA47648567B32773A1B7B4"></div>
-    <div id="P27C40759D9C94453AB9B2DFBCD661AE3"></div>
-</div>
 <script>
-         (() => {
-    let DataSource = []
-
-             // Load DataSource: EmployeeListAll_DataSetting_Custom
-             if ("EmployeeListAll_DataSetting_Custom" && "EmployeeListAll_DataSetting_Custom".trim() !== "") {
-                 loadDataSourceCommon("AssignedEmployeeIDs", "EmployeeListAll_DataSetting_Custom", function(data) {
-                     // Data được shared qua callback
-                 });
-             }
-
-             // Load DataSource: sp_Task_GetAssignmentSetup
-             if ("sp_Task_GetAssignmentSetup" && "sp_Task_GetAssignmentSetup".trim() !== "") {
-                 loadDataSourceCommon("TaskName", "sp_Task_GetAssignmentSetup", function(data) {
-                     // Data được shared qua callback
-                 });
-             }
-
-         function loadDataSourceCommon(columnName, dataSourceSP, onSuccessCallback) {
-             if (!columnName || !dataSourceSP || dataSourceSP.trim() === "") {
-                 console.warn("[loadDataSourceCommon] Missing columnName or dataSourceSP");
-                 return;
-             }
-
-             const dataSourceKey = "DataSource_" + columnName;
-             // Sử dụng format: columnNameDataSourceLoaded để tương thích với code hiện tại
-             const loadedKey = columnName + "DataSourceLoaded";
-
-             // Kiểm tra nếu đã load rồi thì không load lại
-             if (window[loadedKey] === true) {
-                 if (typeof onSuccessCallback === "function") {
-                     onSuccessCallback(window[dataSourceKey] || []);
-                 }
-                 return;
-             }
-
-             // Kiểm tra nếu đang load thì đợi
-             if (window[loadedKey] === "loading") {
-                 // Đợi một chút rồi thử lại
-                 setTimeout(function() {
-                     loadDataSourceCommon(columnName, dataSourceSP, onSuccessCallback);
-                 }, 100);
-                 return;
-             }
-
-             // Đánh dấu đang load để tránh load trùng lặp
-             window[loadedKey] = "loading";
-
-             AjaxHPAParadise({
-                 data: {
-                     name: dataSourceSP,
-                     param: ["LoginID", LoginID, "LanguageID", LanguageID]
-                 },
-                 success: function(res) {
-                     const json = typeof res === "string" ? JSON.parse(res) : res;
-                     window[dataSourceKey] = (json.data && json.data[0]) || [];
-                     window[loadedKey] = true;
-
-                     // Gọi callback nếu có
-                     if (typeof onSuccessCallback === "function") {
-                         onSuccessCallback(window[dataSourceKey]);
-                     }
-
-                     // Tự động cập nhật control nếu có method setDataSource hoặc option
-                     // Thử nhiều format tên instance để tương thích
-                     const instanceVariants = [
-                         "Instance" + columnName.charAt(0).toUpperCase() + columnName.slice(1) + "PDB2DB35885F14803A9A52961A7871972",
-                         "Instance" + columnName + "PDB2DB35885F14803A9A52961A7871972",
-                         "instance" + columnName.charAt(0).toUpperCase() + columnName.slice(1) + "PDB2DB35885F14803A9A52961A7871972"
-                     ];
-
-                     for (let i = 0; i < instanceVariants.length; i++) {
-                         const instanceKey = instanceVariants[i];
-                         if (window[instanceKey]) {
-                             const instanceObj = window[instanceKey];
-
-                             // Kiểm tra nếu đây là dxDataGrid
-                             if (typeof instanceObj.dxDataGrid === "function" || instanceObj.option && instanceObj.option("dataSource") !== undefined) {
-                                 try {
-                                     // Nếu là Grid, apply dynamic config
-                                     const gridConfigFn = window["getGridConfig_" + columnName.charAt(0).toUpperCase() + columnName.slice(1)];
-                                     if (typeof gridConfigFn === "function") {
-                                         const gridConfig = gridConfigFn(window[dataSourceKey]);
-                                         instanceObj.option("remoteOperations", gridConfig.remoteOperations);
-                                         instanceObj.option("paging.pageSize", gridConfig.pageSize);
-                                         instanceObj.option("pager.allowedPageSizes", gridConfig.allowedPageSizes);
-                                     }
-
-                                     instanceObj.option("dataSource", window[dataSourceKey]);
-                                     break;
-                                 } catch(e) {
-                                     console.warn("[LoadDataSourceCommon] Grid config error:", e);
-                                     // Fallback: just set data source
-                                     instanceObj.option("dataSource", window[dataSourceKey]);
-                        break;
-                                 }
-                             } else if (typeof instanceObj.setDataSource === "function") {
-                                 instanceObj.setDataSource(window[dataSourceKey]);
-                                 break;
-                             } else if (typeof instanceObj.option === "function") {
-                                 try {
-                                     instanceObj.option("dataSource", window[dataSourceKey]);
-                                     break;
-                                 } catch(e) {
-                                     // Continue to next variant
-                                 }
-                             }
-                         }
-                     }
-                 },
-                 error: function(err) {
-                     console.error("[loadDataSourceCommon] Failed to load datasource for", columnName, ":", err);
-                     window[loadedKey] = false;
-                     if (typeof onSuccessCallback === "function") {
-                         onSuccessCallback([]);
-                     }
-                 }
-             });
-         }
-
-             '
-         +(select loadUI from tblCommonControlType_Signed where UID = 'PDB2DB35885F14803A9A52961A7871972')
-         +(select loadUI from tblCommonControlType_Signed where UID = 'P870C076FA1FD48DDBDEDE2C2435B4DA9')
-         +(select loadUI from tblCommonControlType_Signed where UID = 'P777C87EE29F94C29A6EAABD16E31FDDC')
-         +(select loadUI from tblCommonControlType_Signed where UID = 'P2920410F91DB42948640CF1ABBDEE649')
-         +(select loadUI from tblCommonControlType_Signed where UID = 'PC98E2DFA331343BBAE22882BE3825C1A')
-         +(select loadUI from tblCommonControlType_Signed where UID = 'P02E6F18645BA47648567B32773A1B7B4')
-         +(select loadUI from tblCommonControlType_Signed where UID = 'P27C40759D9C94453AB9B2DFBCD661AE3') +N'
-              window.currentRecordID_HeaderID = null; window.currentRecordID_HistoryID = null; window.currentRecordID_TaskID = null;
-
-         // =============== GRID COLUMN CONFIG PERSISTENCE ===============
-         function saveGridColumnConfig(tableName, columns) {
-             const visibleColumns = columns
-                 .filter(col => {
-                     return col.visible !== false
-                         && col.dataField
-                         && col.dataField !== "rowIndex"
-                         && typeof col.dataField === "string";
-                 })
-                 .map(col => col.dataField);
-
-             const columnOrder = columns
-                 .filter(col => {
-                     return col.dataField
-                         && col.dataField !== "rowIndex"
-                         && typeof col.dataField === "string";
-                 })
-                 .map(col => col.dataField);
-
-             const config = { visibleColumns, columnOrder };
-             console.log("[SaveConfig]", config);
-
-             AjaxHPAParadise({
-                 data: {
-                     name: "sp_SaveGridColumnConfig",
-                     param: [
-                         "LoginID", LoginID,
-                         "TableName", tableName,
-                         "ColumnConfigJson", JSON.stringify(config)
-                     ]
-                 }
-             });
-         }
-
-         function loadGridColumnConfig(tableName, callback) {
-             AjaxHPAParadise({
-                 data: {
-                     name: "sp_GetGridColumnConfig",
-                     param: ["LoginID", LoginID, "TableName", tableName]
-                 },
-                 async: false,
-                 success: function(res) {
-                     let config = {};
-                     const json = typeof res === "string" ? JSON.parse(res) : res;
-                     if (json && json.data && json.data[0] && json.data[0][0] && json.data[0][0].ColumnConfigJson) {
-                         const raw = json.data[0][0].ColumnConfigJson;
-                         config = typeof raw === "string" ? JSON.parse(raw) : raw;
-                     }
-                     if (typeof callback === "function") callback(config);
-                 }
-             });
-         }
-
-         // =============== FILTER STATE - LOCALSTORAGE ONLY ===============
-         function saveGridFilterState(tableName, gridInstance) {
-             try {
-                 const filterValue = gridInstance.getCombinedFilter();
-                 const searchValue = gridInstance.option("searchPanel.text") || "";
-
-                 // Lấy filter của từng cột
-                 const columnFilters = {};
-                 const columns = gridInstance.option("columns");
-
-                 columns.forEach(col => {
-                     if (col.dataField && col.filterValue !== undefined) {
-                         columnFilters[col.dataField] = {
-                             filterValue: col.filterValue,
-                             filterType: col.filterType || "include",
-                             selectedFilterOperation: col.selectedFilterOperation
-                         };
-                     }
-                 });
-
-                 const filterState = {
-                     combinedFilter: filterValue,
-                     searchText: searchValue,
-                     columnFilters: columnFilters,
-                     timestamp: new Date().getTime()
-                 };
-
-                 console.log("[SaveFilterState]", filterState);
-
-                 // CHỈ LƯU VÀO LOCALSTORAGE
-                 localStorage.setItem("GridFilter_" + tableName + "_" + LoginID, JSON.stringify(filterState));
-             } catch(e) {
-                 console.error("[SaveFilterState] Error:", e);
-             }
-         }
-
-         function loadGridFilterState(tableName, gridInstance) {
-             try {
-                 const storageKey = "GridFilter_" + tableName + "_" + LoginID;
-                 const savedState = localStorage.getItem(storageKey);
-
-                 if (!savedState) {
-                     console.log("[LoadFilterState] No saved filter");
-                     return null;
-                 }
-
-                 const filterState = JSON.parse(savedState);
-                 console.log("[LoadFilterState] Loaded:", filterState);
-
-                 return filterState;
-             } catch(e) {
-                 console.error("[LoadFilterState] Error:", e);
-                 return null;
-             }
-         }
-
-         function applyGridFilterState(gridInstance, filterState) {
-             if (!filterState) return;
-
-             try {
-                 gridInstance.beginUpdate();
-
-                 // 1. Apply search text
-                 if (filterState.searchText) {
-                     gridInstance.option("searchPanel.text", filterState.searchText);
-                 }
-
-                 // 2. Apply column filters
-                 if (filterState.columnFilters) {
-                     Object.keys(filterState.columnFilters).forEach(dataField => {
-                         const colFilter = filterState.columnFilters[dataField];
-                         const colIndex = gridInstance.columnOption(dataField, "index");
-
-                         if (colIndex !== undefined) {
-                             gridInstance.columnOption(dataField, "filterValue", colFilter.filterValue);
-                             if (colFilter.filterType) {
-                                 gridInstance.columnOption(dataField, "filterType", colFilter.filterType);
-                             }
-                             if (colFilter.selectedFilterOperation) {
-                                 gridInstance.columnOption(dataField, "selectedFilterOperation", colFilter.selectedFilterOperation);
-                             }
-                         }
-                     });
-                 }
-
-                 // 3. Apply combined filter (fallback)
-                 if (filterState.combinedFilter && !filterState.columnFilters) {
-                     gridInstance.option("filterValue", filterState.combinedFilter);
-                 }
-
-                 gridInstance.endUpdate();
-
-                 console.log("[ApplyFilterState] Filter applied successfully");
-             } catch(e) {
-                 console.error("[ApplyFilterState] Error:", e);
-             }
-         }
-
-         function clearGridFilterState(tableName) {
-             try {
-                 const storageKey = "GridFilter_" + tableName + "_" + LoginID;
-                 localStorage.removeItem(storageKey);
-                 console.log("[ClearFilterState] Cleared filter for", tableName);
-             } catch(e) {
-                 console.error("[ClearFilterState] Error:", e);
-             }
-         }
-
-         // =============== ROW ORDER PERSISTENCE ===============
-         function saveGridRowOrder(gridInstance, tableName, pkColumn) {
-             const dataSource = gridInstance.option("dataSource");
-             const rowOrderArray = dataSource.map(item => item[pkColumn]);
-
-             AjaxHPAParadise({
-                 data: {
-                     name: "sp_SaveGridRowOrder",
-                     param: [
-                         "LoginID", LoginID,
-                         "TableName", tableName,
-                         "RowOrderJson", JSON.stringify(rowOrderArray)
-                     ]
-                 },
-                 success: function(res) {
-                     console.log("[SaveRowOrder] Success");
-                 },
-                 error: function(err) {
-                     console.error("[SaveRowOrder] Error:", err);
-                 }
-             });
-         }
-
-         function loadGridRowOrder(tableName, dataSource, pkColumn, callback) {
-             AjaxHPAParadise({
-                 data: {
-                     name: "sp_GetGridRowOrder",
-                     param: ["LoginID", LoginID, "TableName", tableName]
-                 },
-                 async: false,
-                 success: function(res) {
-                     try {
-                         const json = typeof res === "string" ? JSON.parse(res) : res;
-                         const rowOrderJson = json.data[0][0].RowOrderJson;
-
-                         if (rowOrderJson && rowOrderJson !== "[]") {
-                             const savedOrder = JSON.parse(rowOrderJson);
-                             console.log("[LoadRowOrder] Loaded saved order:", savedOrder);
-
-                             const dataMap = {};
-                             dataSource.forEach(item => {
-                                 dataMap[item[pkColumn]] = item;
-                             });
-
-                             const sortedData = [];
-                             savedOrder.forEach(id => {
-                                 if (dataMap[id]) {
-                                     sortedData.push(dataMap[id]);
-                                     delete dataMap[id];
-                                 }
-                             });
-
-                             Object.values(dataMap).forEach(item => {
-                                 sortedData.push(item);
-                             });
-
-                             console.log("[LoadRowOrder] Sorted data:", sortedData.length, "rows");
-
-                             if (typeof callback === "function") {
-                                 callback(sortedData);
-                             }
-                         } else {
-                             console.log("[LoadRowOrder] No saved order");
-                             if (typeof callback === "function") {
-                                 callback(dataSource);
-                             }
-                         }
-                     } catch (e) {
-                         if (typeof callback === "function") {
-                             callback(dataSource);
-                         }
-                     }
-                 },
-                 error: function(err) {
-                     console.error("[LoadRowOrder] Error:", err);
-                     if (typeof callback === "function") {
-                         callback(dataSource);
-                     }
-                 }
-             });
-         }
-
-         // =============== MYWORK FILTER STATE PERSISTENCE ===============
-         function saveFilterState(filterType) {
-             try {
-                 localStorage.setItem("MyWork_Filter_" + LoginID, filterType);
-                 console.log("[SaveFilterState] Saved:", filterType);
-             } catch (e) {
-                 console.error("[SaveFilterState] Error:", e);
-             }
-         }
-
-         function loadFilterState() {
-             try {
-                 const saved = localStorage.getItem("MyWork_Filter_" + LoginID);
-                 if (saved) {
-                     console.log("[LoadFilterState] Loaded:", saved);
-                     return saved;
-                 }
-             } catch (e) {
-                 console.error("[LoadFilterState] Error:", e);
-             }
-             return "all";
-         }
-
-         function applyFilter(filterType) {
-             currentFilter = filterType;
-             const gridInstance = InstancegridMyWorkPDB2DB35885F14803A9A52961A7871972;
-
-             if (!gridInstance) return;
-
-             let filteredData = allTasks;
-
-             if (filterType === "todo") {
-                 filteredData = allTasks.filter(task => task.Status === 1);
-             } else if (filterType === "doing") {
-                 filteredData = allTasks.filter(task => task.Status === 2);
-             } else if (filterType === "overdue") {
-                 // Filter tasks that are overdue (có deadline < hôm nay và status !== 3 (Done))
-                 const today = new Date();
-                 today.setHours(0, 0, 0, 0);
-                 filteredData = allTasks.filter(task => {
-                     if (task.Status === 3) return false; // Exclude done tasks
-                     const deadlineDate = new Date(task.DeadlineDate);
-                     return deadlineDate < today;
-                 });
-             }
-             // else filterType === "all" -> show all tasks
-
-             gridInstance.option("dataSource", filteredData);
-
-             // Lưu filter vào localStorage
-             saveFilterState(filterType);
-         }
-
-         function restoreFilterState() {
-             const savedFilter = loadFilterState();
-             currentFilter = savedFilter;
-
-             // Cập nhật UI button
-             $(".filter-btn").removeClass("active");
-             $(".filter-btn[data-filter=`" + savedFilter + "`]").addClass("active");
-
-             // Áp dụng filter
-             applyFilter(savedFilter);
-         }
-
-
-             function ReloadData() {
-                 AjaxHPAParadise({
-                     data: {
-                         name: "sp_Task_GetMyTasks",
-                         param: []
-                     },
-                     success: function (res) {
-                         const json = typeof res === "string" ? JSON.parse(res) : res;
-                         const results = Array.isArray(json?.data?.[0])
-                             ? json.data[0]
-                             : (json?.data?.[0] ? [json.data[0]] : []);
-
-                         const obj = results.length === 1 ? results[0] : (results[0] || null);
-
-
-                 const gridInstancegridMyWork = InstancegridMyWorkPDB2DB35885F14803A9A52961A7871972;
-                 const gridConfiggridMyWork = window.getGridConfig_gridMyWork(results);
-
-                 loadGridRowOrder(
-                     "sp_Task_MyWork_html",
-                     results,
-                     "TaskID",
-                     function(sortedData) {
-                         gridInstancegridMyWork.beginUpdate();
-                         gridInstancegridMyWork.option("scrolling", {
-                             mode: "standard",
-                             showScrollbar: "onHover"
-                         });
-                         gridInstancegridMyWork.option("remoteOperations", false);
-                         gridInstancegridMyWork.option("paging.enabled", true);
-                         gridInstancegridMyWork.option("paging.pageSize", gridConfiggridMyWork.pageSize);
-                         gridInstancegridMyWork.option("pager.allowedPageSizes", gridConfiggridMyWork.allowedPageSizes);
-                         gridInstancegridMyWork.pageIndex(0);
-                         gridInstancegridMyWork.option("dataSource", sortedData);
-                         gridInstancegridMyWork.endUpdate();
-
-                         // RESTORE FILTER STATE T? LOCALSTORAGE
-                         setTimeout(function() {
-                             const savedFilter = loadGridFilterState("sp_Task_MyWork_html", gridInstancegridMyWork);
-                             if (savedFilter) {
-                                 console.log("[ReloadData] Restoring filter:", savedFilter);
-                                 applyGridFilterState(gridInstancegridMyWork, savedFilter);
-                             } else {
-                                 console.log("[ReloadData] No filter to restore");
-                             }
-                         }, 100);
-                     }
-                 );
-
-                 const gridInstancegridSubtaskAssign = InstancegridSubtaskAssignP870C076FA1FD48DDBDEDE2C2435B4DA9;
-                 const gridConfiggridSubtaskAssign = window.getGridConfig_gridSubtaskAssign(results);
-
-                 loadGridRowOrder(
-                     "sp_Task_MyWork_html",
-                     results,
-                     "TaskID",
-                     function(sortedData) {
-                         gridInstancegridSubtaskAssign.beginUpdate();
-                         gridInstancegridSubtaskAssign.option("scrolling", {
-                             mode: "standard",
-                             showScrollbar: "onHover"
-                         });
-                         gridInstancegridSubtaskAssign.option("remoteOperations", false);
-                         gridInstancegridSubtaskAssign.option("paging.enabled", true);
-                         gridInstancegridSubtaskAssign.option("paging.pageSize", gridConfiggridSubtaskAssign.pageSize);
-                         gridInstancegridSubtaskAssign.option("pager.allowedPageSizes", gridConfiggridSubtaskAssign.allowedPageSizes);
-                         gridInstancegridSubtaskAssign.pageIndex(0);
-                         gridInstancegridSubtaskAssign.option("dataSource", sortedData);
-                         gridInstancegridSubtaskAssign.endUpdate();
-
-                         // RESTORE FILTER STATE T? LOCALSTORAGE
-                         setTimeout(function() {
-                             const savedFilter = loadGridFilterState("sp_Task_MyWork_html", gridInstancegridSubtaskAssign);
-                             if (savedFilter) {
-                                 console.log("[ReloadData] Restoring filter:", savedFilter);
-                                 applyGridFilterState(gridInstancegridSubtaskAssign, savedFilter);
-                             } else {
-                                 console.log("[ReloadData] No filter to restore");
-                             }
-                         }, 100);
-                     }
-                 );
-
-                          if (obj) { window.currentRecordID_HeaderID = (obj.HeaderID !== undefined && obj.HeaderID !== null) ? obj.HeaderID : window.currentRecordID_HeaderID; } if (obj) { window.currentRecordID_HistoryID = (obj.HistoryID !== undefined && obj.HistoryID !== null) ? obj.HistoryID : window.currentRecordID_HistoryID; } if (obj) { window.currentRecordID_TaskID = (obj.TaskID !== undefined && obj.TaskID !== null) ? obj.TaskID : window.currentRecordID_TaskID; }
-                         DataSource = results;
-                         '
-         +(select loadData from tblCommonControlType_Signed where UID = 'PDB2DB35885F14803A9A52961A7871972')
-         +(select loadData from tblCommonControlType_Signed where UID = 'P870C076FA1FD48DDBDEDE2C2435B4DA9')
-         +(select loadData from tblCommonControlType_Signed where UID = 'P777C87EE29F94C29A6EAABD16E31FDDC')
-         +(select loadData from tblCommonControlType_Signed where UID = 'P2920410F91DB42948640CF1ABBDEE649')
-         +(select loadData from tblCommonControlType_Signed where UID = 'PC98E2DFA331343BBAE22882BE3825C1A')
-         +(select loadData from tblCommonControlType_Signed where UID = 'P02E6F18645BA47648567B32773A1B7B4')
-         +(select loadData from tblCommonControlType_Signed where UID = 'P27C40759D9C94453AB9B2DFBCD661AE3') +N'
-                     }
-                 })
-             }
-             ReloadData()
-         })();
+    // Shared grid data source registry so detail forms can trigger refreshes
+    window.hpaSharedGridDataSources = window.hpaSharedGridDataSources || {};
+
+    if (!window.reloadSharedGridDataSource) {
+        window.reloadSharedGridDataSource = function (name, params) {
+            const registry = window.hpaSharedGridDataSources || {};
+            const entry = registry[name];
+            if (!entry || typeof entry.reload !== "function") {
+                console.warn("[SharedGrid] Grid", name, "is not registered");
+                return Promise.resolve([]);
+            }
+            return entry.reload(params);
+        };
+    }
+
+    if (!window.getSharedGridDataSource) {
+        window.getSharedGridDataSource = function (name) {
+            const registry = window.hpaSharedGridDataSources || {};
+            return registry[name];
+        };
+    }
+
+    if (!window.updateSharedGridRow) {
+        window.updateSharedGridRow = function (name, rowData, options) {
+            const registry = window.hpaSharedGridDataSources || {};
+            const entry = registry[name];
+            if (!entry || typeof entry.applyRowChanges !== "function") {
+                console.warn("[SharedGrid] Grid", name, "cannot accept row updates");
+                return Promise.resolve(false);
+            }
+            return entry.applyRowChanges(rowData, options);
+        };
+    }
+
+    if (!window.removeSharedGridRow) {
+        window.removeSharedGridRow = function (name, options) {
+            const registry = window.hpaSharedGridDataSources || {};
+            const entry = registry[name];
+            if (!entry || typeof entry.removeRow !== "function") {
+                console.warn("[SharedGrid] Grid", name, "cannot remove rows");
+                return Promise.resolve(false);
+            }
+            return entry.removeRow(options);
+        };
+    }
+
+    (function setupSharedGridSource() {
+        const sharedKey = gridName;
+        const primaryKeyField = "%PKColumnName%";
+
+        const loginValue = typeof window.UserID !== "undefined"
+            ? window.UserID
+            : (typeof LoginID !== "undefined" ? LoginID : null);
+        const languageValue = typeof window.LanguageID !== "undefined"
+            ? window.LanguageID
+            : (typeof LanguageID !== "undefined" ? LanguageID : null);
+
+        const snapshotGridData = function (instance) {
+            if (!instance) return [];
+            try {
+                if (typeof instance.getDataSource === "function") {
+                    const ds = instance.getDataSource();
+                    if (ds && typeof ds.items === "function") {
+                        const dsItems = ds.items();
+                        if (Array.isArray(dsItems)) {
+                            return dsItems.map(function (item) {
+                                return item && typeof item === "object" ? Object.assign({}, item) : item;
+                            });
+                        }
+                    }
+                }
+
+                if (typeof instance.option === "function") {
+                    const rawData = instance.option("dataSource");
+                    if (Array.isArray(rawData)) {
+                        return rawData.map(function (item) {
+                            return item && typeof item === "object" ? Object.assign({}, item) : item;
+                        });
+                    }
+                }
+            } catch (snapshotErr) {
+                console.warn("[SharedGrid] Unable to snapshot grid data", snapshotErr);
+            }
+            return [];
+        };
+
+        let sharedEntry = window.hpaSharedGridDataSources[sharedKey];
+        if (!sharedEntry) {
+            sharedEntry = {
+                data: [],
+                subscribers: [],
+                loading: false
+            };
+        }
+
+        sharedEntry.primaryKey = sharedEntry.primaryKey || primaryKeyField;
+        sharedEntry.data = Array.isArray(sharedEntry.data) ? sharedEntry.data : [];
+        sharedEntry.subscribers = Array.isArray(sharedEntry.subscribers) ? sharedEntry.subscribers : [];
+        sharedEntry.loading = !!sharedEntry.loading;
+
+        if (typeof sharedEntry.normalizeParams !== "function") {
+            sharedEntry.normalizeParams = function (customParams) {
+                const base = [];
+                if (loginValue !== null && loginValue !== undefined) {
+                    base.push("LoginID", loginValue);
+                }
+                if (languageValue !== null && languageValue !== undefined) {
+                    base.push("LanguageID", languageValue);
+                }
+
+                if (Array.isArray(customParams) && customParams.length > 0) {
+                    return base.concat(customParams);
+                }
+
+                if (customParams && typeof customParams === "object") {
+                    const extras = [];
+                    Object.keys(customParams).forEach(function (key) {
+                        extras.push(key, customParams[key]);
+                    });
+                    return base.concat(extras);
+                }
+
+                return base;
+            };
+        }
+
+        if (typeof sharedEntry.notify !== "function") {
+            sharedEntry.notify = function () {
+                this.subscribers.forEach(function (callback) {
+                    try {
+                        callback(this.data);
+                    } catch (err) {
+                        console.error("[SharedGrid] subscriber error", err);
+                    }
+                }, this);
+            };
+        }
+
+        if (typeof sharedEntry.subscribe !== "function") {
+            sharedEntry.subscribe = function (callback) {
+                if (typeof callback === "function") {
+                    this.subscribers.push(callback);
+                }
+                return () => {
+                    this.subscribers = this.subscribers.filter(function (fn) {
+                        return fn !== callback;
+                    });
+                };
+            };
+        }
+
+        if (typeof sharedEntry.applyRowChanges !== "function") {
+            sharedEntry.applyRowChanges = function (rowData, options) {
+                const opts = options || {};
+                const keyField = this.primaryKey;
+                let keyValue = opts.key;
+                if ((keyValue === undefined || keyValue === null) && rowData && rowData[keyField] !== undefined) {
+                    keyValue = rowData[keyField];
+                }
+
+                if (keyValue === undefined || keyValue === null) {
+                    console.warn("[SharedGrid] Missing key when applying row changes for", sharedKey);
+                    return Promise.resolve(false);
+                }
+
+                if (typeof this.ensureLocalData === "function") {
+                    this.ensureLocalData();
+                }
+
+                const compare = opts.strict === true
+                    ? function (candidate) { return candidate === keyValue; }
+                    : function (candidate) {
+                        if (candidate === undefined || candidate === null) return candidate === keyValue;
+                        if (keyValue === undefined || keyValue === null) return false;
+                        return String(candidate) === String(keyValue);
+                    };
+
+                const nextData = Array.isArray(this.data) ? this.data.slice() : [];
+                let targetIndex = nextData.findIndex(function (item) {
+                    return item ? compare(item[keyField]) : false;
+                });
+
+                const normalizedRow = Object.assign({}, targetIndex > -1 ? nextData[targetIndex] : {}, rowData);
+
+                if (targetIndex === -1) {
+                    if (opts.ignoreMissing === true) {
+                        return Promise.resolve(false);
+                    }
+                    if (opts.append === true) {
+                        nextData.push(normalizedRow);
+                        targetIndex = nextData.length - 1;
+                    } else {
+                        nextData.unshift(normalizedRow);
+                        targetIndex = 0;
+                    }
+                } else {
+                    nextData[targetIndex] = normalizedRow;
+                }
+
+                this.data = nextData;
+                try {
+                    if (this.instance && typeof this.instance.option === "function") {
+                        this.instance.option("dataSource", nextData);
+                        this.instance.refresh();
+                    }
+                } catch (applyErr) {
+                    console.warn("[SharedGrid] Unable to push row update", applyErr);
+                }
+                this.notify();
+                return Promise.resolve({ index: targetIndex, data: normalizedRow });
+            };
+        }
+
+        if (typeof sharedEntry.removeRow !== "function") {
+            sharedEntry.removeRow = function (options) {
+                const opts = options || {};
+                const keyField = this.primaryKey;
+                const keyValue = opts.key;
+
+                if (keyValue === undefined || keyValue === null) {
+                    console.warn("[SharedGrid] Missing key when removing row for", sharedKey);
+                    return Promise.resolve(false);
+                }
+
+                if (typeof this.ensureLocalData === "function") {
+                    this.ensureLocalData();
+                }
+
+                const filtered = (Array.isArray(this.data) ? this.data : []).filter(function (item) {
+                    if (!item) return true;
+                    const candidate = item[keyField];
+                    if (opts.strict === true) {
+                        return candidate !== keyValue;
+                    }
+                    if (candidate === undefined || candidate === null) {
+                        return keyValue !== candidate;
+                    }
+                    return String(candidate) !== String(keyValue);
+                });
+
+                if (filtered.length === (Array.isArray(this.data) ? this.data.length : 0)) {
+                    return Promise.resolve(false);
+                }
+
+                this.data = filtered;
+                try {
+                    if (this.instance && typeof this.instance.option === "function") {
+                        this.instance.option("dataSource", filtered);
+                        this.instance.refresh();
+                    }
+                } catch (removeErr) {
+                    console.warn("[SharedGrid] Unable to remove row", removeErr);
+                }
+                this.notify();
+                return Promise.resolve(true);
+            };
+        }
+
+        sharedEntry.instance = Instance % ColumnName %% UID %;
+
+        if (typeof sharedEntry.ensureLocalData !== "function") {
+            sharedEntry.ensureLocalData = function () {
+                if (Array.isArray(this.data) && this.data.length > 0) {
+                    return;
+                }
+                const snapshot = snapshotGridData(this.instance);
+                if (snapshot.length > 0) {
+                    this.data = snapshot;
+                }
+            };
+        }
+
+        const currentSnapshot = snapshotGridData(sharedEntry.instance);
+        if (currentSnapshot.length > 0) {
+            sharedEntry.data = currentSnapshot;
+        }
+
+        sharedEntry.getData = function () {
+            return this.data;
+        };
+
+        window.hpaSharedGridDataSources[sharedKey] = sharedEntry;
+    })();
 </script>

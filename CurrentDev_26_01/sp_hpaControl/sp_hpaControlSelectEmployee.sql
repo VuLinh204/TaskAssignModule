@@ -1,6 +1,7 @@
+USE Paradise_Dev
 GO
-IF OBJECT_ID('[dbo].[sp_hpaControlSelectEmployee]') IS NULL
-    EXEC ('CREATE PROCEDURE [dbo].[sp_hpaControlSelectEmployee] AS SELECT 1')
+if object_id('[dbo].[sp_hpaControlSelectEmployee]') is null
+	EXEC ('CREATE PROCEDURE [dbo].[sp_hpaControlSelectEmployee] as select 1')
 GO
 
 ALTER PROCEDURE [dbo].[sp_hpaControlSelectEmployee]
@@ -27,7 +28,7 @@ BEGIN
 
                 if (window.GlobalEmployeeAvatarLoading[idStr]) {
                     if (callbackFn) {
-                        window.GlobalEmployeeAvatarLoading[idStr].callbacks = 
+                        window.GlobalEmployeeAvatarLoading[idStr].callbacks =
                             window.GlobalEmployeeAvatarLoading[idStr].callbacks || [];
                         window.GlobalEmployeeAvatarLoading[idStr].callbacks.push(callbackFn);
                     }
@@ -67,7 +68,7 @@ BEGIN
                         if (blob && blob.size > 0) {
                             const url = URL.createObjectURL(blob);
                             window.GlobalEmployeeAvatarCache[idStr] = url;
-                            
+
                             callbacks.forEach(cb => {
                                 try { cb(url); } catch (e) { console.error(e); }
                             });
@@ -80,7 +81,7 @@ BEGIN
                     error: function () {
                         const callbacks = window.GlobalEmployeeAvatarLoading[idStr]?.callbacks || [];
                         delete window.GlobalEmployeeAvatarLoading[idStr];
-                        
+
                         callbacks.forEach(cb => {
                             try { cb(null); } catch (e) { console.error(e); }
                         });
@@ -178,7 +179,7 @@ BEGIN
                             loadGlobalAvatarIfNeeded%ColumnName%%UID%(id, item.storeImgName, item.paramImg, function(url) {
                                 renderDisplay%ColumnName%();
                             });
-                            
+
                             const color = getColorForId%ColumnName%(id);
                             const initials = getInitials%ColumnName%(name);
                             $av.css({ background: color.bg, color: color.text }).text(initials);
@@ -252,8 +253,8 @@ BEGIN
                 }
 
                 if (window.GlobalEmployeeAvatarLoading[idStr]) {
-                    if (callbackFn) {
-                        window.GlobalEmployeeAvatarLoading[idStr].callbacks = 
+            if (callbackFn) {
+                        window.GlobalEmployeeAvatarLoading[idStr].callbacks =
                             window.GlobalEmployeeAvatarLoading[idStr].callbacks || [];
                         window.GlobalEmployeeAvatarLoading[idStr].callbacks.push(callbackFn);
                     }
@@ -293,7 +294,7 @@ BEGIN
                         if (blob && blob.size > 0) {
                             const url = URL.createObjectURL(blob);
                             window.GlobalEmployeeAvatarCache[idStr] = url;
-                            
+
                             callbacks.forEach(cb => {
                                 try { cb(url); } catch (e) { console.error(e); }
                             });
@@ -306,7 +307,7 @@ BEGIN
                     error: function () {
                         const callbacks = window.GlobalEmployeeAvatarLoading[idStr]?.callbacks || [];
                         delete window.GlobalEmployeeAvatarLoading[idStr];
-                        
+
                         callbacks.forEach(cb => {
                             try { cb(null); } catch (e) { console.error(e); }
                         });
@@ -320,7 +321,7 @@ BEGIN
             let %ColumnName%%UID%DataSourceLoaded = false;
             let spNameDSE%ColumnName%%UID% = "%DataSourceSP%";
 
-            
+
             // Sử dụng hàm loadDataSourceCommon từ sptblCommonControlType_Signed
             if (spNameDSE%ColumnName%%UID% && spNameDSE%ColumnName%%UID%.trim() !== "") {
                 loadDataSourceCommon("%ColumnName%", spNameDSE%ColumnName%%UID%, function(data) {
@@ -412,10 +413,10 @@ BEGIN
                             loadGlobalAvatarIfNeeded%ColumnName%%UID%(id, item.storeImgName, item.paramImg, function(url) {
                                 renderDisplayBox%ColumnName%();
                             });
-                            
+
                             const color = getColorForId%ColumnName%(id);
                             const initials = getInitials%ColumnName%(item.Name || item.FullName);
-                            $chip.css({ background: color.bg, color: color.text }).text(initials);
+     $chip.css({ background: color.bg, color: color.text }).text(initials);
                         } else {
                             const color = getColorForId%ColumnName%(id);
                             const initials = getInitials%ColumnName%(item.Name || item.FullName);
@@ -497,7 +498,7 @@ BEGIN
                                 location: "after",
                                 toolbar: "bottom",
                                 options: {
-                                    text: "Lưu",
+                            text: "Lưu",
                                     type: "success",
                                     onClick: async () => {
                                         await saveValue%ColumnName%();
@@ -565,7 +566,7 @@ BEGIN
                                                     .css({
                                                         width: "40px",
                                                         height: "40px",
-                                                        borderRadius: "50%",
+       borderRadius: "50%",
                                                         objectFit: "cover",
                                                         border: "2px solid #fff",
                                                         boxShadow: "0 2px 4px rgba(0,0,0,0.1)"
@@ -575,7 +576,7 @@ BEGIN
                                                 loadGlobalAvatarIfNeeded%ColumnName%%UID%(item.ID, item.storeImgName, item.paramImg, function(url) {
                                                     %ColumnName%%UID%GridContainer.dxDataGrid("instance").refresh();
                                                 });
-                                                
+
                                                 const initials = getInitials%ColumnName%(item.Name || item.FullName || "?");
                                                 const color = getColorForId%ColumnName%(item.ID);
                                                 $cell.append($("<div>")
@@ -619,20 +620,20 @@ BEGIN
                                         }
                                     },
                                     { dataField: "Name", caption: "Họ tên" },
-                                    { dataField: "Email", caption: "Email" },
+    { dataField: "Email", caption: "Email" },
                                     { dataField: "Position", caption: "Chức vụ" }
                                 ],
-                                searchPanel: { 
+                                searchPanel: {
                                     visible: true
                                 },
                                 onContentReady: function(e) {
                                     const grid = e.component;
-                                    
+
                                     // Clear default search behavior
                                     grid.option("searchPanel.text", "");
-                                    
+
                                     const searchBox = grid.getView("headerPanel")._$element.find(".dx-datagrid-search-panel input");
-                                    
+
                                     if (searchBox.length) {
                                         const $searchWrapper = searchBox.parent();
                                         if (!$("#custom-search-style-%ColumnName%%UID%").length) {
@@ -649,19 +650,19 @@ BEGIN
                                                 `)
                                                 .appendTo("head");
                                         }
-                                        
+
                                         // Unbind ALL events
                                         searchBox.off();
-                                        
+
                                         // Bind custom event
                                         searchBox.on("input", function() {
                                             const searchValue = $(this).val();
-                                            
+
                                             if (!searchValue) {
                                                 grid.clearFilter();
                                                 return;
                                             }
-                                            
+
                                             const searchNormalized = RemoveToneMarks_Js(searchValue);
 
                                             grid.filter(function(item) {
@@ -680,7 +681,7 @@ BEGIN
                                         });
                                     }
                                 },
-                                paging: { 
+                      paging: {
                                     enabled: true,
                                     pageSize: 5,
                                     pageIndex: 0
@@ -698,7 +699,7 @@ BEGIN
                         onHidden: () => {
                             const $popupContent = $("#%ColumnName%%UID%_popup").closest(".dx-popup-wrapper");
                             $popupContent.off("mousedown.preventClose");
-                            
+
                             // Dispose grid instance
                             try {
                                 const gridInstance = %ColumnName%%UID%GridContainer.dxDataGrid("instance");
@@ -708,14 +709,14 @@ BEGIN
                             } catch (e) {
                                 // Grid chưa được khởi tạo hoặc đã dispose
                             }
-                            
+
                             // Reset position của popup về default
                             popup%ColumnName%.option("position", { my: "center", at: "center", of: window });
-                            
+
                             renderDisplayBox%ColumnName%();
                         }
                     }).dxPopup("instance");
-                
+
                 // Tự động save khi đóng popup (trừ khi bấm Hủy)
                 popup%ColumnName%.on("hiding", async function(e) {
                     // Skip nếu đang lưu hoặc đã hủy
@@ -723,10 +724,10 @@ BEGIN
                         delete e.component._isCancelling;
                         return;
                     }
-                    
+
                     const original = %ColumnName%%UID%SelectedIdsOriginal.slice().sort().join(",");
                     const current = %ColumnName%%UID%SelectedIds.slice().sort().join(",");
-                    
+
                     if (original !== current) {
                         e.cancel = true;
                         await saveValue%ColumnName%();
@@ -752,18 +753,14 @@ BEGIN
                     }
                     let idValues = [id1];
                     let idFields = ["%ColumnIDName%"];
-                    
-                    // Xử lý multiple IDs nếu ColumnIDName chứa dấu phẩy
-                    if ("%ColumnIDName%".includes(",")) {
-                        const ids = "%ColumnIDName%".split(",").map(id => id.trim());
-                        ids.forEach(id => {
-                            let idVal = window["currentRecordID_" + id];
-                            if (typeof cellInfo !== "undefined" && cellInfo && cellInfo.data && cellInfo.data[id] !== undefined) {
-                                idVal = cellInfo.data[id] || idVal;
-                            }
-                            idValues.push(idVal);
-                        });
-                        idFields = "%ColumnIDName%".split(",").map(id => id.trim());
+
+                    if ("%ColumnIDName2%" && "%ColumnIDName2%".trim() !== "") {
+                        let id2 = currentRecordID_%ColumnIDName2%;
+                        if (typeof cellInfo !== "undefined" && cellInfo && cellInfo.data) {
+                            id2 = cellInfo.data["%ColumnIDName2%"] || id2;
+                        }
+                        idValues.push(id2);
+                        idFields.push("%ColumnIDName2%");
                     }
                     const idValsJSON = JSON.stringify([idValues, idFields]);
 
@@ -839,7 +836,7 @@ BEGIN
     -- =============================================
     UPDATE #temptable SET
         loadUI = N'
-            window.GlobalEmployeeAvatarCache = window.GlobalEmployeeAvatarCache || {};
+          window.GlobalEmployeeAvatarCache = window.GlobalEmployeeAvatarCache || {};
             window.GlobalEmployeeAvatarLoading = window.GlobalEmployeeAvatarLoading || {};
             let Instance%ColumnName%%UID% = {};
 
@@ -853,7 +850,7 @@ BEGIN
 
                 if (window.GlobalEmployeeAvatarLoading[idStr]) {
                     if (callbackFn) {
-                        window.GlobalEmployeeAvatarLoading[idStr].callbacks = 
+                        window.GlobalEmployeeAvatarLoading[idStr].callbacks =
                             window.GlobalEmployeeAvatarLoading[idStr].callbacks || [];
                         window.GlobalEmployeeAvatarLoading[idStr].callbacks.push(callbackFn);
                     }
@@ -893,7 +890,7 @@ BEGIN
                         if (blob && blob.size > 0) {
                             const url = URL.createObjectURL(blob);
                             window.GlobalEmployeeAvatarCache[idStr] = url;
-                            
+
                             callbacks.forEach(cb => {
                                 try { cb(url); } catch (e) { console.error(e); }
                             });
@@ -906,7 +903,7 @@ BEGIN
                     error: function () {
                         const callbacks = window.GlobalEmployeeAvatarLoading[idStr]?.callbacks || [];
                         delete window.GlobalEmployeeAvatarLoading[idStr];
-                        
+
                         callbacks.forEach(cb => {
                             try { cb(null); } catch (e) { console.error(e); }
                         });
@@ -922,7 +919,7 @@ BEGIN
             let %ColumnName%%UID%SelectedIds = [], %ColumnName%%UID%SelectedIdsOriginal = [];
             const MAX_VISIBLE_%ColumnName% = 3;
 
-            
+
             // Sử dụng hàm loadDataSourceCommon từ sptblCommonControlType_Signed
             if (spNameDSE%ColumnName%%UID% && spNameDSE%ColumnName%%UID%.trim() !== "") {
                 loadDataSourceCommon("%ColumnName%", spNameDSE%ColumnName%%UID%, function(data) {
@@ -1003,14 +1000,14 @@ BEGIN
 
                         if (cachedUrl) {
                             $chip.append($("<img>")
-                                .attr("src", cachedUrl)
+    .attr("src", cachedUrl)
                                 .css({ width: "100%", height: "100%", objectFit: "cover" })
                             );
                         } else if (item.storeImgName) {
                             loadGlobalAvatarIfNeeded%ColumnName%%UID%(id, item.storeImgName, item.paramImg, function(url) {
                                 renderDisplayBox%ColumnName%();
                             });
-                            
+
                             const color = getColorForId%ColumnName%(id);
                             const initials = getInitials%ColumnName%(item.Name || item.FullName);
                             $chip.css({ background: color.bg, color: color.text }).text(initials);
@@ -1083,7 +1080,7 @@ BEGIN
                                 toolbar: "bottom",
                                 options: {
                                     text: "Hủy",
-                                    onClick: () => {
+                                 onClick: () => {
                                         %ColumnName%%UID%SelectedIds = [...%ColumnName%%UID%SelectedIdsOriginal];
                                         popup%ColumnName%.hide();
                                     }
@@ -1165,7 +1162,7 @@ BEGIN
                                                 loadGlobalAvatarIfNeeded%ColumnName%%UID%(item.ID, item.storeImgName, item.paramImg, function(url) {
                                                     %ColumnName%%UID%GridContainer.dxDataGrid("instance").refresh();
                                                 });
-                                                
+
                                                 const initials = getInitials%ColumnName%(item.Name || item.FullName || "?");
                                                 const color = getColorForId%ColumnName%(item.ID);
                                                 $cell.append($("<div>")
@@ -1212,17 +1209,17 @@ BEGIN
                                     { dataField: "Email", caption: "Email" },
                                     { dataField: "Position", caption: "Chức vụ" }
                                 ],
-                                searchPanel: { 
+                                searchPanel: {
                                     visible: true
                                 },
                                 onContentReady: function(e) {
                                     const grid = e.component;
-                                    
+
                                     // Clear default search behavior
                                     grid.option("searchPanel.text", "");
-                                    
+
                                     const searchBox = grid.getView("headerPanel")._$element.find(".dx-datagrid-search-panel input");
-                                    
+
                                     if (searchBox.length) {
                                         const $searchWrapper = searchBox.parent();
                                         if (!$("#custom-search-style-%ColumnName%%UID%").length) {
@@ -1239,19 +1236,19 @@ BEGIN
                                                 `)
                                                 .appendTo("head");
                                         }
-                                        
+
                                         // Unbind ALL events
                                         searchBox.off();
-                                        
+
                                         // Bind custom event
                                         searchBox.on("input", function() {
                                             const searchValue = $(this).val();
-                                            
+
                                             if (!searchValue) {
                                                 grid.clearFilter();
                                                 return;
                                             }
-                                            
+
                                             const searchNormalized = RemoveToneMarks_Js(searchValue);
 
                                             grid.filter(function(item) {
@@ -1265,12 +1262,12 @@ BEGIN
                                                         }
                                                     }
                                                 }
-                                                return false;
+    return false;
                                             });
                                         });
                                     }
                                 },
-                                paging: { 
+                                paging: {
                                     enabled: true,
                                     pageSize: 5,
                                     pageIndex: 0
@@ -1295,10 +1292,10 @@ BEGIN
                             } catch (e) {
                                 // Grid chưa được khởi tạo hoặc đã dispose
                             }
-                            
+
                             // Reset position của popup về default
                             popup%ColumnName%.option("position", { my: "center", at: "center", of: window });
-                            
+
                             renderDisplayBox%ColumnName%();
                         }
                     }).dxPopup("instance");
@@ -1343,7 +1340,7 @@ BEGIN
     UPDATE #temptable SET
         loadUI = N'
             window.GlobalEmployeeAvatarCache = window.GlobalEmployeeAvatarCache || {};
-            window.GlobalEmployeeAvatarLoading = window.GlobalEmployeeAvatarLoading || {};
+   window.GlobalEmployeeAvatarLoading = window.GlobalEmployeeAvatarLoading || {};
             let Instance%ColumnName%%UID% = {};
 
             function loadGlobalAvatarIfNeeded%ColumnName%%UID%(employeeId, storeImgName, paramImg, callbackFn) {
@@ -1356,7 +1353,7 @@ BEGIN
 
                 if (window.GlobalEmployeeAvatarLoading[idStr]) {
                     if (callbackFn) {
-                        window.GlobalEmployeeAvatarLoading[idStr].callbacks = 
+                        window.GlobalEmployeeAvatarLoading[idStr].callbacks =
                             window.GlobalEmployeeAvatarLoading[idStr].callbacks || [];
                         window.GlobalEmployeeAvatarLoading[idStr].callbacks.push(callbackFn);
                     }
@@ -1396,7 +1393,7 @@ BEGIN
                         if (blob && blob.size > 0) {
                             const url = URL.createObjectURL(blob);
                             window.GlobalEmployeeAvatarCache[idStr] = url;
-                            
+
                             callbacks.forEach(cb => {
                                 try { cb(url); } catch (e) { console.error(e); }
                             });
@@ -1409,7 +1406,7 @@ BEGIN
                     error: function () {
                         const callbacks = window.GlobalEmployeeAvatarLoading[idStr]?.callbacks || [];
                         delete window.GlobalEmployeeAvatarLoading[idStr];
-                        
+
                         callbacks.forEach(cb => {
                             try { cb(null); } catch (e) { console.error(e); }
                         });
@@ -1423,7 +1420,7 @@ BEGIN
             let spNameDSE%ColumnName%%UID% = "%DataSourceSP%";
             let %ColumnName%%UID%SelectedId = null, %ColumnName%%UID%SelectedIdOriginal = null;
 
-            
+
             // Sử dụng hàm loadDataSourceCommon từ sptblCommonControlType_Signed
             if (spNameDSE%ColumnName%%UID% && spNameDSE%ColumnName%%UID%.trim() !== "") {
                 loadDataSourceCommon("%ColumnName%", spNameDSE%ColumnName%%UID%, function(data) {
@@ -1488,7 +1485,7 @@ BEGIN
                         $wrapper.append($("<span>").addClass("text-muted").text("Nhân viên không tồn tại"));
                     } else {
                         const name = item.Name || item.FullName || "?";
-                        
+
                         const $avatar = $("<div>").css({
                             width: "40px", height: "40px", borderRadius: "50%",
                             boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
@@ -1507,9 +1504,9 @@ BEGIN
                             );
                         } else if (item.storeImgName) {
                             loadGlobalAvatarIfNeeded%ColumnName%%UID%(%ColumnName%%UID%SelectedId, item.storeImgName, item.paramImg, function(url) {
-                                renderDisplayBox%ColumnName%();
+                              renderDisplayBox%ColumnName%();
                             });
-                            
+
                             const color = getColorForId%ColumnName%(%ColumnName%%UID%SelectedId);
                             const initials = getInitials%ColumnName%(name);
                             $avatar.css({ background: color.bg, color: color.text }).text(initials);
@@ -1673,7 +1670,7 @@ BEGIN
                                                 loadGlobalAvatarIfNeeded%ColumnName%%UID%(item.ID, item.storeImgName, item.paramImg, function(url) {
                                                     %ColumnName%%UID%GridContainer.dxDataGrid("instance").refresh();
                                                 });
-                                                
+
                                                 const initials = getInitials%ColumnName%(item.Name || item.FullName || "?");
                                                 const color = getColorForId%ColumnName%(item.ID);
                                                 $cell.append($("<div>")
@@ -1720,17 +1717,17 @@ BEGIN
                                     { dataField: "Email", caption: "Email" },
                                     { dataField: "Position", caption: "Chức vụ" }
                                 ],
-                                searchPanel: { 
+                                searchPanel: {
                                     visible: true
                                 },
                                 onContentReady: function(e) {
                                     const grid = e.component;
-                                    
+
                                     // Clear default search behavior
                                     grid.option("searchPanel.text", "");
-                                    
+
                                     const searchBox = grid.getView("headerPanel")._$element.find(".dx-datagrid-search-panel input");
-                                    
+
                                     if (searchBox.length) {
                                         const $searchWrapper = searchBox.parent();
                                         if (!$("#custom-search-style-%ColumnName%%UID%").length) {
@@ -1747,19 +1744,19 @@ BEGIN
                                                 `)
                                                 .appendTo("head");
                                         }
-                                        
+
                                         // Unbind ALL events
                                         searchBox.off();
-                                        
+
                                         // Bind custom event
                                         searchBox.on("input", function() {
                                             const searchValue = $(this).val();
-                                            
+
                                             if (!searchValue) {
                                                 grid.clearFilter();
                                                 return;
                                             }
-                                            
+
                                             const searchNormalized = RemoveToneMarks_Js(searchValue);
 
                                             grid.filter(function(item) {
@@ -1778,7 +1775,7 @@ BEGIN
                                         });
                                     }
                                 },
-                                paging: { 
+                                paging: {
                                     enabled: true,
                                     pageSize: 5,
                                     pageIndex: 0
@@ -1799,7 +1796,7 @@ BEGIN
                         onHidden: () => {
                             const $popupContent = $("#%ColumnName%%UID%_popup").closest(".dx-popup-wrapper");
                             $popupContent.off("mousedown.preventClose");
-                            
+
                             try {
                                 const gridInstance = %ColumnName%%UID%GridContainer.dxDataGrid("instance");
                                 if (gridInstance) {
@@ -1808,23 +1805,23 @@ BEGIN
                             } catch (e) {
                                 // Grid chưa được khởi tạo hoặc đã dispose
                             }
-                            
+
                             // Reset position của popup về default
                             popup%ColumnName%.option("position", { my: "center", at: "center", of: window });
 
                             renderDisplayBox%ColumnName%();
                         }
                     }).dxPopup("instance");
-                
+
                 popup%ColumnName%.on("hiding", async function(e) {
                     if (e.component._isCancelling) {
                         delete e.component._isCancelling;
                         return;
                     }
-                    
+
                     const original = String(%ColumnName%%UID%SelectedIdOriginal || "");
                     const current = String(%ColumnName%%UID%SelectedId || "");
-                    
+
                     if (original !== current) {
                         e.cancel = true;
                         await saveValue%ColumnName%();
@@ -1847,20 +1844,16 @@ BEGIN
                     if (typeof cellInfo !== "undefined" && cellInfo && cellInfo.data) {
                         id1 = cellInfo.data["%ColumnIDName%"] || id1;
                     }
-                    let idValues = [id1];
+                   let idValues = [id1];
                     let idFields = ["%ColumnIDName%"];
-                    
-                    // Xử lý multiple IDs nếu ColumnIDName chứa dấu phẩy
-                    if ("%ColumnIDName%".includes(",")) {
-                        const ids = "%ColumnIDName%".split(",").map(id => id.trim());
-                        ids.forEach(id => {
-                            let idVal = window["currentRecordID_" + id];
-                            if (typeof cellInfo !== "undefined" && cellInfo && cellInfo.data && cellInfo.data[id] !== undefined) {
-                                idVal = cellInfo.data[id] || idVal;
-                            }
-                            idValues.push(idVal);
-                        });
-                        idFields = "%ColumnIDName%".split(",").map(id => id.trim());
+
+                    if ("%ColumnIDName2%" && "%ColumnIDName2%".trim() !== "") {
+                        let id2 = currentRecordID_%ColumnIDName2%;
+                        if (typeof cellInfo !== "undefined" && cellInfo && cellInfo.data) {
+                            id2 = cellInfo.data["%ColumnIDName2%"] || id2;
+                        }
+                        idValues.push(id2);
+                        idFields.push("%ColumnIDName2%");
                     }
                     const idValsJSON = JSON.stringify([idValues, idFields]);
 
@@ -1946,7 +1939,7 @@ BEGIN
 
                 if (window.GlobalEmployeeAvatarLoading[idStr]) {
                     if (callbackFn) {
-                        window.GlobalEmployeeAvatarLoading[idStr].callbacks = 
+                        window.GlobalEmployeeAvatarLoading[idStr].callbacks =
                             window.GlobalEmployeeAvatarLoading[idStr].callbacks || [];
                         window.GlobalEmployeeAvatarLoading[idStr].callbacks.push(callbackFn);
                     }
@@ -1986,7 +1979,7 @@ BEGIN
                         if (blob && blob.size > 0) {
                             const url = URL.createObjectURL(blob);
                             window.GlobalEmployeeAvatarCache[idStr] = url;
-                            
+
                             callbacks.forEach(cb => {
                                 try { cb(url); } catch (e) { console.error(e); }
                             });
@@ -1999,7 +1992,7 @@ BEGIN
                     error: function () {
                         const callbacks = window.GlobalEmployeeAvatarLoading[idStr]?.callbacks || [];
                         delete window.GlobalEmployeeAvatarLoading[idStr];
-                        
+
                         callbacks.forEach(cb => {
                             try { cb(null); } catch (e) { console.error(e); }
                         });
@@ -2014,7 +2007,7 @@ BEGIN
             let %ColumnName%%UID%SelectedId = null, %ColumnName%%UID%SelectedIdOriginal = null;
             let _autoSave%ColumnName%%UID% = false;
             let _readOnly%ColumnName%%UID% = false;
-            
+
             // Sử dụng hàm loadDataSourceCommon từ sptblCommonControlType_Signed
             if (spNameDSE%ColumnName%%UID% && spNameDSE%ColumnName%%UID%.trim() !== "") {
                 loadDataSourceCommon("%ColumnName%", spNameDSE%ColumnName%%UID%, function(data) {
@@ -2079,7 +2072,7 @@ BEGIN
                         $wrapper.append($("<span>").addClass("text-muted").text("Nhân viên không tồn tại"));
                     } else {
                         const name = item.Name || item.FullName || "?";
-                        
+
                         const $avatar = $("<div>").css({
                             width: "40px", height: "40px", borderRadius: "50%",
                             boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
@@ -2100,7 +2093,7 @@ BEGIN
                             loadGlobalAvatarIfNeeded%ColumnName%%UID%(%ColumnName%%UID%SelectedId, item.storeImgName, item.paramImg, function(url) {
                                 renderDisplayBox%ColumnName%();
                             });
-                            
+
                             const color = getColorForId%ColumnName%(%ColumnName%%UID%SelectedId);
                             const initials = getInitials%ColumnName%(name);
                             $avatar.css({ background: color.bg, color: color.text }).text(initials);
@@ -2124,7 +2117,7 @@ BEGIN
                 $wrapper.off("click").on("click", () => {
                     // Feature: ReadOnly Check
                     if (_readOnly%ColumnName%%UID%) return;
-                    
+
                     if (!popup%ColumnName%) {
                         initPopup%ColumnName%();
                         // Đợi popup init xong rồi mới show
@@ -2186,7 +2179,7 @@ BEGIN
                                     onClick: async () => {
                                         // Feature: AutoSave Check
                                         if (_autoSave%ColumnName%%UID% && typeof saveValue%ColumnName% === "function") {
-                                            await saveValue%ColumnName%(); 
+                                            await saveValue%ColumnName%();
                                         } else {
                                             // Local Save (Sync Grid)
                                             if (typeof cellInfo !== "undefined" && cellInfo && cellInfo.component) {
@@ -2237,7 +2230,7 @@ BEGIN
                                 selectedRowKeys: %ColumnName%%UID%SelectedId ? [%ColumnName%%UID%SelectedId] : [],
                                 hoverStateEnabled: true,
                                 onRowPrepared: function(e) {
-                                    if (e.rowType === "data") {
+    if (e.rowType === "data") {
                                         e.rowElement.css("cursor", "pointer");
                                     }
                                 },
@@ -2273,7 +2266,7 @@ BEGIN
                                                 loadGlobalAvatarIfNeeded%ColumnName%%UID%(item.ID, item.storeImgName, item.paramImg, function(url) {
                                                     %ColumnName%%UID%GridContainer.dxDataGrid("instance").refresh();
                                                 });
-                                                
+
                                                 const initials = getInitials%ColumnName%(item.Name || item.FullName || "?");
                                                 const color = getColorForId%ColumnName%(item.ID);
                                                 $cell.append($("<div>")
@@ -2320,17 +2313,17 @@ BEGIN
                                     { dataField: "Email", caption: "Email" },
                                     { dataField: "Position", caption: "Chức vụ" }
                                 ],
-                                searchPanel: { 
+                                searchPanel: {
                                     visible: true
                                 },
                                 onContentReady: function(e) {
                                     const grid = e.component;
-                                    
+
                                     // Clear default search behavior
                                     grid.option("searchPanel.text", "");
-                                    
+
                                     const searchBox = grid.getView("headerPanel")._$element.find(".dx-datagrid-search-panel input");
-                                    
+
                                     if (searchBox.length) {
                                         const $searchWrapper = searchBox.parent();
                                         if (!$("#custom-search-style-%ColumnName%%UID%").length) {
@@ -2347,19 +2340,19 @@ BEGIN
                                                 `)
                                                 .appendTo("head");
                                         }
-                                        
+
                                         // Unbind ALL events
                                         searchBox.off();
-                                        
+
                                         // Bind custom event
                                         searchBox.on("input", function() {
                                             const searchValue = $(this).val();
-                                            
+
                                             if (!searchValue) {
                                                 grid.clearFilter();
                                                 return;
                                             }
-                                            
+
                                             const searchNormalized = RemoveToneMarks_Js(searchValue);
 
                                             grid.filter(function(item) {
@@ -2378,7 +2371,7 @@ BEGIN
                                         });
                                     }
                                 },
-                                paging: { 
+                                paging: {
                                     enabled: true,
                                     pageSize: 5,
                                     pageIndex: 0
@@ -2403,10 +2396,10 @@ BEGIN
                             } catch (e) {
                                 // Grid chưa được khởi tạo hoặc đã dispose
                             }
-                            
+
                             // Reset position của popup về default
                             popup%ColumnName%.option("position", { my: "center", at: "center", of: window });
-                            
+
                             renderDisplayBox%ColumnName%();
                         }
                     }).dxPopup("instance");
@@ -2423,17 +2416,9 @@ BEGIN
 
                     let idValues = [currentRecordID_%ColumnIDName%];
                     let idFields = ["%ColumnIDName%"];
-                    // Xử lý multiple IDs nếu ColumnIDName chứa dấu phẩy
-                    if ("%ColumnIDName%".includes(",")) {
-                        const ids = "%ColumnIDName%".split(",").map(id => id.trim());
-                        ids.forEach(id => {
-                            let idVal = window["currentRecordID_" + id];
-                            if (typeof cellInfo !== "undefined" && cellInfo && cellInfo.data && cellInfo.data[id] !== undefined) {
-                                idVal = cellInfo.data[id] || idVal;
-                            }
-                            idValues.push(idVal);
-                        });
-                        idFields = "%ColumnIDName%".split(",").map(id => id.trim());
+                    if ("%ColumnIDName2%" && "%ColumnIDName2%".trim() !== "") {
+            idValues.push(currentRecordID_%ColumnIDName2%);
+                        idFields.push("%ColumnIDName2%");
                     }
                     const idValsJSON = JSON.stringify([idValues, idFields]);
 
@@ -2500,3 +2485,4 @@ BEGIN
         '
     WHERE [Type] = 'hpaControlSelectEmployee' AND [AutoSave] = 0 AND [ReadOnly] = 0 AND [IsMultiSelectEmployee] = 0;
 END
+GO

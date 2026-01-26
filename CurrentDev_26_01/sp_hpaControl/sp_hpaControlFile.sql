@@ -420,6 +420,7 @@ BEGIN
 
 
 
+
                     if (text && text.trim()) {
                         const maxCharsPerLine = 38;
                         const lineHeight = 11;
@@ -709,7 +710,7 @@ BEGIN
  }
    });
 
-                $item.find(".btn-del").click((e) => {
+               $item.find(".btn-del").click((e) => {
                     e.stopPropagation();
                         AjaxHPAParadise({
                             data: {
@@ -721,18 +722,18 @@ BEGIN
                                 const cacheKey = f.url || f.name;
                                 if (BlobCache_%ColumnName%[cacheKey]) {
                                     URL.revokeObjectURL(BlobCache_%ColumnName%[cacheKey]);
-            delete BlobCache_%ColumnName%[cacheKey];
-        }
+                                    delete BlobCache_%ColumnName%[cacheKey];
+                                }
                                 // Xóa khỏi Cache Base64 (Mobile)
                                 if (Base64Cache_%ColumnName%[cacheKey]) {
                                     delete Base64Cache_%ColumnName%[cacheKey];
                                 }
 
                                 const newData = files.filter(x => (x.UrlFile||x.Url||x.url) !== f.url);
-              window["DataSource_" + colName] = newData;
+                                 window["DataSource_" + colName] = newData;
                                 _localData_%ColumnName% = newData;
                                 render_%ColumnName%();
-                                if(window.DevExpress) DevExpress.ui.notify("Đã xóa", "success", 1000);
+                                uiManager.showAlert({ type: "success", message: "Đã xóa file thành công" });
                             }
                         });
                 });
@@ -777,7 +778,7 @@ BEGIN
                         const originalSub = $dzSub.text();
                         $dzText.text("Đang mở file picker...");
                         $dzSub.text("Vui lòng chọn file");
-                        const result = await apimobileAjaxAsync({}, {
+        const result = await apimobileAjaxAsync({}, {
                      "MethodName": "MobileFilePickerMultipleAsync",
                             "prs": [],
                         });
@@ -788,7 +789,7 @@ BEGIN
                             name: f.fileName, size: Math.round((f.data.length * 3) / 4), _customData: f.data
                         })));
                     } catch (err) {
-                        if(window.DevExpress) DevExpress.ui.notify("Lỗi: " + err, "error", 2000);
+                        uiManager.showAlert({ type: "error", message: "Lỗi" + err});
                     }
                 }
             });
@@ -856,7 +857,7 @@ BEGIN
                             AjaxHPAParadise({
                                 data: {
                                     name: "sp_Common_SaveAttachment",
-                                    param: ["TableName", "%tableId%", "ColumnName", "%ColumnName%", "IDColumnName", "%ColumnIDName%", "IDValue", currentRecordID_%ColumnIDName%, "JsonFile", parsedUpload.data, "LoginID", LoginID || 0]
+                       param: ["TableName", "%tableId%", "ColumnName", "%ColumnName%", "IDColumnName", "%ColumnIDName%", "IDValue", currentRecordID_%ColumnIDName%, "JsonFile", parsedUpload.data, "LoginID", LoginID || 0]
                                 },
                                 success: (res) => {
                                     try {
@@ -867,7 +868,7 @@ BEGIN
                                     resolve(); // Báo hiệu đã xong file này
                                 },
                                 error: () => {
-                                    if(window.DevExpress) DevExpress.ui.notify("Lỗi tải file: " + file.name, "error", 2000);
+                                    uiManager.showAlert({ type: "error", message: "Lỗi tải file: " + file.name});
                                     resolve(); // Vẫn resolve để chạy tiếp file sau (không dừng hẳn)
                                 }
                             });
@@ -883,7 +884,7 @@ BEGIN
             instanceUploader.reset();
             $dzText.text(originalText);
             $dzSub.text(originalSub);
-            if(window.DevExpress) DevExpress.ui.notify("Hoàn tất tải lên", "success", 1500);
+            uiManager.showAlert({ type: "success", message: "Đã tải file thành công" });
         }
 
         render_%ColumnName%();

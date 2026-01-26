@@ -185,7 +185,7 @@ BEGIN
             if (Array.isArray(rawValue)) {
                 normalizedValue = rawValue.map(v => String(v).trim()).filter(v => v !== "");
             } else if (typeof rawValue === "string" && rawValue.trim() !== "") {
-                normalizedValue = rawValue.split(",")
+      normalizedValue = rawValue.split(",")
                                          .map(v => v.trim())
                                          .filter(v => v !== "");
             } else {
@@ -217,7 +217,7 @@ BEGIN
 
             // Load logic cho DateTime: Phải ép kiểu new Date để hiện đúng giờ
             Instance%ColumnName%%UID%._suppressValueChangeAction();
-            if (obj.%ColumnName%) {
+            if (obj && obj.%ColumnName%) {
                 // Ép kiểu chuỗi SQL sang JS Date Object
                 Instance%ColumnName%%UID%.option("value", new Date(obj.%ColumnName%));
             } else {
@@ -475,7 +475,7 @@ BEGIN
                             const val = cellInfo.value;
 
                             if (val === undefined || val === null || val === "") {
-                                $("<div>").addClass("dx-placeholder").text("--").appendTo(cellElement);
+                                $("<div>").addClass("dx-placeholder").text("").appendTo(cellElement);
                                 return;
                             }
 
@@ -492,7 +492,7 @@ BEGIN
                             const val = cellInfo.value;
 
                             if (val === undefined || val === null || val === "") {
-                                $("<div>").addClass("dx-placeholder").text("--").appendTo(cellElement);
+                                $("<div>").addClass("dx-placeholder").text("").appendTo(cellElement);
                                 return;
                             }
 
@@ -522,7 +522,7 @@ BEGIN
                         N'cellTemplate: function(cellElement, cellInfo){
                             const val = cellInfo.value;
                             if (!val) {
-                                $("<div>").addClass("dx-placeholder").text("--").appendTo(cellElement);
+                                $("<div>").addClass("dx-placeholder").text("").appendTo(cellElement);
                                 return;
                             }
 
@@ -630,6 +630,7 @@ BEGIN
                 loadUI = REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(
                     N'
                         window.Instance%ColumnName%%UID% = null;
+                        
                         // Thêm responsive styles cho grid header
                         const style%ColumnName% = document.createElement("style");
                         style%ColumnName%.textContent = `
@@ -938,7 +939,6 @@ BEGIN
                                     top: 10vh !important;
                                 }
                                 .dx-overlay-content.dx-popup-normal.dx-popup-draggable.dx-resizable {
-
                                     width: 98vw !important;
                                     max-width: 98vw !important;
                                     height: auto !important;
@@ -1014,6 +1014,292 @@ BEGIN
                                 allowedPageSizes: isLargeDataset ? [10, 25, 50] : [5, 10, 50, 100]
                             };
                         };
+
+                        // START Shared grid data source registry so detail forms can trigger refreshes
+                            window.hpaSharedGridDataSources = window.hpaSharedGridDataSources || {};
+
+                            if (!window.reloadSharedGridDataSource) {
+                                window.reloadSharedGridDataSource = function (name, params) {
+                                    const registry = window.hpaSharedGridDataSources || {};
+                                    const entry = registry[name];
+                                    if (!entry || typeof entry.reload !== "function") {
+                                        console.warn("[SharedGrid] Grid", name, "is not registered");
+                                        return Promise.resolve([]);
+                                    }
+                                    return entry.reload(params);
+                                };
+                            }
+
+                            if (!window.getSharedGridDataSource) {
+                                window.getSharedGridDataSource = function (name) {
+                                    const registry = window.hpaSharedGridDataSources || {};
+                                    return registry[name];
+                                };
+                            }
+
+                            if (!window.updateSharedGridRow) {
+                                window.updateSharedGridRow = function (name, rowData, options) {
+                                    const registry = window.hpaSharedGridDataSources || {};
+                                    const entry = registry[name];
+                                    if (!entry || typeof entry.applyRowChanges !== "function") {
+                                        console.warn("[SharedGrid] Grid", name, "cannot accept row updates");
+                                        return Promise.resolve(false);
+                                    }
+                                    return entry.applyRowChanges(rowData, options);
+                                };
+                            }
+
+                            if (!window.removeSharedGridRow) {
+                                window.removeSharedGridRow = function (name, options) {
+                                    const registry = window.hpaSharedGridDataSources || {};
+                                    const entry = registry[name];
+                                    if (!entry || typeof entry.removeRow !== "function") {
+                                        console.warn("[SharedGrid] Grid", name, "cannot remove rows");
+                                        return Promise.resolve(false);
+                                    }
+                                    return entry.removeRow(options);
+                                };
+                            }
+
+                            (function setupSharedGridSource() {
+                                const gridName = "%ColumnName%";
+                                const sharedKey = gridName;
+                                const primaryKeyField = "%PKColumnName%";
+
+                                const loginValue = typeof window.UserID !== "undefined"
+                                    ? window.UserID
+                                    : (typeof LoginID !== "undefined" ? LoginID : null);
+                                const languageValue = typeof window.LanguageID !== "undefined"
+                                    ? window.LanguageID
+                                    : (typeof LanguageID !== "undefined" ? LanguageID : null);
+
+                                const snapshotGridData = function (instance) {
+                                    if (!instance) return [];
+                                    try {
+                                        if (typeof instance.getDataSource === "function") {
+                                            const ds = instance.getDataSource();
+                                            if (ds && typeof ds.items === "function") {
+                                                const dsItems = ds.items();
+                                                if (Array.isArray(dsItems)) {
+                                                    return dsItems.map(function (item) {
+                                                        return item && typeof item === "object" ? Object.assign({}, item) : item;
+                                                    });
+                                                }
+                                            }
+                                        }
+
+                                        if (typeof instance.option === "function") {
+                                            const rawData = instance.option("dataSource");
+                                            if (Array.isArray(rawData)) {
+                                                return rawData.map(function (item) {
+                                                    return item && typeof item === "object" ? Object.assign({}, item) : item;
+                                                });
+                                            }
+                                        }
+                                    } catch (snapshotErr) {
+                                        console.warn("[SharedGrid] Unable to snapshot grid data", snapshotErr);
+                                    }
+                                    return [];
+                                };
+
+                                let sharedEntry = window.hpaSharedGridDataSources[sharedKey];
+                                if (!sharedEntry) {
+                                    sharedEntry = {
+                                        data: [],
+                                        subscribers: [],
+                                        loading: false
+                                    };
+                                }
+
+                                sharedEntry.primaryKey = sharedEntry.primaryKey || primaryKeyField;
+                                sharedEntry.data = Array.isArray(sharedEntry.data) ? sharedEntry.data : [];
+                                sharedEntry.subscribers = Array.isArray(sharedEntry.subscribers) ? sharedEntry.subscribers : [];
+                                sharedEntry.loading = !!sharedEntry.loading;
+
+                                if (typeof sharedEntry.normalizeParams !== "function") {
+                                    sharedEntry.normalizeParams = function (customParams) {
+                                        const base = [];
+                                        if (loginValue !== null && loginValue !== undefined) {
+                                            base.push("LoginID", loginValue);
+                                        }
+                                        if (languageValue !== null && languageValue !== undefined) {
+                                            base.push("LanguageID", languageValue);
+                                        }
+
+                                        if (Array.isArray(customParams) && customParams.length > 0) {
+                                            return base.concat(customParams);
+                                        }
+
+                                        if (customParams && typeof customParams === "object") {
+                                            const extras = [];
+                                            Object.keys(customParams).forEach(function (key) {
+                                                extras.push(key, customParams[key]);
+                                            });
+                                            return base.concat(extras);
+                                        }
+
+                                        return base;
+                                    };
+                                }
+
+                                if (typeof sharedEntry.notify !== "function") {
+                                    sharedEntry.notify = function () {
+                                        this.subscribers.forEach(function (callback) {
+                                            try {
+                                                callback(this.data);
+                                            } catch (err) {
+                                                console.error("[SharedGrid] subscriber error", err);
+                                            }
+                                        }, this);
+                                    };
+                                }
+
+                                if (typeof sharedEntry.subscribe !== "function") {
+                                    sharedEntry.subscribe = function (callback) {
+                                        if (typeof callback === "function") {
+                                            this.subscribers.push(callback);
+                                        }
+                                        return () => {
+                                            this.subscribers = this.subscribers.filter(function (fn) {
+                                                return fn !== callback;
+                                            });
+                                        };
+                                    };
+                                }
+
+                                if (typeof sharedEntry.applyRowChanges !== "function") {
+                                    sharedEntry.applyRowChanges = function (rowData, options) {
+                                        const opts = options || {};
+                                        const keyField = this.primaryKey;
+                                        let keyValue = opts.key;
+                                        if ((keyValue === undefined || keyValue === null) && rowData && rowData[keyField] !== undefined) {
+                                            keyValue = rowData[keyField];
+                                        }
+
+                                        if (keyValue === undefined || keyValue === null) {
+                                            console.warn("[SharedGrid] Missing key when applying row changes for", sharedKey);
+                                            return Promise.resolve(false);
+                                        }
+
+                                        if (typeof this.ensureLocalData === "function") {
+                                            this.ensureLocalData();
+                                        }
+
+                                        const compare = opts.strict === true
+                                            ? function (candidate) { return candidate === keyValue; }
+                                            : function (candidate) {
+                                                if (candidate === undefined || candidate === null) return candidate === keyValue;
+                                                if (keyValue === undefined || keyValue === null) return false;
+                                                return String(candidate) === String(keyValue);
+                                            };
+
+                                        const nextData = Array.isArray(this.data) ? this.data.slice() : [];
+                                        let targetIndex = nextData.findIndex(function (item) {
+                                            return item ? compare(item[keyField]) : false;
+                                        });
+
+                                        const normalizedRow = Object.assign({}, targetIndex > -1 ? nextData[targetIndex] : {}, rowData);
+
+                                        if (targetIndex === -1) {
+                                            if (opts.ignoreMissing === true) {
+                                                return Promise.resolve(false);
+                                            }
+                                            if (opts.append === true) {
+                                                nextData.push(normalizedRow);
+                                                targetIndex = nextData.length - 1;
+                                            } else {
+                                                nextData.unshift(normalizedRow);
+                                                targetIndex = 0;
+                                            }
+                                        } else {
+                                            nextData[targetIndex] = normalizedRow;
+                                        }
+
+                                        this.data = nextData;
+                                        try {
+                                            if (this.instance && typeof this.instance.option === "function") {
+                                                this.instance.option("dataSource", nextData);
+                                                this.instance.refresh();
+                                            }
+                                        } catch (applyErr) {
+                                            console.warn("[SharedGrid] Unable to push row update", applyErr);
+                                        }
+                                        this.notify();
+                                        return Promise.resolve({ index: targetIndex, data: normalizedRow });
+                                    };
+                                }
+
+                                if (typeof sharedEntry.removeRow !== "function") {
+                                    sharedEntry.removeRow = function (options) {
+                                        const opts = options || {};
+                                        const keyField = this.primaryKey;
+                                        const keyValue = opts.key;
+
+                                        if (keyValue === undefined || keyValue === null) {
+                                            console.warn("[SharedGrid] Missing key when removing row for", sharedKey);
+                                            return Promise.resolve(false);
+                                        }
+
+                                        if (typeof this.ensureLocalData === "function") {
+                                            this.ensureLocalData();
+                                        }
+
+                                        const filtered = (Array.isArray(this.data) ? this.data : []).filter(function (item) {
+                                            if (!item) return true;
+                                            const candidate = item[keyField];
+                                            if (opts.strict === true) {
+                                                return candidate !== keyValue;
+                                            }
+                                            if (candidate === undefined || candidate === null) {
+                                                return keyValue !== candidate;
+                                            }
+                                            return String(candidate) !== String(keyValue);
+                                        });
+
+                                        if (filtered.length === (Array.isArray(this.data) ? this.data.length : 0)) {
+                                            return Promise.resolve(false);
+                                        }
+
+                                        this.data = filtered;
+                                        try {
+                                            if (this.instance && typeof this.instance.option === "function") {
+                                                this.instance.option("dataSource", filtered);
+                                                this.instance.refresh();
+                                            }
+                                        } catch (removeErr) {
+                                            console.warn("[SharedGrid] Unable to remove row", removeErr);
+                                        }
+                                        this.notify();
+                                        return Promise.resolve(true);
+                                    };
+                                }
+
+                                sharedEntry.instance = Instance%ColumnName%%UID%;
+
+                                if (typeof sharedEntry.ensureLocalData !== "function") {
+                                    sharedEntry.ensureLocalData = function () {
+                                        if (Array.isArray(this.data) && this.data.length > 0) {
+                                            return;
+                                        }
+                                        const snapshot = snapshotGridData(this.instance);
+                                        if (snapshot.length > 0) {
+                                            this.data = snapshot;
+                                        }
+                                    };
+                                }
+
+                                const currentSnapshot = snapshotGridData(sharedEntry.instance);
+                                if (currentSnapshot.length > 0) {
+                                    sharedEntry.data = currentSnapshot;
+                                }
+
+                                sharedEntry.getData = function () {
+                                    return this.data;
+                                };
+
+                                window.hpaSharedGridDataSources[sharedKey] = sharedEntry;
+                            })();
+                        // END Shared grid data source registry so detail forms can trigger refreshes
 
                         Instance%ColumnName%%UID% = $("#%ColumnName%").dxDataGrid({
                             dataSource: [],
@@ -1172,37 +1458,53 @@ BEGIN
                                     }
                                 }
                             },
-                            onContentReady: function(e) {
+                            onContentReady: function (e) {
                                 const grid = e.component;
+                                const gridId = grid.element().attr("id");
 
                                 // CHỈ LOAD CONFIG MỘT LẦN DUY NHẤT
                                 if (!window._GridConfigLoaded_%ColumnName%) {
                                     window._GridConfigLoaded_%ColumnName% = true;
 
-                                    const tableName = "%TableName%";
-                                    loadGridColumnConfig(tableName, function (config) {
-                                        if (config.visibleColumns && Array.isArray(config.visibleColumns) && config.visibleColumns.length > 0) {
-                                            const originalColumns = window._OriginalColumnConfig_%ColumnName%;
+                                    loadGridColumnConfig(gridId, function (config) {
+                                        if (!config || !config.visibleColumns || !Array.isArray(config.visibleColumns)) return;
 
-                                            // Set visible cho TẤT CẢ các cột
-                                            let hasChanges = false;
-                                            originalColumns.forEach(col => {
-                                                if (col && col.dataField && col.dataField !== "rowIndex") {
-                                                    const shouldBeVisible = config.visibleColumns.includes(col.dataField);
-                                                    if (col.visible !== shouldBeVisible) {
-                                                        col.visible = shouldBeVisible;
-                                                        hasChanges = true;
-                                                    }
-                                                }
-                                            });
+                                        const originalColumns = window._OriginalColumnConfig_%ColumnName%;
+                                        if (!originalColumns || !originalColumns.length) return;
 
-                                            // Apply changes
-                                            if (hasChanges) {
-                                                grid.beginUpdate();
-                                                grid.option("columns", originalColumns);
-                                                grid.endUpdate();
+                                        window.__isApplyingGridConfig__ = true;
+
+                                        let hasChanges = false;
+                                        let visibleIndex = 0;
+
+                                        // Set visible + visibleIndex theo config
+                                        originalColumns.forEach(col => {
+                                            if (!col || !col.dataField || col.dataField === "rowIndex") return;
+
+                                            const shouldBeVisible = config.visibleColumns.includes(col.dataField);
+
+                                            if (col.visible !== shouldBeVisible) {
+                                                col.visible = shouldBeVisible;
+                                                hasChanges = true;
                                             }
+
+                                            if (shouldBeVisible) {
+                                                if (col.visibleIndex !== visibleIndex) {
+                                                    col.visibleIndex = visibleIndex;
+                                                    hasChanges = true;
+                                                }
+                                                visibleIndex++;
+                                            }
+                                        });
+
+                                        // Apply vào grid
+                                        if (hasChanges) {
+                                            grid.beginUpdate();
+                                            grid.option("columns", originalColumns);
+                                            grid.endUpdate();
                                         }
+
+                                        window.__isApplyingGridConfig__ = false;
                                     });
                                 }
 
@@ -1239,7 +1541,7 @@ BEGIN
                             },
                             onToolbarPreparing: function(e) {
                                 let isReloading = false;
-                                
+
                                 // Button Reload
                                 e.toolbarOptions.items.unshift({
                                     location: "after",
@@ -1272,30 +1574,36 @@ BEGIN
                                 // Reset flag lấy config
                                 window._GridConfigLoaded_%ColumnName% = false;
                             },
-                            onOptionChanged: function(e) {
-                                // Lưu column config (kéo thả, ẩn/hiện)
+                            onOptionChanged: function (e) {
                                 if (e.fullName.startsWith("columns[")) {
-                                    const isVisibleChange = e.fullName.includes(".visible") && e.name === "visible";
-                                    const isVisibleIndexChange = e.fullName.includes(".visibleIndex") && e.name === "visibleIndex";
-                                    const isColumnReorder = e.name === "columns" && e.value && Array.isArray(e.value);
-                                    
-                                    if (isVisibleChange || isVisibleIndexChange || isColumnReorder) {
+
+                                    const isColumnLayoutChange =
+                                        e.fullName.includes(".visible") ||
+                                        e.fullName.includes(".visibleIndex");
+
+                                    const grid = e.component;
+                                    const gridId = grid.element().attr("id");
+
+                                    if (isColumnLayoutChange) {
                                         clearTimeout(window.__saveGridColumnTimeout__%ColumnName%);
                                         window.__saveGridColumnTimeout__%ColumnName% = setTimeout(() => {
                                             const cols = e.component.getVisibleColumns();
-                                            saveGridColumnConfig("%TableName%", cols);
+                                            saveGridColumnConfig(gridId, cols);
                                         }, 800);
                                     }
                                 }
-                                
-                                // LƯU FILTER STATE KHI CÓ THAY ĐỔI (LOCALSTORAGE)
-                                const isFilterChange = e.name === "filterValue" || 
-                                                    e.fullName === "searchPanel.text" ||
-                                                    (e.fullName.includes("columns[") && 
-                                                    (e.fullName.includes("filterValue") || 
-                                                        e.fullName.includes("filterValues") ||
-                                                        e.fullName.includes("selectedFilterOperation")));
-                                
+
+                                // FILTER STATE
+                                const isFilterChange =
+                                    e.name === "filterValue" ||
+                                    e.fullName === "searchPanel.text" ||
+                                    (e.fullName.includes("columns[") &&
+                                        (
+                                            e.fullName.includes("filterValue") ||
+                                            e.fullName.includes("filterValues") ||
+                                            e.fullName.includes("selectedFilterOperation")
+                                        ));
+
                                 if (isFilterChange) {
                                     clearTimeout(window.__saveFilterTimeout__%ColumnName%);
                                     window.__saveFilterTimeout__%ColumnName% = setTimeout(() => {
@@ -1303,6 +1611,7 @@ BEGIN
                                     }, 500);
                                 }
                             }
+
                         }).dxDataGrid("instance");
                     ',
                     '%COLUMNS%', @gridColumns),
@@ -1319,7 +1628,6 @@ BEGIN
             FROM #temptable t1
             WHERE t1.Type = 'hpaControlGrid'
                 AND t1.ColumnName = @GridColumnName;
-
             FETCH NEXT FROM @GridColumnsCursor INTO @GridColumnName;
         END;
 
@@ -1354,40 +1662,39 @@ BEGIN
     -- ============================================================================
     -- Tạo bảng tạm để cache CHECKSUM calculation (tính 1 lần thay vì N lần)
     DECLARE @ChecksumCache TABLE (TableEditor NVARCHAR(256), ChecksumVal VARCHAR(64));
-    
+
     INSERT INTO @ChecksumCache (TableEditor, ChecksumVal)
     SELECT DISTINCT t.TableEditor, CAST(CHECKSUM(o.name) AS VARCHAR(64))
     FROM #temptable t
     LEFT JOIN sys.objects o ON o.name = t.TableEditor AND o.type = 'U'
     WHERE t.TableEditor IS NOT NULL;
 
-    UPDATE #temptable
-    SET loadUI =
-        REPLACE(
-            REPLACE(
-                REPLACE(
-                    REPLACE(
-                        REPLACE(
-                            REPLACE(
-                                REPLACE(
-                                    REPLACE(
-                                        REPLACE(
-                                            REPLACE(
-                                                REPLACE(
-                                                    REPLACE(
-                                                        REPLACE(loadUI, '%tableId%', ISNULL((SELECT TOP 1 ChecksumVal FROM @ChecksumCache WHERE TableEditor = #temptable.TableEditor), '')),
-                                                        '%UID%', ISNULL([UID], '')),
-                                                    '%TableName%', ISNULL(TableName, '')),
-                                                '%ColumnName%', ISNULL(ColumnName, '')),
-                                            '%DatasourceSP%', ISNULL(DatasourceSP, '')),
-                                        '%columnId%', ISNULL(columnId, '')),
-                                    '%ColumnIDName%', ISNULL(ColumnIDName, '')),
-                                '%ColumnIDName2%', ISNULL(ColumnIDName2, '')),
-                            '%Layout%', ISNULL(Layout, '')),
-                        '%IsAlert%', ISNULL(CAST(IsAlert AS VARCHAR(10)), '0')),
-                    '%TableAddNew%', ISNULL(TableAddNew, '')),
-                '%ColumnNameAddNew%', ISNULL(ColumnNameAddNew, '')),
-            '%ActionRichTextEditor%', ISNULL(ActionRichTextEditor, ''));
+    -- 
+    DECLARE @ChecksumTableAddCache TABLE (TableAddNew NVARCHAR(256), ChecksumVal VARCHAR(64));
+
+    INSERT INTO @ChecksumTableAddCache (TableAddNew, ChecksumVal)
+    SELECT DISTINCT t.TableAddNew, CAST(CHECKSUM(o.name) AS VARCHAR(64))
+    FROM #temptable t
+    LEFT JOIN sys.objects o ON o.name = t.TableAddNew AND o.type = 'U'
+    WHERE t.TableAddNew IS NOT NULL;
+
+    UPDATE #temptable SET loadUI = REPLACE(loadUI, '%tableId%', ISNULL((SELECT TOP 1 ChecksumVal FROM @ChecksumCache WHERE TableEditor = #temptable.TableEditor), ''));
+    UPDATE #temptable SET loadUI = REPLACE(loadUI, '%UID%', ISNULL([UID], ''));
+    UPDATE #temptable SET loadUI = REPLACE(loadUI, '%TableName%', ISNULL(TableName, ''));
+    UPDATE #temptable SET loadUI = REPLACE(loadUI, '%ColumnName%', ISNULL(ColumnName, ''));
+    UPDATE #temptable SET loadUI = REPLACE(loadUI, '%DatasourceSP%', ISNULL(DatasourceSP, ''));
+    UPDATE #temptable SET loadUI = REPLACE(loadUI, '%columnId%', ISNULL(columnId, ''));
+    UPDATE #temptable SET loadUI = REPLACE(loadUI, '%ColumnIDName%', ISNULL(ColumnIDName, ''));
+    UPDATE #temptable SET loadUI = REPLACE(loadUI, '%ColumnIDName2%', ISNULL(ColumnIDName2, ''));
+    UPDATE #temptable SET loadUI = REPLACE(loadUI, '%Layout%', ISNULL(Layout, ''));
+    UPDATE #temptable SET loadUI = REPLACE(loadUI, '%IsAlert%', ISNULL(CAST(IsAlert AS VARCHAR(10)), '0'));
+    UPDATE #temptable SET loadUI = REPLACE(loadUI, '%IsRequired%', ISNULL(CAST(IsRequired AS VARCHAR(10)), '0'));
+    UPDATE #temptable SET loadUI = REPLACE(loadUI, '%TableAddNew%', ISNULL((SELECT TOP 1 ChecksumVal FROM @ChecksumTableAddCache WHERE TableAddNew = #temptable.TableAddNew), ''));
+    UPDATE #temptable SET loadUI = REPLACE(loadUI, '%ColumnNameAddNew%', ISNULL(ColumnNameAddNew, ''));
+    UPDATE #temptable SET loadUI = REPLACE(loadUI, '%ActionRichTextEditor%', ISNULL(ActionRichTextEditor, ''));
+    UPDATE #temptable SET loadUI = REPLACE(loadUI, '%DisplayName%', ISNULL(DisplayName, ''));
+    UPDATE #temptable SET loadUI = REPLACE(loadUI, '%GridColumnName%', ISNULL(GridColumnName, 0));
+	UPDATE #temptable SET loadUI = REPLACE(loadUI, '%CustomValidate%', ISNULL(CustomValidate, 0));
 
     UPDATE #temptable
     SET loadData = REPLACE(
@@ -1406,7 +1713,7 @@ BEGIN
 
     UPDATE #temptable
     SET html = REPLACE(
-            REPLACE(
+       REPLACE(
                 REPLACE(html, '%UID%', ISNULL([UID], '')),
             '%Layout%', ISNULL(Layout, '')),
         '%ColumnName%', ISNULL(ColumnName, ''));
@@ -1419,12 +1726,12 @@ BEGIN
     DECLARE @ColumnIDNames2 TABLE (ColumnIDName2 VARCHAR(200));
 
     -- Lấy thông tin cơ bản 1 lần duy nhất
-    SELECT TOP 1 
+    SELECT TOP 1
         @SPLoadData = SPLoadData,
         @UID = [UID],
         @ColumnName = [ColumnName],
         @GridColumnName = ISNULL((SELECT TOP 1 [ColumnName] FROM #temptable WHERE TableName = @TableName AND Layout = 'Grid_View'), '')
-    FROM #temptable 
+    FROM #temptable
     WHERE TableName = @TableName
 
     -- Lấy danh sách ColumnIDName
@@ -1503,81 +1810,63 @@ BEGIN
                 setTimeout(function() {
                     loadDataSourceCommon(columnName, dataSourceSP, onSuccessCallback);
                 }, 100);
+
                 return;
             }
+
 
             // Đánh dấu đang load để tránh load trùng lặp
             window[loadedKey] = "loading";
 
-            AjaxHPAParadise({
-                data: {
-                    name: dataSourceSP,
-                    param: ["LoginID", LoginID, "LanguageID", LanguageID]
-                },
-                success: function(res) {
-                    const json = typeof res === "string" ? JSON.parse(res) : res;
-                    window[dataSourceKey] = (json.data && json.data[0]) || [];
-                    window[loadedKey] = true;
+            return new Promise((resolve, reject) => {
+                AjaxHPAParadise({
+                    data: {
+                        name: dataSourceSP,
+                        param: ["LoginID", LoginID, "LanguageID", LanguageID]
+                    },
+                    success: function (res) {
+                        const json = typeof res === "string" ? JSON.parse(res) : res;
 
-                    // Gọi callback nếu có
-                    if (typeof onSuccessCallback === "function") {
-                        onSuccessCallback(window[dataSourceKey]);
-                    }
+                        window[dataSourceKey] = (json.data && json.data[0]) || [];
+                        window[loadedKey] = true;
 
-                    // Tự động cập nhật control nếu có method setDataSource hoặc option
-                    // Thử nhiều format tên instance để tương thích
-                    const instanceVariants = [
-                        "Instance" + columnName.charAt(0).toUpperCase() + columnName.slice(1) + "%UID%",
-                        "Instance" + columnName + "%UID%",
-                        "instance" + columnName.charAt(0).toUpperCase() + columnName.slice(1) + "%UID%"
-                    ];
+                        // Ưu tiên lấy từ json response (nếu API trả về explicit)
+                        // Sau đó mới fallback query dataSchema
+                        let idField = json.valueExpr;
+                        let nameField = json.displayExpr;
 
-                    for (let i = 0; i < instanceVariants.length; i++) {
-                        const instanceKey = instanceVariants[i];
-                        if (window[instanceKey]) {
-                            const instanceObj = window[instanceKey];
-
-                            // Kiểm tra nếu đây là dxDataGrid
-                            if (typeof instanceObj.dxDataGrid === "function" || instanceObj.option && instanceObj.option("dataSource") !== undefined) {
-                                try {
-                                    // Nếu là Grid, apply dynamic config
-                                    const gridConfigFn = window["getGridConfig_" + columnName.charAt(0).toUpperCase() + columnName.slice(1)];
-                                    if (typeof gridConfigFn === "function") {
-                                        const gridConfig = gridConfigFn(window[dataSourceKey]);
-                                        instanceObj.option("remoteOperations", gridConfig.remoteOperations);
-                                        instanceObj.option("paging.pageSize", gridConfig.pageSize);
-                                        instanceObj.option("pager.allowedPageSizes", gridConfig.allowedPageSizes);
-                                    }
-
-                                    instanceObj.option("dataSource", window[dataSourceKey]);
-                                    break;
-                                } catch(e) {
-                                    console.warn("[LoadDataSourceCommon] Grid config error:", e);
-                                    // Fallback: just set data source
-                                    instanceObj.option("dataSource", window[dataSourceKey]);
-                       break;
-                                }
-                            } else if (typeof instanceObj.setDataSource === "function") {
-                                instanceObj.setDataSource(window[dataSourceKey]);
-                                break;
-                            } else if (typeof instanceObj.option === "function") {
-                                try {
-                                    instanceObj.option("dataSource", window[dataSourceKey]);
-                                    break;
-                                } catch(e) {
-                                    // Continue to next variant
-                                }
+                        if (!idField || !nameField) {
+                            if (json.dataSchema && json.dataSchema[0]) {
+                                const schema = json.dataSchema[0];
+                                if (!idField) idField = schema[0]?.name;
+                                if (!nameField) nameField = schema[1]?.name;
                             }
                         }
+
+                        window["DataSourceIDField_" + columnName]   = idField || "ID";
+                        window["DataSourceNameField_" + columnName] = nameField || "Name";
+
+                        const data = window[dataSourceKey];
+
+                        // callback trước
+                        if (typeof onSuccessCallback === "function") {
+                            onSuccessCallback(data, json);
+                        }
+
+                        // resolve sau
+                        resolve(data);
+                    },
+                    error: function (err) {
+                        console.error("[loadDataSourceCommon] Failed to load datasource for", columnName, ":", err);
+                        window[loadedKey] = false;
+
+                        if (typeof onSuccessCallback === "function") {
+                            onSuccessCallback([]);
+                        }
+
+                        reject(err);
                     }
-                },
-                error: function(err) {
-                    console.error("[loadDataSourceCommon] Failed to load datasource for", columnName, ":", err);
-                    window[loadedKey] = false;
-                    if (typeof onSuccessCallback === "function") {
-                        onSuccessCallback([]);
-                    }
-                }
+                });
             });
         }
     ';
@@ -1604,7 +1893,7 @@ BEGIN
             SET @jsLayoutHandling += N'
                 const gridInstance' + @CurrentGridName + ' = Instance' + @CurrentGridName + @CurrentGridUID_JS + N';
                 const gridConfig' + @CurrentGridName + ' = window.getGridConfig_' + @CurrentGridName + N'(results);
-                
+
                 loadGridRowOrder(
                     "' + @TableName + '",
                     results,
@@ -1612,7 +1901,7 @@ BEGIN
                     function(sortedData) {
                         // Clear search panel khi reload
                         gridInstance' + @CurrentGridName + '.option("searchPanel.text", "");
-                        
+
                         gridInstance' + @CurrentGridName + '.beginUpdate();
                         gridInstance' + @CurrentGridName + '.option("scrolling", {
                             mode: "standard",
@@ -1624,8 +1913,9 @@ BEGIN
                         gridInstance' + @CurrentGridName + '.option("pager.allowedPageSizes", gridConfig' + @CurrentGridName + '.allowedPageSizes);
                         gridInstance' + @CurrentGridName + '.pageIndex(0);
                         gridInstance' + @CurrentGridName + '.option("dataSource", sortedData);
+
                         gridInstance' + @CurrentGridName + '.endUpdate();
-                        
+
                         // RESTORE FILTER STATE TỪ LOCALSTORAGE (nếu không skip)
                         setTimeout(function() {
                             if (window._SkipRestoreFilter) {
@@ -1646,60 +1936,106 @@ BEGIN
 
         CLOSE @GridHandlingCursor;
         DEALLOCATE @GridHandlingCursor;
-    END
+  END
 
     DECLARE @jsFunctionGridConfig NVARCHAR(MAX) = N'';
     IF @UseLayout = 1 AND @CurrentGridName IS NOT NULL
     BEGIN
         SET @jsFunctionGridConfig = N'
         // =============== GRID COLUMN CONFIG PERSISTENCE ===============
-        function saveGridColumnConfig(tableName, columns) {
+        function saveGridColumnConfig(gridId, columns) {
+            const menuId = getActiveMenuId();
+            if (!menuId) {
+                console.warn("Không lấy được menuId");
+                return;
+            }
+
+            if (!gridId) {
+                console.warn("gridId không hợp lệ");
+                return;
+            }
+
             const visibleColumns = columns
-                .filter(col => {
-                    return col.visible !== false
-                        && col.dataField
-                        && col.dataField !== "rowIndex"
-                        && typeof col.dataField === "string";
-                })
+                .filter(col =>
+                    col.visible !== false &&
+                    col.dataField &&
+                    col.dataField !== "rowIndex" &&
+                    typeof col.dataField === "string"
+                )
                 .map(col => col.dataField);
 
-				const columnOrder = columns
-                .filter(col => {
-                    return col.dataField
-                        && col.dataField !== "rowIndex"
-                        && typeof col.dataField === "string";
-                })
+            const columnOrder = columns
+                .filter(col =>
+                    col.dataField &&
+                    col.dataField !== "rowIndex" &&
+                    typeof col.dataField === "string"
+                )
                 .map(col => col.dataField);
 
             const config = { visibleColumns, columnOrder };
+
+            console.log("[SaveConfig]", {
+                menuId,
+                gridId,
+                config
+            });
 
             AjaxHPAParadise({
                 data: {
                     name: "sp_SaveGridColumnConfig",
                     param: [
                         "LoginID", LoginID,
-                        "TableName", tableName,
+                        "MenuID", menuId,
+                        "GridID", gridId,
                         "ColumnConfigJson", JSON.stringify(config)
                     ]
                 }
             });
         }
 
-        function loadGridColumnConfig(tableName, callback) {
+        function getActiveMenuId() {
+            const activeTab = $(".nav-link.active");
+            const tabId = activeTab.filter("button").attr("id");
+            return tabId ? tabId.split("-").pop() : null;
+        }
+
+        function loadGridColumnConfig(gridId, callback) {
+            const menuId = getActiveMenuId();
+            if (!menuId) {
+                console.warn("Không lấy được menuId");
+                if (typeof callback === "function") callback({});
+                return;
+            }
+
             AjaxHPAParadise({
                 data: {
                     name: "sp_GetGridColumnConfig",
-                    param: ["LoginID", LoginID, "TableName", tableName]
+                    param: [
+                        "LoginID", LoginID,
+                        "MenuID", menuId,
+                        "GridID", gridId
+                    ]
                 },
                 async: false,
-                success: function(res) {
+                success: function (res) {
                     let config = {};
+
                     const json = typeof res === "string" ? JSON.parse(res) : res;
-                    if (json && json.data && json.data[0] && json.data[0][0] && json.data[0][0].ColumnConfigJson) {
+
+                    if (
+                        json &&
+                        json.data &&
+                        json.data[0] &&
+                        json.data[0][0] &&
+                        json.data[0][0].ColumnConfigJson
+                    ) {
                         const raw = json.data[0][0].ColumnConfigJson;
                         config = typeof raw === "string" ? JSON.parse(raw) : raw;
                     }
-                    if (typeof callback === "function") callback(config);
+
+                    if (typeof callback === "function") {
+                        callback(config);
+                    }
                 }
             });
         }
@@ -1709,11 +2045,11 @@ BEGIN
             try {
                 const filterValue = gridInstance.getCombinedFilter();
                 const searchValue = gridInstance.option("searchPanel.text") || "";
-                
+
                 // Lấy filter của từng cột
                 const columnFilters = {};
                 const columns = gridInstance.option("columns");
-                
+
                 columns.forEach(col => {
                     if (col.dataField && col.filterValue !== undefined) {
                         columnFilters[col.dataField] = {
@@ -1723,14 +2059,14 @@ BEGIN
                         };
                     }
                 });
-                
+
                 const filterState = {
                     combinedFilter: filterValue,
                     searchText: searchValue,
                     columnFilters: columnFilters,
                     timestamp: new Date().getTime()
                 };
-                
+
                 // CHỈ LƯU VÀO LOCALSTORAGE
                 localStorage.setItem("GridFilter_" + tableName + "_" + LoginID, JSON.stringify(filterState));
             } catch(e) {
@@ -1742,13 +2078,13 @@ BEGIN
             try {
                 const storageKey = "GridFilter_" + tableName + "_" + LoginID;
                 const savedState = localStorage.getItem(storageKey);
-                
+
                 if (!savedState) {
                     return null;
                 }
-                
+
                 const filterState = JSON.parse(savedState);
-                
+
                 return filterState;
             } catch(e) {
                 console.error("[LoadFilterState] Error:", e);
@@ -1757,22 +2093,23 @@ BEGIN
         }
 
         function applyGridFilterState(gridInstance, filterState) {
+
             if (!filterState) return;
-            
+
             try {
                 gridInstance.beginUpdate();
-                
+
                 // 1. Apply search text
                 if (filterState.searchText) {
                     gridInstance.option("searchPanel.text", filterState.searchText);
                 }
-                
+
                 // 2. Apply column filters
                 if (filterState.columnFilters) {
                     Object.keys(filterState.columnFilters).forEach(dataField => {
                         const colFilter = filterState.columnFilters[dataField];
                         const colIndex = gridInstance.columnOption(dataField, "index");
-                        
+
                         if (colIndex !== undefined) {
                             gridInstance.columnOption(dataField, "filterValue", colFilter.filterValue);
                             if (colFilter.filterType) {
@@ -1784,14 +2121,14 @@ BEGIN
                         }
                     });
                 }
-                
+
                 // 3. Apply combined filter (fallback)
                 if (filterState.combinedFilter && !filterState.columnFilters) {
                     gridInstance.option("filterValue", filterState.combinedFilter);
                 }
-                
+
                 gridInstance.endUpdate();
-                
+
             } catch(e) {
                 console.error("[ApplyFilterState] Error:", e);
             }
@@ -1869,8 +2206,8 @@ BEGIN
                         }
                     } catch (e) {
                         if (typeof callback === "function") {
-                            callback(dataSource);
-                        }
+                     callback(dataSource);
+                 }
                     }
                 },
                 error: function(err) {
@@ -1906,11 +2243,11 @@ BEGIN
         function applyFilter(filterType) {
             currentFilter = filterType;
             const gridInstance = InstancegridMyWorkPDB2DB35885F14803A9A52961A7871972;
-            
+
             if (!gridInstance) return;
-            
+
             let filteredData = allTasks;
-            
+
             if (filterType === "todo") {
                 filteredData = allTasks.filter(task => task.Status === 1);
             } else if (filterType === "doing") {
@@ -1926,9 +2263,9 @@ BEGIN
                 });
             }
             // else filterType === "all" -> show all tasks
-            
+
             gridInstance.option("dataSource", filteredData);
-            
+
             // Lưu filter vào localStorage
             saveFilterState(filterType);
         }
@@ -1936,16 +2273,137 @@ BEGIN
         function restoreFilterState() {
             const savedFilter = loadFilterState();
             currentFilter = savedFilter;
-            
+
             // Cập nhật UI button
             $(".filter-btn").removeClass("active");
             $(`.filter-btn[data-filter="${savedFilter}"]`).addClass("active");
-            
+
             // Áp dụng filter
             applyFilter(savedFilter);
         }
     ';
     END
+
+    -- ============================================================================
+    -- GLOBAL UTILITIES & STYLES (Centralized)
+    -- ============================================================================
+    DECLARE @jsCommonStyles NVARCHAR(MAX) = N'
+        if (!document.getElementById("hpa-central-styles")) {
+            $("<style>")
+                .attr("id", "hpa-central-styles")
+                .text(`
+                    /* --- Base Styles --- */
+                    .dx-widget { font-size:inherit!important; font-weight:inherit!important; line-height:inherit!important; border-radius:inherit!important; }
+                    .dx-texteditor, .dx-texteditor-input { font-size:inherit!important; font-weight:inherit!important; line-height:inherit!important; box-sizing:border-box!important; }
+                    
+                    /* --- Responsive & Popup Styles --- */
+                    .hpa-responsive { max-width: 98vw !important; max-height: 98vh !important; }
+                    .hpa-responsive .dx-popup-content { padding: 8px !important; display: flex !important; flex-direction: column !important; }
+                    .hpa-responsive .dx-popup-content-scrollable { flex: 1 !important; min-height: 0 !important; overflow: auto !important; }
+                    
+                    /* --- Grid Customizations --- */
+                    .dx-datagrid-headers { white-space: normal; word-break: break-word; }
+                    .dx-datagrid-header-panel { padding: 8px; }
+                    .dx-datagrid .dx-row > td { padding: 8px !important; vertical-align: middle !important; }
+                    .dx-datagrid-rowsview .dx-row > td > div { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.4 !important; }
+                    
+                    /* --- Search Styles --- */
+                    .dx-datagrid-search-panel .dx-placeholder { display: none !important; }
+                    .dx-datagrid-search-panel input:not(:placeholder-shown) { color: #000 !important; }
+                    
+                    /* --- Avatar & Chip Styles --- */
+                    .hpa-avatar-group { display: flex; alignItems: center; }
+                    .hpa-avatar { border: 2px solid #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.1); object-fit: cover; }
+                `)
+                .appendTo("head");
+        }
+    ';
+
+    DECLARE @jsCommonUtils NVARCHAR(MAX) = N'
+        window.hpaUtils = window.hpaUtils || {
+            removeToneMarks: function(str) {
+                if (!str) return "";
+                return RemoveToneMarks_Js(str);
+            },
+            highlightText: function(text, search) {
+                if (!search || !text) return text;
+                const regex = new RegExp("(" + search.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + ")", "gi");
+                return text.replace(regex, "<mark class=\"bg-warning fw-bold px-1 rounded\">$1</mark>");
+            },
+            getInitials: function(name) {
+                if (!name) return "?";
+                const words = name.trim().split(/\s+/);
+                if (words.length >= 2) return (words[0][0] + words[words.length - 1][0]).toUpperCase();
+                return name.substring(0, 2).toUpperCase();
+            },
+            getColorForId: function(id) {
+                const colors = [
+                    { bg: "#e3f2fd", text: "#1976d2" },
+                    { bg: "#f3e5f5", text: "#7b1fa2" },
+                    { bg: "#e8f5e9", text: "#388e3c" },
+                    { bg: "#fff3e0", text: "#f57c00" },
+                    { bg: "#fce4ec", text: "#c2185b" }
+                ];
+                return colors[Math.abs(id) % colors.length];
+            },
+            loadAvatar: function(employeeId, storeImgName, paramImg, callbackFn) {
+                window.GlobalEmployeeAvatarCache = window.GlobalEmployeeAvatarCache || {};
+                window.GlobalEmployeeAvatarLoading = window.GlobalEmployeeAvatarLoading || {};
+                
+                const idStr = String(employeeId);
+                if (window.GlobalEmployeeAvatarCache[idStr]) {
+                    if (callbackFn) callbackFn(window.GlobalEmployeeAvatarCache[idStr]);
+                    return window.GlobalEmployeeAvatarCache[idStr];
+                }
+
+                if (window.GlobalEmployeeAvatarLoading[idStr]) {
+                    if (callbackFn) {
+                        window.GlobalEmployeeAvatarLoading[idStr].callbacks = window.GlobalEmployeeAvatarLoading[idStr].callbacks || [];
+                        window.GlobalEmployeeAvatarLoading[idStr].callbacks.push(callbackFn);
+                    }
+                    return null;
+                }
+
+                if (!storeImgName) return null;
+
+                window.GlobalEmployeeAvatarLoading[idStr] = { loading: true, callbacks: callbackFn ? [callbackFn] : [] };
+
+                let paramArray = [];
+                if (paramImg) {
+                    try { paramArray = JSON.parse(decodeURIComponent(paramImg)); } catch (e) { paramArray = []; }
+                }
+
+                AjaxHPAParadise({
+                    data: { name: storeImgName, param: paramArray },
+                    xhrFields: { responseType: "blob" },
+                    cache: true,
+                    success: function (blob) {
+                        const callbacks = window.GlobalEmployeeAvatarLoading[idStr]?.callbacks || [];
+                        delete window.GlobalEmployeeAvatarLoading[idStr];
+                        if (blob && blob.size > 0) {
+                            const url = URL.createObjectURL(blob);
+                            window.GlobalEmployeeAvatarCache[idStr] = url;
+                            callbacks.forEach(cb => { try { cb(url); } catch (e) {} });
+                        } else {
+                            callbacks.forEach(cb => { try { cb(null); } catch (e) {} });
+                        }
+                    },
+                    error: function () {
+                        const callbacks = window.GlobalEmployeeAvatarLoading[idStr]?.callbacks || [];
+                        delete window.GlobalEmployeeAvatarLoading[idStr];
+                        callbacks.forEach(cb => { try { cb(null); } catch (e) {} });
+                    }
+                });
+                return null;
+            }
+        };
+
+        window.ValidationEngine = window.ValidationEngine || {
+            getRequiredMessage: function(displayName) {
+                return "không được để trống " + (displayName || "trường này");
+            }
+        };
+    ';
 
     -- ============================================================================
     -- BUILD HTML OUTPUT
@@ -1958,8 +2416,9 @@ BEGIN
         (() => {
             let DataSource = []
             %JS_LOAD_ALL_DATA_SOURCES%
+            %JS_VALIDATION_ENGINE%
             %paradiseloadUI%
-            %JS_CURRENT_ID%
+    %JS_CURRENT_ID%
             %jsFunctionGridConfig%
 
             function ReloadData() {
@@ -1967,7 +2426,7 @@ BEGIN
                     data: {
                         name: "%SPLoadData%",
                         param: []
-                    },
+              },
                     success: function (res) {
                         const json = typeof res === "string" ? JSON.parse(res) : res;
                         const results = Array.isArray(json?.data?.[0])
@@ -1997,6 +2456,7 @@ BEGIN
     SET @nsqlHtml = REPLACE(@nsqlHtml, '%JS_CURRENT_ID%', @jsCurrentRecordID);
     SET @nsqlHtml = REPLACE(@nsqlHtml, '%JS_HANDLE_RECORD%', @jsHandleRecord);
     SET @nsqlHtml = REPLACE(@nsqlHtml, '%JS_LOAD_ALL_DATA_SOURCES%', @jsLoadAllDataSources);
+    SET @nsqlHtml = REPLACE(@nsqlHtml, '%JS_VALIDATION_ENGINE%', @jsCommonStyles + @jsCommonUtils);
     SET @nsqlHtml = REPLACE(@nsqlHtml, '%UID%', ISNULL(@UID, ''))
 
     -- ============================================================================
@@ -2025,7 +2485,7 @@ BEGIN
     -- ============================================================================
 
     UPDATE t
-    SET 
+    SET
         html = tt.html,
         loadUI = tt.loadUI,
         loadData = tt.loadData
@@ -2035,7 +2495,7 @@ BEGIN
 
     -- ============================================================================
     -- RETURN KẾT QUẢ
- -- @nsqlHtml: HTML với dynamic SQL (dùng cho sp_GenerateHTMLScript)
+    -- @nsqlHtml: HTML với dynamic SQL (dùng cho sp_GenerateHTMLScript)
     -- ============================================================================
     SELECT @nsqlHtml AS htmlProc
 
@@ -2044,7 +2504,7 @@ BEGIN
     -- ============================================================================
     IF OBJECT_ID('tempdb..#temptable') IS NOT NULL
         DROP TABLE #temptable;
-    
+
     IF OBJECT_ID('tempdb..#GridColumnsGrouped') IS NOT NULL
         DROP TABLE #GridColumnsGrouped;
 
@@ -2052,15 +2512,15 @@ BEGIN
     BEGIN CATCH
         -- Log error message
         DECLARE @ErrorMessage NVARCHAR(4000) = ERROR_MESSAGE();
-        DECLARE @ErrorSeverity INT = ERROR_SEVERITY();
+       DECLARE @ErrorSeverity INT = ERROR_SEVERITY();
         DECLARE @ErrorState INT = ERROR_STATE();
-        
+
         -- Cleanup resources
         IF OBJECT_ID('tempdb..#temptable') IS NOT NULL
             DROP TABLE #temptable;
         IF OBJECT_ID('tempdb..#GridColumnsGrouped') IS NOT NULL
             DROP TABLE #GridColumnsGrouped;
-        
+
         -- Re-throw error
         RAISERROR(@ErrorMessage, @ErrorSeverity, @ErrorState);
     END CATCH

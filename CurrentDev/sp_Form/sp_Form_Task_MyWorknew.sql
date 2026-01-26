@@ -137,7 +137,7 @@ SET @html = N'
         gap: 8px;
         font-size: 14px;
         white-space: nowrap;
-}
+   }
     #sp_Task_MyWork_html .btn-assign {
         background: var(--task-primary);
         color: white;
@@ -821,7 +821,7 @@ SET @html = N'
         }
         #sp_Task_MyWork_html #temp-subtasks .subtask-header {
             margin-bottom: 12px;
-            font-size: 14px;
+    font-size: 14px;
             gap: 6px;
         }
         #sp_Task_MyWork_html #temp-subtasks .form-label {
@@ -908,7 +908,7 @@ SET @html = N'
                     </div>
                     <div class="column-count" id="count-doing">0</div>
                 </div>
-                <div id="tasks-doing"></div>
+       <div id="tasks-doing"></div>
             </div>
             <div class="kanban-column">
                 <div class="column-header">
@@ -993,7 +993,6 @@ SET @html = N'
     (function() {
         "use strict";
 
-        var allTasks = [];
         var currentView = "grid";
         var modalInitialized = false;
         var currentFilter = "all"; // Lưu filter hiện tại
@@ -1032,7 +1031,7 @@ SET @html = N'
                 });
             }
         }
-    
+
         function attachEventHandlers() {
             // Event handler cho filter buttons
             $(".filter-btn").on("click", function() {
@@ -1076,11 +1075,190 @@ SET @html = N'
                    message: "Chức năng Kanban chưa được khởi tạo"
                 });
             });
+
+            window.onSelectBoxChanged_TaskName = function(value, instance, e) {
+                if (value) {
+                    $("#subtask-assign-step").show();
+                    // Reset grid before loading new data
+                    const gridInstance = InstancegridSubtaskAssignP870C076FA1FD48DDBDEDE2C2435B4DA9;
+                    if (gridInstance) {
+                        gridInstance.option("dataSource", []);
+                    }
+                    fetchAssignTemplate(value);
+                } else {
+                    $("#subtask-assign-step").hide();
+                }
+            };
+
+            // Nút thêm task con mới (Manual entry)
+            $("#P8117471F96C44E2D8886F4484DC46072").off("click").on("click", function() {
+                const gridInstance = InstancegridSubtaskAssignP870C076FA1FD48DDBDEDE2C2435B4DA9;
+                if (gridInstance) {
+                    const ds = gridInstance.option("dataSource") || [];
+                    ds.push({
+                        TaskID: 0,
+                        IsSelected: true,
+                        TaskName: "",
+                        AssignedEmployeeIDs: [],
+                        StartDate: new Date(),
+                        EndDate: new Date(),
+                        Priority: 1,
+                        Note: ""
+                    });
+                    gridInstance.option("dataSource", ds);
+                    gridInstance.repaint();
+                }
+            });
+
+            // Nút xác nhận giao việc
+            $("#btnSubmitAssignment").off("click").on("click", async function() {
+                try {
+                    const parentTaskID = InstanceTaskNameP777C87EE29F94C29A6EAABD16E31FDDC ? InstanceTaskNameP777C87EE29F94C29A6EAABD16E31FDDC.option("value") : null;
+                    if (!parentTaskID) {
+                        uiManager.showAlert({ type: "warning", message: "Vui lòng chọn công việc chính" });
+                        return;
+                    }
+
+                    const requesterID = InstancePersonInChargeP2920410F91DB42948640CF1ABBDEE649 ? InstancePersonInChargeP2920410F91DB42948640CF1ABBDEE649.option("value") : null;
+                    const assigneeID = InstanceMainPersonInChargePC98E2DFA331343BBAE22882BE3825C1A ? InstanceMainPersonInChargePC98E2DFA331343BBAE22882BE3825C1A.option("value") : null;
+                    const requestDate = InstanceStartDateP02E6F18645BA47648567B32773A1B7B4 ? InstanceStartDateP02E6F18645BA47648567B32773A1B7B4.option("value") : null;
+                    const committedHours = InstanceCommittedHoursP27C40759D9C94453AB9B2DFBCD661AE3 ? InstanceCommittedHoursP27C40759D9C94453AB9B2DFBCD661AE3.option("value") : null;
+
+                    let subtasks = [];
+                    const gridInstance = InstancegridSubtaskAssignP870C076FA1FD48DDBDEDE2C2435B4DA9;
+                    if (gridInstance) {
+                        const gridData = gridInstance.option("dataSource") || [];
+                        subtasks = gridData.filter(r => r.IsSelected).map(row => ({
+                            TaskID: row.TaskID || 0,
+                            TaskName: row.TaskName || "",
+                            AssignedEmployeeIDs: Array.isArray(row.AssignedEmployeeIDs) ? row.AssignedEmployeeIDs.join(",") : (row.AssignedEmployeeIDs || ""),
+                            StartDate: row.StartDate ? new Date(row.StartDate).toISOString() : null,
+                            EndDate: row.EndDate ? new Date(row.EndDate).toISOString() : null,
+                            Priority: row.Priority || 1,
+                            Note: row.Note || ""
+                        }));
+                    }
+
+                    AjaxHPAParadise({
+                        data: {
+                            name: "sp_Task_AssignSubtasks",
+                            param: [
+                                "ParentTaskID", parentTaskID,
+                                "RequesterEmployeeID", requesterID || null,
+                                "AssigneeEmployeeID", assigneeID || null,
+                                "RequestDate", requestDate || null,
+                                "CommittedHours", committedHours || null,
+                                "SubtasksJSON", JSON.stringify(subtasks),
+                                "LoginID", LoginID,
+                                "LanguageID", LanguageID
+                            ]
+                        },
+                        success: function(res) {
+                            const json = typeof res === "string" ? JSON.parse(res) : res;
+                            const errors = json.data?.[json.data.length - 1] || [];
+                            if (errors.length > 0 && errors[0].Status === "ERROR") {
+                                uiManager.showAlert({ type: "error", message: errors[0].Message || "Giao việc thất bại" });
+                            } else {
+                                uiManager.showAlert({ type: "success", message: "Giao việc thành công" });
+                                $("#mdlAssign").modal("hide");
+                                ReloadData();
+                            }
+                        }
+                    });
+                } catch (err) {
+                    console.error(err);
+                    uiManager.showAlert({ type: "error", message: "Có lỗi: " + err.message });
+                }
+            });
+        }
+
+        function renderAssignSubtasks() {
+            // Combine template and existing child tasks
+            const uniqueTasks = [];
+            const taskIds = new Set();
+
+            [...currentTemplate, ...currentChildTasks].forEach(t => {
+                const id = t.TaskID || 0;
+                if (id === 0 || !taskIds.has(id)) {
+                    uniqueTasks.push(t);
+                    if (id !== 0) taskIds.add(id);
+                }
+            });
+
+            const gridData = uniqueTasks.map((item, idx) => ({
+                TaskID: item.TaskID || 0,
+                IsSelected: true,
+                TaskName: item.TaskName,
+                AssignedEmployeeIDs: item.AssignedEmployeeIDs ? (Array.isArray(item.AssignedEmployeeIDs) ? item.AssignedEmployeeIDs : item.AssignedEmployeeIDs.split(",")) : [],
+                StartDate: item.StartDate || new Date(),
+                EndDate: item.EndDate || new Date(),
+                Priority: item.Priority || 1,
+                Note: item.Note || "",
+                DefaultKPI: item.DefaultKPI || 0,
+                Unit: item.Unit || ""
+            }));
+
+            const gridInstance = InstancegridSubtaskAssignP870C076FA1FD48DDBDEDE2C2435B4DA9;
+            if (gridInstance) {
+                gridInstance.option("dataSource", gridData);
+            }
+        }
+
+        function fetchAssignTemplate(pid) {
+            if (lastSelectedParentID === pid) return;
+            lastSelectedParentID = pid;
+            selectedParentTaskID = pid;
+
+            // Fetch template first
+            AjaxHPAParadise({
+                data: {
+                    name: "sp_Task_GetDetailedTemplate",
+                    param: ["ParentTaskID", pid]
+                },
+                success: function(res) {
+                    const json = typeof res === "string" ? JSON.parse(res) : res;
+                    currentTemplate = json.data[0] || [];
+                    
+                    // Then fetch existing child tasks to supplement
+                    fetchChildTasks(pid, function(childTasks) {
+                        currentChildTasks = childTasks || [];
+                        
+                        // Combine or show unique set
+                        if (currentTemplate.length > 0 || currentChildTasks.length > 0) {
+                            renderAssignSubtasks();
+                            $("#gridSubtaskAssign").show();
+                            $("#emptySubtaskAssign").hide();
+                        } else {
+                            $("#gridSubtaskAssign").hide();
+                            $("#emptySubtaskAssign").show();
+                        }
+                    });
+                }
+            });
+        }
+
+        function fetchChildTasks(pid, cb) {
+            AjaxHPAParadise({
+                data: {
+                    name: "sp_Task_GetTaskRelations",
+                    param: ["ParentTaskID", pid]
+                },
+                success: function(res) {
+                    try {
+                        const json = typeof res === "string" ? JSON.parse(res) : res;
+                        const rows = json.data[0] || [];
+                        cb(rows);
+                    } catch(e) {
+                        cb([]);
+                    }
+                },
+                error: function() { cb([]); }
+            });
         }
 
         // Phần xử lý control
         let DataSource = []
-            
+        
         // Load DataSource: EmployeeListAll_DataSetting_Custom
         if ("EmployeeListAll_DataSetting_Custom" && "EmployeeListAll_DataSetting_Custom".trim() !== "") {
             loadDataSourceCommon("AssignedEmployeeIDs", "EmployeeListAll_DataSetting_Custom", function(data) {
@@ -1094,7 +1272,7 @@ SET @html = N'
                 // Data được shared qua callback
             });
         }
-    
+        
         function loadDataSourceCommon(columnName, dataSourceSP, onSuccessCallback) {
             if (!columnName || !dataSourceSP || dataSourceSP.trim() === "") {
                 console.warn("[loadDataSourceCommon] Missing columnName or dataSourceSP");
@@ -1119,85 +1297,182 @@ SET @html = N'
                 setTimeout(function() {
                     loadDataSourceCommon(columnName, dataSourceSP, onSuccessCallback);
                 }, 100);
+
                 return;
             }
+
 
             // Đánh dấu đang load để tránh load trùng lặp
             window[loadedKey] = "loading";
 
-            AjaxHPAParadise({
-                data: {
-                    name: dataSourceSP,
-                    param: ["LoginID", LoginID, "LanguageID", LanguageID]
-                },
-                success: function(res) {
-                    const json = typeof res === "string" ? JSON.parse(res) : res;
-                    window[dataSourceKey] = (json.data && json.data[0]) || [];
-                    window[loadedKey] = true;
+            return new Promise((resolve, reject) => {
+                AjaxHPAParadise({
+                    data: {
+                        name: dataSourceSP,
+                        param: ["LoginID", LoginID, "LanguageID", LanguageID]
+                    },
+                    success: function (res) {
+                        const json = typeof res === "string" ? JSON.parse(res) : res;
 
-                    // Gọi callback nếu có
-                    if (typeof onSuccessCallback === "function") {
-                        onSuccessCallback(window[dataSourceKey]);
-                    }
+                        window[dataSourceKey] = (json.data && json.data[0]) || [];
+                        window[loadedKey] = true;
 
-                    // Tự động cập nhật control nếu có method setDataSource hoặc option
-                    // Thử nhiều format tên instance để tương thích
-                    const instanceVariants = [
-                        "Instance" + columnName.charAt(0).toUpperCase() + columnName.slice(1) + "PDB2DB35885F14803A9A52961A7871972",
-                        "Instance" + columnName + "PDB2DB35885F14803A9A52961A7871972",
-                        "instance" + columnName.charAt(0).toUpperCase() + columnName.slice(1) + "PDB2DB35885F14803A9A52961A7871972"
-                    ];
+                        // Ưu tiên lấy từ json response (nếu API trả về explicit)
+                        // Sau đó mới fallback query dataSchema
+                        let idField = json.valueExpr;
+                        let nameField = json.displayExpr;
 
-                    for (let i = 0; i < instanceVariants.length; i++) {
-                        const instanceKey = instanceVariants[i];
-                        if (window[instanceKey]) {
-                            const instanceObj = window[instanceKey];
-
-                            // Kiểm tra nếu đây là dxDataGrid
-                            if (typeof instanceObj.dxDataGrid === "function" || instanceObj.option && instanceObj.option("dataSource") !== undefined) {
-                                try {
-                                    // Nếu là Grid, apply dynamic config
-                                    const gridConfigFn = window["getGridConfig_" + columnName.charAt(0).toUpperCase() + columnName.slice(1)];
-                                    if (typeof gridConfigFn === "function") {
-                                        const gridConfig = gridConfigFn(window[dataSourceKey]);
-                                        instanceObj.option("remoteOperations", gridConfig.remoteOperations);
-                                        instanceObj.option("paging.pageSize", gridConfig.pageSize);
-                                        instanceObj.option("pager.allowedPageSizes", gridConfig.allowedPageSizes);
-                                    }
-
-                                    instanceObj.option("dataSource", window[dataSourceKey]);
-                                    break;
-                                } catch(e) {
-                                    console.warn("[LoadDataSourceCommon] Grid config error:", e);
-                                    // Fallback: just set data source
-                                    instanceObj.option("dataSource", window[dataSourceKey]);
-                        break;
-                                }
-                            } else if (typeof instanceObj.setDataSource === "function") {
-                                instanceObj.setDataSource(window[dataSourceKey]);
-                                break;
-                            } else if (typeof instanceObj.option === "function") {
-                                try {
-                                    instanceObj.option("dataSource", window[dataSourceKey]);
-                                    break;
-                                } catch(e) {
-                                    // Continue to next variant
-                                }
+                        if (!idField || !nameField) {
+                            if (json.dataSchema && json.dataSchema[0]) {
+                                const schema = json.dataSchema[0];
+                                if (!idField) idField = schema[0]?.name;
+                                if (!nameField) nameField = schema[1]?.name;
                             }
                         }
+
+                        window["DataSourceIDField_" + columnName]   = idField || "ID";
+                        window["DataSourceNameField_" + columnName] = nameField || "Name";
+
+                        const data = window[dataSourceKey];
+
+                        // callback trước
+                        if (typeof onSuccessCallback === "function") {
+                            onSuccessCallback(data, json);
+                        }
+
+                        // resolve sau
+                        resolve(data);
+                    },
+                    error: function (err) {
+                        console.error("[loadDataSourceCommon] Failed to load datasource for", columnName, ":", err);
+                        window[loadedKey] = false;
+
+                        if (typeof onSuccessCallback === "function") {
+                            onSuccessCallback([]);
+                        }
+
+                        reject(err);
                     }
-                },
-                error: function(err) {
-                    console.error("[loadDataSourceCommon] Failed to load datasource for", columnName, ":", err);
-                    window[loadedKey] = false;
-                    if (typeof onSuccessCallback === "function") {
-                        onSuccessCallback([]);
-                    }
-                }
+                });
             });
         }
+    
+            
+        if (!document.getElementById("hpa-central-styles")) {
+            $("<style>")
+                .attr("id", "hpa-central-styles")
+                .text(`
+                    /* --- Base Styles --- */
+                    .dx-widget { font-size:inherit!important; font-weight:inherit!important; line-height:inherit!important; border-radius:inherit!important; }
+                    .dx-texteditor, .dx-texteditor-input { font-size:inherit!important; font-weight:inherit!important; line-height:inherit!important; box-sizing:border-box!important; }
+                    
+                    /* --- Responsive & Popup Styles --- */
+                    .hpa-responsive { max-width: 98vw !important; max-height: 98vh !important; }
+                    .hpa-responsive .dx-popup-content { padding: 8px !important; display: flex !important; flex-direction: column !important; }
+                    .hpa-responsive .dx-popup-content-scrollable { flex: 1 !important; min-height: 0 !important; overflow: auto !important; }
+                    
+                    /* --- Grid Customizations --- */
+                    .dx-datagrid-headers { white-space: normal; word-break: break-word; }
+                    .dx-datagrid-header-panel { padding: 8px; }
+                    .dx-datagrid .dx-row > td { padding: 8px !important; vertical-align: middle !important; }
+                    .dx-datagrid-rowsview .dx-row > td > div { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.4 !important; }
+                    
+                    /* --- Search Styles --- */
+                    .dx-datagrid-search-panel .dx-placeholder { display: none !important; }
+                    .dx-datagrid-search-panel input:not(:placeholder-shown) { color: #000 !important; }
+                    
+                    /* --- Avatar & Chip Styles --- */
+                    .hpa-avatar-group { display: flex; alignItems: center; }
+                    .hpa-avatar { border: 2px solid #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.1); object-fit: cover; }
+                `)
+                .appendTo("head");
+        }
+    
+        window.hpaUtils = window.hpaUtils || {
+            removeToneMarks: function(str) {
+                if (!str) return "";
+                return RemoveToneMarks_Js(str);
+            },
+            highlightText: function(text, search) {
+                if (!search || !text) return text;
+                const regex = new RegExp("(" + search.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + ")", "gi");
+                return text.replace(regex, "<mark class=\"bg-warning fw-bold px-1 rounded\">$1</mark>");
+            },
+            getInitials: function(name) {
+                if (!name) return "?";
+                const words = name.trim().split(/\s+/);
+                if (words.length >= 2) return (words[0][0] + words[words.length - 1][0]).toUpperCase();
+                return name.substring(0, 2).toUpperCase();
+            },
+            getColorForId: function(id) {
+                const colors = [
+                    { bg: "#e3f2fd", text: "#1976d2" },
+                    { bg: "#f3e5f5", text: "#7b1fa2" },
+                    { bg: "#e8f5e9", text: "#388e3c" },
+                    { bg: "#fff3e0", text: "#f57c00" },
+                    { bg: "#fce4ec", text: "#c2185b" }
+                ];
+                return colors[Math.abs(id) % colors.length];
+            },
+            loadAvatar: function(employeeId, storeImgName, paramImg, callbackFn) {
+                window.GlobalEmployeeAvatarCache = window.GlobalEmployeeAvatarCache || {};
+                window.GlobalEmployeeAvatarLoading = window.GlobalEmployeeAvatarLoading || {};
+                
+                const idStr = String(employeeId);
+                if (window.GlobalEmployeeAvatarCache[idStr]) {
+                    if (callbackFn) callbackFn(window.GlobalEmployeeAvatarCache[idStr]);
+                    return window.GlobalEmployeeAvatarCache[idStr];
+                }
 
-        '
+                if (window.GlobalEmployeeAvatarLoading[idStr]) {
+                    if (callbackFn) {
+                        window.GlobalEmployeeAvatarLoading[idStr].callbacks = window.GlobalEmployeeAvatarLoading[idStr].callbacks || [];
+                        window.GlobalEmployeeAvatarLoading[idStr].callbacks.push(callbackFn);
+                    }
+                    return null;
+                }
+
+                if (!storeImgName) return null;
+
+                window.GlobalEmployeeAvatarLoading[idStr] = { loading: true, callbacks: callbackFn ? [callbackFn] : [] };
+
+                let paramArray = [];
+                if (paramImg) {
+                    try { paramArray = JSON.parse(decodeURIComponent(paramImg)); } catch (e) { paramArray = []; }
+                }
+
+                AjaxHPAParadise({
+                    data: { name: storeImgName, param: paramArray },
+                    xhrFields: { responseType: "blob" },
+                    cache: true,
+                    success: function (blob) {
+                        const callbacks = window.GlobalEmployeeAvatarLoading[idStr]?.callbacks || [];
+                        delete window.GlobalEmployeeAvatarLoading[idStr];
+                        if (blob && blob.size > 0) {
+                            const url = URL.createObjectURL(blob);
+                            window.GlobalEmployeeAvatarCache[idStr] = url;
+                            callbacks.forEach(cb => { try { cb(url); } catch (e) {} });
+                        } else {
+                            callbacks.forEach(cb => { try { cb(null); } catch (e) {} });
+                        }
+                    },
+                    error: function () {
+                        const callbacks = window.GlobalEmployeeAvatarLoading[idStr]?.callbacks || [];
+                        delete window.GlobalEmployeeAvatarLoading[idStr];
+                        callbacks.forEach(cb => { try { cb(null); } catch (e) {} });
+                    }
+                });
+                return null;
+            }
+        };
+
+        window.ValidationEngine = window.ValidationEngine || {
+            getRequiredMessage: function(displayName) {
+                return "không được để trống " + (displayName || "trường này");
+            }
+        };
+    
+            '
         +(select loadUI from tblCommonControlType_Signed where UID = 'PDB2DB35885F14803A9A52961A7871972')
         +(select loadUI from tblCommonControlType_Signed where UID = 'P870C076FA1FD48DDBDEDE2C2435B4DA9')
         +(select loadUI from tblCommonControlType_Signed where UID = 'P777C87EE29F94C29A6EAABD16E31FDDC')
@@ -1206,55 +1481,101 @@ SET @html = N'
         +(select loadUI from tblCommonControlType_Signed where UID = 'P02E6F18645BA47648567B32773A1B7B4')
         +(select loadUI from tblCommonControlType_Signed where UID = 'P27C40759D9C94453AB9B2DFBCD661AE3') +N'
         window.currentRecordID_HeaderID = null; window.currentRecordID_HistoryID = null; window.currentRecordID_TaskID = null;
-        
+            
         // =============== GRID COLUMN CONFIG PERSISTENCE ===============
-        function saveGridColumnConfig(tableName, columns) {
+        function saveGridColumnConfig(gridId, columns) {
+            const menuId = getActiveMenuId();
+            if (!menuId) {
+                console.warn("Không lấy được menuId");
+                return;
+            }
+
+            if (!gridId) {
+                console.warn("gridId không hợp lệ");
+                return;
+            }
+
             const visibleColumns = columns
-                .filter(col => {
-                    return col.visible !== false
-                        && col.dataField
-                        && col.dataField !== "rowIndex"
-                        && typeof col.dataField === "string";
-                })
+                .filter(col =>
+                    col.visible !== false &&
+                    col.dataField &&
+                    col.dataField !== "rowIndex" &&
+                    typeof col.dataField === "string"
+                )
                 .map(col => col.dataField);
 
             const columnOrder = columns
-                .filter(col => {
-                    return col.dataField
-                        && col.dataField !== "rowIndex"
-                        && typeof col.dataField === "string";
-                })
+                .filter(col =>
+                    col.dataField &&
+                    col.dataField !== "rowIndex" &&
+                    typeof col.dataField === "string"
+                )
                 .map(col => col.dataField);
 
             const config = { visibleColumns, columnOrder };
+
+            console.log("[SaveConfig]", {
+                menuId,
+                gridId,
+                config
+            });
 
             AjaxHPAParadise({
                 data: {
                     name: "sp_SaveGridColumnConfig",
                     param: [
                         "LoginID", LoginID,
-                        "TableName", tableName,
+                        "MenuID", menuId,
+                        "GridID", gridId,
                         "ColumnConfigJson", JSON.stringify(config)
                     ]
                 }
             });
         }
 
-        function loadGridColumnConfig(tableName, callback) {
+        function getActiveMenuId() {
+            const activeTab = $(".nav-link.active");
+            const tabId = activeTab.filter("button").attr("id");
+            return tabId ? tabId.split("-").pop() : null;
+        }
+
+        function loadGridColumnConfig(gridId, callback) {
+            const menuId = getActiveMenuId();
+            if (!menuId) {
+                console.warn("Không lấy được menuId");
+                if (typeof callback === "function") callback({});
+                return;
+            }
+
             AjaxHPAParadise({
                 data: {
                     name: "sp_GetGridColumnConfig",
-                    param: ["LoginID", LoginID, "TableName", tableName]
+                    param: [
+                        "LoginID", LoginID,
+                        "MenuID", menuId,
+                        "GridID", gridId
+                    ]
                 },
                 async: false,
-                success: function(res) {
+                success: function (res) {
                     let config = {};
+
                     const json = typeof res === "string" ? JSON.parse(res) : res;
-                    if (json && json.data && json.data[0] && json.data[0][0] && json.data[0][0].ColumnConfigJson) {
+
+                    if (
+                        json &&
+                        json.data &&
+                        json.data[0] &&
+                        json.data[0][0] &&
+                        json.data[0][0].ColumnConfigJson
+                    ) {
                         const raw = json.data[0][0].ColumnConfigJson;
                         config = typeof raw === "string" ? JSON.parse(raw) : raw;
                     }
-                    if (typeof callback === "function") callback(config);
+
+                    if (typeof callback === "function") {
+                        callback(config);
+                    }
                 }
             });
         }
@@ -1264,11 +1585,11 @@ SET @html = N'
             try {
                 const filterValue = gridInstance.getCombinedFilter();
                 const searchValue = gridInstance.option("searchPanel.text") || "";
-                
+
                 // Lấy filter của từng cột
                 const columnFilters = {};
                 const columns = gridInstance.option("columns");
-                
+
                 columns.forEach(col => {
                     if (col.dataField && col.filterValue !== undefined) {
                         columnFilters[col.dataField] = {
@@ -1278,14 +1599,14 @@ SET @html = N'
                         };
                     }
                 });
-                
+
                 const filterState = {
                     combinedFilter: filterValue,
                     searchText: searchValue,
                     columnFilters: columnFilters,
                     timestamp: new Date().getTime()
                 };
-                
+
                 // CHỈ LƯU VÀO LOCALSTORAGE
                 localStorage.setItem("GridFilter_" + tableName + "_" + LoginID, JSON.stringify(filterState));
             } catch(e) {
@@ -1297,13 +1618,13 @@ SET @html = N'
             try {
                 const storageKey = "GridFilter_" + tableName + "_" + LoginID;
                 const savedState = localStorage.getItem(storageKey);
-                
+
                 if (!savedState) {
                     return null;
                 }
-                
+
                 const filterState = JSON.parse(savedState);
-                
+
                 return filterState;
             } catch(e) {
                 console.error("[LoadFilterState] Error:", e);
@@ -1312,22 +1633,23 @@ SET @html = N'
         }
 
         function applyGridFilterState(gridInstance, filterState) {
+
             if (!filterState) return;
-            
+
             try {
                 gridInstance.beginUpdate();
-                
+
                 // 1. Apply search text
                 if (filterState.searchText) {
                     gridInstance.option("searchPanel.text", filterState.searchText);
                 }
-                
+
                 // 2. Apply column filters
                 if (filterState.columnFilters) {
                     Object.keys(filterState.columnFilters).forEach(dataField => {
                         const colFilter = filterState.columnFilters[dataField];
                         const colIndex = gridInstance.columnOption(dataField, "index");
-                        
+
                         if (colIndex !== undefined) {
                             gridInstance.columnOption(dataField, "filterValue", colFilter.filterValue);
                             if (colFilter.filterType) {
@@ -1339,13 +1661,14 @@ SET @html = N'
                         }
                     });
                 }
-                
+
                 // 3. Apply combined filter (fallback)
                 if (filterState.combinedFilter && !filterState.columnFilters) {
                     gridInstance.option("filterValue", filterState.combinedFilter);
                 }
-                
+
                 gridInstance.endUpdate();
+
             } catch(e) {
                 console.error("[ApplyFilterState] Error:", e);
             }
@@ -1423,8 +1746,8 @@ SET @html = N'
                         }
                     } catch (e) {
                         if (typeof callback === "function") {
-                            callback(dataSource);
-                        }
+                     callback(dataSource);
+                 }
                     }
                 },
                 error: function(err) {
@@ -1463,17 +1786,17 @@ SET @html = N'
 
             if (!gridInstance) return;
 
-            let filteredData = allTasks;
+            let filteredData = DataSource;
 
             if (filterType === "todo") {
-                filteredData = allTasks.filter(task => task.Status === 1);
+                filteredData = DataSource.filter(task => task.Status === 1);
             } else if (filterType === "doing") {
-                filteredData = allTasks.filter(task => task.Status === 2);
+                filteredData = DataSource.filter(task => task.Status === 2);
             } else if (filterType === "overdue") {
                 // Filter tasks that are overdue (có deadline < hôm nay và status !== 3 (Done))
                 const today = new Date();
                 today.setHours(0, 0, 0, 0);
-                filteredData = allTasks.filter(task => {
+                filteredData = DataSource.filter(task => {
                     if (task.Status === 3) return false; // Exclude done tasks
                     const deadlineDate = new Date(task.DeadlineDate);
                     return deadlineDate < today;
@@ -1499,40 +1822,6 @@ SET @html = N'
             applyFilter(savedFilter);
         }
 
-        // =============== SEARCH STATE PERSISTENCE ===============
-        function saveSearchState(searchText) {
-            try {
-                localStorage.setItem("MyWork_Search_" + LoginID, searchText);
-                console.log("[SaveSearchState] Saved:", searchText);
-            } catch (e) {
-                console.error("[SaveSearchState] Error:", e);
-            }
-        }
-
-        function loadSearchState() {
-            try {
-                const saved = localStorage.getItem("MyWork_Search_" + LoginID);
-                if (saved) {
-                    console.log("[LoadSearchState] Loaded:", saved);
-                    return saved;
-                }
-            } catch (e) {
-                console.error("[LoadSearchState] Error:", e);
-            }
-            return "";
-        }
-
-        function restoreSearchState() {
-            const gridInstance = InstancegridMyWorkPDB2DB35885F14803A9A52961A7871972;
-            if (!gridInstance) return;
-
-            const savedSearch = loadSearchState();
-            if (savedSearch) {
-                gridInstance.option("searchPanel.text", savedSearch);
-                console.log("[RestoreSearchState] Restored:", savedSearch);
-            }
-        }
-
         function ReloadData() {
             AjaxHPAParadise({
                 data: {
@@ -1546,16 +1835,17 @@ SET @html = N'
                         : (json?.data?.[0] ? [json.data[0]] : []);
 
                     const obj = results.length === 1 ? results[0] : (results[0] || null);
-
-                    
                     const gridInstancegridMyWork = InstancegridMyWorkPDB2DB35885F14803A9A52961A7871972;
                     const gridConfiggridMyWork = window.getGridConfig_gridMyWork(results);
-                    
+
                     loadGridRowOrder(
                         "sp_Task_MyWork_html",
                         results,
                         "TaskID",
                         function(sortedData) {
+                            // Clear search panel khi reload
+                            gridInstancegridMyWork.option("searchPanel.text", "");
+
                             gridInstancegridMyWork.beginUpdate();
                             gridInstancegridMyWork.option("scrolling", {
                                 mode: "standard",
@@ -1567,10 +1857,15 @@ SET @html = N'
                             gridInstancegridMyWork.option("pager.allowedPageSizes", gridConfiggridMyWork.allowedPageSizes);
                             gridInstancegridMyWork.pageIndex(0);
                             gridInstancegridMyWork.option("dataSource", sortedData);
+
                             gridInstancegridMyWork.endUpdate();
-                            
-                            // RESTORE FILTER STATE T? LOCALSTORAGE
+
+                            // RESTORE FILTER STATE T? LOCALSTORAGE (n?u không skip)
                             setTimeout(function() {
+                                if (window._SkipRestoreFilter) {
+                                    window._SkipRestoreFilter = false;
+                                    return;
+                                }
                                 const savedFilter = loadGridFilterState("sp_Task_MyWork_html", gridInstancegridMyWork);
                                 if (savedFilter) {
                                     applyGridFilterState(gridInstancegridMyWork, savedFilter);
@@ -1578,15 +1873,18 @@ SET @html = N'
                             }, 100);
                         }
                     );
-                
+            
                     const gridInstancegridSubtaskAssign = InstancegridSubtaskAssignP870C076FA1FD48DDBDEDE2C2435B4DA9;
                     const gridConfiggridSubtaskAssign = window.getGridConfig_gridSubtaskAssign(results);
-                    
+
                     loadGridRowOrder(
                         "sp_Task_MyWork_html",
                         results,
                         "TaskID",
                         function(sortedData) {
+                            // Clear search panel khi reload
+                            gridInstancegridSubtaskAssign.option("searchPanel.text", "");
+
                             gridInstancegridSubtaskAssign.beginUpdate();
                             gridInstancegridSubtaskAssign.option("scrolling", {
                                 mode: "standard",
@@ -1598,10 +1896,15 @@ SET @html = N'
                             gridInstancegridSubtaskAssign.option("pager.allowedPageSizes", gridConfiggridSubtaskAssign.allowedPageSizes);
                             gridInstancegridSubtaskAssign.pageIndex(0);
                             gridInstancegridSubtaskAssign.option("dataSource", sortedData);
+
                             gridInstancegridSubtaskAssign.endUpdate();
-                            
-                            // RESTORE FILTER STATE T? LOCALSTORAGE
+
+                            // RESTORE FILTER STATE T? LOCALSTORAGE (n?u không skip)
                             setTimeout(function() {
+                                if (window._SkipRestoreFilter) {
+                                    window._SkipRestoreFilter = false;
+                                    return;
+                                }
                                 const savedFilter = loadGridFilterState("sp_Task_MyWork_html", gridInstancegridSubtaskAssign);
                                 if (savedFilter) {
                                     applyGridFilterState(gridInstancegridSubtaskAssign, savedFilter);
@@ -1609,16 +1912,9 @@ SET @html = N'
                             }, 100);
                         }
                     );
-        
+            
                     if (obj) { window.currentRecordID_HeaderID = (obj.HeaderID !== undefined && obj.HeaderID !== null) ? obj.HeaderID : window.currentRecordID_HeaderID; } if (obj) { window.currentRecordID_HistoryID = (obj.HistoryID !== undefined && obj.HistoryID !== null) ? obj.HistoryID : window.currentRecordID_HistoryID; } if (obj) { window.currentRecordID_TaskID = (obj.TaskID !== undefined && obj.TaskID !== null) ? obj.TaskID : window.currentRecordID_TaskID; }
-                        DataSource = results;
-                        allTasks = results;
-                        
-                        // Restore filter và search sau khi set allTasks
-                        setTimeout(function() {
-                            restoreFilterState();
-                            restoreSearchState();
-                        }, 150);
+                    DataSource = results;
                     '
                     +(select loadData from tblCommonControlType_Signed where UID = 'PDB2DB35885F14803A9A52961A7871972')
                     +(select loadData from tblCommonControlType_Signed where UID = 'P870C076FA1FD48DDBDEDE2C2435B4DA9')
@@ -1638,4 +1934,3 @@ SET @html = N'
 SELECT @html AS html;
 END
 GO
-EXEC sp_GenerateHTMLScript_new 'sp_Task_MyWork_html'

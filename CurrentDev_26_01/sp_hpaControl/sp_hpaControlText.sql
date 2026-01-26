@@ -14,6 +14,7 @@ BEGIN
     UPDATE #temptable SET
         loadUI = N'
             let Instance%ColumnName%%UID% = null;
+            if (!$("head").find("#hpa-inherit-font-style").length) $("head").append("<style id=\"hpa-inherit-font-style\">.dx-widget{font-size:inherit!important;font-weight:inherit!important;line-height:inherit!important;border-radius:inherit!important}.dx-texteditor, .dx-texteditor-input{font-size:inherit!important;font-weight:inherit!important;line-height:inherit!important;box-sizing:border-box!important;}</style>");
             Instance%ColumnName%%UID% = $("#%UID%").dxTextBox({
                 value: "",
                 width: "100%",
@@ -34,6 +35,7 @@ BEGIN
     UPDATE #temptable SET
         loadUI = N'
             let Instance%ColumnName%%UID% = null;
+            if (!$("head").find("#hpa-inherit-font-style").length) $("head").append("<style id=\"hpa-inherit-font-style\">.dx-widget{font-size:inherit!important;font-weight:inherit!important;line-height:inherit!important;border-radius:inherit!important}.dx-texteditor, .dx-texteditor-input{font-size:inherit!important;font-weight:inherit!important;line-height:inherit!important;box-sizing:border-box!important;}</style>");
             let $container%ColumnName%%UID% = $("#%UID%");
 
             let %ColumnName%%UID%OriginalValue = "";
@@ -147,7 +149,7 @@ BEGIN
                                             ds = DataSource.filter(item => item["%ColumnIDName%"] === updateData["%ColumnIDName%"]);
                                         } else {
                                             // Trường hợp 2 khóa
-         ds = DataSource.filter(item =>
+                                            ds = DataSource.filter(item =>
                                                item["%ColumnIDName%"] === updateData["%ColumnIDName%"] &&
                                                 item[id2FieldName] === updateData[id2FieldName]
                                             );
@@ -163,7 +165,7 @@ BEGIN
                             }
 
 
-        %ColumnName%%UID%OriginalValue = newVal;
+                    %ColumnName%%UID%OriginalValue = newVal;
                     if ("%IsAlert%" === "1") {
                         uiManager.showAlert({ type: "success", message: "Lưu thành công" });
                     }
@@ -233,7 +235,7 @@ BEGIN
                         }
 
                         // Validate nếu field bắt buộc
-                 if (%IsRequired% === 1) {
+                        if (%IsRequired% === 1) {
                             if (!currentValue || currentValue.trim() === "") {
                                 const errorMsg = window.ValidationEngine && window.ValidationEngine.getRequiredMessage
                                     ? window.ValidationEngine.getRequiredMessage("%DisplayName%")
@@ -249,7 +251,7 @@ BEGIN
                         %ColumnName%%UID%RealInstance.option("value", currentValue);
                         saveValue%ColumnName%%UID%();
                     },
-      onKeyDown: function(e) {
+                    onKeyDown: function(e) {
                         if (e.event.key === "Enter") {
                             e.event.preventDefault();
 
@@ -312,7 +314,7 @@ BEGIN
                             }
                         }
                     } else {
-               return %ColumnName%%UID%RealInstance.option(name);
+                        return %ColumnName%%UID%RealInstance.option(name);
                     }
                 },
                 repaint: function() {
@@ -338,6 +340,7 @@ BEGIN
     UPDATE #temptable SET
         loadUI = N'
             let Instance%ColumnName%%UID% = null;
+            if (!$("head").find("#hpa-inherit-font-style").length) $("head").append("<style id=\"hpa-inherit-font-style\">.dx-widget{font-size:inherit!important;font-weight:inherit!important;line-height:inherit!important;border-radius:inherit!important}.dx-texteditor, .dx-texteditor-input{font-size:inherit!important;font-weight:inherit!important;line-height:inherit!important;box-sizing:border-box!important;}</style>");
             let $container%ColumnName%%UID% = $("#%UID%");
 
             let _autoSave%ColumnName%%UID% = false;
@@ -393,7 +396,7 @@ BEGIN
                             }, 50);
                             console.log("Required");
                             return;
-    }
+                        }
                     }
 
                     hideValidationError%ColumnName%%UID%();
@@ -418,7 +421,7 @@ BEGIN
                         }
 
                         const idValsJSON = JSON.stringify([currentRecordIDValue, currentRecordID]);
-          console.log(dataJSON);
+                        console.log(dataJSON);
                         console.log(idValsJSON);
                         const json = await saveFunction(dataJSON, idValsJSON);
 
@@ -548,7 +551,7 @@ BEGIN
                             if (!currentValue || currentValue.trim() === "") {
                                 const errorMsg = window.ValidationEngine && window.ValidationEngine.getRequiredMessage
                                     ? window.ValidationEngine.getRequiredMessage("%DisplayName%")
-                                 : "%DisplayName% là bắt buộc";
+                                    : "%DisplayName% là bắt buộc";
 
                                 showValidationError%ColumnName%%UID%(errorMsg);
                                 return;
@@ -628,7 +631,7 @@ BEGIN
                                 this.__cellInfo.component
                             ) {
                                 try {
-    this.__cellInfo.setValue(val);
+                                    this.__cellInfo.setValue(val);
                                 } catch (e) {
                                     console.warn("[hpaControlText] Grid sync skipped", e);
                                 }

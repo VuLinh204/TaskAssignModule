@@ -1,24 +1,25 @@
 USE Paradise_Dev
 GO
-if object_id('[dbo].[sp_hpaControlNumber]') is null
-	EXEC ('CREATE PROCEDURE [dbo].[sp_hpaControlNumber] as select 1')
+if object_id('[dbo].[sp_hpaControlDate]') is null
+	EXEC ('CREATE PROCEDURE [dbo].[sp_hpaControlDate] as select 1')
 GO
 
-ALTER PROCEDURE [dbo].[sp_hpaControlNumber]
+ALTER PROCEDURE [dbo].[sp_hpaControlDate]
     @TableName VARCHAR(256) = ''
 AS
 BEGIN
     -- =========================================================================
-    -- hpaControlNumber - AUTOSAVE MODE
+    -- hpaControlDate - AUTOSAVE MODE
     -- =========================================================================
     UPDATE #temptable SET loadUI = N'
-        let Instance%ColumnName%%UID% = null; 
+        let Instance%ColumnName%%UID% = null;
         let %ColumnName%TimeOut;
 
-        async function NumberBoxSaveLogic() {
+        async function DateboxSaveLogic() {
             let val = Instance%ColumnName%%UID%.option("value");
-            const dataJSON = JSON.stringify(["%tableId%", ["%ColumnName%"], [val]]);
-            
+            let valToSave = val ? DevExpress.localization.formatDate(new Date(val), "yyyy/MM/dd") : null;
+            const dataJSON = JSON.stringify(["%tableId%", ["%ColumnName%"], [valToSave]]);
+
             // Context-aware record IDs
             let id1 = currentRecordID_%ColumnIDName%;
             if (typeof cellInfo !== "undefined" && cellInfo && cellInfo.data) {
@@ -27,84 +28,88 @@ BEGIN
             let currentRecordIDValue = [id1];
             let currentRecordID = ["%ColumnIDName%"];
 
-            // Xử lý multiple IDs nếu ColumnIDName chứa dấu phẩy
-            if ("%ColumnIDName%".includes(",")) {
-                const ids = "%ColumnIDName%".split(",").map(id => id.trim());
-                ids.forEach(id => {
-                    let idVal = window["currentRecordID_" + id];
-                    if (typeof cellInfo !== "undefined" && cellInfo && cellInfo.data && cellInfo.data[id] !== undefined) {
-                        idVal = cellInfo.data[id] || idVal;
-                    }
-                    currentRecordIDValue.push(idVal);
-                });
-                currentRecordID = "%ColumnIDName%".split(",").map(id => id.trim());
+            if ("%ColumnIDName2%" && "%ColumnIDName2%".trim() !== "") {
+                let id2 = currentRecordID_%ColumnIDName2%;
+                if (typeof cellInfo !== "undefined" && cellInfo && cellInfo.data) {
+                    id2 = cellInfo.data["%ColumnIDName2%"] || id2;
+                }
+                currentRecordIDValue.push(id2);
+                currentRecordID.push("%ColumnIDName2%");
             }
 
             const idValsJSON = JSON.stringify([currentRecordIDValue, currentRecordID]);
             const json = await saveFunction(dataJSON, idValsJSON);
-            
             const dtError = json.data[json.data.length - 1] || [];
+
             if (dtError.length > 0 && dtError[0].Status === "ERROR") {
                 uiManager.showAlert({ type: "error", message: dtError[0]?.Message || "Lưu thất bại" });
             }
-            
+
             if (typeof cellInfo !== "undefined" && cellInfo && cellInfo.component) {
                 try {
                     const grid = cellInfo.component;
                     grid.cellValue(cellInfo.rowIndex, "%ColumnName%", val);
                     grid.repaint();
                 } catch (syncErr) {
-                    console.warn("[Grid Sync] NumberBox %ColumnName%%UID%: Không thể sync grid:", syncErr);
+                    console.warn("[Grid Sync] DateBox %ColumnName%%UID%: Không thể sync grid:", syncErr);
                 }
             }
         }
 
-        Instance%ColumnName%%UID% = $("#%UID%").dxNumberBox({
-            format: "#,##0",
-            showSpinButtons: false,
+        Instance%ColumnName%%UID% = $("#%UID%").dxDateBox({
+            type: "date",
+            displayFormat: "dd/MM/yyyy",
+            useMaskBehavior: true,
+            openOnFieldClick: true,
             showClearButton: false,
+            dateSerializationFormat: "yyyy-MM-dd",
             width: "100%",
-            elementAttr: { class: "hpa-dx-numberbox-inline" },
+            elementAttr: { class: "hpa-dx-datebox-inline" },
             onValueChanged: async (e) => {
                 clearTimeout(%ColumnName%TimeOut);
-                e.event && await NumberBoxSaveLogic();
+                e.event && await DateboxSaveLogic();
             },
             onKeyUp: (e) => {
                 clearTimeout(%ColumnName%TimeOut);
-                %ColumnName%TimeOut = setTimeout(async () => NumberBoxSaveLogic(), 1000);
+                %ColumnName%TimeOut = setTimeout(async () => DateboxSaveLogic(), 1000);
             }
-        }).dxNumberBox("instance");
+        }).dxDateBox("instance");
     '
-    WHERE [Type] = 'hpaControlNumber' AND AutoSave = 1;
+    WHERE [Type] = 'hpaControlDate' AND AutoSave = 1;
 
     -- =========================================================================
-    -- hpaControlNumber - READONLY MODE
+    -- hpaControlDate - READONLY MODE
     -- =========================================================================
     UPDATE #temptable SET loadUI = N'
-        Instance%ColumnName%%UID% = $("#%UID%").dxNumberBox({
-            format: "#,##0",
-            showSpinButtons: false,
+        let Instance%ColumnName%%UID% = null;
+        Instance%ColumnName%%UID% = $("#%UID%").dxDateBox({
+            type: "date",
+            displayFormat: "dd/MM/yyyy",
+            useMaskBehavior: true,
+            openOnFieldClick: true,
             showClearButton: false,
+            dateSerializationFormat: "yyyy-MM-dd",
             width: "100%",
-            elementAttr: { class: "hpa-dx-numberbox-inline" },
+            elementAttr: { class: "hpa-dx-datebox-inline" },
             readOnly: true
-        }).dxNumberBox("instance");
+        }).dxDateBox("instance");
     '
-    WHERE [Type] = 'hpaControlNumber' AND ReadOnly = 1;
+    WHERE [Type] = 'hpaControlDate' AND ReadOnly = 1;
 
     -- =========================================================================
-    -- hpaControlNumber - NON-AUTOSAVE MODE
+    -- hpaControlDate - NON-AUTOSAVE MODE
     -- =========================================================================
     UPDATE #temptable SET loadUI = N'
-        let Instance%ColumnName%%UID% = null; 
+        let Instance%ColumnName%%UID% = null;
         let %ColumnName%TimeOut;
         let _autoSave%ColumnName%%UID% = false;
         let _readOnly%ColumnName%%UID% = false;
 
-        async function NumberBoxSaveLogic%ColumnName%() {
+        async function DateboxSaveLogic%ColumnName%() {
             let val = Instance%ColumnName%%UID%.option("value");
-            const dataJSON = JSON.stringify(["%tableId%", ["%ColumnName%"], [val]]);
-            
+            let valToSave = val ? DevExpress.localization.formatDate(new Date(val), "yyyy/MM/dd") : null;
+            const dataJSON = JSON.stringify(["%tableId%", ["%ColumnName%"], [valToSave]]);
+
             // Context-aware record IDs
             let id1 = currentRecordID_%ColumnIDName%;
             if (typeof cellInfo !== "undefined" && cellInfo && cellInfo.data) {
@@ -113,17 +118,25 @@ BEGIN
             let currentRecordIDValue = [id1];
             let currentRecordID = ["%ColumnIDName%"];
 
-            // Xử lý multiple IDs nếu ColumnIDName chứa dấu phẩy
-            if ("%ColumnIDName%".includes(",")) {
-                const ids = "%ColumnIDName%".split(",").map(id => id.trim());
-                ids.forEach(id => {
-                    let idVal = window["currentRecordID_" + id];
-                    if (typeof cellInfo !== "undefined" && cellInfo && cellInfo.data && cellInfo.data[id] !== undefined) {
-                        idVal = cellInfo.data[id] || idVal;
+            if ("%ColumnIDName2%" && "%ColumnIDName2%".trim() !== "") {
+                let id2 = currentRecordID_%ColumnIDName2%;
+                if (typeof cellInfo !== "undefined" && cellInfo && cellInfo.data) {
+                    id2 = cellInfo.data["%ColumnIDName2%"] || id2;
+                }
+                currentRecordIDValue.push(id2);
+                currentRecordID.push("%ColumnIDName2%");
+            }
+
+            const idValsJSON = JSON.stringify([currentRecordIDValue, currentRecordID]);
+
+            try {
+                const json = await saveFunction(dataJSON, idValsJSON);
+                const dtError = json.data[json.data.length - 1] || [];
+                if (dtError.length > 0 && dtError[0].Status === "ERROR") {
+                    if ("%IsAlert%" === "1") {
+                        uiManager.showAlert({ type: "error", message: dtError[0]?.Message || "Lưu thất bại" });
                     }
-                    currentRecordIDValue.push(idVal);
-                });
-                currentRecordID = "%ColumnIDName%".split(",").map(id => id.trim());
+                } else {
                     if ("%IsAlert%" === "1") {
                         uiManager.showAlert({ type: "success", message: "Lưu thành công" });
                     }
@@ -135,25 +148,29 @@ BEGIN
                         grid.cellValue(cellInfo.rowIndex, "%ColumnName%", val);
                         grid.repaint();
                     } catch (syncErr) {
-                        console.warn("[Grid Sync] NumberBox %ColumnName%%UID%: Error", syncErr);
+                        console.warn("[Grid Sync] DateBox %ColumnName%%UID%: Error", syncErr);
                     }
                 }
             } catch (err) {
-                console.error("NumberBox Save Error:", err);
+                console.error("DateBox Save Error:", err);
             }
         }
 
-        Instance%ColumnName%%UID% = $("#%UID%").dxNumberBox({
-            format: "#,##0",
-            showSpinButtons: false,
+        Instance%ColumnName%%UID% = $("#%UID%").dxDateBox({
+            value: new Date(),
+            type: "date",
+            displayFormat: "dd/MM/yyyy",
+            useMaskBehavior: true,
+            openOnFieldClick: true,
             showClearButton: false,
+            dateSerializationFormat: "yyyy-MM-dd",
             width: "100%",
-            elementAttr: { class: "hpa-dx-numberbox-inline" },
+            elementAttr: { class: "hpa-dx-datebox-inline" },
             readOnly: _readOnly%ColumnName%%UID%,
             onValueChanged: async (e) => {
                 if (_autoSave%ColumnName%%UID%) {
                     clearTimeout(%ColumnName%TimeOut);
-                    e.event && await NumberBoxSaveLogic%ColumnName%();
+                    e.event && await DateboxSaveLogic%ColumnName%();
                 } else {
                     if (typeof cellInfo !== "undefined" && cellInfo && cellInfo.component) {
                         const grid = cellInfo.component;
@@ -164,11 +181,11 @@ BEGIN
             onKeyUp: (e) => {
                 if (_autoSave%ColumnName%%UID%) {
                     clearTimeout(%ColumnName%TimeOut);
-                    %ColumnName%TimeOut = setTimeout(async () => NumberBoxSaveLogic%ColumnName%(), 1000);
+                    %ColumnName%TimeOut = setTimeout(async () => DateboxSaveLogic%ColumnName%(), 1000);
                 }
             }
-        }).dxNumberBox("instance");
+        }).dxDateBox("instance");
     '
-    WHERE [Type] = 'hpaControlNumber' AND (AutoSave = 0 OR AutoSave IS NULL) AND (ReadOnly = 0 OR ReadOnly IS NULL);
+    WHERE [Type] = 'hpaControlDate' AND (AutoSave = 0 OR AutoSave IS NULL) AND (ReadOnly = 0 OR ReadOnly IS NULL);
 END
 GO
