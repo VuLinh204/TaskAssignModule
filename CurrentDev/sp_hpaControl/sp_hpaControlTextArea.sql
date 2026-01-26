@@ -196,7 +196,7 @@ BEGIN
                                         if (currentRecordIDValue.length > 1 && currentRecordIDValue[1] !== undefined) {
                                             updateData[id2FieldName] = currentRecordIDValue[1];
                                         }
- }
+                                    }
 
                                     // Thực hiện update shared grid
                                     window.updateSharedGridRow("%GridColumnName%", updateData);
@@ -615,7 +615,7 @@ BEGIN
                                         if (currentRecordIDValue.length > 1 && currentRecordIDValue[1] !== undefined) {
                                             updateData[id2FieldName] = currentRecordIDValue[1];
                                         }
- }
+                                    }
 
                                     // Thực hiện update shared grid
                                     window.updateSharedGridRow("%GridColumnName%", updateData);
@@ -765,7 +765,7 @@ BEGIN
                     if (e.event.key === "Enter" && e.event.ctrlKey) {
                         e.event.preventDefault();
                         const $ta = $container%ColumnName%%UID%.find("textarea");
-         const currentValue = $ta.val().trim();
+                        const currentValue = $ta.val().trim();
 
                         if (%IsRequired% === 1) {
                             if (!currentValue || currentValue.trim() === "") {
