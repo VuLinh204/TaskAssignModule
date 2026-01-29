@@ -22,7 +22,7 @@ SET @html = N'
             display: flex;
             background: #fdfdfd;
             border-radius: 10px;
-            padding: 2px;
+            padding: 2px 5px;
             gap: 2px;
             border: 1px solid #e9ecef;
             box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.03);
@@ -560,7 +560,7 @@ SET @html = N'
                 // --- DATABASE DATA (State) ---
                 let projects_Linh = [];
                 let employees_Linh = [];
-                let tasks_Linh = [];
+                let tasks = [];
                 let positions_Linh = [];
                 let tags_Linh = [];
                 let taskProcesses_Linh = [];
@@ -576,12 +576,11 @@ SET @html = N'
                             const data = (typeof res === "string" ? JSON.parse(res) : res).data?.[0]?.[0] || {};
                             projects_Linh = typeof data.Projects === "string" ? JSON.parse(data.Projects) : (data.Projects || []);
                             employees_Linh = typeof data.Employees === "string" ? JSON.parse(data.Employees) : (data.Employees || []);
-                            tasks_Linh = typeof data.Tasks === "string" ? JSON.parse(data.Tasks) : (data.Tasks || []);
+                            tasks = typeof data.Tasks === "string" ? JSON.parse(data.Tasks) : (data.Tasks || []);
                             positions_Linh = typeof data.Positions === "string" ? JSON.parse(data.Positions) : (data.Positions || []);
                             tags_Linh = typeof data.Tags === "string" ? JSON.parse(data.Tags) : (data.Tags || []);
                             taskProcesses_Linh = typeof data.Processes === "string" ? JSON.parse(data.Processes) : (data.Processes || []);
                             comments_Linh = typeof data.Comments === "string" ? JSON.parse(data.Comments) : (data.Comments || []);
-                            
                             if (callback) callback();
                             else render();
                         }
@@ -637,7 +636,7 @@ SET @html = N'
                     }
                 };
 
-                const hasSubtasks = (taskId) => tasks_Linh.some((t) => t.ParentTaskID === taskId);
+                const hasSubtasks = (taskId) => tasks.some((t) => t.ParentTaskID === taskId);
 
                 function formatDate(dateString) {
                     const date = new Date(dateString);
@@ -675,10 +674,10 @@ SET @html = N'
                     }
 
                     if (context.type === "task") {
-                        const task = tasks_Linh.find((t) => t.TaskID === context.id);
+                        const task = tasks.find((t) => t.TaskID === context.id);
                         if (!task) return;
                         viewTitleEl.textContent = task.TaskName;
-                        const itemsToRender = tasks_Linh.filter((t) => t.ParentTaskID === context.id);
+                        const itemsToRender = tasks.filter((t) => t.ParentTaskID === context.id);
 
                         switch (currentViewMode) {
                             case "list":
@@ -728,7 +727,7 @@ SET @html = N'
 
                         let name = item.type === "project"
                             ? projects_Linh.find((p) => p.ProjectID === item.id)?.ProjectName
-                            : tasks_Linh.find((t) => t.TaskID === item.id)?.TaskName;
+                            : tasks.find((t) => t.TaskID === item.id)?.TaskName;
 
                         const crumb = document.createElement("span");
                         crumb.className = "cursor-pointer text-decoration-underline";
@@ -964,7 +963,7 @@ SET @html = N'
                 }
 
                 function createProjectCard(project) {
-                    const taskCount = tasks_Linh.filter((t) => t.ProjectID === project.ProjectID && !t.ParentTaskID).length;
+                    const taskCount = tasks.filter((t) => t.ProjectID === project.ProjectID && !t.ParentTaskID).length;
                     const card = document.createElement("div");
                     card.className = "card project-card h-100 border";
                     card.dataset.projectId = project.ProjectID;
@@ -990,7 +989,7 @@ SET @html = N'
 
                 // --- PROJECT DETAIL PAGE ---
                 function renderProjectDetail(project) {
-                    const projectTasks = tasks_Linh.filter((t) => t.ProjectID === project.ProjectID && t.ParentTaskID === null);
+                    const projectTasks = tasks.filter((t) => t.ProjectID === project.ProjectID && (t.ParentTaskID === null || t.ParentTaskID === undefined || t.ParentTaskID === 0));
                     const detailHtml = `
                             <div class="mb-4">
                                 <div class="card border mb-3">
@@ -1085,64 +1084,91 @@ SET @html = N'
 
                 function renderListView(tasksToRender, targetEl = viewContainerEl) {
                     let listHtml = `
-                            <div class="table-responsive">
-                                <table class="table table-hover">
-                                    <thead>
-                                        <tr>
-                                            <th>Task Name</th>
-                                            <th>Assignee</th>
-                                            <th>Due Date</th>
-                                            <th>Priority</th>
-                                            <th style="width: 150px;">Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="list-container"></tbody>
-                                </table>
-                            </div>
-                        `;
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Task Name</th>
+                                    <th>Assignee</th>
+                                    <th>Due Date</th>
+                                    <th>Priority</th>
+                                    <th style="width: 150px;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="list-container"></tbody>
+                        </table>
+                    </div>
+                    `;
+                    
                     targetEl.innerHTML = listHtml;
                     const listContainerEl = targetEl.querySelector("#list-container");
-
+                    
                     if (tasksToRender.length === 0) {
-                        listContainerEl.innerHTML = `<tr><td colspan="5" class="text-center text-muted">No tasks to display.</td></tr>`;
+                        listContainerEl.innerHTML = `
+                            <tr>
+                                <td colspan="5" class="text-center py-5">
+                                    <div class="mb-3">
+                                        <i class="bi bi-check2-square" style="font-size: 3rem; color: #dee2e6;"></i>
+                                    </div>
+                                    <p class="text-muted mb-3">No tasks to display</p>
+                                    <button id="add-task-btn-empty" class="btn btn-success">
+                                        <i class="bi bi-plus-lg"></i> Add Task
+                                    </button>
+                                </td>
+                            </tr>
+                        `;
+                        
+                        // Thêm event listener cho nút Add Task
+                        const addTaskBtn = document.getElementById("add-task-btn-empty");
+                        if (addTaskBtn) {
+                            addTaskBtn.addEventListener("click", () => {
+                                const context = navigationStack[navigationStack.length - 1];
+                                if (context && context.type === "project") {
+                                    openCreateTaskModal();
+                                } else if (context && context.type === "task") {
+                                    openCreateTaskModal({ parentTaskId: context.id });
+                                }
+                            });
+                        }
+                        
                         return;
                     }
-
+                    
                     tasksToRender.forEach((task) => {
                         const row = document.createElement("tr");
                         row.className = "cursor-pointer";
                         const subtaskIcon = hasSubtasks(task.TaskID) ? `<i class="bi bi-diagram-3 me-2"></i>` : "";
-                        const subtaskCount = tasks_Linh.filter((t) => t.ParentTaskID === task.TaskID).length;
+                        const subtaskCount = tasks.filter((t) => t.ParentTaskID === task.TaskID).length;
                         const hasSubtasksFlag = subtaskCount > 0;
-
                         row.innerHTML = `
-                                <td class="fw-semibold">${subtaskIcon}${task.TaskName}</td>
-                                <td class="text-muted">${findEmployee(task.AssigneeID).FullName}</td>
-                                <td class="text-muted">${task.DueDate || "N/A"}</td>
-                                <td><span class="badge ${getPriorityClass(task.Priority)}">${task.Priority}</span></td>
-                                <td>
-                                    <div class="d-flex gap-2">
-                                        ${hasSubtasksFlag ? `
-                                            <button class="view-subtasks-card-btn" data-task-id="${task.TaskID}" title="View ${subtaskCount} subtask${subtaskCount > 1 ? "s" : ""}">
-                                                <i class="bi bi-diagram-3"></i>
-                                                <span>${subtaskCount}</span>
-                                            </button>
-                                        ` : ""}
-                                        <button class="view-details-card-btn" data-task-id="${task.TaskID}" title="View details">
-                                            <i class="bi bi-eye"></i>
+                            <td class="fw-semibold">${subtaskIcon}${task.TaskName}</td>
+                            <td class="text-muted">${findEmployee(task.AssigneeID).FullName}</td>
+                            <td class="text-muted">${task.DueDate || "N/A"}</td>
+                            <td><span class="badge ${getPriorityClass(task.Priority)}">${task.Priority}</span></td>
+                            <td>
+                                <div class="d-flex gap-2">
+                                    ${hasSubtasksFlag ? `
+                                        <button class="view-subtasks-card-btn" data-task-id="${task.TaskID}" title="View ${subtaskCount} subtask${subtaskCount > 1 ? "s" : ""}">
+                                            <i class="bi bi-diagram-3"></i>
+                                            <span>${subtaskCount}</span>
                                         </button>
-                                    </div>
-                                </td>
-                            `;
+                                    ` : ""}
+                                    <button class="view-details-card-btn" data-task-id="${task.TaskID}" title="View details">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        `;
+                        
                         // Click on row (not buttons) opens details
                         row.addEventListener("click", (e) => {
                             if (!e.target.closest("button")) {
                                 openTaskModal(task.TaskID);
                             }
                         });
-
+                        
                         listContainerEl.appendChild(row);
-
+                        
                         // View subtasks button click
                         const subtasksBtn = row.querySelector(".view-subtasks-card-btn");
                         if (subtasksBtn) {
@@ -1152,7 +1178,7 @@ SET @html = N'
                                 render();
                             });
                         }
-
+                        
                         // View details button click
                         const detailsBtn = row.querySelector(".view-details-card-btn");
                         if (detailsBtn) {
@@ -1272,7 +1298,7 @@ SET @html = N'
                     card.dataset.taskId = task.TaskID;
                     card.draggable = true;
 
-                    const subtaskCount = tasks_Linh.filter((t) => t.ParentTaskID === task.TaskID).length;
+                    const subtaskCount = tasks.filter((t) => t.ParentTaskID === task.TaskID).length;
                     const hasSubtasksFlag = subtaskCount > 0;
 
                     card.innerHTML = `
@@ -1340,7 +1366,7 @@ SET @html = N'
                 window.showAssigneeDropdown = showAssigneeDropdown;
 
                 function openTaskModal(taskId) {
-                    const task = tasks_Linh.find((t) => t.TaskID === taskId);
+                    const task = tasks.find((t) => t.TaskID === taskId);
                     if (!task) return;
 
                     currentEditingTaskId = taskId;
@@ -1349,7 +1375,7 @@ SET @html = N'
                     const modalHeader = taskModalEl.querySelector(".modal-header");
                     modalHeader.className = "modal-header task-modal-header d-flex flex-column gap-3";
 
-                    const parentTask = task.ParentTaskID ? tasks_Linh.find(t => t.TaskID === task.ParentTaskID) : null;
+                    const parentTask = task.ParentTaskID ? tasks.find(t => t.TaskID === task.ParentTaskID) : null;
                     const parentLinkHtml = parentTask ? `
                         <a href="#" class="parent-link-badge mb-2" onclick="event.preventDefault(); openTaskModal(${parentTask.TaskID})">
                             <i class="bi bi-arrow-up-circle"></i> Parent: ${parentTask.TaskName}
@@ -1374,8 +1400,7 @@ SET @html = N'
                         </div>
                         <div class="status-steps w-100">
                             ${KANBAN_STATUSES.map(status => `
-                                <button class="status-step ${task.Status === status ? "active" : ""} ${KANBAN_STATUSES.indexOf(task.Status) > KANBAN_STATUSES.indexOf(status) ? "completed" : ""}" 
-                                        onclick="changeTaskStatus(${taskId}, "${status}")">
+                                <button class="status-step ${task.Status === status ? ''active'' : ''''} ${KANBAN_STATUSES.indexOf(task.Status) > KANBAN_STATUSES.indexOf(status) ? ''completed'' : ''''}" onclick="changeTaskStatus(${taskId}, ''${status}'')">
                                     ${status}
                                 </button>
                             `).join("")}
@@ -1396,7 +1421,7 @@ SET @html = N'
                                 </li>
                                 <li class="nav-item">
                                     <button class="nav-link" id="subtasks-tab" data-bs-toggle="tab" data-bs-target="#subtasks-pane" type="button" role="tab">
-                                        Subtasks <span class="badge bg-secondary-subtle text-secondary rounded-pill ms-1">${tasks_Linh.filter(t => t.ParentTaskID === taskId).length}</span>
+                                        Subtasks <span class="badge bg-secondary-subtle text-secondary rounded-pill ms-1">${tasks.filter(t => t.ParentTaskID === taskId).length}</span>
                                     </button>
                                 </li>
                             </ul>
@@ -1467,13 +1492,40 @@ SET @html = N'
 
                 function changeTaskStatus(taskId, newStatus) {
                     AjaxHPAParadise({
-                        data: { name: "sp_Task_UpdateStatus", param: ["TaskID", taskId, "NewStatus", newStatus, "LoginID", LoginID] },
+                        data: {
+                            name: "sp_Task_UpdateStatus",
+                            param: ["TaskID", taskId, "NewStatus", newStatus, "LoginID", LoginID]
+                        },
                         success: (res) => {
-                            if (typeof uiManager !== "undefined") uiManager.showAlert({ type: "success", message: "Cập nhật trạng thái thành công" });
-                            ReloadData();
+                            const data = (typeof res === "string" ? JSON.parse(res) : res).data?.[0]?.[0] || {};
+                            if (data.Status !== "SUCCESS") return;
+
+                            const task = tasks.find(t => t.TaskID == taskId);
+                            if (task) task.Status = newStatus;
+
+                            if (typeof uiManager !== "undefined") {
+                                uiManager.showAlert({ type: "success", message: "Cập nhật trạng thái thành công" });
+                            }
+
+                            const modal = document.getElementById("task-modal");
+                            if (modal?.classList.contains("show") && currentEditingTaskId === taskId) {
+                                const statusStepsContainer = modal.querySelector(".status-steps");
+                                if (statusStepsContainer) {
+                                    const buttons = statusStepsContainer.querySelectorAll(".status-step");
+                                    buttons.forEach((button, index) => {
+                                        button.classList.remove("active", "completed");
+                                        if (newStatus === KANBAN_STATUSES[index]) {
+                                            button.classList.add("active");
+                                        }
+                                        if (KANBAN_STATUSES.indexOf(newStatus) > index) {
+                                            button.classList.add("completed");
+                                        }
+                                    });
+                                }
+                            }
                         }
                     });
-                };
+                }
 
                 function addComment(taskId, text, isSystem = false) {
                     if (!text.trim()) return;
@@ -1581,7 +1633,7 @@ SET @html = N'
                 }
 
                 function renderSubtasksHtml(taskId) {
-                    const subtasks = tasks_Linh.filter(t => t.ParentTaskID === taskId);
+                    const subtasks = tasks.filter(t => t.ParentTaskID === taskId);
                     
                     let html = `
                         <div class="d-flex justify-content-between align-items-center mb-2 px-3">
@@ -1679,7 +1731,7 @@ SET @html = N'
                             e.stopPropagation();
                             const fieldName = this.dataset.field;
                             const taskId = parseInt(this.dataset.taskId || currentEditingTaskId);
-                            const task = tasks_Linh.find((t) => t.TaskID === taskId);
+                            const task = tasks.find((t) => t.TaskID === taskId);
 
                             if (!task) return;
 
@@ -1894,7 +1946,7 @@ SET @html = N'
 
                     if (editTaskId) {
                         createModalTitleEl.textContent = "Edit Task";
-                        const task = tasks_Linh.find((t) => t.TaskID === editTaskId);
+                        const task = tasks.find((t) => t.TaskID === editTaskId);
                         document.getElementById("create-task-name").value = task.TaskName;
                         document.getElementById("create-task-desc").value = task.Description;
                         assigneeSelect.value = task.AssigneeID;
@@ -2002,7 +2054,7 @@ SET @html = N'
                             e.preventDefault();
                             column.classList.remove("drag-over");
                             const newStatus = column.dataset.status;
-                            const task = tasks_Linh.find((t) => t.TaskID === draggedTaskId);
+                            const task = tasks.find((t) => t.TaskID === draggedTaskId);
                             if (task && task.Status !== newStatus) {
                                 const oldStatus = task.Status;
                                 task.Status = newStatus;
@@ -2036,6 +2088,7 @@ SET @html = N'
                 fetchData(() => {
                     // If no projects exist, open add project modal
                     if (projects_Linh.length === 0) openAddProjectModal();
+                    else render();
                 });
             })();
         </script>
