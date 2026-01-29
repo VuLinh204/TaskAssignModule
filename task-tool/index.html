@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="vi">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+        <title>Task Assignment Tool | Quản lý & Giao việc</title>
+
+        <!-- Favicon -->
+        <link
+            rel="icon"
+            href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>✅</text></svg>"
+        />
+
+        <!-- DevExtreme CSS -->
+        <link rel="stylesheet" href="https://cdn3.devexpress.com/jslib/23.2.3/css/dx.light.css" />
+
+        <!-- Custom CSS -->
+        <link rel="stylesheet" href="css/style.css" />
+    </head>
+
+    <body>
+        <!-- ============================================
+         APP CONTAINER
+         ============================================ -->
+        <div class="app-container">
+            <!-- Header -->
+            <div class="app-header">
+                <h1>📋 Task Assignment Tool</h1>
+                <p>Hệ thống quản lý và giao việc nội bộ doanh nghiệp</p>
+            </div>
+
+            <!-- Statistics Cards -->
+            <div id="statsContainer" class="stats-container">
+                <!-- Stats sẽ được render bằng JavaScript -->
+            </div>
+
+            <!-- Toolbar -->
+            <div class="toolbar">
+                <div class="toolbar-left">
+                    <!-- Filters -->
+                    <div id="departmentFilter"></div>
+                    <div id="statusFilter"></div>
+                    <div id="priorityFilter"></div>
+                    <div id="assigneeFilter"></div>
+                    <div id="clearFiltersBtn"></div>
+                </div>
+
+                <div class="toolbar-right">
+                    <!-- Actions -->
+                    <div id="manageDepartmentsBtn"></div>
+                    <div id="manageUsersBtn"></div>
+                    <div id="refreshBtn"></div>
+                    <div id="createTaskBtn"></div>
+                </div>
+            </div>
+
+            <!-- Data Grid -->
+            <div class="table-container">
+                <div id="taskGrid"></div>
+            </div>
+        </div>
+
+        <!-- ============================================
+         POPUPS
+         ============================================ -->
+
+        <!-- Create Task Popup -->
+        <div id="createTaskPopup"></div>
+
+        <!-- Task Detail Popup -->
+        <div id="taskDetailPopup">
+            <div id="taskDetailContent"></div>
+        </div>
+
+        <!-- ============================================
+         SCRIPTS
+         ============================================ -->
+
+        <!-- jQuery (required by DevExtreme) -->
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+        <!-- DevExtreme -->
+        <script src="https://cdn3.devexpress.com/jslib/23.2.3/js/dx.all.js"></script>
+
+        <!-- App Scripts -->
+        <script src="js/data.js"></script>
+        <script src="js/task.service.clean.js"></script>
+        <script src="js/task.ui.js"></script>
+        <script src="js/app.js"></script>
+
+        <!-- ============================================
+         FOOTER INFO (Optional)
+         ============================================ -->
+        <div style="text-align: center; padding: 20px; color: #999; font-size: 12px">
+            <p>
+                <strong>Keyboard Shortcuts:</strong>
+                Ctrl/Cmd + N = Tạo task mới | F5 = Refresh
+            </p>
+            <p>Task Assignment Tool v1.0 | Built with DevExtreme | © 2026 Internal Tool</p>
+        </div>
+    </body>
+</html>

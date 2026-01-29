@@ -1,0 +1,1782 @@
+USE Paradise_Dev
+GO
+if object_id('[dbo].[sp_Task_MyWork_html]') is null
+	EXEC ('CREATE PROCEDURE [dbo].[sp_Task_MyWork_html] as select 1')
+GO
+ALTER PROCEDURE [dbo].[sp_Task_MyWork_html]
+@LoginID    INT = 3,
+@LanguageID VARCHAR(2) = 'VN',
+@isWeb      INT = 1
+AS
+BEGIN
+SET NOCOUNT ON;
+DECLARE @html NVARCHAR(MAX);
+SET @html = N'
+    <script src="https://cdn.tailwindcss.com"></script>
+    <div id="sp_Task_MyWork_html">
+        <!-- index.css -->
+        <style>
+            /* Custom scrollbar styling */
+            ::-webkit-scrollbar {
+                width: 8px;
+                height: 8px;
+            }
+
+            ::-webkit-scrollbar-track {
+                background: #1e293b;
+            }
+
+            ::-webkit-scrollbar-thumb {
+                background: #475569;
+                border-radius: 4px;
+            }
+
+            ::-webkit-scrollbar-thumb:hover {
+                background: #64748b;
+            }
+
+            /* Task card drag effects */
+            .task-card.dragging {
+                opacity: 0.5;
+                transform: rotate(3deg);
+            }
+
+            .kanban-column.drag-over {
+                background-color: #1e293b;
+            }
+
+            /* View button active state */
+            .view-btn.active {
+                background-color: #2e7d32;
+                color: white;
+            }
+
+            /* Floating label styles */
+            .floating-label-group {
+                position: relative;
+            }
+
+            .floating-label {
+                position: absolute;
+                pointer-events: none;
+                left: 12px;
+                top: 50%;
+                transform: translateY(-50%);
+                transition: all 0.2s ease-in-out;
+                padding: 0 4px;
+            }
+
+            .floating-input:focus ~ .floating-label,
+            .floating-input:not(:placeholder-shown) ~ .floating-label {
+                top: 0;
+                font-size: 0.75rem;
+                color: #2e7d32;
+            }
+
+            /* Custom animations */
+            @keyframes fadeIn {
+                from {
+                    opacity: 0;
+                    transform: translateY(-10px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+
+            .task-card {
+                animation: fadeIn 0.3s ease-out;
+            }
+
+            /* Inline editing styles */
+            .editable-field {
+                cursor: pointer;
+                transition: background-color 0.2s;
+                border-radius: 4px;
+                padding: 2px 4px;
+            }
+
+            .editable-field:hover {
+                background-color: rgba(100, 116, 139, 0.2);
+            }
+
+            .editing {
+                background-color: rgba(34, 211, 238, 0.1);
+                outline: 2px solid rgba(34, 211, 238, 0.5);
+            }
+
+            /* Activity timeline */
+            .activity-item::before {
+                content: "";
+                position: absolute;
+                left: 7px;
+                top: 24px;
+                bottom: -12px;
+                width: 2px;
+                background: #475569;
+            }
+
+            .activity-item:last-child::before {
+                display: none;
+            }
+
+            /* Task navigation buttons */
+            .task-nav-btn {
+                transition: all 0.2s;
+            }
+
+            .task-nav-btn:hover {
+                background-color: rgba(34, 211, 238, 0.1);
+                transform: translateY(-1px);
+            }
+
+            /* Responsive Kanban columns */
+            @media (max-width: 768px) {
+                #kanban-board {
+                    grid-auto-flow: row;
+                }
+
+                .kanban-column {
+                    min-height: 40vh;
+                }
+            }
+
+            /* Print styles */
+            @media print {
+                aside,
+                #view-switcher,
+                button {
+                    display: none !important;
+                }
+            }
+        </style>
+        <div class="bg-body text-body flex flex-col h-screen overflow-hidden">
+            <div class="flex flex-grow overflow-hidden">
+                <!-- Main Content Area -->
+                <main class="flex-grow p-4 md:p-6 flex flex-col overflow-hidden">
+                    <div id="main-header" class="flex-shrink-0 mb-4">
+                        <div id="breadcrumb" class="flex items-center text-sm text-body mb-2 min-h-[20px]"></div>
+                        <div class="flex justify-between items-center">
+                            <h2 id="view-title" class="text-2xl font-bold  truncate">Projects</h2>
+                            <div id="view-switcher" class="flex items-center space-x-2 bg-slate-300/50 p-1 rounded-md">
+                                <!-- View switcher buttons will be inserted here -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="view-container" class="flex-grow overflow-auto">
+                        <!-- Active view will be rendered here -->
+                    </div>
+                </main>
+            </div>
+
+            <!-- Task Details Modal -->
+            <div id="task-modal" class="fixed inset-0 bg-black bg-opacity-70 hidden items-center justify-center z-50">
+                <div class="bg-body rounded-lg shadow-xl w-full max-w-4xl border border-slate-700 max-h-[90vh] flex flex-col">
+                    <div class="p-4 border-b border-slate-700">
+                        <div class="flex justify-between items-center mb-2">
+                            <h3 id="modal-task-name" class="text-xl font-bold text-cyan-400 editable-field" data-field="TaskName">Task Details</h3>
+                            <div class="flex items-center space-x-2">
+                                <button id="delete-task-btn" class="text-body hover:text-red-500 p-1 rounded-full hover:bg-body">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                        <path
+                                            fill-rule="evenodd"
+                                            d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
+                                            clip-rule="evenodd"
+                                        />
+                                    </svg>
+                                </button>
+                                <button id="modal-close-btn" class="text-body hover: text-2xl">&times;</button>
+                            </div>
+                        </div>
+                        <!-- Quick Navigation Bar -->
+                        <div id="task-nav-bar" class="flex items-center space-x-2 text-sm"></div>
+                    </div>
+                    <div id="modal-content" class="p-6 overflow-y-auto flex-grow"></div>
+                </div>
+            </div>
+
+            <!-- Create/Edit Task Modal -->
+            <div id="create-task-modal" class="fixed inset-0 bg-black bg-opacity-70 hidden items-center justify-center z-50">
+                <form id="create-task-form" class="bg-body rounded-lg shadow-xl w-full max-w-lg border border-slate-700">
+                    <div class="p-4 border-b border-slate-700 flex justify-between items-center">
+                        <h3 id="create-modal-title" class="text-xl font-bold text-cyan-400">Create New Task</h3>
+                        <button type="button" id="create-modal-close-btn" class="text-body hover: text-2xl">&times;</button>
+                    </div>
+                    <div class="p-6 space-y-6">
+                        <div class="floating-label-group">
+                            <input
+                                type="text"
+                                id="create-task-name"
+                                placeholder=" "
+                                required
+                                class="floating-input mt-1 block w-full bg-body/50 border border-slate-600 rounded-md shadow-sm py-2 px-3  focus:outline-none focus:ring-1 focus:ring-cyan-500 focus:border-cyan-500"
+                            />
+                            <label for="create-task-name" class="floating-label">Task Name</label>
+                        </div>
+                        <div class="floating-label-group">
+                            <textarea
+                                id="create-task-desc"
+                                rows="3"
+                                placeholder=" "
+                                class="floating-input mt-1 block w-full bg-body/50 border border-slate-600 rounded-md shadow-sm py-2 px-3  focus:outline-none focus:ring-1 focus:ring-cyan-500 focus:border-cyan-500"
+                            ></textarea>
+                            <label for="create-task-desc" class="floating-label">Description</label>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <select
+                                id="create-task-assignee"
+                                class="mt-1 block w-full bg-body/50 border border-slate-600 rounded-md shadow-sm py-2 px-3  focus:outline-none focus:ring-1 focus:ring-cyan-500 focus:border-cyan-500"
+                            ></select>
+                            <select
+                                id="create-task-priority"
+                                class="mt-1 block w-full bg-body/50 border border-slate-600 rounded-md shadow-sm py-2 px-3  focus:outline-none focus:ring-1 focus:ring-cyan-500 focus:border-cyan-500"
+                            >
+                                <option>Low</option>
+                                <option>Medium</option>
+                                <option>High</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="bg-body/50 px-6 py-3 text-right rounded-b-lg">
+                        <button type="submit" class="bg-cyan-500 hover:bg-cyan-600  font-bold py-2 px-4 rounded transition-colors">Save Task</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Add Project Modal -->
+            <div id="add-project-modal" class="fixed inset-0 bg-black bg-opacity-70 hidden items-center justify-center z-50">
+                <form id="add-project-form" class="bg-body rounded-lg shadow-xl w-full max-w-md border border-slate-700">
+                    <div class="p-4 border-b border-slate-700 flex justify-between items-center">
+                        <h3 class="text-xl font-bold text-cyan-400">Add New Project</h3>
+                        <button type="button" id="add-project-close-btn" class="text-body hover: text-2xl">&times;</button>
+                    </div>
+                    <div class="p-6">
+                        <div class="floating-label-group">
+                            <input
+                                type="text"
+                                id="add-project-name"
+                                placeholder=" "
+                                required
+                                class="floating-input mt-1 block w-full bg-body/50 border border-slate-600 rounded-md shadow-sm py-2 px-3  focus:outline-none focus:ring-1 focus:ring-cyan-500 focus:border-cyan-500"
+                            />
+                            <label for="add-project-name" class="floating-label">Project Name</label>
+                        </div>
+                    </div>
+                    <div class="bg-body/50 px-6 py-3 text-right rounded-b-lg">
+                        <button type="submit" class="bg-cyan-500 hover:bg-cyan-600  font-bold py-2 px-4 rounded transition-colors">Create Project</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- data.js -->
+        <script>
+            (function() {
+                "use strict";
+                // Mock Data Simulation
+                const positions_Linh = [
+                    { PositionID: 1, PositionName: "Project Manager" },
+                    { PositionID: 2, PositionName: "Software Engineer" },
+                    { PositionID: 3, PositionName: "QA Engineer" },
+                    { PositionID: 4, PositionName: "UI/UX Designer" },
+                ];
+
+                const employees_Linh = [
+                    { EmployeeID: 1, EmployeeName: "Alice", PositionID: 1, Email: "alice@example.com", IsActive: true },
+                    { EmployeeID: 2, EmployeeName: "Bob", PositionID: 2, Email: "bob@example.com", IsActive: true },
+                    { EmployeeID: 3, EmployeeName: "Charlie", PositionID: 2, Email: "charlie@example.com", IsActive: true },
+                    { EmployeeID: 4, EmployeeName: "Diana", PositionID: 3, Email: "diana@example.com", IsActive: true },
+                    { EmployeeID: 5, EmployeeName: "Ethan", PositionID: 4, Email: "ethan@example.com", IsActive: true },
+                ];
+
+                let nextProjectId = 4;
+                const projects_Linh = [
+                    {
+                        ProjectID: 1,
+                        ProjectName: "Phoenix Project",
+                        Description: "A major overhaul of the legacy system.",
+                        OwnerID: 1,
+                        StartDate: "2024-01-01",
+                        EndDate: "2024-12-31",
+                        Status: "In Progress",
+                        Priority: "High",
+                    },
+                    {
+                        ProjectID: 2,
+                        ProjectName: "Mobile App Launch",
+                        Description: "Develop and launch the new mobile application.",
+                        OwnerID: 1,
+                        StartDate: "2024-03-01",
+                        EndDate: "2024-09-30",
+                        Status: "On Track",
+                        Priority: "High",
+                    },
+                    {
+                        ProjectID: 3,
+                        ProjectName: "Marketing Website",
+                        Description: "Redesign the company marketing website.",
+                        OwnerID: 1,
+                        StartDate: "2024-05-01",
+                        EndDate: "2024-08-01",
+                        Status: "Completed",
+                        Priority: "Medium",
+                    },
+                ];
+
+                const tags_Linh = [
+                    { TagID: 1, TagName: "Bug", Color: "#ef4444" },
+                    { TagID: 2, TagName: "Feature", Color: "#3b82f6" },
+                    { TagID: 3, TagName: "UI", Color: "#a855f7" },
+                    { TagID: 4, TagName: "Backend", Color: "#f97316" },
+                ];
+
+                let nextTaskId = 1;
+                const tasks_Linh = [
+                    // Project 1
+                    {
+                        TaskID: 1,
+                        ProjectID: 1,
+                        TaskName: "Setup project repository",
+                        Description: "Initialize Git repo and CI/CD pipeline.",
+                        AssigneeID: 2,
+                        CreatedBy: 1,
+                        ParentTaskID: null,
+                        StartDate: "2024-01-05",
+                        DueDate: "2024-01-15",
+                        Status: "Done",
+                        Priority: "High",
+                    },
+                    {
+                        TaskID: 2,
+                        ProjectID: 1,
+                        TaskName: "Design architecture",
+                        Description: "Finalize the database schema and microservices plan.",
+                        AssigneeID: 3,
+                        CreatedBy: 1,
+                        ParentTaskID: null,
+                        StartDate: "2024-01-16",
+                        DueDate: "2024-02-01",
+                        Status: "Done",
+                        Priority: "High",
+                    },
+                    {
+                        TaskID: 3,
+                        ProjectID: 1,
+                        TaskName: "Develop authentication service",
+                        Description: "Implement JWT-based authentication.",
+                        AssigneeID: 2,
+                        CreatedBy: 1,
+                        ParentTaskID: null,
+                        StartDate: "2024-02-02",
+                        DueDate: "2024-03-10",
+                        Status: "In Progress",
+                        Priority: "High",
+                    },
+                    // Subtasks for Task 3
+                    {
+                        TaskID: 4,
+                        ProjectID: 1,
+                        TaskName: "Implement login endpoint",
+                        Description: "",
+                        AssigneeID: 2,
+                        CreatedBy: 1,
+                        ParentTaskID: 3,
+                        StartDate: "2024-02-05",
+                        DueDate: "2024-02-15",
+                        Status: "Done",
+                        Priority: "High",
+                    },
+                    {
+                        TaskID: 5,
+                        ProjectID: 1,
+                        TaskName: "Implement registration endpoint",
+                        Description: "",
+                        AssigneeID: 3,
+                        CreatedBy: 1,
+                        ParentTaskID: 3,
+                        StartDate: "2024-02-16",
+                        DueDate: "2024-02-25",
+                        Status: "In Progress",
+                        Priority: "High",
+                    },
+                    {
+                        TaskID: 6,
+                        ProjectID: 1,
+                        TaskName: "Add password hashing",
+                        Description: "",
+                        AssigneeID: 3,
+                        CreatedBy: 1,
+                        ParentTaskID: 5,
+                        StartDate: "2024-02-18",
+                        DueDate: "2024-02-22",
+                        Status: "To Do",
+                        Priority: "High",
+                    },
+
+                    {
+                        TaskID: 7,
+                        ProjectID: 1,
+                        TaskName: "Create UI mockups for dashboard",
+                        Description: "Use Figma to design the main dashboard view.",
+                        AssigneeID: 5,
+                        CreatedBy: 1,
+                        ParentTaskID: null,
+                        StartDate: "2024-02-10",
+                        DueDate: "2024-02-28",
+                        Status: "In Progress",
+                        Priority: "Medium",
+                    },
+                    {
+                        TaskID: 8,
+                        ProjectID: 1,
+                        TaskName: "QA & Testing",
+                        Description: "Write unit tests and E2E tests.",
+                        AssigneeID: 4,
+                        CreatedBy: 1,
+                        ParentTaskID: null,
+                        StartDate: "2024-03-01",
+                        DueDate: "2024-04-01",
+                        Status: "To Do",
+                        Priority: "Medium",
+                    },
+
+                    // Project 2
+                    {
+                        TaskID: 9,
+                        ProjectID: 2,
+                        TaskName: "Market research for new app",
+                        Description: "Analyze competitor apps and user demographics.",
+                        AssigneeID: 1,
+                        CreatedBy: 1,
+                        ParentTaskID: null,
+                        StartDate: "2024-03-05",
+                        DueDate: "2024-03-15",
+                        Status: "Done",
+                        Priority: "High",
+                    },
+                    {
+                        TaskID: 10,
+                        ProjectID: 2,
+                        TaskName: "Develop Core Features",
+                        Description: "Implement the initial loading screen for iOS and Android.",
+                        AssigneeID: 5,
+                        CreatedBy: 1,
+                        ParentTaskID: null,
+                        StartDate: "2024-03-20",
+                        DueDate: "2024-05-01",
+                        Status: "In Progress",
+                        Priority: "Medium",
+                    },
+                    {
+                        TaskID: 11,
+                        ProjectID: 2,
+                        TaskName: "API for user profiles",
+                        Description: "Build REST endpoints for creating and updating user profiles.",
+                        AssigneeID: 3,
+                        CreatedBy: 1,
+                        ParentTaskID: 10,
+                        StartDate: "2024-04-01",
+                        DueDate: "2024-04-30",
+                        Status: "To Do",
+                        Priority: "High",
+                    },
+                ];
+                // Reset nextTaskId to be higher than the max ID in the static list
+                nextTaskId = 12;
+
+                const taskTags_Linh = [
+                    { TaskID: 3, TagID: 4 },
+                    { TaskID: 7, TagID: 3 },
+                    { TaskID: 8, TagID: 2 },
+                    { TaskID: 6, TagID: 4 },
+                    { TaskID: 11, TagID: 4 },
+                ];
+
+                let nextProcessId = 4;
+                const taskProcesses_Linh = [
+                    { ProcessID: 1, TaskID: 1, OldStatus: "To Do", NewStatus: "In Progress", ChangedBy: 2, ChangedDate: "2024-01-10T10:00:00Z" },
+                    { ProcessID: 2, TaskID: 1, OldStatus: "In Progress", NewStatus: "Done", ChangedBy: 2, ChangedDate: "2024-01-12T15:30:00Z" },
+                    { ProcessID: 3, TaskID: 3, OldStatus: "To Do", NewStatus: "In Progress", ChangedBy: 1, ChangedDate: "2024-02-05T09:00:00Z" },
+                ];
+
+                let nextCommentId = 3;
+                const comments_Linh = [
+                    { CommentID: 1, TaskID: 3, UserID: 1, Comment: "We need to prioritize security features for this task.", CreatedDate: "2024-02-03T14:30:00Z" },
+                    { CommentID: 2, TaskID: 3, UserID: 2, Comment: "I will start working on the JWT implementation today.", CreatedDate: "2024-02-04T09:15:00Z" },
+                ];
+
+                function getNextTaskId() {
+                    return nextTaskId++;
+                }
+
+                function getNextProcessId() {
+                    return nextProcessId++;
+                }
+
+                function getNextProjectId() {
+                    return nextProjectId++;
+                }
+
+                function getNextCommentId() {
+                    return nextCommentId++;
+                }
+                
+                // --- STATE MANAGEMENT ---
+                let navigationStack = []; // e.g., [{ type: "project", id: 1 }, { type: "task", id: 3 }]
+                let currentViewMode = "kanban"; // "kanban", "list", "chart"
+                let draggedTaskId = null;
+                const KANBAN_STATUSES = ["To Do", "In Progress", "Testing", "Done"];
+                const PRIORITY_OPTIONS = ["Low", "Medium", "High"];
+                let currentEditingTaskId = null;
+
+                // --- DOM ELEMENT REFERENCES ---
+                const viewTitleEl = document.getElementById("view-title");
+                const breadcrumbEl = document.getElementById("breadcrumb");
+                const viewSwitcherEl = document.getElementById("view-switcher");
+                const viewContainerEl = document.getElementById("view-container");
+
+                // Modals & Buttons
+                const taskModalEl = document.getElementById("task-modal");
+                const modalTaskNameEl = document.getElementById("modal-task-name");
+                const modalContentEl = document.getElementById("modal-content");
+                const modalCloseBtn = document.getElementById("modal-close-btn");
+                const deleteTaskBtn = document.getElementById("delete-task-btn");
+
+                const createTaskModalEl = document.getElementById("create-task-modal");
+                const createTaskForm = document.getElementById("create-task-form");
+                const createModalCloseBtn = document.getElementById("create-modal-close-btn");
+                const createModalTitleEl = document.getElementById("create-modal-title");
+
+                const addProjectModalEl = document.getElementById("add-project-modal");
+                const addProjectForm = document.getElementById("add-project-form");
+                const addProjectCloseBtn = document.getElementById("add-project-close-btn");
+
+                // --- UTILITY FUNCTIONS ---
+                const findEmployee = (id) => employees_Linh.find((e) => e.EmployeeID === id) || { EmployeeName: "Unassigned" };
+                const getPriorityStyles = (priority) => {
+                    switch (priority) {
+                        case "High":
+                            return "bg-red-500/20 text-red-400 border-red-500/30";
+                        case "Medium":
+                            return "bg-yellow-500/20 text-yellow-400 border-yellow-500/30";
+                        case "Low":
+                            return "bg-green-500/20 text-green-400 border-green-500/30";
+                        default:
+                            return "bg-body/20 text-body border-slate-500/30";
+                    }
+                };
+                const hasSubtasks = (taskId) => tasks_Linh.some((t) => t.ParentTaskID === taskId);
+
+                function formatDate(dateString) {
+                    const date = new Date(dateString);
+                    const now = new Date();
+                    const diff = now - date;
+                    const minutes = Math.floor(diff / 60000);
+                    const hours = Math.floor(diff / 3600000);
+                    const days = Math.floor(diff / 86400000);
+
+                    if (minutes < 1) return "Just now";
+                    if (minutes < 60) return `${minutes}m ago`;
+                    if (hours < 24) return `${hours}h ago`;
+                    if (days < 7) return `${days}d ago`;
+                    return date.toLocaleDateString();
+                }
+
+                // --- CORE RENDER FUNCTION ---
+                function render() {
+                    const context = navigationStack[navigationStack.length - 1];
+                    renderBreadcrumb();
+                    renderViewSwitcher();
+
+                    // No context = show all projects_Linh
+                    if (!context) {
+                        viewTitleEl.textContent = "Projects";
+                        renderProjectsView(projects_Linh);
+                        return;
+                    }
+
+                    // Project context = show project detail with tasks_Linh
+                    if (context.type === "project") {
+                        const project = projects_Linh.find((p) => p.ProjectID === context.id);
+                        if (!project) return;
+                        viewTitleEl.textContent = project.ProjectName;
+                        renderProjectDetail(project);
+                        return;
+                    }
+
+                    // Task context = show subtasks
+                    if (context.type === "task") {
+                        const task = tasks_Linh.find((t) => t.TaskID === context.id);
+                        if (!task) return;
+                        viewTitleEl.textContent = task.TaskName;
+                        const itemsToRender = tasks_Linh.filter((t) => t.ParentTaskID === context.id);
+
+                        switch (currentViewMode) {
+                            case "list":
+                                renderListView(itemsToRender);
+                                break;
+                            case "chart":
+                                renderChartView(itemsToRender);
+                                break;
+                            case "kanban":
+                            default:
+                                renderKanbanView(itemsToRender);
+                                break;
+                        }
+                    }
+                }
+
+                // --- BREADCRUMB & VIEW SWITCHER ---
+                function renderBreadcrumb() {
+                    breadcrumbEl.innerHTML = "";
+
+                    // Add "Projects" as first breadcrumb
+                    const projectsCrumb = document.createElement("span");
+                    projectsCrumb.className = "cursor-pointer hover:text-cyan-400";
+                    projectsCrumb.textContent = "Projects";
+                    projectsCrumb.addEventListener("click", () => {
+                        navigationStack = [];
+                        render();
+                    });
+                    breadcrumbEl.appendChild(projectsCrumb);
+
+                    // Add rest of breadcrumbs
+                    navigationStack.forEach((item, index) => {
+                        const separator = document.createElement("span");
+                        separator.className = "mx-2";
+                        separator.textContent = "/";
+                        breadcrumbEl.appendChild(separator);
+
+                        let name =
+                            item.type === "project"
+                                ? projects_Linh.find((p) => p.ProjectID === item.id)?.ProjectName
+                                : tasks_Linh.find((t) => t.TaskID === item.id)?.TaskName;
+
+                        const crumb = document.createElement("span");
+                        crumb.className = "cursor-pointer hover:text-cyan-400";
+                        crumb.textContent = name;
+                        crumb.addEventListener("click", () => {
+                            navigationStack = navigationStack.slice(0, index + 1);
+                            render();
+                        });
+                        breadcrumbEl.appendChild(crumb);
+                    });
+                }
+
+                function renderViewSwitcher() {
+                    viewSwitcherEl.innerHTML = "";
+                    ["kanban", "list", "chart"].forEach((view) => {
+                        const btn = document.createElement("button");
+                        btn.className = `view-btn px-3 py-1 rounded capitalize text-sm font-semibold transition-colors ${currentViewMode === view ? "active" : "hover:bg-body"}`;
+                        btn.textContent = view;
+                        btn.addEventListener("click", () => {
+                            currentViewMode = view;
+                            render();
+                        });
+                        viewSwitcherEl.appendChild(btn);
+                    });
+                }
+
+                // --- PROJECTS VIEW RENDERERS ---
+                function renderProjectsView(projectsToRender) {
+                    // Add "Add Project" button at the top
+                    const headerHtml = `
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-semibold text-body">All Projects (${projectsToRender.length})</h3>
+                            <button id="add-project-btn-inline" class="flex items-center space-x-2 bg-cyan-500 hover:bg-cyan-600  font-bold py-2 px-4 rounded transition-colors">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                </svg>
+                                <span>New Project</span>
+                            </button>
+                        </div>
+                    `;
+
+                    switch (currentViewMode) {
+                        case "list":
+                            viewContainerEl.innerHTML = headerHtml;
+                            const listWrapper = document.createElement("div");
+                            viewContainerEl.appendChild(listWrapper);
+                            renderProjectsList(projectsToRender, listWrapper);
+                            break;
+                        case "chart":
+                            viewContainerEl.innerHTML = headerHtml;
+                            const chartWrapper = document.createElement("div");
+                            viewContainerEl.appendChild(chartWrapper);
+                            renderProjectsChart(projectsToRender, chartWrapper);
+                            break;
+                        case "kanban":
+                        default:
+                            viewContainerEl.innerHTML = headerHtml;
+                            const gridWrapper = document.createElement("div");
+                            viewContainerEl.appendChild(gridWrapper);
+                            renderProjectsGrid(projectsToRender, gridWrapper);
+                            break;
+                    }
+
+                    // Add event listener for inline add project button
+                    const addBtn = document.getElementById("add-project-btn-inline");
+                    if (addBtn) {
+                        addBtn.addEventListener("click", openAddProjectModal);
+                    }
+                }
+
+                function renderProjectsGrid(projectsToRender, targetEl = viewContainerEl) {
+                    let grid = document.createElement("div");
+                    grid.className = "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4";
+
+                    if (projectsToRender.length === 0) {
+                        targetEl.innerHTML += `<p class="text-body text-center py-8">No projects_Linh yet. Create your first project!</p>`;
+                        return;
+                    }
+
+                    projectsToRender.forEach((project) => {
+                        const card = createProjectCard(project);
+                        grid.appendChild(card);
+                    });
+                    targetEl.appendChild(grid);
+                }
+
+                function renderProjectsList(projectsToRender, targetEl = viewContainerEl) {
+                    let listHtml = `
+                        <div class="bg-body/50 rounded-lg">
+                            <div class="grid grid-cols-12 gap-4 p-4 font-bold border-b border-slate-700 text-body text-sm">
+                                <div class="col-span-4">Project Name</div>
+                                <div class="col-span-2">Owner</div>
+                                <div class="col-span-2">Start Date</div>
+                                <div class="col-span-2">End Date</div>
+                                <div class="col-span-1">Status</div>
+                                <div class="col-span-1">Priority</div>
+                            </div>
+                            <div id="project-list-container"></div>
+                        </div>
+                    `;
+                    targetEl.innerHTML = listHtml;
+                    const listContainerEl = targetEl.querySelector("#project-list-container");
+
+                    if (projectsToRender.length === 0) {
+                        listContainerEl.innerHTML = `<p class="p-4 text-body">No projects_Linh to display.</p>`;
+                        return;
+                    }
+
+                    projectsToRender.forEach((project) => {
+                        const row = document.createElement("div");
+                        row.className = "grid grid-cols-12 gap-4 p-4 border-b border-slate-800 items-center hover:bg-body cursor-pointer transition-colors";
+                        row.innerHTML = `
+                            <div class="col-span-4 font-semibold">${project.ProjectName}</div>
+                            <div class="col-span-2 text-sm text-body">${findEmployee(project.OwnerID)?.EmployeeName || "N/A"}</div>
+                            <div class="col-span-2 text-sm text-body">${project.StartDate || "N/A"}</div>
+                            <div class="col-span-2 text-sm text-body">${project.EndDate || "N/A"}</div>
+                            <div class="col-span-1 text-xs"><span class="px-2 py-1 rounded-full bg-body">${project.Status || "N/A"}</span></div>
+                            <div class="col-span-1 text-xs"><span class="px-2 py-1 rounded-full font-semibold ${getPriorityStyles(project.Priority)}">${project.Priority || "N/A"}</span></div>
+                        `;
+                        row.addEventListener("click", () => {
+                            navigationStack = [{ type: "project", id: project.ProjectID }];
+                            render();
+                        });
+                        listContainerEl.appendChild(row);
+                    });
+                }
+
+                function renderProjectsChart(projectsToRender, targetEl = viewContainerEl) {
+                    const startDate =
+                        projectsToRender.length > 0
+                            ? projectsToRender.reduce((min, p) => (new Date(p.StartDate || 0) < min ? new Date(p.StartDate || 0) : min), new Date())
+                            : new Date();
+                    startDate.setDate(startDate.getDate() - 5);
+
+                    const endDate =
+                        projectsToRender.length > 0
+                            ? projectsToRender.reduce((max, p) => (new Date(p.EndDate || 0) > max ? new Date(p.EndDate || 0) : max), new Date(0))
+                            : new Date();
+                    endDate.setDate(endDate.getDate() + 5);
+
+                    const totalDays = Math.max(30, (endDate - startDate) / (1000 * 60 * 60 * 24));
+
+                    let headerHtml = "";
+                    for (let i = 0; i <= totalDays; i++) {
+                        const date = new Date(startDate);
+                        date.setDate(startDate.getDate() + i);
+                        headerHtml += `<div class="text-center text-xs p-1 border-r border-slate-700 flex-shrink-0" style="width: 40px;">${date.getMonth() + 1}/${date.getDate()}</div>`;
+                    }
+
+                    let rowsHtml = "";
+                    projectsToRender.forEach((project) => {
+                        if (!project.StartDate || !project.EndDate) return;
+                        const pStart = new Date(project.StartDate);
+                        const pEnd = new Date(project.EndDate);
+                        const startOffsetDays = Math.max(0, (pStart - startDate) / (1000 * 60 * 60 * 24));
+                        const durationDays = Math.max(1, (pEnd - pStart) / (1000 * 60 * 60 * 24));
+                        const startPercent = (startOffsetDays / totalDays) * 100;
+                        const widthPercent = (durationDays / totalDays) * 100;
+
+                        rowsHtml += `
+                            <div class="flex items-center text-sm p-2 border-b border-slate-800 cursor-pointer hover:bg-body" onclick="navigationStack = [{ type: "project", id: ${project.ProjectID} }]; render();">
+                                <div class="w-48 truncate pr-2">${project.ProjectName}</div>
+                                <div class="flex-grow h-6 bg-body rounded overflow-hidden">
+                                    <div class="h-full bg-cyan-600 rounded hover:bg-cyan-500" style="margin-left: ${startPercent}%; width: ${widthPercent}%;" title="${project.ProjectName} (${project.StartDate} - ${project.EndDate})"></div>
+                                </div>
+                            </div>
+                        `;
+                    });
+
+                    targetEl.innerHTML = `
+                        <div class="overflow-x-auto bg-body/50 rounded-lg">
+                            <div class="min-w-max">
+                                <div class="flex items-center sticky top-0 bg-body">
+                                    <div class="w-48 font-bold p-2 border-b border-slate-700">Project</div>
+                                    <div class="flex flex-grow border-b border-slate-700">${headerHtml}</div>
+                                </div>
+                                ${rowsHtml}
+                            </div>
+                        </div>
+                    `;
+                }
+
+                function createProjectCard(project) {
+                    const taskCount = tasks_Linh.filter((t) => t.ProjectID === project.ProjectID && !t.ParentTaskID).length;
+                    const card = document.createElement("div");
+                    card.className =
+                        "project-card bg-body p-4 rounded-lg shadow-md border border-slate-700 hover:border-cyan-500/50 cursor-pointer transition-all";
+                    card.dataset.projectId = project.ProjectID;
+                    card.innerHTML = `
+                        <div class="flex justify-between items-start mb-3">
+                            <h4 class="font-bold text-lg text-body">${project.ProjectName}</h4>
+                            <span class="text-xs px-2 py-1 rounded-full font-semibold ${getPriorityStyles(project.Priority)}">${project.Priority || "N/A"}</span>
+                        </div>
+                        <p class="text-sm text-body mb-3 line-clamp-2">${project.Description || "No description"}</p>
+                        <div class="flex justify-between items-center text-xs text-body">
+                            <div class="flex items-center space-x-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                </svg>
+                                <span>${taskCount} tasks_Linh</span>
+                            </div>
+                            <span class="px-2 py-1 rounded-full bg-body">${project.Status || "N/A"}</span>
+                        </div>
+                    `;
+                    card.addEventListener("click", () => {
+                        navigationStack = [{ type: "project", id: project.ProjectID }];
+                        render();
+                    });
+                    return card;
+                }
+
+                // --- PROJECT DETAIL PAGE ---
+                function renderProjectDetail(project) {
+                    const projectTasks = tasks_Linh.filter((t) => t.ProjectID === project.ProjectID && t.ParentTaskID === null);
+                    const detailHtml = `
+                        <div class="space-y-4">
+                            <div class="bg-body/50 p-6 rounded-lg border border-slate-700">
+                                <div class="flex justify-between items-start">
+                                    <div class="flex-grow">
+                                        <div class="flex items-center space-x-3 mb-3">
+                                            <h3 class="text-2xl font-bold ">${project.ProjectName}</h3>
+                                            <span class="px-3 py-1 text-sm rounded-full font-semibold ${getPriorityStyles(project.Priority)}">${project.Priority || "N/A"}</span>
+                                        </div>
+                                        <p class="text-body mb-4">${project.Description || "No description provided."}</p>
+                                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                                            <div>
+                                                <span class="text-body block">Owner</span>
+                                                <span class="text-body font-medium">${findEmployee(project.OwnerID).EmployeeName}</span>
+                                            </div>
+                                            <div>
+                                                <span class="text-body block">Start Date</span>
+                                                <span class="text-body font-medium">${project.StartDate || "N/A"}</span>
+                                            </div>
+                                            <div>
+                                                <span class="text-body block">End Date</span>
+                                                <span class="text-body font-medium">${project.EndDate || "N/A"}</span>
+                                            </div>
+                                            <div>
+                                                <span class="text-body block">Status</span>
+                                                <span class="px-2 py-1 text-xs rounded-full bg-body">${project.Status || "N/A"}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <h3 class="text-lg font-semibold text-body">Tasks (${projectTasks.length})</h3>
+                            </div>
+                            <div id="project-tasks_Linh-area"></div>
+                        </div>
+                    `;
+                    viewContainerEl.innerHTML = detailHtml;
+                    const tasksArea = document.getElementById("project-tasks_Linh-area");
+
+                    // Render tasks_Linh inside the project detail according to current view
+                    switch (currentViewMode) {
+                        case "list":
+                            renderListView(projectTasks, tasksArea);
+                            break;
+                        case "chart":
+                            renderChartView(projectTasks, tasksArea);
+                            break;
+                        case "kanban":
+                        default:
+                            renderKanbanView(projectTasks, tasksArea);
+                            break;
+                    }
+                }
+
+                // --- TASK VIEW RENDERERS ---
+                function renderKanbanView(tasksToRender, targetEl = viewContainerEl) {
+                    targetEl.innerHTML = `<div id="kanban-board" class="grid grid-flow-col auto-cols-xs md:auto-cols-sm gap-4 h-full"></div>`;
+                    const kanbanBoardEl = targetEl.querySelector("#kanban-board");
+                    KANBAN_STATUSES.forEach((status) => {
+                        const column = document.createElement("div");
+                        column.className = "kanban-column flex flex-col bg-body/50 rounded-lg p-2 min-h-[50vh]";
+                        column.dataset.status = status;
+                        column.innerHTML = `
+                            <h3 class="font-bold text-body p-2 mb-2 border-b-2 border-slate-700">${status}</h3>
+                            <div class="task-container flex-grow space-y-3 overflow-y-auto p-1"></div>
+                            <button class="quick-add-task-btn p-2 text-body hover: hover:bg-body rounded-md mt-2">+ Add task</button>
+                        `;
+                        kanbanBoardEl.appendChild(column);
+                    });
+                    tasksToRender.forEach((task) => {
+                        const column = kanbanBoardEl.querySelector(`.kanban-column[data-status="${task.Status}"] .task-container`);
+                        if (column) column.appendChild(createTaskCard(task));
+                    });
+                    addDragAndDropListeners();
+                }
+
+                function renderListView(tasksToRender, targetEl = viewContainerEl) {
+                    let listHtml = `
+                        <div class="bg-body/50 rounded-lg">
+                            <div class="grid grid-cols-12 gap-4 p-4 font-bold border-b border-slate-700 text-body text-sm">
+                                <div class="col-span-6">Task Name</div>
+                                <div class="col-span-2">Assignee</div>
+                                <div class="col-span-2">Due Date</div>
+                                <div class="col-span-2">Priority</div>
+                            </div>
+                            <div id="list-container"></div>
+                            <button class="quick-add-task-btn p-3 text-body hover: hover:bg-body rounded-b-md w-full">+ Add task</button>
+                        </div>
+                    `;
+                    targetEl.innerHTML = listHtml;
+                    const listContainerEl = targetEl.querySelector("#list-container");
+
+                    if (tasksToRender.length === 0) {
+                        listContainerEl.innerHTML = `<p class="p-4 text-body">No tasks_Linh to display.</p>`;
+                        return;
+                    }
+
+                    tasksToRender.forEach((task) => {
+                        const row = document.createElement("div");
+                        row.className = "grid grid-cols-12 gap-4 p-4 border-b border-slate-800 items-center hover:bg-body cursor-pointer";
+                        const subtaskIcon = hasSubtasks(task.TaskID)
+                            ? `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-body" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>`
+                            : ``;
+                        row.innerHTML = `
+                            <div class="col-span-6 font-semibold flex items-center">
+                                <div class="subtask-link flex-shrink-0 w-8 h-8 flex items-center justify-center -ml-2 rounded-full hover:bg-body">${subtaskIcon}</div>
+                                <span class="task-link truncate">${task.TaskName}</span>
+                            </div>
+                            <div class="col-span-2 text-sm text-body">${findEmployee(task.AssigneeID).EmployeeName}</div>
+                            <div class="col-span-2 text-sm text-body">${task.DueDate || "N/A"}</div>
+                            <div class="col-span-2"><span class="px-2 py-1 text-xs rounded-full font-semibold ${getPriorityStyles(task.Priority)}">${task.Priority}</span></div>
+                        `;
+                        row.addEventListener("click", (e) => {
+                            if (e.target.closest(".subtask-link") && hasSubtasks(task.TaskID)) {
+                                navigationStack.push({ type: "task", id: task.TaskID });
+                                render();
+                            } else {
+                                openTaskModal(task.TaskID);
+                            }
+                        });
+                        listContainerEl.appendChild(row);
+                    });
+                }
+
+                function renderChartView(tasksToRender, targetEl = viewContainerEl) {
+                    const today = new Date();
+                    const startDate =
+                        tasksToRender.length > 0
+                            ? tasksToRender.reduce((min, t) => (new Date(t.StartDate) < min ? new Date(t.StartDate) : min), new Date())
+                            : new Date();
+                    startDate.setDate(startDate.getDate() - 5);
+
+                    const endDate =
+                        tasksToRender.length > 0
+                            ? tasksToRender.reduce((max, t) => (new Date(t.DueDate) > max ? new Date(t.DueDate) : max), new Date(0))
+                            : new Date();
+                    endDate.setDate(endDate.getDate() + 5);
+
+                    const totalDays = Math.max(30, (endDate - startDate) / (1000 * 60 * 60 * 24));
+
+                    let headerHtml = "";
+                    for (let i = 0; i <= totalDays; i++) {
+                        const date = new Date(startDate);
+                        date.setDate(startDate.getDate() + i);
+                        headerHtml += `<div class="text-center text-xs p-1 border-r border-slate-700 flex-shrink-0" style="width: 40px;">${date.getMonth() + 1}/${date.getDate()}</div>`;
+                    }
+
+                    let rowsHtml = "";
+                    tasksToRender.forEach((task) => {
+                        const taskStart = new Date(task.StartDate);
+                        const taskEnd = new Date(task.DueDate);
+
+                        if (!task.StartDate || !task.DueDate) return;
+
+                        const startOffsetDays = Math.max(0, (taskStart - startDate) / (1000 * 60 * 60 * 24));
+                        const durationDays = Math.max(1, (taskEnd - taskStart) / (1000 * 60 * 60 * 24));
+                        const startPercent = (startOffsetDays / totalDays) * 100;
+                        const widthPercent = (durationDays / totalDays) * 100;
+
+                        rowsHtml += `
+                            <div class="flex items-center text-sm p-2 border-b border-slate-800">
+                                <div class="w-48 truncate pr-2">${task.TaskName}</div>
+                                <div class="flex-grow h-6 bg-body rounded overflow-hidden">
+                                    <div class="h-full bg-cyan-600 rounded hover:bg-cyan-500" style="margin-left: ${startPercent}%; width: ${widthPercent}%;" title="${task.TaskName} (${task.StartDate} - ${task.DueDate})"></div>
+                                </div>
+                            </div>
+                        `;
+                    });
+
+                    targetEl.innerHTML = `
+                        <div class="overflow-x-auto">
+                            <div class="min-w-max">
+                                <div class="flex items-center sticky top-0 bg-body">
+                                    <div class="w-48 font-bold p-2 border-b border-slate-700">Task</div>
+                                    <div class="flex flex-grow border-b border-slate-700">${headerHtml}</div>
+                                </div>
+                                ${rowsHtml}
+                            </div>
+                        </div>
+                    `;
+                }
+
+                // --- TASK CARD & MODALS ---
+                function createTaskCard(task) {
+                    const card = document.createElement("div");
+                    card.className =
+                        "task-card bg-body p-3 rounded-md shadow-md border border-slate-700 hover:border-cyan-500/50 cursor-pointer transition-all";
+                    card.dataset.taskId = task.TaskID;
+                    card.draggable = true;
+                    const subtaskIcon = hasSubtasks(task.TaskID)
+                        ? `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-body" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>`
+                        : "";
+                    card.innerHTML = `<h4 class="font-semibold text-body">${task.TaskName}</h4><div class="flex justify-between items-center mt-3 text-xs"><span class="text-body">${findEmployee(task.AssigneeID).EmployeeName}</span><div class="flex items-center space-x-2"><div class="subtask-indicator" title="View subtasks">${subtaskIcon}</div><span class="px-2 py-1 rounded-full font-semibold ${getPriorityStyles(task.Priority)}">${task.Priority}</span></div></div>`;
+                    card.addEventListener("click", (e) => {
+                        if (e.target.closest(".subtask-indicator") && hasSubtasks(task.TaskID)) {
+                            navigationStack.push({ type: "task", id: task.TaskID });
+                            render();
+                        } else {
+                            openTaskModal(task.TaskID);
+                        }
+                    });
+                    return card;
+                }
+
+                function openTaskModal(taskId) {
+                    const task = tasks_Linh.find((t) => t.TaskID === taskId);
+                    if (!task) return;
+
+                    currentEditingTaskId = taskId;
+
+                    modalTaskNameEl.textContent = task.TaskName;
+                    modalTaskNameEl.dataset.taskId = taskId;
+                    deleteTaskBtn.dataset.taskId = taskId;
+
+                    // Render navigation bar
+                    renderTaskNavigationBar(task);
+
+                    const subtasks = tasks_Linh.filter((t) => t.ParentTaskID === taskId);
+                    const subtasksHtml =
+                        subtasks.length > 0
+                            ? subtasks
+                                    .map(
+                                        (subtask) =>
+                                            `<li class="flex justify-between items-center p-2 rounded-md hover:bg-body/50 cursor-pointer transition-colors" data-task-id="${subtask.TaskID}">
+                                            <span>${subtask.TaskName}</span>
+                                            <div class="flex items-center space-x-2">
+                                                <span class="text-xs px-2 py-1 rounded-full" style="background-color: #47556950;">${subtask.Status}</span>
+                                                <button class="quick-nav-subtask text-body hover:text-cyan-400 p-1" data-task-id="${subtask.TaskID}" title="Open task">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                            </li>`,
+                                    )
+                                    .join("")
+                            : `<li class="text-body">No subtasks.</li>`;
+
+                    // Get activity (processes and comments_Linh combined)
+                    const taskProcessList = taskProcesses_Linh.filter((p) => p.TaskID === taskId);
+                    const taskComments = comments_Linh.filter((c) => c.TaskID === taskId);
+
+                    // Combine and sort by date
+                    const activities = [
+                        ...taskProcessList.map((p) => ({ type: "process", data: p, date: new Date(p.ChangedDate) })),
+                        ...taskComments.map((c) => ({ type: "comment", data: c, date: new Date(c.CreatedDate) })),
+                    ].sort((a, b) => b.date - a.date);
+
+                    const activitiesHtml =
+                        activities.length > 0
+                            ? activities
+                                    .map((activity) => {
+                                        if (activity.type === "process") {
+                                            const p = activity.data;
+                                            const user = findEmployee(p.ChangedBy);
+                                            return `
+                                    <div class="activity-item relative pl-8 pb-4">
+                                        <div class="absolute left-0 top-1 w-4 h-4 rounded-full bg-cyan-500 border-2 border-slate-800"></div>
+                                        <div class="text-sm">
+                                            <span class="font-semibold text-body">${user.EmployeeName}</span>
+                                            <span class="text-body"> changed status from </span>
+                                            <span class="text-yellow-400">${p.OldStatus}</span>
+                                            <span class="text-body"> to </span>
+                                            <span class="text-cyan-400">${p.NewStatus}</span>
+                                        </div>
+                                        <div class="text-xs text-body mt-1">${formatDate(p.ChangedDate)}</div>
+                                    </div>
+                                `;
+                                        } else {
+                                            const c = activity.data;
+                                            const user = findEmployee(c.UserID);
+                                            return `
+                                    <div class="activity-item relative pl-8 pb-4">
+                                        <div class="absolute left-0 top-1 w-4 h-4 rounded-full bg-purple-500 border-2 border-slate-800"></div>
+                                        <div class="text-sm">
+                                            <span class="font-semibold text-body">${user.EmployeeName}</span>
+                                            <span class="text-body"> commented:</span>
+                                        </div>
+                                        <div class="mt-1 text-sm text-body bg-body/30 p-2 rounded">${c.Comment}</div>
+                                        <div class="text-xs text-body mt-1">${formatDate(c.CreatedDate)}</div>
+                                    </div>
+                                `;
+                                        }
+                                    })
+                                    .join("")
+                            : `<p class="text-body text-sm">No activity yet.</p>`;
+
+                    modalContentEl.innerHTML = `
+                        <div class="grid grid-cols-3 gap-6">
+                            <!-- Left column: Details -->
+                            <div class="col-span-2 space-y-6">
+                                <div>
+                                    <label class="text-body text-sm block mb-2">Description</label>
+                                    <p class="text-body editable-field p-2" data-field="Description" data-task-id="${taskId}">${task.Description || "Click to add description..."}</p>
+                                </div>
+                                
+                                <div class="grid grid-cols-2 gap-4 text-sm">
+                                    <div>
+                                        <label class="text-body block mb-1">Status</label>
+                                        <span class="editable-field inline-block text-sm font-bold py-1 px-3 rounded-full bg-body" data-field="Status" data-task-id="${taskId}">${task.Status}</span>
+                                    </div>
+                                    <div>
+                                        <label class="text-body block mb-1">Priority</label>
+                                        <span class="editable-field inline-block px-2 py-1 rounded-full font-semibold ${getPriorityStyles(task.Priority)}" data-field="Priority" data-task-id="${taskId}">${task.Priority}</span>
+                                    </div>
+                                    <div>
+                                        <label class="text-body block mb-1">Assignee</label>
+                                        <span class="editable-field" data-field="AssigneeID" data-task-id="${taskId}">${findEmployee(task.AssigneeID).EmployeeName}</span>
+                                    </div>
+                                    <div>
+                                        <label class="text-body block mb-1">Start Date</label>
+                                        <span class="text-body">${task.StartDate || "Not set"}</span>
+                                    </div>
+                                    <div>
+                                        <label class="text-body block mb-1">Due Date</label>
+                                        <span class="text-body">${task.DueDate || "Not set"}</span>
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <div class="flex justify-between items-center mb-2">
+                                        <h4 class="font-bold text-lg text-body">Subtasks</h4>
+                                        <button id="add-subtask-btn" class="flex items-center space-x-1 text-sm bg-body hover:bg-body px-3 py-1 rounded-md">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
+                                            <span>Add</span>
+                                        </button>
+                                    </div>
+                                    <ul id="modal-subtask-list" class="space-y-1">${subtasksHtml}</ul>
+                                </div>
+                            </div>
+                            
+                            <!-- Right column: Activity & Comments -->
+                            <div class="col-span-1 border-l border-slate-700 pl-6">
+                                <h4 class="font-bold text-lg text-body mb-4">Activity</h4>
+                                
+                                <!-- Add comment form -->
+                                <div class="mb-6">
+                                    <textarea 
+                                        id="new-comment-input" 
+                                        placeholder="Add a comment..." 
+                                        class="w-full bg-body/50 border border-slate-600 rounded-md p-2 text-sm  focus:outline-none focus:ring-1 focus:ring-cyan-500 focus:border-cyan-500"
+                                        rows="3"
+                                    ></textarea>
+                                    <button 
+                                        id="add-comment-btn" 
+                                        class="mt-2 bg-cyan-500 hover:bg-cyan-600  text-sm font-bold py-1 px-3 rounded transition-colors"
+                                    >
+                                        Comment
+                                    </button>
+                                </div>
+                                
+                                <!-- Activity timeline -->
+                                <div class="space-y-2 max-h-96 overflow-y-auto">
+                                    ${activitiesHtml}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+
+                    // Add event listeners
+                    document.getElementById("add-subtask-btn").addEventListener("click", () => openCreateTaskModal({ parentTaskId: taskId }));
+
+                    // Subtask list click handlers
+                    document.getElementById("modal-subtask-list").addEventListener("click", (e) => {
+                        const quickNavBtn = e.target.closest(".quick-nav-subtask");
+                        if (quickNavBtn) {
+                            e.stopPropagation();
+                            const subtaskId = parseInt(quickNavBtn.dataset.taskId);
+                            closeTaskModal();
+                            openTaskModal(subtaskId);
+                            return;
+                        }
+
+                        const targetLi = e.target.closest("li");
+                        if (targetLi && targetLi.dataset.taskId) {
+                            closeTaskModal();
+                            openTaskModal(parseInt(targetLi.dataset.taskId));
+                        }
+                    });
+
+                    document.getElementById("add-comment-btn").addEventListener("click", () => {
+                        const commentInput = document.getElementById("new-comment-input");
+                        const commentText = commentInput.value.trim();
+                        if (commentText) {
+                            const newComment = {
+                                CommentID: getNextCommentId(),
+                                TaskID: taskId,
+                                UserID: 1, // Current user (hardcoded)
+                                Comment: commentText,
+                                CreatedDate: new Date().toISOString(),
+                            };
+                            comments_Linh.push(newComment);
+                            commentInput.value = "";
+                            openTaskModal(taskId); // Refresh modal
+                        }
+                    });
+
+                    // Add inline editing listeners
+                    setupInlineEditing();
+
+                    taskModalEl.classList.remove("hidden");
+                    taskModalEl.classList.add("flex");
+                }
+
+                function renderTaskNavigationBar(task) {
+                    const navBar = document.getElementById("task-nav-bar");
+                    navBar.innerHTML = "";
+
+                    // Parent task button
+                    if (task.ParentTaskID) {
+                        const parentTask = tasks_Linh.find((t) => t.TaskID === task.ParentTaskID);
+                        if (parentTask) {
+                            const parentBtn = document.createElement("button");
+                            parentBtn.className =
+                                "task-nav-btn flex items-center space-x-1 px-3 py-1 rounded-md bg-body/50 hover:bg-body text-body border border-slate-600";
+                            parentBtn.innerHTML = `
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+                                </svg>
+                                <span class="text-xs">Parent: ${parentTask.TaskName}</span>
+                            `;
+                            parentBtn.addEventListener("click", () => {
+                                closeTaskModal();
+                                openTaskModal(parentTask.TaskID);
+                            });
+                            navBar.appendChild(parentBtn);
+                        }
+                    }
+
+                    // Sibling tasks_Linh navigation (tasks_Linh with same parent)
+                    const siblings = tasks_Linh.filter((t) => t.ParentTaskID === task.ParentTaskID && t.TaskID !== task.TaskID && t.ProjectID === task.ProjectID);
+
+                    if (siblings.length > 0) {
+                        const prevSibling = siblings.filter((t) => t.TaskID < task.TaskID).pop();
+                        const nextSibling = siblings.find((t) => t.TaskID > task.TaskID);
+
+                        // Previous sibling button
+                        if (prevSibling) {
+                            const prevBtn = document.createElement("button");
+                            prevBtn.className =
+                                "task-nav-btn flex items-center space-x-1 px-2 py-1 rounded-md bg-body/50 hover:bg-body text-body border border-slate-600";
+                            prevBtn.innerHTML = `
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+                                </svg>
+                            `;
+                            prevBtn.title = `Previous: ${prevSibling.TaskName}`;
+                            prevBtn.addEventListener("click", () => {
+                                closeTaskModal();
+                                openTaskModal(prevSibling.TaskID);
+                            });
+                            navBar.appendChild(prevBtn);
+                        }
+
+                        // Next sibling button
+                        if (nextSibling) {
+                            const nextBtn = document.createElement("button");
+                            nextBtn.className =
+                                "task-nav-btn flex items-center space-x-1 px-2 py-1 rounded-md bg-body/50 hover:bg-body text-body border border-slate-600";
+                            nextBtn.innerHTML = `
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                                </svg>
+                            `;
+                            nextBtn.title = `Next: ${nextSibling.TaskName}`;
+                            nextBtn.addEventListener("click", () => {
+                                closeTaskModal();
+                                openTaskModal(nextSibling.TaskID);
+                            });
+                            navBar.appendChild(nextBtn);
+                        }
+                    }
+
+                    // Subtasks quick access
+                    const subtasks = tasks_Linh.filter((t) => t.ParentTaskID === task.TaskID);
+                    if (subtasks.length > 0) {
+                        const subtasksBtn = document.createElement("button");
+                        subtasksBtn.className =
+                            "task-nav-btn flex items-center space-x-1 px-3 py-1 rounded-md bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/50";
+                        subtasksBtn.innerHTML = `
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                            </svg>
+                            <span class="text-xs">${subtasks.length} Subtask${subtasks.length > 1 ? "s" : ""}</span>
+                        `;
+                        subtasksBtn.addEventListener("click", () => {
+                            // Scroll to subtasks section
+                            const subtaskList = document.getElementById("modal-subtask-list");
+                            if (subtaskList) {
+                                subtaskList.scrollIntoView({ behavior: "smooth", block: "nearest" });
+                            }
+                        });
+                        navBar.appendChild(subtasksBtn);
+                    }
+
+                    // View all tasks_Linh in project
+                    const projectBtn = document.createElement("button");
+                    projectBtn.className =
+                        "task-nav-btn flex items-center space-x-1 px-3 py-1 rounded-md bg-body/50 hover:bg-body text-body border border-slate-600 ml-auto";
+                    projectBtn.innerHTML = `
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+                        </svg>
+                        <span class="text-xs">View All Tasks</span>
+                    `;
+                    projectBtn.addEventListener("click", () => {
+                        closeTaskModal();
+                        navigationStack = [{ type: "project", id: task.ProjectID }];
+                        render();
+                    });
+                    navBar.appendChild(projectBtn);
+                }
+
+                function setupInlineEditing() {
+                    const editableFields = document.querySelectorAll(".editable-field");
+
+                    editableFields.forEach((field) => {
+                        field.addEventListener("click", function (e) {
+                            e.stopPropagation();
+                            const fieldName = this.dataset.field;
+                            const taskId = parseInt(this.dataset.taskId || currentEditingTaskId);
+                            const task = tasks_Linh.find((t) => t.TaskID === taskId);
+
+                            if (!task) return;
+
+                            const currentValue = task[fieldName];
+
+                            // Handle different field types
+                            if (fieldName === "Status") {
+                                showStatusDropdown(this, task);
+                            } else if (fieldName === "Priority") {
+                                showPriorityDropdown(this, task);
+                            } else if (fieldName === "AssigneeID") {
+                                showAssigneeDropdown(this, task);
+                            } else if (fieldName === "Description" || fieldName === "TaskName") {
+                                showTextEditor(this, task, fieldName);
+                            }
+                        });
+                    });
+                }
+
+                function showStatusDropdown(element, task) {
+                    const rect = element.getBoundingClientRect();
+                    const dropdown = document.createElement("div");
+                    dropdown.className = "fixed bg-body rounded-md shadow-lg border border-slate-600 py-1 z-[60]";
+                    dropdown.style.left = rect.left + "px";
+                    dropdown.style.top = rect.bottom + 5 + "px";
+
+                    KANBAN_STATUSES.forEach((status) => {
+                        const option = document.createElement("div");
+                        option.className = "px-4 py-2 hover:bg-body cursor-pointer text-sm";
+                        option.textContent = status;
+                        option.addEventListener("click", () => {
+                            const oldStatus = task.Status;
+                            task.Status = status;
+
+                            // Add to process log
+                            taskProcesses_Linh.push({
+                                ProcessID: getNextProcessId(),
+                                TaskID: task.TaskID,
+                                OldStatus: oldStatus,
+                                NewStatus: status,
+                                ChangedBy: 1, // Current user
+                                ChangedDate: new Date().toISOString(),
+                            });
+
+                            dropdown.remove();
+                            openTaskModal(task.TaskID); // Refresh modal
+                            render(); // Refresh kanban if visible
+                        });
+                        dropdown.appendChild(option);
+                    });
+
+                    document.body.appendChild(dropdown);
+
+                    // Close on click outside
+                    setTimeout(() => {
+                        document.addEventListener("click", function closeDropdown(e) {
+                            if (!dropdown.contains(e.target)) {
+                                dropdown.remove();
+                                document.removeEventListener("click", closeDropdown);
+                            }
+                        });
+                    }, 0);
+                }
+
+                function showPriorityDropdown(element, task) {
+                    const rect = element.getBoundingClientRect();
+                    const dropdown = document.createElement("div");
+                    dropdown.className = "fixed bg-body rounded-md shadow-lg border border-slate-600 py-1 z-[60]";
+                    dropdown.style.left = rect.left + "px";
+                    dropdown.style.top = rect.bottom + 5 + "px";
+
+                    PRIORITY_OPTIONS.forEach((priority) => {
+                        const option = document.createElement("div");
+                        option.className = "px-4 py-2 hover:bg-body cursor-pointer text-sm";
+                        option.innerHTML = `<span class="px-2 py-1 rounded-full font-semibold ${getPriorityStyles(priority)}">${priority}</span>`;
+                        option.addEventListener("click", () => {
+                            task.Priority = priority;
+                            dropdown.remove();
+                            openTaskModal(task.TaskID);
+                            render();
+                        });
+                        dropdown.appendChild(option);
+                    });
+
+                    document.body.appendChild(dropdown);
+
+                    setTimeout(() => {
+                        document.addEventListener("click", function closeDropdown(e) {
+                            if (!dropdown.contains(e.target)) {
+                                dropdown.remove();
+                                document.removeEventListener("click", closeDropdown);
+                            }
+                        });
+                    }, 0);
+                }
+
+                function showAssigneeDropdown(element, task) {
+                    const rect = element.getBoundingClientRect();
+                    const dropdown = document.createElement("div");
+                    dropdown.className = "fixed bg-body rounded-md shadow-lg border border-slate-600 py-1 z-[60] max-h-48 overflow-y-auto";
+                    dropdown.style.left = rect.left + "px";
+                    dropdown.style.top = rect.bottom + 5 + "px";
+
+                    employees_Linh.forEach((emp) => {
+                        const option = document.createElement("div");
+                        option.className = "px-4 py-2 hover:bg-body cursor-pointer text-sm";
+                        option.textContent = emp.EmployeeName;
+                        option.addEventListener("click", () => {
+                            task.AssigneeID = emp.EmployeeID;
+                            dropdown.remove();
+                            openTaskModal(task.TaskID);
+                            render();
+                        });
+                        dropdown.appendChild(option);
+                    });
+
+                    document.body.appendChild(dropdown);
+
+                    setTimeout(() => {
+                        document.addEventListener("click", function closeDropdown(e) {
+                            if (!dropdown.contains(e.target)) {
+                                dropdown.remove();
+                                document.removeEventListener("click", closeDropdown);
+                            }
+                        });
+                    }, 0);
+                }
+
+                function showTextEditor(element, task, fieldName) {
+                    const currentValue = task[fieldName] || "";
+                    const isDescription = fieldName === "Description";
+
+                    element.classList.add("editing");
+
+                    const editor = document.createElement(isDescription ? "textarea" : "input");
+                    editor.value = currentValue === "Click to add description..." ? "" : currentValue;
+                    editor.className =
+                        "w-full bg-body/50 border border-cyan-500 rounded-md p-2  focus:outline-none focus:ring-1 focus:ring-cyan-500";
+
+                    if (isDescription) {
+                        editor.rows = 4;
+                    }
+
+                    element.textContent = "";
+                    element.appendChild(editor);
+                    editor.focus();
+
+                    const saveEdit = () => {
+                        const newValue = editor.value.trim();
+                        task[fieldName] = newValue || (isDescription ? "" : task[fieldName]);
+                        element.classList.remove("editing");
+
+                        if (fieldName === "TaskName") {
+                            modalTaskNameEl.textContent = task.TaskName;
+                        }
+
+                        openTaskModal(task.TaskID);
+                        render();
+                    };
+
+                    editor.addEventListener("blur", saveEdit);
+                    editor.addEventListener("keydown", (e) => {
+                        if (e.key === "Enter" && !isDescription) {
+                            e.preventDefault();
+                            saveEdit();
+                        }
+                        if (e.key === "Escape") {
+                            element.classList.remove("editing");
+                            openTaskModal(task.TaskID);
+                        }
+                    });
+                }
+
+                function closeTaskModal() {
+                    taskModalEl.classList.add("hidden");
+                    taskModalEl.classList.remove("flex");
+                    currentEditingTaskId = null;
+                }
+
+                function openCreateTaskModal({ parentTaskId = null, editTaskId = null } = {}) {
+                    const context = navigationStack[navigationStack.length - 1];
+                    if (!context) {
+                        alert("Please select a project first!");
+                        return;
+                    }
+
+                    createTaskForm.reset();
+                    createTaskForm.dataset.parentTaskId = parentTaskId || "";
+                    createTaskForm.dataset.editTaskId = editTaskId || "";
+
+                    const assigneeSelect = document.getElementById("create-task-assignee");
+                    assigneeSelect.innerHTML = "";
+                    employees_Linh.forEach((emp) => {
+                        const option = document.createElement("option");
+                        option.value = emp.EmployeeID;
+                        option.textContent = emp.EmployeeName;
+                        assigneeSelect.appendChild(option);
+                    });
+
+                    if (editTaskId) {
+                        createModalTitleEl.textContent = "Edit Task";
+                        const task = tasks_Linh.find((t) => t.TaskID === editTaskId);
+                        document.getElementById("create-task-name").value = task.TaskName;
+                        document.getElementById("create-task-desc").value = task.Description;
+                        assigneeSelect.value = task.AssigneeID;
+                        document.getElementById("create-task-priority").value = task.Priority;
+                    } else {
+                        createModalTitleEl.textContent = parentTaskId ? "Create New Subtask" : "Create New Task";
+                    }
+
+                    // Manually trigger label state for pre-filled values
+                    document.querySelectorAll(".floating-input").forEach((input) => {
+                        if (input.value) {
+                            input.classList.remove("placeholder-shown");
+                        } else {
+                            input.classList.add("placeholder-shown");
+                        }
+                    });
+
+                    createTaskModalEl.classList.remove("hidden");
+                    createTaskModalEl.classList.add("flex");
+                }
+
+                function closeCreateTaskModal() {
+                    createTaskModalEl.classList.add("hidden");
+                    createTaskModalEl.classList.remove("flex");
+                }
+
+                function openAddProjectModal() {
+                    addProjectForm.reset();
+                    addProjectModalEl.classList.remove("hidden");
+                    addProjectModalEl.classList.add("flex");
+                }
+
+                function closeAddProjectModal() {
+                    addProjectModalEl.classList.add("hidden");
+                    addProjectModalEl.classList.remove("flex");
+                }
+
+                // --- EVENT HANDLERS ---
+                function handleCreateOrUpdateTask(e) {
+                    e.preventDefault();
+                    const context = navigationStack[0];
+                    const editTaskId = createTaskForm.dataset.editTaskId ? parseInt(createTaskForm.dataset.editTaskId) : null;
+
+                    if (editTaskId) {
+                        const task = tasks_Linh.find((t) => t.TaskID === editTaskId);
+                        task.TaskName = document.getElementById("create-task-name").value;
+                        task.Description = document.getElementById("create-task-desc").value;
+                        task.AssigneeID = parseInt(document.getElementById("create-task-assignee").value);
+                        task.Priority = document.getElementById("create-task-priority").value;
+                    } else {
+                        const parentTaskId = createTaskForm.dataset.parentTaskId ? parseInt(createTaskForm.dataset.parentTaskId) : null;
+                        const newTask = {
+                            TaskID: getNextTaskId(),
+                            ProjectID: context.id,
+                            TaskName: document.getElementById("create-task-name").value,
+                            Description: document.getElementById("create-task-desc").value,
+                            AssigneeID: parseInt(document.getElementById("create-task-assignee").value),
+                            CreatedBy: 1,
+                            ParentTaskID: parentTaskId,
+                            StartDate: new Date().toISOString().split("T")[0],
+                            DueDate: null,
+                            Status: "To Do",
+                            Priority: document.getElementById("create-task-priority").value,
+                        };
+                        tasks_Linh.push(newTask);
+                    }
+                    closeCreateTaskModal();
+                    render();
+                    if (editTaskId) openTaskModal(editTaskId);
+                }
+
+                function handleDeleteTask(taskId) {
+                    if (!confirm("Are you sure you want to delete this task and all its subtasks? This action cannot be undone.")) return;
+
+                    let tasksToDelete = [taskId];
+                    let i = 0;
+                    while (i < tasksToDelete.length) {
+                        const currentTaskId = tasksToDelete[i];
+                        const subtasksToDelete = tasks_Linh.filter((t) => t.ParentTaskID === currentTaskId).map((t) => t.TaskID);
+                        tasksToDelete.push(...subtasksToDelete);
+                        i++;
+                    }
+
+                    tasksToDelete.forEach((id) => {
+                        const index = tasks_Linh.findIndex((t) => t.TaskID === id);
+                        if (index > -1) tasks_Linh.splice(index, 1);
+                    });
+
+                    closeTaskModal();
+                    render();
+                }
+
+                function handleCreateProject(e) {
+                    e.preventDefault();
+                    const newProjectName = document.getElementById("add-project-name").value;
+                    if (!newProjectName) return;
+                    const newProject = {
+                        ProjectID: getNextProjectId(),
+                        ProjectName: newProjectName,
+                        OwnerID: 1,
+                        Status: "Planning",
+                        Priority: "Medium",
+                    };
+                    projects_Linh.push(newProject);
+                    closeAddProjectModal();
+                    navigationStack = [{ type: "project", id: newProject.ProjectID }];
+                    render();
+                }
+
+                function addDragAndDropListeners() {
+                    const cards = document.querySelectorAll(".task-card");
+                    const columns = document.querySelectorAll(".kanban-column");
+
+                    cards.forEach((card) => {
+                        card.addEventListener("dragstart", () => {
+                            draggedTaskId = parseInt(card.dataset.taskId);
+                            card.classList.add("dragging");
+                        });
+                        card.addEventListener("dragend", () => {
+                            card.classList.remove("dragging");
+                            draggedTaskId = null;
+                        });
+                    });
+
+                    columns.forEach((column) => {
+                        column.addEventListener("dragover", (e) => {
+                            e.preventDefault();
+                            column.classList.add("drag-over");
+                        });
+                        column.addEventListener("dragleave", () => {
+                            column.classList.remove("drag-over");
+                        });
+                        column.addEventListener("drop", (e) => {
+                            e.preventDefault();
+                            column.classList.remove("drag-over");
+                            const newStatus = column.dataset.status;
+                            const task = tasks_Linh.find((t) => t.TaskID === draggedTaskId);
+                            if (task && task.Status !== newStatus) {
+                                const oldStatus = task.Status;
+                                task.Status = newStatus;
+                                taskProcesses_Linh.push({
+                                    ProcessID: getNextProcessId(),
+                                    TaskID: draggedTaskId,
+                                    OldStatus: oldStatus,
+                                    NewStatus: newStatus,
+                                    ChangedBy: 1,
+                                    ChangedDate: new Date().toISOString(),
+                                });
+                                render();
+                            }
+                        });
+                    });
+                }
+
+                // --- INITIALIZATION ---
+                modalCloseBtn.addEventListener("click", closeTaskModal);
+                createModalCloseBtn.addEventListener("click", closeCreateTaskModal);
+                addProjectCloseBtn.addEventListener("click", closeAddProjectModal);
+                addProjectForm.addEventListener("submit", handleCreateProject);
+                createTaskForm.addEventListener("submit", handleCreateOrUpdateTask);
+
+                deleteTaskBtn.addEventListener("click", (e) => handleDeleteTask(parseInt(e.currentTarget.dataset.taskId)));
+
+                viewContainerEl.addEventListener("click", (e) => {
+                    if (e.target.closest(".quick-add-task-btn")) openCreateTaskModal();
+                });
+
+                window.addEventListener("keydown", (e) => {
+                    if (e.key === "Escape") {
+                        closeTaskModal();
+                        closeCreateTaskModal();
+                        closeAddProjectModal();
+                    }
+                });
+
+                // Start with projects_Linh view (no project selected)
+                render();
+
+                // If no projects_Linh exist, open add project modal
+                if (projects_Linh.length === 0) openAddProjectModal();
+            })();
+        </script>
+    </div>
+';
+SELECT @html AS html;
+END
+GO
+EXEC sp_GenerateHTMLScript_new 'sp_Task_MyWork_html'

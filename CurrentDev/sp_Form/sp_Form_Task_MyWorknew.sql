@@ -1365,22 +1365,22 @@ SET @html = N'
                     /* --- Base Styles --- */
                     .dx-widget { font-size:inherit!important; font-weight:inherit!important; line-height:inherit!important; border-radius:inherit!important; }
                     .dx-texteditor, .dx-texteditor-input { font-size:inherit!important; font-weight:inherit!important; line-height:inherit!important; box-sizing:border-box!important; }
-                    
+
                     /* --- Responsive & Popup Styles --- */
                     .hpa-responsive { max-width: 98vw !important; max-height: 98vh !important; }
                     .hpa-responsive .dx-popup-content { padding: 8px !important; display: flex !important; flex-direction: column !important; }
                     .hpa-responsive .dx-popup-content-scrollable { flex: 1 !important; min-height: 0 !important; overflow: auto !important; }
-                    
+
                     /* --- Grid Customizations --- */
                     .dx-datagrid-headers { white-space: normal; word-break: break-word; }
                     .dx-datagrid-header-panel { padding: 8px; }
                     .dx-datagrid .dx-row > td { padding: 8px !important; vertical-align: middle !important; }
                     .dx-datagrid-rowsview .dx-row > td > div { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.4 !important; }
-                    
+
                     /* --- Search Styles --- */
                     .dx-datagrid-search-panel .dx-placeholder { display: none !important; }
                     .dx-datagrid-search-panel input:not(:placeholder-shown) { color: #000 !important; }
-                    
+
                     /* --- Avatar & Chip Styles --- */
                     .hpa-avatar-group { display: flex; alignItems: center; }
                     .hpa-avatar { border: 2px solid #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.1); object-fit: cover; }
@@ -1417,7 +1417,7 @@ SET @html = N'
             loadAvatar: function(employeeId, storeImgName, paramImg, callbackFn) {
                 window.GlobalEmployeeAvatarCache = window.GlobalEmployeeAvatarCache || {};
                 window.GlobalEmployeeAvatarLoading = window.GlobalEmployeeAvatarLoading || {};
-                
+
                 const idStr = String(employeeId);
                 if (window.GlobalEmployeeAvatarCache[idStr]) {
                     if (callbackFn) callbackFn(window.GlobalEmployeeAvatarCache[idStr]);
@@ -1923,6 +1923,9 @@ SET @html = N'
                     +(select loadData from tblCommonControlType_Signed where UID = 'PC98E2DFA331343BBAE22882BE3825C1A')
                     +(select loadData from tblCommonControlType_Signed where UID = 'P02E6F18645BA47648567B32773A1B7B4')
                     +(select loadData from tblCommonControlType_Signed where UID = 'P27C40759D9C94453AB9B2DFBCD661AE3') +N'
+                    if (typeof restoreFilterState === "function") {
+                        restoreFilterState();
+                    }
                 }
             })
         }

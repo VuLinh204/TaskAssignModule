@@ -86,7 +86,7 @@ BEGIN
                             hpaUtils.loadAvatar(id, item.storeImgName, item.paramImg, function() {
                                 renderDisplay%ColumnName%();
 });
-                            const color = hpaUtils.getColorForId(id);
+     const color = hpaUtils.getColorForId(id);
                             const initials = hpaUtils.getInitials(name);
                             $av.css({ background: color.bg, color: color.text }).text(initials);
                         } else {
@@ -165,7 +165,7 @@ BEGIN
                         window.GlobalEmployeeAvatarLoading[idStr].callbacks.push(callbackFn);
            }
                     return null;
-                }
+    }
 
                 if (!storeImgName) {
                     return null;
@@ -258,7 +258,7 @@ BEGIN
 
             function getColorForId%ColumnName%(id) {
                 const colors = [
-                    { bg: "#e3f2fd", text: "#1976d2" },
+             { bg: "#e3f2fd", text: "#1976d2" },
                     { bg: "#f3e5f5", text: "#7b1fa2" },
                     { bg: "#e8f5e9", text: "#388e3c" },
                     { bg: "#fff3e0", text: "#f57c00" },
@@ -280,7 +280,35 @@ BEGIN
                     display: "flex",
                     alignItems: "center",
                     cursor: "pointer"
-                }).hover(
+                })
+                .attr("tabIndex", "0")
+                .on("keydown", function(e) {
+                    if (e.key === "Enter" || e.key === " " || e.key === "Spacebar") {
+                        e.preventDefault();
+                        if (!popup%ColumnName%) {
+                            initPopup%ColumnName%();
+                            setTimeout(() => popup%ColumnName%.show(), 0);
+                        } else {
+                            popup%ColumnName%.show();
+                        }
+                    }
+                })
+                .on("focus", function() {
+                    // Focus state khi tab vào
+                    $wrapper.css({
+                        borderColor: "#0d6efd",
+                        boxShadow: "0 0 0 0.2rem rgba(13,110,253,.15)",
+                        outline: "none"
+                    });
+                })
+                .on("blur", function() {
+                    // Reset khi mất focus
+                    $wrapper.css({
+                        borderColor: "#dee2e6",
+                        boxShadow: "none"
+                    });
+                })
+                .hover(
                     () => $wrapper.css({ borderColor: "#0d6efd", boxShadow: "0 0 0 0.2rem rgba(13,110,253,.15)" }),
                     () => $wrapper.css({ borderColor: "#dee2e6", boxShadow: "none" })
                 );
@@ -391,7 +419,7 @@ BEGIN
                                 options: {
                                     text: "Hủy",
                                     onClick: () => {
-                                        popup%ColumnName%._isCancelling = true;
+           popup%ColumnName%._isCancelling = true;
                                         %ColumnName%%UID%SelectedIds = [...%ColumnName%%UID%SelectedIdsOriginal];
                                         popup%ColumnName%.hide();
                                     }
@@ -448,6 +476,11 @@ BEGIN
                                 allowColumnResizing: true,
                                 selection: { mode: "multiple", showCheckBoxesMode: "always" },
                                 selectedRowKeys: %ColumnName%%UID%SelectedIds,
+                                focusStateEnabled: true,
+                                keyboardNavigation: {
+                                    enabled: true
+                                },
+                                hoverStateEnabled: true,
                                 columns: [
                                     {
                                         caption: "Ảnh",
@@ -457,7 +490,7 @@ BEGIN
                                             const item = options.data;
                                             const $cell = $("<div>").css({
                                                 display: "flex",
-                                                justifyContent: "center",
+                                   justifyContent: "center",
                                                 alignItems: "center",
                                                 height: "100%"
                                             });
@@ -470,7 +503,7 @@ BEGIN
                                                     .css({
                                                         width: "40px",
                                                         height: "40px",
-       borderRadius: "50%",
+                                                        borderRadius: "50%",
                                                         objectFit: "cover",
                                                         border: "2px solid #fff",
                                                         boxShadow: "0 2px 4px rgba(0,0,0,0.1)"
@@ -478,7 +511,7 @@ BEGIN
                                                 );
                                             } else if (item.storeImgName) {
                                                 loadGlobalAvatarIfNeeded%ColumnName%%UID%(item.ID, item.storeImgName, item.paramImg, function(url) {
-                                                    %ColumnName%%UID%GridContainer.dxDataGrid("instance").refresh();
+                                            %ColumnName%%UID%GridContainer.dxDataGrid("instance").refresh();
                                                 });
 
                                                 const initials = getInitials%ColumnName%(item.Name || item.FullName || "?");
@@ -511,7 +544,7 @@ BEGIN
                                                         background: color.bg,
                                                         color: color.text,
                                                         display: "flex",
-                                                        justifyContent: "center",
+justifyContent: "center",
                                                         alignItems: "center",
                                                         fontWeight: "600",
                                                         fontSize: "14px",
@@ -585,7 +618,7 @@ BEGIN
                                         });
                                     }
                                 },
-                      paging: {
+                        paging: {
                                     enabled: true,
                                     pageSize: 5,
                                     pageIndex: 0
@@ -654,7 +687,7 @@ BEGIN
                     let id1 = currentRecordID_%ColumnIDName%;
                     if (typeof cellInfo !== "undefined" && cellInfo && cellInfo.data) {
                         id1 = cellInfo.data["%ColumnIDName%"] || id1;
-                    }
+                }
                     let idValues = [id1];
                     let idFields = ["%ColumnIDName%"];
 
@@ -671,9 +704,7 @@ BEGIN
                     const json = await saveFunction(dataJSON, idValsJSON);
                     const errors = json.data?.[json.data.length - 1] || [];
                     if (errors.length > 0 && errors[0].Status === "ERROR") {
-                        if ("%IsAlert%" === "1") {
-                            uiManager.showAlert({ type: "error", message: errors[0].Message || "Lưu thất bại" });
-                        }
+                        uiManager.showAlert({ type: "error", message: errors[0].Message || "%SaveErrorMessage%" });
                         return;
                     }
 
@@ -689,14 +720,9 @@ BEGIN
                     }
 
                     %ColumnName%%UID%SelectedIdsOriginal = [...%ColumnName%%UID%SelectedIds];
-                    if ("%IsAlert%" === "1") {
-                        uiManager.showAlert({ type: "success", message: "Lưu thành công" });
-                    }
                     renderDisplayBox%ColumnName%();
                 } catch (err) {
-                    if ("%IsAlert%" === "1") {
-                        uiManager.showAlert({ type: "error", message: "Có lỗi khi lưu" });
-                    }
+                    uiManager.showAlert({ type: "error", message: "%SaveErrorMessage%" });
                 } finally {
                     %ColumnName%%UID%IsSaving = false;
                 }
@@ -739,8 +765,8 @@ BEGIN
     -- 3. MANUAL MODE (No AutoSave)
     -- =============================================
     UPDATE #temptable SET
-        loadUI = N'
-          window.GlobalEmployeeAvatarCache = window.GlobalEmployeeAvatarCache || {};
+loadUI = N'
+            window.GlobalEmployeeAvatarCache = window.GlobalEmployeeAvatarCache || {};
             window.GlobalEmployeeAvatarLoading = window.GlobalEmployeeAvatarLoading || {};
             let Instance%ColumnName%%UID% = {};
 
@@ -762,7 +788,7 @@ BEGIN
                 }
 
             if (!storeImgName) {
-                    return null;
+               return null;
                 }
 
                 window.GlobalEmployeeAvatarLoading[idStr] = {
@@ -851,7 +877,7 @@ BEGIN
             function getColorForId%ColumnName%(id) {
                 const colors = [
                     { bg: "#e3f2fd", text: "#1976d2" },
-   { bg: "#f3e5f5", text: "#7b1fa2" },
+                    { bg: "#f3e5f5", text: "#7b1fa2" },
                     { bg: "#e8f5e9", text: "#388e3c" },
                     { bg: "#fff3e0", text: "#f57c00" },
                     { bg: "#fce4ec", text: "#c2185b" }
@@ -872,7 +898,35 @@ BEGIN
                     display: "flex",
                     alignItems: "center",
                     cursor: "pointer"
-                }).hover(
+                })
+                .attr("tabIndex", "0")
+                .on("keydown", function(e) {
+                    if (e.key === "Enter" || e.key === " " || e.key === "Spacebar") {
+                        e.preventDefault();
+                        if (!popup%ColumnName%) {
+                            initPopup%ColumnName%();
+                            setTimeout(() => popup%ColumnName%.show(), 0);
+                        } else {
+                            popup%ColumnName%.show();
+                        }
+                    }
+                })
+                .on("focus", function() {
+                    // Focus state khi tab vào
+                    $wrapper.css({
+                        borderColor: "#0d6efd",
+                        boxShadow: "0 0 0 0.2rem rgba(13,110,253,.15)",
+                        outline: "none"
+                    });
+                })
+                .on("blur", function() {
+                    // Reset khi mất focus
+                    $wrapper.css({
+                        borderColor: "#dee2e6",
+                        boxShadow: "none"
+                    });
+                })
+                .hover(
                     () => $wrapper.css({ borderColor: "#0d6efd", boxShadow: "0 0 0 0.2rem rgba(13,110,253,.15)" }),
                     () => $wrapper.css({ borderColor: "#dee2e6", boxShadow: "none" })
                 );
@@ -902,7 +956,7 @@ BEGIN
 
                         if (cachedUrl) {
                             $chip.append($("<img>")
-    .attr("src", cachedUrl)
+                                .attr("src", cachedUrl)
                                 .css({ width: "100%", height: "100%", objectFit: "cover" })
                             );
                         } else if (item.storeImgName) {
@@ -960,7 +1014,7 @@ BEGIN
             function initPopup%ColumnName%() {
                 if (popup%ColumnName%Once) {
                     popup%ColumnName%.show();
-                    return;
+ return;
                 }
                 popup%ColumnName%Once = true;
                 popup%ColumnName% = $("<div>").attr("id", "%ColumnName%%UID%_popup")
@@ -1033,7 +1087,7 @@ BEGIN
                                 // Instance chưa tồn tại hoặc đã bị destroy
                             }
 
-                            %ColumnName%%UID%GridContainer
+     %ColumnName%%UID%GridContainer
                             .empty()
                             .dxDataGrid({
                                 dataSource: sortedData,
@@ -1043,6 +1097,11 @@ BEGIN
                                 allowColumnResizing: true,
                                 selection: { mode: "multiple", showCheckBoxesMode: "always" },
                                 selectedRowKeys: %ColumnName%%UID%SelectedIds,
+                                focusStateEnabled: true,
+                                keyboardNavigation: {
+                                    enabled: true
+                                },
+                                hoverStateEnabled: true,
                                 columns: [
                                     {
                                         caption: "Ảnh",
@@ -1071,7 +1130,7 @@ BEGIN
                                                         boxShadow: "0 2px 4px rgba(0,0,0,0.1)"
           })
                                                 );
-                                            } else if (item.storeImgName) {
+            } else if (item.storeImgName) {
                                                 loadGlobalAvatarIfNeeded%ColumnName%%UID%(item.ID, item.storeImgName, item.paramImg, function(url) {
                                                     %ColumnName%%UID%GridContainer.dxDataGrid("instance").refresh();
                                                 });
@@ -1089,7 +1148,7 @@ BEGIN
                                                         display: "flex",
                                                         justifyContent: "center",
                                                         alignItems: "center",
-                                                        fontWeight: "600",
+                                            fontWeight: "600",
                                                         fontSize: "14px",
                                                         boxShadow: "0 2px 4px rgba(0,0,0,0.1)"
                                                     })
@@ -1150,7 +1209,7 @@ BEGIN
                                                 .appendTo("head");
                                         }
 
-                                        // Unbind only search-related events (preserve click, focus, etc.)
+                                    // Unbind only search-related events (preserve click, focus, etc.)
                                         searchBox.off("input keyup");
 
                                         // Bind custom event
@@ -1175,7 +1234,7 @@ BEGIN
                                                         }
                                                     }
                                                 }
-    return false;
+                                                return false;
                                             });
                                         });
                                     }
@@ -1194,7 +1253,7 @@ BEGIN
                                 },
                                 onSelectionChanged: e => %ColumnName%%UID%SelectedIds = e.selectedRowKeys || []
                             });
-                        },
+                      },
                         onHidden: () => {
                             // Dispose grid instance
                             try {
@@ -1222,7 +1281,7 @@ BEGIN
                         %ColumnName%%UID%SelectedIds = val.map(String);
                     } else {
                         %ColumnName%%UID%SelectedIds = [];
-                    }
+               }
                     %ColumnName%%UID%SelectedIdsOriginal = [...%ColumnName%%UID%SelectedIds];
                     renderDisplayBox%ColumnName%();
                 },
@@ -1308,7 +1367,7 @@ BEGIN
                             window.GlobalEmployeeAvatarCache[idStr] = url;
 
                             callbacks.forEach(cb => {
-                                try { cb(url); } catch (e) { console.error(e); }
+                   try { cb(url); } catch (e) { console.error(e); }
                             });
                         } else {
                             callbacks.forEach(cb => {
@@ -1383,7 +1442,36 @@ BEGIN
                     alignItems: "center",
                     gap: "10px",
                     cursor: "pointer"
-                }).hover(
+                })
+                .attr("tabIndex", "0")
+                .on("keydown", function(e) {
+                    if (e.key === "Enter" || e.key === " " || e.key === "Spacebar") {
+                        e.preventDefault();
+                        if (!popup%ColumnName%) {
+                            initPopup%ColumnName%();
+                            setTimeout(() => popup%ColumnName%.show(), 0);
+                        } else {
+                            popup%ColumnName%.show();
+                        }
+                    }
+
+                })
+                .on("focus", function() {
+                    // Focus state khi tab vào
+                    $wrapper.css({
+                        borderColor: "#0d6efd",
+                        boxShadow: "0 0 0 0.2rem rgba(13,110,253,.15)",
+                        outline: "none"
+                    });
+                })
+                .on("blur", function() {
+                    // Reset khi mất focus
+                    $wrapper.css({
+                        borderColor: "#dee2e6",
+                        boxShadow: "none"
+                    });
+                })
+                .hover(
                     () => $wrapper.css({ borderColor: "#0d6efd", boxShadow: "0 0 0 0.2rem rgba(13,110,253,.15)" }),
                     () => $wrapper.css({ borderColor: "#dee2e6", boxShadow: "none" })
                 );
@@ -1438,7 +1526,7 @@ BEGIN
                 }
 
                 $displayBox%ColumnName%.append($wrapper);
-                $wrapper.off("click").on("click", () => {
+             $wrapper.off("click").on("click", () => {
                     if (!popup%ColumnName%) {
                         initPopup%ColumnName%();
                         // Đợi popup init xong rồi mới show
@@ -1642,7 +1730,7 @@ BEGIN
                                     if (searchBox.length) {
                                         const $searchWrapper = searchBox.parent();
                                         if (!$("#custom-search-style-%ColumnName%%UID%").length) {
-                                            $("<style>")
+                                           $("<style>")
                                                 .attr("id", "custom-search-style-%ColumnName%%UID%")
                                                 .text(`
                                                     .dx-datagrid-search-panel input:not(:placeholder-shown) {
@@ -1771,9 +1859,7 @@ BEGIN
                     const json = await saveFunction(dataJSON, idValsJSON);
                     const errors = json.data?.[json.data.length - 1] || [];
                     if (errors.length > 0 && errors[0].Status === "ERROR") {
-                        if ("%IsAlert%" === "1") {
-                            uiManager.showAlert({ type: "error", message: errors[0].Message || "Lưu thất bại" });
-                        }
+                        uiManager.showAlert({ type: "error", message: errors[0].Message || "%SaveErrorMessage%" });
                         return;
                     }
 
@@ -1786,18 +1872,13 @@ BEGIN
                         } catch (syncErr) {
                             console.warn("[Grid Sync] SelectBox %ColumnName%%UID%: Không thể sync grid:", syncErr);
                         }
-                    }
+               }
 
                     %ColumnName%%UID%SelectedIdOriginal = %ColumnName%%UID%SelectedId;
-                    if ("%IsAlert%" === "1") {
-                        uiManager.showAlert({ type: "success", message: "Lưu thành công" });
-                    }
                     renderDisplayBox%ColumnName%();
                 } catch (err) {
-                    if ("%IsAlert%" === "1") {
-                        uiManager.showAlert({ type: "error", message: "Có lỗi khi lưu" });
-                    }
-                }
+                    uiManager.showAlert({ type: "error", message: "%SaveErrorMessage%" });
+               }
             }
 
             Instance%ColumnName%%UID% = {
@@ -1872,7 +1953,7 @@ BEGIN
                         const decoded = decodeURIComponent(paramImg);
                         paramArray = JSON.parse(decoded);
                     } catch (e) {
-                        paramArray = [];
+                    paramArray = [];
                     }
                 }
 
@@ -1968,7 +2049,35 @@ BEGIN
                     alignItems: "center",
                     gap: "10px",
                     cursor: "pointer"
-                }).hover(
+                })
+                .attr("tabIndex", "0")
+                .on("keydown", function(e) {
+                    if (e.key === "Enter" || e.key === " " || e.key === "Spacebar") {
+                        e.preventDefault();
+                        if (!popup%ColumnName%) {
+                            initPopup%ColumnName%();
+                            setTimeout(() => popup%ColumnName%.show(), 0);
+                        } else {
+                            popup%ColumnName%.show();
+                        }
+                    }
+                })
+                .on("focus", function() {
+                    // Focus state khi tab vào
+                    $wrapper.css({
+                        borderColor: "#0d6efd",
+                        boxShadow: "0 0 0 0.2rem rgba(13,110,253,.15)",
+                        outline: "none"
+                    });
+                })
+                .on("blur", function() {
+                    // Reset khi mất focus
+                    $wrapper.css({
+                        borderColor: "#dee2e6",
+                        boxShadow: "none"
+                    });
+                })
+                .hover(
                     () => $wrapper.css({ borderColor: "#0d6efd", boxShadow: "0 0 0 0.2rem rgba(13,110,253,.15)" }),
                     () => $wrapper.css({ borderColor: "#dee2e6", boxShadow: "none" })
                 );
@@ -2014,7 +2123,7 @@ BEGIN
 
                         const $info = $("<div>").css({ flex: 1, overflow: "hidden" });
                         $info.append($("<div>").css({ fontWeight: "500", fontSize: "14px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }).text(name));
-                        if (item.Position) {
+                if (item.Position) {
                             $info.append($("<div>").css({ fontSize: "12px", color: "#6c757d", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }).text(item.Position));
                         }
 
@@ -2029,7 +2138,7 @@ BEGIN
                     if (_readOnly%ColumnName%%UID%) return;
 
                     if (!popup%ColumnName%) {
-                        initPopup%ColumnName%();
+                  initPopup%ColumnName%();
                         // Đợi popup init xong rồi mới show
                         setTimeout(() => {
                             popup%ColumnName%.show();
@@ -2102,7 +2211,7 @@ BEGIN
                                             %ColumnName%%UID%SelectedIdOriginal = %ColumnName%%UID%SelectedId;
                                             renderDisplayBox%ColumnName%();
                                         }
-                     popup%ColumnName%.hide();
+                                        popup%ColumnName%.hide();
                                     }
                                 }
                             }
@@ -2172,7 +2281,7 @@ BEGIN
                                                         boxShadow: "0 2px 4px rgba(0,0,0,0.1)"
                                                     })
                                                 );
-                                            } else if (item.storeImgName) {
+                                          } else if (item.storeImgName) {
                                                 loadGlobalAvatarIfNeeded%ColumnName%%UID%(item.ID, item.storeImgName, item.paramImg, function(url) {
                                                     %ColumnName%%UID%GridContainer.dxDataGrid("instance").refresh();
                                                 });
@@ -2229,7 +2338,7 @@ BEGIN
                           onContentReady: function(e) {
                                     const grid = e.component;
 
-                                    // Clear default search behavior
+                // Clear default search behavior
                                     grid.option("searchPanel.text", "");
 
                                     const searchBox = grid.getView("headerPanel")._$element.find(".dx-datagrid-search-panel input");
@@ -2283,7 +2392,7 @@ BEGIN
                                 },
                                 paging: {
                                     enabled: true,
-                                    pageSize: 5,
+                                 pageSize: 5,
                                     pageIndex: 0
                                 },
                                 pager: {
@@ -2294,7 +2403,7 @@ BEGIN
                                     showNavigationButtons: true
           },
                                 onSelectionChanged: e => %ColumnName%%UID%SelectedId = (e.selectedRowKeys && e.selectedRowKeys[0]) || null
-                            });
+                  });
                         },
                         onHidden: () => {
                             // Dispose grid instance
@@ -2335,9 +2444,7 @@ BEGIN
                     const json = await saveFunction(dataJSON, idValsJSON);
                     const errors = json.data?.[json.data.length - 1] || [];
                     if (errors.length > 0 && errors[0].Status === "ERROR") {
-                        if ("%IsAlert%" === "1") {
-                            uiManager.showAlert({ type: "error", message: errors[0].Message || "Lưu thất bại" });
-                        }
+                        uiManager.showAlert({ type: "error", message: errors[0].Message || "%SaveErrorMessage%" });
                         return;
                     }
 
@@ -2353,14 +2460,9 @@ BEGIN
                     }
 
                     %ColumnName%%UID%SelectedIdOriginal = %ColumnName%%UID%SelectedId;
-                    if ("%IsAlert%" === "1") {
-                        uiManager.showAlert({ type: "success", message: "Lưu thành công" });
-                    }
                     renderDisplayBox%ColumnName%();
                 } catch (err) {
-                    if ("%IsAlert%" === "1") {
-                        uiManager.showAlert({ type: "error", message: "Có lỗi khi lưu" });
-                    }
+                    uiManager.showAlert({ type: "error", message: "%SaveErrorMessage%" });
                 }
             }
 
@@ -2371,7 +2473,7 @@ BEGIN
                     } else {
                         %ColumnName%%UID%SelectedId = null;
                     }
-         %ColumnName%%UID%SelectedIdOriginal = %ColumnName%%UID%SelectedId;
+                    %ColumnName%%UID%SelectedIdOriginal = %ColumnName%%UID%SelectedId;
                     renderDisplayBox%ColumnName%();
                 },
                 getValue: () => %ColumnName%%UID%SelectedId,

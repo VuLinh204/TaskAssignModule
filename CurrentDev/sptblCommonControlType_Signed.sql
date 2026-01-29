@@ -189,7 +189,7 @@ BEGIN
                                          .map(v => v.trim())
                                          .filter(v => v !== "");
             } else {
-                normalizedValue = [];
+               normalizedValue = [];
             }
 
             Instance%ColumnName%%UID%.option("value", normalizedValue);
@@ -533,7 +533,7 @@ BEGIN
                             CASE
                                 WHEN ControlType = 'hpaControlDate' THEN
                                     N'
-                                    text = DevExpress.localization.formatDate(d, "dd/MM/yyyy");
+                             text = DevExpress.localization.formatDate(d, "dd/MM/yyyy");
                                     '
                                 WHEN ControlType = 'hpaControlTime' THEN
                                   N'
@@ -596,7 +596,7 @@ BEGIN
 
                                 // Khởi tạo dxTextBox
                                 const textBox = cellElement.dxTextBox({
-                                    value: cellInfo.value,
+        value: cellInfo.value,
                                     onValueChanged: function(e) {
                                         // Cập nhật giá trị vào grid
                                         cellInfo.setValue(e.value);
@@ -609,7 +609,7 @@ BEGIN
                                 }, 100);
                             },
                         '
-                    )
+ )
                 ELSE N'
                     allowEditing: false,
                     '
@@ -630,7 +630,7 @@ BEGIN
                 loadUI = REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(
                     N'
                         window.Instance%ColumnName%%UID% = null;
-                        
+
                         // Thêm responsive styles cho grid header
                         const style%ColumnName% = document.createElement("style");
                         style%ColumnName%.textContent = `
@@ -683,8 +683,8 @@ BEGIN
                             }
 
                             .dx-popup-content.dx-popup-content-scrollable {
-                                height: auto !important;
-                            }
+    height: auto !important;
+      }
 
                             .dx-popup.hpa-responsive .dx-toolbar-items {
                                 padding: 4px 0 !important;
@@ -773,10 +773,10 @@ BEGIN
                                     padding: 4px 2px !important;
                                     font-size: 11px !important;
                                     line-height: 1.3 !important;
-                                    overflow: visible !important;
-                                    white-space: nowrap;
-                                    text-overflow: ellipsis;
-                                    word-break: break-word !important;
+       overflow: visible !important;
+            white-space: nowrap;
+          text-overflow: ellipsis;
+           word-break: break-word !important;
                                 }
 
                                 .dx-datagrid-text-content.dx-header-filter {
@@ -793,7 +793,7 @@ BEGIN
                                 }
 
                                 .dx-datagrid .dx-row {
-                                    height: auto;
+                 height: auto;
                                     min-height: 36px !important;
                                     padding: 0 !important;
                                 }
@@ -852,13 +852,13 @@ BEGIN
                                     max-height: calc(95vh - 120px) !important;
                                     font-size: 13px !important;
                                     padding: 6px !important;
-                                    display: flex !important;
-                                    flex-direction: column !important;
-                                }
+                             display: flex !important;
+    flex-direction: column !important;
+                     }
 
                                 .dx-popup.hpa-responsive .dx-popup-content-scrollable {
-                                    flex: 1 !important;
-                                    min-height: 0 !important;
+flex: 1 !important;
+                     min-height: 0 !important;
                                     overflow: auto !important;
                                 }
 
@@ -934,14 +934,14 @@ BEGIN
                                 .dx-popup.hpa-responsive {
                                     max-width: 98vw !important;
                                     max-height: 80vh !important;
-                                    width: 98vw !important;
-                                    left: 1vw !important;
-                                    top: 10vh !important;
+                      width: 98vw !important;
+                          left: 1vw !important;
+                        top: 10vh !important;
                                 }
-                                .dx-overlay-content.dx-popup-normal.dx-popup-draggable.dx-resizable {
-                                    width: 98vw !important;
-                                    max-width: 98vw !important;
-                                    height: auto !important;
+            .dx-overlay-content.dx-popup-normal.dx-popup-draggable.dx-resizable {
+  width: 98vw !important;
+  max-width: 98vw !important;
+                                 height: auto !important;
                                     max-height: 80vh !important;
                                 }
                                 .dx-popup.hpa-responsive .dx-overlay-wrapper {
@@ -1006,9 +1006,9 @@ BEGIN
                         // Hàm tính remoteOperations dựa trên số lượng dòng
                         window.getGridConfig_%ColumnName% = function(dataArray) {
                             const dataSize = Array.isArray(dataArray) ? dataArray.length : 0;
-                            const isLargeDataset = dataSize > 1000;
+         const isLargeDataset = dataSize > 1000;
 
-                            return {
+return {
                                 remoteOperations: isLargeDataset,
                                 pageSize: isLargeDataset ? 25 : 10,
                                 allowedPageSizes: isLargeDataset ? [10, 25, 50] : [5, 10, 50, 100]
@@ -1067,16 +1067,16 @@ BEGIN
                                 const primaryKeyField = "%PKColumnName%";
 
                                 const loginValue = typeof window.UserID !== "undefined"
-                                    ? window.UserID
+                  ? window.UserID
                                     : (typeof LoginID !== "undefined" ? LoginID : null);
-                                const languageValue = typeof window.LanguageID !== "undefined"
-                                    ? window.LanguageID
+                     const languageValue = typeof window.LanguageID !== "undefined"
+        ? window.LanguageID
                                     : (typeof LanguageID !== "undefined" ? LanguageID : null);
 
-                                const snapshotGridData = function (instance) {
-                                    if (!instance) return [];
+              const snapshotGridData = function (instance) {
+if (!instance) return [];
                                     try {
-                                        if (typeof instance.getDataSource === "function") {
+            if (typeof instance.getDataSource === "function") {
                                             const ds = instance.getDataSource();
                                             if (ds && typeof ds.items === "function") {
                                                 const dsItems = ds.items();
@@ -1084,7 +1084,7 @@ BEGIN
                                                     return dsItems.map(function (item) {
                                                         return item && typeof item === "object" ? Object.assign({}, item) : item;
                                                     });
-                                                }
+                        }
                                             }
                                         }
 
@@ -1127,20 +1127,20 @@ BEGIN
                                         }
 
                                         if (Array.isArray(customParams) && customParams.length > 0) {
-                                            return base.concat(customParams);
+            return base.concat(customParams);
                                         }
 
-                                        if (customParams && typeof customParams === "object") {
+                         if (customParams && typeof customParams === "object") {
                                             const extras = [];
                                             Object.keys(customParams).forEach(function (key) {
                                                 extras.push(key, customParams[key]);
-                                            });
+              });
                                             return base.concat(extras);
-                                        }
+    }
 
                                         return base;
                                     };
-                                }
+ }
 
                                 if (typeof sharedEntry.notify !== "function") {
                                     sharedEntry.notify = function () {
@@ -1152,7 +1152,7 @@ BEGIN
                                             }
                                         }, this);
                                     };
-                                }
+                             }
 
                                 if (typeof sharedEntry.subscribe !== "function") {
                                     sharedEntry.subscribe = function (callback) {
@@ -1191,19 +1191,19 @@ BEGIN
                                                 if (candidate === undefined || candidate === null) return candidate === keyValue;
                                                 if (keyValue === undefined || keyValue === null) return false;
                                                 return String(candidate) === String(keyValue);
-                                            };
+                                        };
 
                                         const nextData = Array.isArray(this.data) ? this.data.slice() : [];
-                                        let targetIndex = nextData.findIndex(function (item) {
+        let targetIndex = nextData.findIndex(function (item) {
                                             return item ? compare(item[keyField]) : false;
-                                        });
+                        });
 
                                         const normalizedRow = Object.assign({}, targetIndex > -1 ? nextData[targetIndex] : {}, rowData);
 
                                         if (targetIndex === -1) {
                                             if (opts.ignoreMissing === true) {
                                                 return Promise.resolve(false);
-                                            }
+                   }
                                             if (opts.append === true) {
                                                 nextData.push(normalizedRow);
                                                 targetIndex = nextData.length - 1;
@@ -1215,7 +1215,7 @@ BEGIN
                                             nextData[targetIndex] = normalizedRow;
                                         }
 
-                                        this.data = nextData;
+          this.data = nextData;
                                         try {
                                             if (this.instance && typeof this.instance.option === "function") {
                                                 this.instance.option("dataSource", nextData);
@@ -1253,19 +1253,19 @@ BEGIN
                                             if (candidate === undefined || candidate === null) {
                                                 return keyValue !== candidate;
                                             }
-                                            return String(candidate) !== String(keyValue);
+                           return String(candidate) !== String(keyValue);
                                         });
 
-                                        if (filtered.length === (Array.isArray(this.data) ? this.data.length : 0)) {
+                                  if (filtered.length === (Array.isArray(this.data) ? this.data.length : 0)) {
                                             return Promise.resolve(false);
                                         }
 
                                         this.data = filtered;
                                         try {
-                                            if (this.instance && typeof this.instance.option === "function") {
-                                                this.instance.option("dataSource", filtered);
+  if (this.instance && typeof this.instance.option === "function") {
+                this.instance.option("dataSource", filtered);
                                                 this.instance.refresh();
-                                            }
+                     }
                                         } catch (removeErr) {
                                             console.warn("[SharedGrid] Unable to remove row", removeErr);
                                         }
@@ -1279,7 +1279,7 @@ BEGIN
                                 if (typeof sharedEntry.ensureLocalData !== "function") {
                                     sharedEntry.ensureLocalData = function () {
                                         if (Array.isArray(this.data) && this.data.length > 0) {
-                                            return;
+                            return;
                                         }
                                         const snapshot = snapshotGridData(this.instance);
                                         if (snapshot.length > 0) {
@@ -1326,28 +1326,28 @@ BEGIN
                             pager: {
                                 visible: true,
                                 allowedPageSizes: [5, 10, 50, 100],
-                                showPageSizeSelector: true,
-                                showInfo: true,
+                      showPageSizeSelector: true,
+                            showInfo: true,
                                 showNavigationButtons: true
-                            },
+  },
                             selection: {
                                 mode: "%SelectionMode%",
-                                showCheckBoxesMode: "%ShowCheckBoxesMode%",
+                              showCheckBoxesMode: "%ShowCheckBoxesMode%",
                                 allowSelectAll: %AllowSelectAll%
                             },
                             searchPanel: {
-                                visible: true,
+                             visible: true,
                                 width: 240,
-                                placeholder: "Tìm kiếm"
+                  placeholder: "Tìm kiếm"
                             },
-                            headerFilter: { visible: true },
+                       headerFilter: { visible: true },
                             columnChooser: {
                                 enabled: true,
                                 mode: "select",
-                                title: "Chọn cột hiển thị"
+                               title: "Chọn cột hiển thị"
                             },
                             stateStoring: { enabled: false },
-                            grouping: {
+                        grouping: {
                                 autoExpandAll: true,
                                 contextMenuEnabled: false,
                                 allowCollapsing: true
@@ -1361,7 +1361,7 @@ BEGIN
                             rowDragging: {
                                 allowReordering: true,
                                 showDragIcons: true,
-                                onReorder: function(e) {
+                       onReorder: function(e) {
                                     let dataSource = e.component.option("dataSource");
                                     const tableName = "%TableName%"
                                     const pkColumn = "%ColumnIDName%"
@@ -1405,19 +1405,19 @@ BEGIN
 
                                             if (typeof openDetail%PKColumnName% === "function") {
                                                 openDetail%PKColumnName%(recordID);
-                                            }
+                    }
                                         }
                                     }
-                                }
+         }
                             },
                             onRowPrepared: function(e) {
-                                if (e.rowType === "data") {
+                               if (e.rowType === "data") {
                                     // Nếu multiSelect không bật và IsOpenDetailRowGrid không bật
                                     if (%IsMultiSelectRowGrid% === 0 && %IsOpenDetailRowGrid% === 0) {
                                         return;
                                     }
 
-                                    // Nếu bật IsOpenDetailRowGrid - CHỈ highlight cột đầu tiên
+                             // Nếu bật IsOpenDetailRowGrid - CHỈ highlight cột đầu tiên
                                     if (%IsOpenDetailRowGrid% === 1 && %IsMultiSelectRowGrid% === 0) {
                                         const $firstCell = e.rowElement.find("td:first");
                                         if ($firstCell.length) {
@@ -1426,7 +1426,7 @@ BEGIN
                                                 color: "#1976d2",
                                                 textDecoration: "none",
                                                 fontWeight: "500"
-                                            }).hover(
+                            }).hover(
                                                 function() {
                                                     $(this).css({
                                                         textDecoration: "underline",
@@ -1460,13 +1460,13 @@ BEGIN
                             },
                             onContentReady: function (e) {
                                 const grid = e.component;
-                                const gridId = grid.element().attr("id");
+                    const gridId = grid.element().attr("id");
 
-                                // CHỈ LOAD CONFIG MỘT LẦN DUY NHẤT
+                              // CHỈ LOAD CONFIG MỘT LẦN DUY NHẤT
                                 if (!window._GridConfigLoaded_%ColumnName%) {
                                     window._GridConfigLoaded_%ColumnName% = true;
 
-                                    loadGridColumnConfig(gridId, function (config) {
+                         loadGridColumnConfig(gridId, function (config) {
                                         if (!config || !config.visibleColumns || !Array.isArray(config.visibleColumns)) return;
 
                                         const originalColumns = window._OriginalColumnConfig_%ColumnName%;
@@ -1474,11 +1474,11 @@ BEGIN
 
                                         window.__isApplyingGridConfig__ = true;
 
-                                        let hasChanges = false;
+        let hasChanges = false;
                                         let visibleIndex = 0;
 
                                         // Set visible + visibleIndex theo config
-                                        originalColumns.forEach(col => {
+                             originalColumns.forEach(col => {
                                             if (!col || !col.dataField || col.dataField === "rowIndex") return;
 
                                             const shouldBeVisible = config.visibleColumns.includes(col.dataField);
@@ -1524,17 +1524,17 @@ BEGIN
                                             const searchNormalized = RemoveToneMarks_Js(searchValue.toLowerCase().trim());
                                             grid.filter(function(item) {
                                                 for (let key in item) {
-                                                    if (!item.hasOwnProperty(key)) continue;
+                                                if (!item.hasOwnProperty(key)) continue;
                                                     const fieldValue = item[key];
-                                                    if (fieldValue == null || fieldValue === "") continue;
+                    if (fieldValue == null || fieldValue === "") continue;
                                                     const fieldStr = String(fieldValue);
                                                     const fieldNormalized = RemoveToneMarks_Js(fieldStr.toLowerCase());
                                                     if (fieldNormalized.indexOf(searchNormalized) !== -1) {
                                                         return true;
                                                     }
-                                                }
+                                             }
                                                 return false;
-                                            });
+       });
                                         });
                                     }
                                 }, 0);
@@ -1590,24 +1590,24 @@ BEGIN
                                             const cols = e.component.getVisibleColumns();
                                             saveGridColumnConfig(gridId, cols);
                                         }, 800);
-                                    }
+                  }
                                 }
 
-                                // FILTER STATE
+ // FILTER STATE
                                 const isFilterChange =
                                     e.name === "filterValue" ||
-                                    e.fullName === "searchPanel.text" ||
+          e.fullName === "searchPanel.text" ||
                                     (e.fullName.includes("columns[") &&
                                         (
-                                            e.fullName.includes("filterValue") ||
+                                          e.fullName.includes("filterValue") ||
                                             e.fullName.includes("filterValues") ||
                                             e.fullName.includes("selectedFilterOperation")
-                                        ));
+                                       ));
 
                                 if (isFilterChange) {
-                                    clearTimeout(window.__saveFilterTimeout__%ColumnName%);
+        clearTimeout(window.__saveFilterTimeout__%ColumnName%);
                                     window.__saveFilterTimeout__%ColumnName% = setTimeout(() => {
-                                        saveGridFilterState("%TableName%", e.component);
+                            saveGridFilterState("%TableName%", e.component);
                                     }, 500);
                                 }
                             }
@@ -1655,6 +1655,7 @@ BEGIN
     GROUP BY DatasourceSP;
 	
 -- Xóa các dòng build control cho grid sau khi đã nối chuỗi xong
+
     DELETE FROM #temptable WHERE Layout = 'Grid_View' AND GridColumnName IS NOT NULL AND Type <> 'hpaControlGrid';
 	
     -- ============================================================================
@@ -1669,7 +1670,7 @@ BEGIN
     LEFT JOIN sys.objects o ON o.name = t.TableEditor AND o.type = 'U'
     WHERE t.TableEditor IS NOT NULL;
 
-    -- 
+    --
     DECLARE @ChecksumTableAddCache TABLE (TableAddNew NVARCHAR(256), ChecksumVal VARCHAR(64));
 
     INSERT INTO @ChecksumTableAddCache (TableAddNew, ChecksumVal)
@@ -1693,8 +1694,16 @@ BEGIN
     UPDATE #temptable SET loadUI = REPLACE(loadUI, '%ColumnNameAddNew%', ISNULL(ColumnNameAddNew, ''));
     UPDATE #temptable SET loadUI = REPLACE(loadUI, '%ActionRichTextEditor%', ISNULL(ActionRichTextEditor, ''));
     UPDATE #temptable SET loadUI = REPLACE(loadUI, '%DisplayName%', ISNULL(DisplayName, ''));
-    UPDATE #temptable SET loadUI = REPLACE(loadUI, '%GridColumnName%', ISNULL(GridColumnName, 0));
-	UPDATE #temptable SET loadUI = REPLACE(loadUI, '%CustomValidate%', ISNULL(CustomValidate, 0));
+
+	 UPDATE #temptable
+		SET loadUI = REPLACE(loadUI, '%GridColumnName%', ISNULL(NULLIF(CAST(GridColumnName AS VARCHAR), ''), '0'));
+
+			 UPDATE #temptable
+		SET loadUI = REPLACE(loadUI, '%CustomValidate%', ISNULL(NULLIF(CAST(CustomValidate AS VARCHAR), ''), '0'));
+
+			 UPDATE #temptable
+		SET loadUI = REPLACE(loadUI, '%KeyUpdateGrid%', ISNULL(NULLIF(CAST(KeyUpdateGrid AS VARCHAR), ''), '0'));
+
 
     UPDATE #temptable
     SET loadData = REPLACE(
@@ -1835,18 +1844,18 @@ BEGIN
                         let idField = json.valueExpr;
                         let nameField = json.displayExpr;
 
-                        if (!idField || !nameField) {
+  if (!idField || !nameField) {
                             if (json.dataSchema && json.dataSchema[0]) {
                                 const schema = json.dataSchema[0];
                                 if (!idField) idField = schema[0]?.name;
-                                if (!nameField) nameField = schema[1]?.name;
+if (!nameField) nameField = schema[1]?.name;
                             }
                         }
 
                         window["DataSourceIDField_" + columnName]   = idField || "ID";
                         window["DataSourceNameField_" + columnName] = nameField || "Name";
 
-                        const data = window[dataSourceKey];
+                   const data = window[dataSourceKey];
 
                         // callback trước
                         if (typeof onSuccessCallback === "function") {
@@ -1919,16 +1928,16 @@ BEGIN
                         // RESTORE FILTER STATE TỪ LOCALSTORAGE (nếu không skip)
                         setTimeout(function() {
                             if (window._SkipRestoreFilter) {
-                                window._SkipRestoreFilter = false;
+   window._SkipRestoreFilter = false;
                                 return;
                             }
                             const savedFilter = loadGridFilterState("' + @TableName + '", gridInstance' + @CurrentGridName + ');
                             if (savedFilter) {
-                                applyGridFilterState(gridInstance' + @CurrentGridName + ', savedFilter);
+           applyGridFilterState(gridInstance' + @CurrentGridName + ', savedFilter);
                             }
                         }, 100);
                     }
-                );
+         );
             ';
 
             FETCH NEXT FROM @GridHandlingCursor INTO @CurrentGridName, @CurrentGridUID_JS, @CurrentGridPKColumnName;
@@ -1939,7 +1948,7 @@ BEGIN
   END
 
     DECLARE @jsFunctionGridConfig NVARCHAR(MAX) = N'';
-    IF @UseLayout = 1 AND @CurrentGridName IS NOT NULL
+IF @UseLayout = 1 AND @CurrentGridName IS NOT NULL
     BEGIN
         SET @jsFunctionGridConfig = N'
         // =============== GRID COLUMN CONFIG PERSISTENCE ===============
@@ -1978,7 +1987,7 @@ BEGIN
                 menuId,
                 gridId,
                 config
-            });
+  });
 
             AjaxHPAParadise({
                 data: {
@@ -2024,11 +2033,11 @@ BEGIN
 
                     if (
                         json &&
-                        json.data &&
+            json.data &&
                         json.data[0] &&
                         json.data[0][0] &&
                         json.data[0][0].ColumnConfigJson
-                    ) {
+                 ) {
                         const raw = json.data[0][0].ColumnConfigJson;
                         config = typeof raw === "string" ? JSON.parse(raw) : raw;
                     }
@@ -2052,10 +2061,10 @@ BEGIN
 
                 columns.forEach(col => {
                     if (col.dataField && col.filterValue !== undefined) {
-                        columnFilters[col.dataField] = {
+        columnFilters[col.dataField] = {
                             filterValue: col.filterValue,
                             filterType: col.filterType || "include",
-                            selectedFilterOperation: col.selectedFilterOperation
+       selectedFilterOperation: col.selectedFilterOperation
                         };
                     }
                 });
@@ -2145,19 +2154,20 @@ BEGIN
 
         // =============== ROW ORDER PERSISTENCE ===============
         function saveGridRowOrder(gridInstance, tableName, pkColumn) {
-            const dataSource = gridInstance.option("dataSource");
+      const dataSource = gridInstance.option("dataSource");
             const rowOrderArray = dataSource.map(item => item[pkColumn]);
 
-            AjaxHPAParadise({
+   AjaxHPAParadise({
                 data: {
                     name: "sp_SaveGridRowOrder",
                     param: [
                         "LoginID", LoginID,
-                        "TableName", tableName,
+                 "TableName", tableName,
                         "RowOrderJson", JSON.stringify(rowOrderArray)
                     ]
                 },
                 success: function(res) {},
+
                 error: function(err) {
                     console.error("[SaveRowOrder] Error:", err);
                 }
@@ -2225,15 +2235,15 @@ BEGIN
                 localStorage.setItem("MyWork_Filter_" + LoginID, filterType);
             } catch (e) {
                 console.error("[SaveFilterState] Error:", e);
-            }
+           }
         }
 
         function loadFilterState() {
-            try {
+			try {
                 const saved = localStorage.getItem("MyWork_Filter_" + LoginID);
                 if (saved) {
                     return saved;
-                }
+}
             } catch (e) {
                 console.error("[LoadFilterState] Error:", e);
             }
@@ -2242,27 +2252,26 @@ BEGIN
 
         function applyFilter(filterType) {
             currentFilter = filterType;
-            const gridInstance = InstancegridMyWorkPDB2DB35885F14803A9A52961A7871972;
+            const gridInstance = "" // Instance%ColumnName%%UID%;
 
             if (!gridInstance) return;
 
-            let filteredData = allTasks;
+            let filteredData = DataSource;
 
             if (filterType === "todo") {
-                filteredData = allTasks.filter(task => task.Status === 1);
-            } else if (filterType === "doing") {
-                filteredData = allTasks.filter(task => task.Status === 2);
+                filteredData = DataSource.filter(data => data.Status === 1);
+   } else if (filterType === "doing") {
+                filteredData = DataSource.filter(data => data.Status === 2);
             } else if (filterType === "overdue") {
-                // Filter tasks that are overdue (có deadline < hôm nay và status !== 3 (Done))
                 const today = new Date();
                 today.setHours(0, 0, 0, 0);
-                filteredData = allTasks.filter(task => {
-                    if (task.Status === 3) return false; // Exclude done tasks
-                    const deadlineDate = new Date(task.DeadlineDate);
+                filteredData = DataSource.filter(data => {
+    if (data.Status === 3) return false; // Exclude done datas
+                    const deadlineDate = new Date(data.DeadlineDate);
                     return deadlineDate < today;
                 });
-            }
-            // else filterType === "all" -> show all tasks
+   }
+            // else filterType === "all" -> show all datas
 
             gridInstance.option("dataSource", filteredData);
 
@@ -2295,23 +2304,23 @@ BEGIN
                     /* --- Base Styles --- */
                     .dx-widget { font-size:inherit!important; font-weight:inherit!important; line-height:inherit!important; border-radius:inherit!important; }
                     .dx-texteditor, .dx-texteditor-input { font-size:inherit!important; font-weight:inherit!important; line-height:inherit!important; box-sizing:border-box!important; }
-                    
+
                     /* --- Responsive & Popup Styles --- */
                     .hpa-responsive { max-width: 98vw !important; max-height: 98vh !important; }
                     .hpa-responsive .dx-popup-content { padding: 8px !important; display: flex !important; flex-direction: column !important; }
                     .hpa-responsive .dx-popup-content-scrollable { flex: 1 !important; min-height: 0 !important; overflow: auto !important; }
-                    
+
                     /* --- Grid Customizations --- */
                     .dx-datagrid-headers { white-space: normal; word-break: break-word; }
                     .dx-datagrid-header-panel { padding: 8px; }
                     .dx-datagrid .dx-row > td { padding: 8px !important; vertical-align: middle !important; }
                     .dx-datagrid-rowsview .dx-row > td > div { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.4 !important; }
-                    
+
                     /* --- Search Styles --- */
                     .dx-datagrid-search-panel .dx-placeholder { display: none !important; }
                     .dx-datagrid-search-panel input:not(:placeholder-shown) { color: #000 !important; }
-                    
-                    /* --- Avatar & Chip Styles --- */
+
+                  /* --- Avatar & Chip Styles --- */
                     .hpa-avatar-group { display: flex; alignItems: center; }
                     .hpa-avatar { border: 2px solid #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.1); object-fit: cover; }
                 `)
@@ -2331,15 +2340,16 @@ BEGIN
                 return text.replace(regex, "<mark class=\"bg-warning fw-bold px-1 rounded\">$1</mark>");
             },
             getInitials: function(name) {
-                if (!name) return "?";
+     if (!name) return "?";
                 const words = name.trim().split(/\s+/);
                 if (words.length >= 2) return (words[0][0] + words[words.length - 1][0]).toUpperCase();
+
                 return name.substring(0, 2).toUpperCase();
             },
             getColorForId: function(id) {
                 const colors = [
                     { bg: "#e3f2fd", text: "#1976d2" },
-                    { bg: "#f3e5f5", text: "#7b1fa2" },
+                  { bg: "#f3e5f5", text: "#7b1fa2" },
                     { bg: "#e8f5e9", text: "#388e3c" },
                     { bg: "#fff3e0", text: "#f57c00" },
                     { bg: "#fce4ec", text: "#c2185b" }
@@ -2349,7 +2359,7 @@ BEGIN
             loadAvatar: function(employeeId, storeImgName, paramImg, callbackFn) {
                 window.GlobalEmployeeAvatarCache = window.GlobalEmployeeAvatarCache || {};
                 window.GlobalEmployeeAvatarLoading = window.GlobalEmployeeAvatarLoading || {};
-                
+
                 const idStr = String(employeeId);
                 if (window.GlobalEmployeeAvatarCache[idStr]) {
                     if (callbackFn) callbackFn(window.GlobalEmployeeAvatarCache[idStr]);
@@ -2366,7 +2376,7 @@ BEGIN
 
                 if (!storeImgName) return null;
 
-                window.GlobalEmployeeAvatarLoading[idStr] = { loading: true, callbacks: callbackFn ? [callbackFn] : [] };
+               window.GlobalEmployeeAvatarLoading[idStr] = { loading: true, callbacks: callbackFn ? [callbackFn] : [] };
 
                 let paramArray = [];
                 if (paramImg) {
@@ -2387,7 +2397,7 @@ BEGIN
                         } else {
                             callbacks.forEach(cb => { try { cb(null); } catch (e) {} });
                         }
-                    },
+       },
                     error: function () {
                         const callbacks = window.GlobalEmployeeAvatarLoading[idStr]?.callbacks || [];
                         delete window.GlobalEmployeeAvatarLoading[idStr];
@@ -2416,18 +2426,21 @@ BEGIN
         (() => {
             let DataSource = []
             %JS_LOAD_ALL_DATA_SOURCES%
+
             %JS_VALIDATION_ENGINE%
             %paradiseloadUI%
-    %JS_CURRENT_ID%
+            %JS_CURRENT_ID%
             %jsFunctionGridConfig%
 
             function ReloadData() {
+
                 AjaxHPAParadise({
                     data: {
                         name: "%SPLoadData%",
                         param: []
               },
                     success: function (res) {
+
                         const json = typeof res === "string" ? JSON.parse(res) : res;
                         const results = Array.isArray(json?.data?.[0])
                             ? json.data[0]
@@ -2439,6 +2452,9 @@ BEGIN
                         %JS_HANDLE_RECORD%
                         DataSource = results;
                         %paradiseloadData%
+                        if (typeof restoreFilterState === "function") {
+                            restoreFilterState();
+                        }
                     }
                 })
             }
@@ -2512,7 +2528,7 @@ BEGIN
     BEGIN CATCH
         -- Log error message
         DECLARE @ErrorMessage NVARCHAR(4000) = ERROR_MESSAGE();
-       DECLARE @ErrorSeverity INT = ERROR_SEVERITY();
+        DECLARE @ErrorSeverity INT = ERROR_SEVERITY();
         DECLARE @ErrorState INT = ERROR_STATE();
 
         -- Cleanup resources

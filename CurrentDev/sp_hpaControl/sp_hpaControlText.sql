@@ -18,11 +18,9 @@ BEGIN
                 value: "",
                 width: "100%",
                 readOnly: true,
-                elementAttr: {
-                    style: "border: none !important; box-shadow: none !important; background: transparent !important; padding: 2px 8px;"
-                },
+                stylingMode: "underlined",
                 inputAttr: {
-                    style: "max-height: 100%; border: none !important; background: transparent; box-shadow: none; padding: inherit; font-size: inherit; font-weight: inherit;"
+                    style: "max-height: 100%; background: transparent; box-shadow: none; padding: 2px 0px; font-size: inherit; font-weight: inherit; border-bottom-color: #ddd;"
                 }
             }).dxTextBox("instance");
         '
@@ -37,25 +35,25 @@ BEGIN
             let $container%ColumnName%%UID% = $("#%UID%");
 
             let %ColumnName%%UID%OriginalValue = "";
-            let %ColumnName%%UID%ValidationMsg = null;
             let _saving%ColumnName%%UID% = false;
             let %ColumnName%%UID%RealInstance = null;
 
             /* =============== Helper Functions =============== */
 
             function showValidationError%ColumnName%%UID%(message) {
-                %ColumnName%%UID%ValidationMsg.text(message).show();
+                // Tô background đỏ nhạt và đổi màu underline
                 $container%ColumnName%%UID%.find("input").css({
-                    "border": "2px solid #d9534f",
-                    "box-shadow": "0 0 0 0.2rem rgba(217, 83, 79, 0.25)"
+                    "background-color": "#ffe6e6"
                 });
+                // Bắn UI Alert
+                if (typeof uiManager !== "undefined" && uiManager.showAlert) {
+                    uiManager.showAlert({ type: "error", message: message });
+                }
             }
 
             function hideValidationError%ColumnName%%UID%() {
-                %ColumnName%%UID%ValidationMsg.hide();
                 $container%ColumnName%%UID%.find("input").css({
-                    "border": "",
-                    "box-shadow": "none"
+                    "background-color": ""
                 });
             }
 
@@ -66,6 +64,15 @@ BEGIN
 
                 if (newVal === %ColumnName%%UID%OriginalValue) {
                     _saving%ColumnName%%UID% = false;
+                    return;
+                }
+
+                var result = %ColumnName%%UID%Validator.validate();
+                  // Đợi async validation hoàn thành
+                console.log("Validation result:", result);
+                await result.complete;
+
+                if (!result.isValid) {
                     return;
                 }
 
@@ -81,9 +88,6 @@ BEGIN
                             showValidationError%ColumnName%%UID%(errorMsg);
                             _saving%ColumnName%%UID% = false;
 
-                            setTimeout(() => {
-                                $container%ColumnName%%UID%.find("input").focus();
-                            }, 50);
                             return;
                         }
                     }
@@ -113,16 +117,40 @@ BEGIN
 
                     const dtError = json.data[json.data.length - 1] || [];
                     if (dtError.length > 0 && dtError[0].Status === "ERROR") {
-                        if ("%IsAlert%" === "1") {
-                            uiManager.showAlert({ type: "error", message: dtError[0]?.Message || "Lưu thất bại" });
-                        }
+                        uiManager.showAlert({ type: "error", message: dtError[0]?.Message || "%SaveErrorMessage%" });
                         _saving%ColumnName%%UID% = false;
                         return;
                     }
 
-                      if(%GridColumnName% != 0 && %GridColumnName% != null && %GridColumnName% != "" && window.hpaSharedGridDataSources["%GridColumnName%"])
+                    if(%GridColumnName% != 0 && %GridColumnName% != null && %GridColumnName% != "" && window.hpaSharedGridDataSources["%GridColumnName%"])
                             {
                                try {
+                                    let KeyRowTable =  window.currentClicked_%GridColumnName%;
+                                    console.log("KeyRowTable:", KeyRowTable);
+                                    if(KeyRowTable != null && KeyRowTable != undefined)
+                                    {
+                                        var updateData = {};
+                                        updateData["%KeyUpdateGrid%"] = KeyRowTable;
+                                        updateData["%ColumnName%"] = Instance%ColumnName%%UID%.option("value");
+
+                                        // 2. Thực hiện update Shared Grid
+                                        // Vì dùng RowID, Grid sẽ tự tìm dòng cực nhanh
+                                        window.updateSharedGridRow("%GridColumnName%", updateData);
+
+                                        // 3. Cập nhật biến DataSource cục bộ (Dùng RowID để tìm)
+                                        if (typeof DataSource !== "undefined" && Array.isArray(DataSource)) {
+                                            // Chỉ cần 1 dòng filter duy nhất, không cần check hasKey2 rườm rà nữa
+                                            var ds = DataSource.filter(item => item.RowID === KeyRowTable);
+
+                                            if (ds && ds.length > 0) {
+                                                ds[0]["%ColumnName%"] = updateData["%ColumnName%"];
+
+                                                // Nếu bạn đang sửa chính là 1 trong các ID cấu thành RowID
+                                                // Cần cập nhật lại RowID mới nếu cần thiết (tùy logic nghiệp vụ)
+                                            }
+                                        }
+                                    }
+
                                     var updateData = {};
                                     updateData["%ColumnIDName%"] = currentRecordIDValue[0];
                                     updateData["%ColumnName%"] = Instance%ColumnName%%UID%.option("value");
@@ -131,10 +159,10 @@ BEGIN
                                     var hasKey2 = id2FieldName && id2FieldName !== "" && id2FieldName.indexOf("%") === -1;
 
                                     if (hasKey2) {
-                                        if (currentRecordIDValue.length > 1 && currentRecordIDValue[1] !== undefined) {
-                                            updateData[id2FieldName] = currentRecordIDValue[1];
+                                            if (currentRecordIDValue.length > 1 && currentRecordIDValue[1] !== undefined) {
+                updateData[id2FieldName] = currentRecordIDValue[1];
                                         }
-        }
+                                    }
 
                                     // Thực hiện update shared grid
                                     window.updateSharedGridRow("%GridColumnName%", updateData);
@@ -147,7 +175,7 @@ BEGIN
                                             ds = DataSource.filter(item => item["%ColumnIDName%"] === updateData["%ColumnIDName%"]);
                                         } else {
                                             // Trường hợp 2 khóa
-         ds = DataSource.filter(item =>
+                                            ds = DataSource.filter(item =>
                                                item["%ColumnIDName%"] === updateData["%ColumnIDName%"] &&
                                                 item[id2FieldName] === updateData[id2FieldName]
                                             );
@@ -156,20 +184,17 @@ BEGIN
                                         if (ds && ds.length > 0) {
                                             ds[0]["%ColumnName%"] = updateData["%ColumnName%"];
                                         }
-                                    } // <-- Bạn thiếu dấu này
+                                    }
                                 } catch (dsErr) {
                                     console.warn("[Grid Sync] TextBox %ColumnName%%UID%: Không thể sync shared grid data source:", dsErr);
                                 }
                             }
 
 
-        %ColumnName%%UID%OriginalValue = newVal;
-                    if ("%IsAlert%" === "1") {
-                        uiManager.showAlert({ type: "success", message: "Lưu thành công" });
-                    }
+                        %ColumnName%%UID%OriginalValue = newVal;
 
-                    if (typeof cellInfo !== "undefined" && cellInfo && cellInfo.component) {
-                        try {
+                        if (typeof cellInfo !== "undefined" && cellInfo && cellInfo.component) {
+                            try {
                             const grid = cellInfo.component;
                             grid.cellValue(cellInfo.rowIndex, "%ColumnName%", newVal);
                             grid.repaint();
@@ -179,7 +204,7 @@ BEGIN
                     }
                 } catch (err) {
                     console.error(err);
-                    uiManager.showAlert({ type: "error", message: "Có lỗi xảy ra khi lưu" });
+                    uiManager.showAlert({ type: "error", message: "%SaveErrorMessage%" });
                 } finally {
                     setTimeout(function(){
                         _saving%ColumnName%%UID% = false;
@@ -189,42 +214,25 @@ BEGIN
 
             /* =============== Create UI =============== */
 
-            %ColumnName%%UID%ValidationMsg = $("<div>").css({
-                "color": "#d9534f",
-                "font-size": "0.875rem",
-                "padding": "4px 8px",
-                "display": "none",
-                "margin-top": "2px"
-            }).appendTo($container%ColumnName%%UID%);
-
             %ColumnName%%UID%RealInstance = $("<div>")
                 .appendTo($container%ColumnName%%UID%)
                 .dxTextBox({
                     value: "",
                     width: "100%",
-                    placeholder: "Nhập dữ liệu",
+                    placeholder: "",
+                    stylingMode: "underlined",
                     inputAttr: {
-                        style: " padding: 6px 8px; font-size: inherit; font-weight: inherit; box-sizing: border-box; transition: all 0.2s;"
+                        style: "font-size: inherit; font-weight: inherit; border-bottom-color: #ddd;"
                     },
                     onValueChanged: function(e) {
                         if (e.value && e.value.trim() !== "") {
                             hideValidationError%ColumnName%%UID%();
                         }
                     },
-                    onFocusIn: function(e) {
-                        $container%ColumnName%%UID%.find("input").css({
-                            "padding": "5px 7px"
-                        });
-                    },
                     onFocusOut: function(e) {
                         if (_saving%ColumnName%%UID%) return;
 
                         const currentValue = $container%ColumnName%%UID%.find("input").val();
-
-                        // Reset border về 1px
-                        $container%ColumnName%%UID%.find("input").css({
-                            "padding": "6px 8px"
-                        });
 
                         // Nếu giá trị không đổi
                         if (currentValue === %ColumnName%%UID%OriginalValue) {
@@ -233,7 +241,7 @@ BEGIN
                         }
 
                         // Validate nếu field bắt buộc
-                 if (%IsRequired% === 1) {
+                        if (%IsRequired% === 1) {
                             if (!currentValue || currentValue.trim() === "") {
                                 const errorMsg = window.ValidationEngine && window.ValidationEngine.getRequiredMessage
                                     ? window.ValidationEngine.getRequiredMessage("%DisplayName%")
@@ -249,7 +257,7 @@ BEGIN
                         %ColumnName%%UID%RealInstance.option("value", currentValue);
                         saveValue%ColumnName%%UID%();
                     },
-      onKeyDown: function(e) {
+                    onKeyDown: function(e) {
                         if (e.event.key === "Enter") {
                             e.event.preventDefault();
 
@@ -281,6 +289,30 @@ BEGIN
                 })
                 .dxTextBox("instance");
 
+              // 1. Khai báo biến global/local cho Validator
+            var %ColumnName%%UID%Validator;
+
+            try {
+                // 2. Lấy dữ liệu cấu hình validate từ chuỗi JSON
+                var rawRules = `%CustomValidate%`;
+                var validationRules = [];
+
+                if (rawRules && rawRules.trim() !== "" && rawRules !== "null") {
+                    // Tẩy rửa ký tự lạ và parse JSON
+                    var cleanJson = rawRules.replace(/\u00A0/g, " ").replace(/[\uFEFF\u200B]/g, "");
+                    validationRules = JSON.parse(cleanJson);
+                }
+
+                // 3. Khởi tạo dxValidator và gán vào biến %ColumnName%%UID%Validator
+                // Chúng ta gắn nó trực tiếp vào element của Instance đã có
+                %ColumnName%%UID%Validator = %ColumnName%%UID%RealInstance.element().dxValidator({
+                    validationRules: validationRules,
+                    validationGroup: "group%UID%" // Dùng để validate chung nếu cần
+                }).dxValidator("instance");
+            } catch (e) {
+                console.error("Lỗi khởi tạo Validator cho %ColumnName%:", e);
+            }
+
             /* =============== Public API =============== */
             Instance%ColumnName%%UID% = {
                 setValue: function(val) {
@@ -306,7 +338,7 @@ BEGIN
                             ) {
                                 try {
                                     this.__cellInfo.setValue(val);
-       } catch (e) {
+                            } catch (e) {
                                     console.warn("[hpaControlText] Grid sync skipped", e);
                                 }
                             }
@@ -344,25 +376,25 @@ BEGIN
             let _readOnly%ColumnName%%UID% = false;
 
             let %ColumnName%%UID%OriginalValue = "";
-            let %ColumnName%%UID%ValidationMsg = null;
             let _saving%ColumnName%%UID% = false;
             let %ColumnName%%UID%RealInstance = null;
 
             /* =============== Helper Functions =============== */
 
             function showValidationError%ColumnName%%UID%(message) {
-                %ColumnName%%UID%ValidationMsg.text(message).show();
+                // Tô background đỏ nhạt và đổi màu underline
                 $container%ColumnName%%UID%.find("input").css({
-                    "border": "2px solid #d9534f",
-                    "box-shadow": "0 0 0 0.2rem rgba(217, 83, 79, 0.25)"
+                    "background-color": "#ffe6e6"
                 });
+                // Bắn UI Alert
+                if (typeof uiManager !== "undefined" && uiManager.showAlert) {
+                    uiManager.showAlert({ type: "error", message: message });
+                }
             }
 
             function hideValidationError%ColumnName%%UID%() {
-                %ColumnName%%UID%ValidationMsg.hide();
                 $container%ColumnName%%UID%.find("input").css({
-                    "border": "",
-                    "box-shadow": "none"
+                    "background-color": ""
                 });
             }
 
@@ -376,6 +408,14 @@ BEGIN
                     return;
                 }
 
+                var result =  %ColumnName%%UID%Validator.validate();
+                console.log("Validation result:", result);
+                await result.complete;
+
+                if (!result.isValid) {
+                    return;
+                }
+
                 try {
                     _saving%ColumnName%%UID% = true;
 
@@ -385,7 +425,7 @@ BEGIN
                                 ? window.ValidationEngine.getRequiredMessage("%DisplayName%")
                                 : "%DisplayName% là bắt buộc";
 
-      showValidationError%ColumnName%%UID%(errorMsg);
+                            showValidationError%ColumnName%%UID%(errorMsg);
                             _saving%ColumnName%%UID% = false;
 
                             setTimeout(() => {
@@ -393,11 +433,11 @@ BEGIN
                             }, 50);
                             console.log("Required");
                             return;
-    }
+                        }
                     }
 
-                    hideValidationError%ColumnName%%UID%();
                     console.log(_autoSave%ColumnName%%UID%);
+                    hideValidationError%ColumnName%%UID%();
                     if (_autoSave%ColumnName%%UID%) {
                         const dataJSON = JSON.stringify(["%tableId%", ["%ColumnName%"], [newVal]]);
 
@@ -418,22 +458,45 @@ BEGIN
                         }
 
                         const idValsJSON = JSON.stringify([currentRecordIDValue, currentRecordID]);
-          console.log(dataJSON);
-                        console.log(idValsJSON);
+
                         const json = await saveFunction(dataJSON, idValsJSON);
 
                         const dtError = json.data[json.data.length - 1] || [];
                         if (dtError.length > 0 && dtError[0].Status === "ERROR") {
-                            if ("%IsAlert%" === "1") {
-                                uiManager.showAlert({ type: "error", message: dtError[0]?.Message || "Lưu thất bại" });
-                            }
+                            uiManager.showAlert({ type: "error", message: dtError[0]?.Message || "%SaveErrorMessage%" });
                             _saving%ColumnName%%UID% = false;
                             return;
                         }
 
-                        if(%GridColumnName% != 0 && %GridColumnName% != null && %GridColumnName% != "" && window.hpaSharedGridDataSources["%GridColumnName%"])
+                         if(%GridColumnName% != 0 && %GridColumnName% != null && %GridColumnName% != "" && window.hpaSharedGridDataSources["%GridColumnName%"])
                             {
                                try {
+                                    let KeyRowTable =  window.currentClicked_%GridColumnName%;
+                                    console.log("KeyRowTable:", KeyRowTable);
+                                    if(KeyRowTable != null && KeyRowTable != undefined)
+                                    {
+                                        var updateData = {};
+                                        updateData["%KeyUpdateGrid%"] = KeyRowTable;
+                                        updateData["%ColumnName%"] = Instance%ColumnName%%UID%.option("value");
+
+                       // 2. Thực hiện update Shared Grid
+                                        // Vì dùng RowID, Grid sẽ tự tìm dòng cực nhanh
+                                        window.updateSharedGridRow("%GridColumnName%", updateData);
+
+                                        // 3. Cập nhật biến DataSource cục bộ (Dùng RowID để tìm)
+                                        if (typeof DataSource !== "undefined" && Array.isArray(DataSource)) {
+                                            // Chỉ cần 1 dòng filter duy nhất, không cần check hasKey2 rườm rà nữa
+                                            var ds = DataSource.filter(item => item.RowID === KeyRowTable);
+
+                                            if (ds && ds.length > 0) {
+                                                ds[0]["%ColumnName%"] = updateData["%ColumnName%"];
+
+                                                // Nếu bạn đang sửa chính là 1 trong các ID cấu thành RowID
+                                                // Cần cập nhật lại RowID mới nếu cần thiết (tùy logic nghiệp vụ)
+                                            }
+                                        }
+                                    }
+
                                     var updateData = {};
                                     updateData["%ColumnIDName%"] = currentRecordIDValue[0];
                                     updateData["%ColumnName%"] = Instance%ColumnName%%UID%.option("value");
@@ -455,28 +518,23 @@ BEGIN
                                         var ds;
                                         if (!hasKey2) {
                                             // Trường hợp 1 khóa
-                               ds = DataSource.filter(item => item["%ColumnIDName%"] === updateData["%ColumnIDName%"]);
+                                            ds = DataSource.filter(item => item["%ColumnIDName%"] === updateData["%ColumnIDName%"]);
                                         } else {
                                             // Trường hợp 2 khóa
                                             ds = DataSource.filter(item =>
-                                                item["%ColumnIDName%"] === updateData["%ColumnIDName%"] &&
+                                               item["%ColumnIDName%"] === updateData["%ColumnIDName%"] &&
                                                 item[id2FieldName] === updateData[id2FieldName]
                                             );
-                                        }
+                              }
 
                                         if (ds && ds.length > 0) {
                                             ds[0]["%ColumnName%"] = updateData["%ColumnName%"];
                                         }
-                                    } // <-- Bạn thiếu dấu này
+                                    }
                                 } catch (dsErr) {
                                     console.warn("[Grid Sync] TextBox %ColumnName%%UID%: Không thể sync shared grid data source:", dsErr);
                                 }
                             }
-
-
-                        if ("%IsAlert%" === "1") {
-                            uiManager.showAlert({ type: "success", message: "Lưu thành công" });
-                        }
                     }
 
                     %ColumnName%%UID%OriginalValue = newVal;
@@ -502,35 +560,21 @@ BEGIN
 
             /* =============== Create UI =============== */
 
-            %ColumnName%%UID%ValidationMsg = $("<div>").css({
-                "color": "#d9534f",
-                "font-size": "0.875rem",
-                "padding": "4px 8px",
-                "display": "none",
-                "margin-top": "2px"
-            }).appendTo($container%ColumnName%%UID%);
-
             %ColumnName%%UID%RealInstance = $("<div>")
                 .appendTo($container%ColumnName%%UID%)
                 .dxTextBox({
                     value: "",
                     width: "100%",
-                    placeholder: "Nhập dữ liệu",
+                    placeholder: "",
                     readOnly: _readOnly%ColumnName%%UID%,
+                    stylingMode: "underlined",
                     inputAttr: {
-                        style: " padding: 6px 8px; font-size: inherit; font-weight: inherit; box-sizing: border-box; transition: all 0.2s;"
+                        style: "font-size: inherit; font-weight: inherit; border-bottom-color: #ddd;"
                     },
                     onValueChanged: function(e) {
                         if (e.value && e.value.trim() !== "") {
                             hideValidationError%ColumnName%%UID%();
                         }
-                    },
-                    onFocusIn: function(e) {
-                        if (_readOnly%ColumnName%%UID%) return;
-
-                        $container%ColumnName%%UID%.find("input").css({
-                            "padding": "5px 7px"
-                        });
                     },
                     onFocusOut: function(e) {
                         if (_readOnly%ColumnName%%UID%) return;
@@ -538,12 +582,7 @@ BEGIN
                         const $input = $container%ColumnName%%UID%.find("input");
                         const currentValue = $input.val();
 
-                        // Reset padding
-                        $input.css({
-        "padding": "6px 8px"
-                        });
-
-    // Validate required
+                        // Validate required
                         if (%IsRequired% === 1) {
                             if (!currentValue || currentValue.trim() === "") {
                                 const errorMsg = window.ValidationEngine && window.ValidationEngine.getRequiredMessage
@@ -576,7 +615,7 @@ BEGIN
                                         ? window.ValidationEngine.getRequiredMessage("%DisplayName%")
                                         : "%DisplayName% là bắt buộc";
 
-                                    showValidationError%ColumnName%%UID%(errorMsg);
+                               showValidationError%ColumnName%%UID%(errorMsg);
                                     return;
                                 }
                             }
@@ -604,10 +643,35 @@ BEGIN
                 })
                 .dxTextBox("instance");
 
+                // 1. Khai báo biến global/local cho Validator
+            var %ColumnName%%UID%Validator;
+
+            try {
+                // 2. Lấy dữ liệu cấu hình validate từ chuỗi JSON
+                var rawRules = `%CustomValidate%`;
+                var validationRules = [];
+
+                if (rawRules && rawRules.trim() !== "" && rawRules !== "null") {
+                    // Tẩy rửa ký tự lạ và parse JSON
+                    var cleanJson = rawRules.replace(/\u00A0/g, " ").replace(/[\uFEFF\u200B]/g, "");
+                    validationRules = JSON.parse(cleanJson);
+                }
+
+                // 3. Khởi tạo dxValidator và gán vào biến %ColumnName%%UID%Validator
+                // Chúng ta gắn nó trực tiếp vào element của Instance đã có
+                %ColumnName%%UID%Validator = %ColumnName%%UID%RealInstance.element().dxValidator({
+                    validationRules: validationRules,
+                    validationGroup: "group%UID%" // Dùng để validate chung nếu cần
+                }).dxValidator("instance");
+
+            } catch (e) {
+                console.error("Lỗi khởi tạo Validator cho %ColumnName%:", e);
+            }
+
             /* =============== Public API =============== */
             Instance%ColumnName%%UID% = {
                 setValue: function(val) {
-                    const displayVal = (val == null || val === "") ? "" : String(val);
+               const displayVal = (val == null || val === "") ? "" : String(val);
                     %ColumnName%%UID%OriginalValue = displayVal;
                     %ColumnName%%UID%RealInstance.option("value", displayVal);
                 },
@@ -628,7 +692,7 @@ BEGIN
                                 this.__cellInfo.component
                             ) {
                                 try {
-    this.__cellInfo.setValue(val);
+                                    this.__cellInfo.setValue(val);
                                 } catch (e) {
                                     console.warn("[hpaControlText] Grid sync skipped", e);
                                 }
