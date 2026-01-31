@@ -89,6 +89,39 @@ BEGIN
 END
 GO
 
+-- Table Templates
+IF OBJECT_ID('tblTask_Templates', 'U') IS NULL
+BEGIN
+    CREATE TABLE tblTask_Templates (
+        TemplateID INT IDENTITY(1,1) PRIMARY KEY,
+        TemplateName NVARCHAR(255) NOT NULL,
+        Category NVARCHAR(100),
+        Description NVARCHAR(MAX),
+        EstDays INT DEFAULT 0,
+        dBy NVARCHAR(20),
+        dDate DATETIME DEFAULT GETDATE(),
+        ModifiedDate DATETIME DEFAULT GETDATE()
+    );
+END
+GO
+
+-- Table Template Subtasks
+IF OBJECT_ID('tblTask_TemplateSubtasks', 'U') IS NULL
+BEGIN
+    CREATE TABLE tblTask_TemplateSubtasks (
+        SubtaskID INT IDENTITY(1,1) PRIMARY KEY,
+        TemplateID INT NOT NULL,
+        TaskName NVARCHAR(255) NOT NULL,
+        Description NVARCHAR(MAX),
+        EstHours DECIMAL(18,2) DEFAULT 0,
+        [Order] INT DEFAULT 0,
+        IsRequired BIT DEFAULT 1,
+        DefaultRole NVARCHAR(50),
+        dDate DATETIME DEFAULT GETDATE()
+    );
+END
+GO
+
 -- SEED DATA (Exclude Employees and Positions as they already exist)
 IF NOT EXISTS (SELECT 1 FROM tblTask_Projects)
 BEGIN

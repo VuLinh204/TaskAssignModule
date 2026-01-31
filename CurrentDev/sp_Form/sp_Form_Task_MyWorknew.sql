@@ -137,7 +137,7 @@ SET @html = N'
         gap: 8px;
         font-size: 14px;
         white-space: nowrap;
-   }
+  }
     #sp_Task_MyWork_html .btn-assign {
         background: var(--task-primary);
         color: white;
@@ -821,7 +821,7 @@ SET @html = N'
         }
         #sp_Task_MyWork_html #temp-subtasks .subtask-header {
             margin-bottom: 12px;
-    font-size: 14px;
+ font-size: 14px;
             gap: 6px;
         }
         #sp_Task_MyWork_html #temp-subtasks .form-label {
@@ -976,8 +976,8 @@ SET @html = N'
                                 <p>Vui lòng chọn Công việc chính ở trên</p>
                             </div>
                             <div id="gridSubtaskAssign" style="height: 100%; display: none;"></div>
-                        </div>
-                    </div>
+          </div>
+   </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
@@ -993,6 +993,7 @@ SET @html = N'
     (function() {
         "use strict";
 
+        var allTasks = [];
         var currentView = "grid";
         var modalInitialized = false;
         var currentFilter = "all"; // Lưu filter hiện tại
@@ -1077,6 +1078,7 @@ SET @html = N'
             });
 
             window.onSelectBoxChanged_TaskName = function(value, instance, e) {
+                console.log("value", value);
                 if (value) {
                     $("#subtask-assign-step").show();
                     // Reset grid before loading new data
@@ -1149,7 +1151,7 @@ SET @html = N'
                                 "RequestDate", requestDate || null,
                                 "CommittedHours", committedHours || null,
                                 "SubtasksJSON", JSON.stringify(subtasks),
-                                "LoginID", LoginID,
+      "LoginID", LoginID,
                                 "LanguageID", LanguageID
                             ]
                         },
@@ -1218,11 +1220,11 @@ SET @html = N'
                 success: function(res) {
                     const json = typeof res === "string" ? JSON.parse(res) : res;
                     currentTemplate = json.data[0] || [];
-                    
+
                     // Then fetch existing child tasks to supplement
                     fetchChildTasks(pid, function(childTasks) {
                         currentChildTasks = childTasks || [];
-                        
+
                         // Combine or show unique set
                         if (currentTemplate.length > 0 || currentChildTasks.length > 0) {
                             renderAssignSubtasks();
@@ -1239,7 +1241,7 @@ SET @html = N'
 
         function fetchChildTasks(pid, cb) {
             AjaxHPAParadise({
-                data: {
+              data: {
                     name: "sp_Task_GetTaskRelations",
                     param: ["ParentTaskID", pid]
                 },
@@ -1258,21 +1260,7 @@ SET @html = N'
 
         // Phần xử lý control
         let DataSource = []
-        
-        // Load DataSource: EmployeeListAll_DataSetting_Custom
-        if ("EmployeeListAll_DataSetting_Custom" && "EmployeeListAll_DataSetting_Custom".trim() !== "") {
-            loadDataSourceCommon("AssignedEmployeeIDs", "EmployeeListAll_DataSetting_Custom", function(data) {
-                // Data được shared qua callback
-            });
-        }
-    
-        // Load DataSource: sp_Task_GetAssignmentSetup
-        if ("sp_Task_GetAssignmentSetup" && "sp_Task_GetAssignmentSetup".trim() !== "") {
-            loadDataSourceCommon("TaskName", "sp_Task_GetAssignmentSetup", function(data) {
-                // Data được shared qua callback
-            });
-        }
-        
+
         function loadDataSourceCommon(columnName, dataSourceSP, onSuccessCallback) {
             if (!columnName || !dataSourceSP || dataSourceSP.trim() === "") {
                 console.warn("[loadDataSourceCommon] Missing columnName or dataSourceSP");
@@ -1297,10 +1285,8 @@ SET @html = N'
                 setTimeout(function() {
                     loadDataSourceCommon(columnName, dataSourceSP, onSuccessCallback);
                 }, 100);
-
                 return;
             }
-
 
             // Đánh dấu đang load để tránh load trùng lặp
             window[loadedKey] = "loading";
@@ -1356,123 +1342,14 @@ SET @html = N'
                 });
             });
         }
-    
-            
-        if (!document.getElementById("hpa-central-styles")) {
-            $("<style>")
-                .attr("id", "hpa-central-styles")
-                .text(`
-                    /* --- Base Styles --- */
-                    .dx-widget { font-size:inherit!important; font-weight:inherit!important; line-height:inherit!important; border-radius:inherit!important; }
-                    .dx-texteditor, .dx-texteditor-input { font-size:inherit!important; font-weight:inherit!important; line-height:inherit!important; box-sizing:border-box!important; }
 
-                    /* --- Responsive & Popup Styles --- */
-                    .hpa-responsive { max-width: 98vw !important; max-height: 98vh !important; }
-                    .hpa-responsive .dx-popup-content { padding: 8px !important; display: flex !important; flex-direction: column !important; }
-                    .hpa-responsive .dx-popup-content-scrollable { flex: 1 !important; min-height: 0 !important; overflow: auto !important; }
-
-                    /* --- Grid Customizations --- */
-                    .dx-datagrid-headers { white-space: normal; word-break: break-word; }
-                    .dx-datagrid-header-panel { padding: 8px; }
-                    .dx-datagrid .dx-row > td { padding: 8px !important; vertical-align: middle !important; }
-                    .dx-datagrid-rowsview .dx-row > td > div { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.4 !important; }
-
-                    /* --- Search Styles --- */
-                    .dx-datagrid-search-panel .dx-placeholder { display: none !important; }
-                    .dx-datagrid-search-panel input:not(:placeholder-shown) { color: #000 !important; }
-
-                    /* --- Avatar & Chip Styles --- */
-                    .hpa-avatar-group { display: flex; alignItems: center; }
-                    .hpa-avatar { border: 2px solid #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.1); object-fit: cover; }
-                `)
-                .appendTo("head");
-        }
-    
-        window.hpaUtils = window.hpaUtils || {
-            removeToneMarks: function(str) {
-                if (!str) return "";
-                return RemoveToneMarks_Js(str);
-            },
-            highlightText: function(text, search) {
-                if (!search || !text) return text;
-                const regex = new RegExp("(" + search.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + ")", "gi");
-                return text.replace(regex, "<mark class=\"bg-warning fw-bold px-1 rounded\">$1</mark>");
-            },
-            getInitials: function(name) {
-                if (!name) return "?";
-                const words = name.trim().split(/\s+/);
-                if (words.length >= 2) return (words[0][0] + words[words.length - 1][0]).toUpperCase();
-                return name.substring(0, 2).toUpperCase();
-            },
-            getColorForId: function(id) {
-                const colors = [
-                    { bg: "#e3f2fd", text: "#1976d2" },
-                    { bg: "#f3e5f5", text: "#7b1fa2" },
-                    { bg: "#e8f5e9", text: "#388e3c" },
-                    { bg: "#fff3e0", text: "#f57c00" },
-                    { bg: "#fce4ec", text: "#c2185b" }
-                ];
-                return colors[Math.abs(id) % colors.length];
-            },
-            loadAvatar: function(employeeId, storeImgName, paramImg, callbackFn) {
-                window.GlobalEmployeeAvatarCache = window.GlobalEmployeeAvatarCache || {};
-                window.GlobalEmployeeAvatarLoading = window.GlobalEmployeeAvatarLoading || {};
-
-                const idStr = String(employeeId);
-                if (window.GlobalEmployeeAvatarCache[idStr]) {
-                    if (callbackFn) callbackFn(window.GlobalEmployeeAvatarCache[idStr]);
-                    return window.GlobalEmployeeAvatarCache[idStr];
-                }
-
-                if (window.GlobalEmployeeAvatarLoading[idStr]) {
-                    if (callbackFn) {
-                        window.GlobalEmployeeAvatarLoading[idStr].callbacks = window.GlobalEmployeeAvatarLoading[idStr].callbacks || [];
-                        window.GlobalEmployeeAvatarLoading[idStr].callbacks.push(callbackFn);
-                    }
-                    return null;
-                }
-
-                if (!storeImgName) return null;
-
-                window.GlobalEmployeeAvatarLoading[idStr] = { loading: true, callbacks: callbackFn ? [callbackFn] : [] };
-
-                let paramArray = [];
-                if (paramImg) {
-                    try { paramArray = JSON.parse(decodeURIComponent(paramImg)); } catch (e) { paramArray = []; }
-                }
-
-                AjaxHPAParadise({
-                    data: { name: storeImgName, param: paramArray },
-                    xhrFields: { responseType: "blob" },
-                    cache: true,
-                    success: function (blob) {
-                        const callbacks = window.GlobalEmployeeAvatarLoading[idStr]?.callbacks || [];
-                        delete window.GlobalEmployeeAvatarLoading[idStr];
-                        if (blob && blob.size > 0) {
-                            const url = URL.createObjectURL(blob);
-                            window.GlobalEmployeeAvatarCache[idStr] = url;
-                            callbacks.forEach(cb => { try { cb(url); } catch (e) {} });
-                        } else {
-                            callbacks.forEach(cb => { try { cb(null); } catch (e) {} });
-                        }
-                    },
-                    error: function () {
-                        const callbacks = window.GlobalEmployeeAvatarLoading[idStr]?.callbacks || [];
-                        delete window.GlobalEmployeeAvatarLoading[idStr];
-                        callbacks.forEach(cb => { try { cb(null); } catch (e) {} });
-                    }
-                });
-                return null;
-            }
+        // ValidationEngine utility for validation messages
+        window.ValidationEngine = window.ValidationEngine || {};
+        window.ValidationEngine.getRequiredMessage = function(displayName) {
+            return "không được để trống " + (displayName || "trường này");
         };
 
-        window.ValidationEngine = window.ValidationEngine || {
-            getRequiredMessage: function(displayName) {
-                return "không được để trống " + (displayName || "trường này");
-            }
-        };
-    
-            '
+        '
         +(select loadUI from tblCommonControlType_Signed where UID = 'PDB2DB35885F14803A9A52961A7871972')
         +(select loadUI from tblCommonControlType_Signed where UID = 'P870C076FA1FD48DDBDEDE2C2435B4DA9')
         +(select loadUI from tblCommonControlType_Signed where UID = 'P777C87EE29F94C29A6EAABD16E31FDDC')
@@ -1481,7 +1358,7 @@ SET @html = N'
         +(select loadUI from tblCommonControlType_Signed where UID = 'P02E6F18645BA47648567B32773A1B7B4')
         +(select loadUI from tblCommonControlType_Signed where UID = 'P27C40759D9C94453AB9B2DFBCD661AE3') +N'
         window.currentRecordID_HeaderID = null; window.currentRecordID_HistoryID = null; window.currentRecordID_TaskID = null;
-            
+
         // =============== GRID COLUMN CONFIG PERSISTENCE ===============
         function saveGridColumnConfig(gridId, columns) {
             const menuId = getActiveMenuId();
@@ -1657,7 +1534,7 @@ SET @html = N'
                             }
                             if (colFilter.selectedFilterOperation) {
                                 gridInstance.columnOption(dataField, "selectedFilterOperation", colFilter.selectedFilterOperation);
-                            }
+             }
                         }
                     });
                 }
@@ -1724,15 +1601,15 @@ SET @html = N'
                                 dataMap[item[pkColumn]] = item;
                             });
 
-                            const sortedData = [];
+         const sortedData = [];
                             savedOrder.forEach(id => {
                                 if (dataMap[id]) {
                                     sortedData.push(dataMap[id]);
-                                    delete dataMap[id];
+                          delete dataMap[id];
                                 }
                             });
 
-                            Object.values(dataMap).forEach(item => {
+              Object.values(dataMap).forEach(item => {
                                 sortedData.push(item);
                             });
 
@@ -1746,8 +1623,8 @@ SET @html = N'
                         }
                     } catch (e) {
                         if (typeof callback === "function") {
-                     callback(dataSource);
-                 }
+                            callback(dataSource);
+                        }
                     }
                 },
                 error: function(err) {
@@ -1786,17 +1663,17 @@ SET @html = N'
 
             if (!gridInstance) return;
 
-            let filteredData = DataSource;
+            let filteredData = allTasks;
 
             if (filterType === "todo") {
-                filteredData = DataSource.filter(task => task.Status === 1);
+                filteredData = allTasks.filter(task => task.Status === 1);
             } else if (filterType === "doing") {
-                filteredData = DataSource.filter(task => task.Status === 2);
+                filteredData = allTasks.filter(task => task.Status === 2);
             } else if (filterType === "overdue") {
                 // Filter tasks that are overdue (có deadline < hôm nay và status !== 3 (Done))
                 const today = new Date();
                 today.setHours(0, 0, 0, 0);
-                filteredData = DataSource.filter(task => {
+                filteredData = allTasks.filter(task => {
                     if (task.Status === 3) return false; // Exclude done tasks
                     const deadlineDate = new Date(task.DeadlineDate);
                     return deadlineDate < today;
@@ -1835,8 +1712,9 @@ SET @html = N'
                         : (json?.data?.[0] ? [json.data[0]] : []);
 
                     const obj = results.length === 1 ? results[0] : (results[0] || null);
+
                     const gridInstancegridMyWork = InstancegridMyWorkPDB2DB35885F14803A9A52961A7871972;
-                    const gridConfiggridMyWork = window.getGridConfig_gridMyWork(results);
+                    const gridConfiggridMyWork = getGridConfig_gridMyWork(results);
 
                     loadGridRowOrder(
                         "sp_Task_MyWork_html",
@@ -1857,7 +1735,6 @@ SET @html = N'
                             gridInstancegridMyWork.option("pager.allowedPageSizes", gridConfiggridMyWork.allowedPageSizes);
                             gridInstancegridMyWork.pageIndex(0);
                             gridInstancegridMyWork.option("dataSource", sortedData);
-
                             gridInstancegridMyWork.endUpdate();
 
                             // RESTORE FILTER STATE T? LOCALSTORAGE (n?u không skip)
@@ -1869,13 +1746,13 @@ SET @html = N'
                                 const savedFilter = loadGridFilterState("sp_Task_MyWork_html", gridInstancegridMyWork);
                                 if (savedFilter) {
                                     applyGridFilterState(gridInstancegridMyWork, savedFilter);
-                                }
+                        }
                             }, 100);
                         }
                     );
-            
+
                     const gridInstancegridSubtaskAssign = InstancegridSubtaskAssignP870C076FA1FD48DDBDEDE2C2435B4DA9;
-                    const gridConfiggridSubtaskAssign = window.getGridConfig_gridSubtaskAssign(results);
+                    const gridConfiggridSubtaskAssign = getGridConfig_gridSubtaskAssign(results);
 
                     loadGridRowOrder(
                         "sp_Task_MyWork_html",
@@ -1895,8 +1772,7 @@ SET @html = N'
                             gridInstancegridSubtaskAssign.option("paging.pageSize", gridConfiggridSubtaskAssign.pageSize);
                             gridInstancegridSubtaskAssign.option("pager.allowedPageSizes", gridConfiggridSubtaskAssign.allowedPageSizes);
                             gridInstancegridSubtaskAssign.pageIndex(0);
-                            gridInstancegridSubtaskAssign.option("dataSource", sortedData);
-
+                            gridInstancegridSubtaskAssign.option("dataSource", []);
                             gridInstancegridSubtaskAssign.endUpdate();
 
                             // RESTORE FILTER STATE T? LOCALSTORAGE (n?u không skip)
@@ -1912,9 +1788,15 @@ SET @html = N'
                             }, 100);
                         }
                     );
-            
+
                     if (obj) { window.currentRecordID_HeaderID = (obj.HeaderID !== undefined && obj.HeaderID !== null) ? obj.HeaderID : window.currentRecordID_HeaderID; } if (obj) { window.currentRecordID_HistoryID = (obj.HistoryID !== undefined && obj.HistoryID !== null) ? obj.HistoryID : window.currentRecordID_HistoryID; } if (obj) { window.currentRecordID_TaskID = (obj.TaskID !== undefined && obj.TaskID !== null) ? obj.TaskID : window.currentRecordID_TaskID; }
                     DataSource = results;
+                    allTasks = results;
+
+                    // Restore filter và search sau khi set allTasks
+                    if(restoreFilterState){
+                        restoreFilterState();
+                    }
                     '
                     +(select loadData from tblCommonControlType_Signed where UID = 'PDB2DB35885F14803A9A52961A7871972')
                     +(select loadData from tblCommonControlType_Signed where UID = 'P870C076FA1FD48DDBDEDE2C2435B4DA9')
@@ -1923,9 +1805,6 @@ SET @html = N'
                     +(select loadData from tblCommonControlType_Signed where UID = 'PC98E2DFA331343BBAE22882BE3825C1A')
                     +(select loadData from tblCommonControlType_Signed where UID = 'P02E6F18645BA47648567B32773A1B7B4')
                     +(select loadData from tblCommonControlType_Signed where UID = 'P27C40759D9C94453AB9B2DFBCD661AE3') +N'
-                    if (typeof restoreFilterState === "function") {
-                        restoreFilterState();
-                    }
                 }
             })
         }

@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="vi"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Danh sách công việc - ParadiseHR</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style type="text/tailwindcss">
+        :root {
+            --primary-green: #1a5e3c;
+            --sidebar-width: 240px;
+            --top-nav-height: 50px;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f5f6f8;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20;
+        }
+    </style>
+</head>
+<body class="text-slate-700 overflow-hidden">
+<header class="h-[50px] bg-[#1a5e3c] flex items-center justify-between px-4 fixed top-0 w-full z-50">
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-white text-2xl">menu</span>
+<div class="flex items-center gap-1">
+<span class="text-white font-bold text-xl italic tracking-tight">Paradise</span>
+<span class="text-white text-xl font-light tracking-widest">HR</span>
+</div>
+</div>
+<nav class="flex items-center gap-4 ml-6">
+<span class="material-symbols-outlined text-white opacity-80 cursor-pointer hover:opacity-100">grid_view</span>
+<span class="material-symbols-outlined text-white opacity-80 cursor-pointer hover:opacity-100">person</span>
+<span class="material-symbols-outlined text-white opacity-80 cursor-pointer hover:opacity-100">schedule</span>
+<span class="material-symbols-outlined text-white opacity-80 cursor-pointer hover:opacity-100">payments</span>
+<span class="material-symbols-outlined text-white opacity-80 cursor-pointer hover:opacity-100">menu_book</span>
+<span class="material-symbols-outlined text-white opacity-80 cursor-pointer hover:opacity-100">cloud</span>
+<span class="material-symbols-outlined text-white opacity-80 cursor-pointer hover:opacity-100">group</span>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-white opacity-80 cursor-pointer">wb_sunny</span>
+<span class="material-symbols-outlined text-white opacity-80 cursor-pointer">notifications</span>
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-8 border border-white/20" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuD_ciSuCcFfEeuKamnHtxbkN4pMB7B1YKW8E5X4cAizV-m5tUp_Cw8SzUh2D4fgvvfIBf3tO1jJXzok7OyexGKO7z6tQSW1SMqxAbjY0JRKBw1VapHyX9wk--Gv2LuX2GtSaX_Mm27jghfF3vLQr80y_hh6hWlTSUEvSiWPdRwk-CylfIX0aguyyK2gUfD3OETR7ML3hRWfYB1DZ3vfmoYTm1nJkIP2BopedJ82_p7e1L9xQ3ToEhKt9EbRVVgnN1i-mGAzNzG2x2g");'></div>
+</div>
+</header>
+<div class="flex pt-[50px] h-screen">
+<aside class="w-[240px] bg-white border-r border-slate-200 flex flex-col h-full overflow-y-auto">
+<div class="p-4 border-b border-slate-100">
+<h3 class="text-sm font-semibold text-slate-500 uppercase tracking-wider">Quản lý đào tạo</h3>
+</div>
+<nav class="flex-1 py-2">
+<a class="flex items-center gap-3 px-4 py-2.5 bg-green-50 text-[var(--primary-green)] border-r-4 border-[var(--primary-green)]" href="#">
+<span class="material-symbols-outlined text-[20px]">list_alt</span>
+<span class="text-sm font-medium">Danh mục công việc</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2.5 text-slate-600 hover:bg-slate-50 transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">description</span>
+<span class="text-sm">Chi tiết công việc</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2.5 text-slate-600 hover:bg-slate-50 transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">person</span>
+<span class="text-sm">Việc của tôi</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2.5 text-slate-600 hover:bg-slate-50 transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">school</span>
+<span class="text-sm">Trang chủ đào tạo</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2.5 text-slate-600 hover:bg-slate-50 transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">menu_book</span>
+<span class="text-sm">Bài học của tôi</span>
+</a>
+<div class="my-2 border-t border-slate-100"></div>
+<a class="flex items-center gap-3 px-4 py-2.5 text-slate-600 hover:bg-slate-50 transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">stars</span>
+<span class="text-sm">Xếp hạng nhân viên</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2.5 text-slate-600 hover:bg-slate-50 transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">settings</span>
+<span class="text-sm">Cấu hình xếp hạng</span>
+</a>
+</nav>
+</aside>
+<main class="flex-1 overflow-y-auto p-6">
+<div class="max-w-7xl mx-auto space-y-6">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-4">
+<h1 class="text-xl font-bold text-slate-800">Danh mục công việc</h1>
+<div class="h-6 w-px bg-slate-200"></div>
+<nav class="flex items-center gap-2 text-sm text-slate-500">
+<span>Home</span>
+<span class="material-symbols-outlined text-sm">chevron_right</span>
+<span class="font-medium text-slate-800">Task Management</span>
+</nav>
+</div>
+<div class="flex items-center gap-3">
+<div class="relative">
+<input class="pl-10 pr-4 py-2 border border-slate-200 rounded-lg text-sm w-64 focus:ring-2 focus:ring-[var(--primary-green)] focus:border-transparent outline-none" placeholder="Tìm kiếm công việc..." type="text"/>
+<span class="material-symbols-outlined absolute left-3 top-2.5 text-slate-400 text-[20px]">search</span>
+</div>
+<button class="bg-[var(--primary-green)] text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 hover:bg-[#144a30] transition-colors shadow-sm">
+<span class="material-symbols-outlined text-[18px]">add</span>
+<span>Công việc mới</span>
+</button>
+</div>
+</div>
+<div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+<div class="flex border-b border-slate-100">
+<button class="px-6 py-4 text-sm font-bold text-[var(--primary-green)] border-b-2 border-[var(--primary-green)]">Tất cả</button>
+<button class="px-6 py-4 text-sm font-medium text-slate-500 hover:text-slate-800 transition-colors">Đang thực hiện</button>
+<button class="px-6 py-4 text-sm font-medium text-slate-500 hover:text-slate-800 transition-colors">Hoàn thành</button>
+<button class="px-6 py-4 text-sm font-medium text-slate-500 hover:text-slate-800 transition-colors">Lưu trữ</button>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left">
+<thead class="bg-slate-50 border-b border-slate-100">
+<tr>
+<th class="px-6 py-3.5 text-xs font-bold text-slate-500 uppercase">Tên công việc</th>
+<th class="px-6 py-3.5 text-xs font-bold text-slate-500 uppercase">Người thực hiện</th>
+<th class="px-6 py-3.5 text-xs font-bold text-slate-500 uppercase">Hạn chót</th>
+<th class="px-6 py-3.5 text-xs font-bold text-slate-500 uppercase">Trạng thái</th>
+<th class="px-6 py-3.5 text-xs font-bold text-slate-500 uppercase text-right">Thao tác</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-100">
+<tr class="hover:bg-slate-50 transition-colors group">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-slate-400 cursor-pointer">expand_more</span>
+<span class="text-sm font-semibold text-slate-800">Thiết kế lại giao diện Website Phase 1</span>
+</div>
+</td>
+<td class="px-6 py-4">
+<div class="flex -space-x-2">
+<div class="size-7 rounded-full border-2 border-white bg-center bg-cover" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDjiwO3KvuryKTM38qYU_sMLgzWe6iRq6T8B8YavhqqtDQGok-p6RkihyF1JvN3MyCbn9voYYnJfap9neTV1mTgS72xcvEBInjtOEFtZiQTzUGHoYo91oVd39ap6Z10v7L7rw3XovYVAVphrr5kINyhcV3rCh2SMX2JfvASk5O5C9y3vq1BcaPfGtm-glucviyjJlWRr0FY8PyUn4MxYc8FhElGs_2lwaX6K3LcfILqGBL0AlGr18B9dkgKG2KcTBr-GUi-xDDnV4c");'></div>
+<div class="size-7 rounded-full border-2 border-white bg-center bg-cover" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAWWX2wUa378HARep8XjcJHKFE_jBrGC5ahBgwZv2hxPMusBazmSSapLcI7B2clwV-2qqb3d-CEi1P2cNaueoyPKwDxO97UJi7ALA6IDebhJaM8RyBgQH72VFr0O2Uf3nt22hHo94Ftk2agnNnhCMJ_kYEV0TEI7nihcycoJzqVEMAqqAdasVn-O1ZLqjVEmHqldCWYiAe66FZx7yLse8OZTrdSRZ9LFHQ7OGAAoHWAfFElWjRWW0GThQeUWTAaSwLFdaYsHsgz7Cg");'></div>
+<div class="size-7 rounded-full border-2 border-white bg-slate-100 flex items-center justify-center text-[10px] font-bold">+1</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2 text-slate-500 text-sm">
+<span class="material-symbols-outlined text-[16px]">calendar_today</span>
+<span>12 Th10, 2023</span>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-blue-100 text-blue-700 uppercase tracking-wide">Đang thực hiện</span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="text-slate-400 hover:text-slate-600">
+<span class="material-symbols-outlined">more_horiz</span>
+</button>
+</td>
+</tr>
+<tr class="bg-slate-50/40">
+<td class="px-6 py-3 pl-14">
+<div class="flex items-center gap-3 border-l-2 border-slate-200 pl-4">
+<span class="text-sm text-slate-600">Thiết kế UI Navigation Component</span>
+</div>
+</td>
+<td class="px-6 py-3">
+<div class="size-6 rounded-full bg-center bg-cover" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAfrzVx2r9bkZedT0edDjp869SozY-HdVAqV2OElJSp0Kmw1JNkgdawhJJ9xGkCV0F3FYTWnXTJZMsAgW-0ptpmcQPxaOZ-nfO248TWOceOSiFuzFSFdNe49rm7DWk5OmMeDKx6Aseb9rF2MM4ItykedH6aWAKNKbiPu2FTSSqj8CuzhvxMktl2PQjdqCbf039MQiFwZCnKz28gaUVzgX0GBgDhsdv827WY0ZdBIXiUieohaZ6ltuFOxZFRaFpxfiBeTRTVq-8MDDs");'></div>
+</td>
+<td class="px-6 py-3 text-xs text-slate-400">10 Th10, 2023</td>
+<td class="px-6 py-3">
+<span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-green-100 text-green-700 uppercase tracking-wide">Hoàn thành</span>
+</td>
+<td class="px-6 py-3 text-right"></td>
+</tr>
+<tr class="hover:bg-slate-50 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-slate-400">chevron_right</span>
+<span class="text-sm font-semibold text-slate-800">Tích hợp API &amp; Tài liệu kỹ thuật</span>
+</div>
+</td>
+<td class="px-6 py-4">
+<div class="size-7 rounded-full bg-center bg-cover" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCGlUHJiCVxZMyRvGVRjs7IGkOx97GehoLF7cxq17_si4z1wb8CxlekHhRBIaIddDEApwJM6T6mgr9aUnh6-XFZfQAZEUsX5xTEELl1SARiANFNigqi88SaViafzXaxOyWKtiLl5AhKJiIQn0zmJJH9B-322qzSApboSVNFfBChcQ042TCIEDIdzGKDCMtJTAz6B_WnVV0_003MnN8K2dzzPEcGwaFiG1KsExYE6t3jQjT1v4P91BwR77Cs6O8lytOeJbc5CXSDp70");'></div>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2 text-rose-500 text-sm font-medium">
+<span class="material-symbols-outlined text-[16px]">error</span>
+<span>15 Th10, 2023</span>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-700 uppercase tracking-wide">Chờ duyệt</span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="text-slate-400 hover:text-slate-600">
+<span class="material-symbols-outlined">more_horiz</span>
+</button>
+</td>
+</tr>
+<tr class="hover:bg-slate-50 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-slate-400">chevron_right</span>
+<span class="text-sm font-semibold text-slate-800">Kiểm thử trải nghiệm người dùng (UX)</span>
+</div>
+</td>
+<td class="px-6 py-4">
+<div class="size-7 rounded-full bg-center bg-cover" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDVlp1hnMWFWAtXQHOsxcN5JAT6ZyBpSoJOCs3OBJIqHwY4jaT5Az8HJ149W_wR8R1XJdYLbR16l0XQG7UTCaAgCmU5qs55-QRSZ7fHKJjGjFYTiRN3ikuUicuJVw_G9X-zjaTRqm0RMYwMBY5EAmaCnOeOUunsJQlDnDJB6cQVBtXq5pCoWZJElW6_eVDzikwcUzH6vaA3d8ZjTE6yek-bz847Q1DoMHhse0SJStsNLJaCj4G0aGSCVqDofzI5gjofWSmRopAQV6k");'></div>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2 text-slate-500 text-sm">
+<span class="material-symbols-outlined text-[16px]">calendar_today</span>
+<span>20 Th10, 2023</span>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-blue-100 text-blue-700 uppercase tracking-wide">Đang thực hiện</span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="text-slate-400 hover:text-slate-600">
+<span class="material-symbols-outlined">more_horiz</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
+<span class="text-xs text-slate-500 font-medium uppercase tracking-wider">Hiển thị 1-10 của 48 công việc</span>
+<div class="flex items-center gap-1">
+<button class="p-1.5 rounded hover:bg-slate-200 text-slate-500 transition-colors">
+<span class="material-symbols-outlined text-[18px]">chevron_left</span>
+</button>
+<button class="size-7 rounded bg-[var(--primary-green)] text-white text-xs font-bold">1</button>
+<button class="size-7 rounded hover:bg-slate-200 text-slate-600 text-xs font-medium">2</button>
+<button class="size-7 rounded hover:bg-slate-200 text-slate-600 text-xs font-medium">3</button>
+<button class="p-1.5 rounded hover:bg-slate-200 text-slate-500 transition-colors">
+<span class="material-symbols-outlined text-[18px]">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+
+</body></html>

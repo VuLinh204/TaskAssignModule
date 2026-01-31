@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Task Detail Modal - ParadiseHR</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,typography,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<style type="text/tailwindcss">
+        :root {
+            --primary: #1b5e20;
+            --primary-light: #2e7d32;
+            --bg-light: #f3f4f6;
+        }
+        body { font-family: 'Inter', sans-serif; }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #e2e8f0;
+            border-radius: 10px;
+        }
+        .dark .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #334155;
+        }
+        .status-step {
+            position: relative;
+            clip-path: polygon(0% 0%, 95% 0%, 100% 50%, 95% 100%, 0% 100%, 5% 50%);
+            margin-left: -8px;
+        }
+        .status-step:first-child {
+            clip-path: polygon(0% 0%, 95% 0%, 100% 50%, 95% 100%, 0% 100%);
+            margin-left: 0;
+        }
+        .status-step:last-child {
+            clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%, 5% 50%);
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+<script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#1b5e20",
+                        "primary-light": "#2e7d32",
+                    },
+                    borderRadius: {
+                        DEFAULT: "4px",
+                    },
+                },
+            },
+        };
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => {
+                el.classList.remove('text-primary', 'border-primary', 'border-b-2');
+                el.classList.add('text-slate-500');
+            });
+            document.getElementById(tabId).classList.add('active');
+            const activeBtn = document.querySelector(`[onclick="switchTab('${tabId}')"]`);
+            activeBtn.classList.add('text-primary', 'border-primary', 'border-b-2');
+            activeBtn.classList.remove('text-slate-500');
+        }
+    </script>
+</head>
+<body class="bg-[#f3f4f6] dark:bg-slate-950 min-h-screen flex items-center justify-center p-4">
+<div class="w-full max-w-6xl bg-white dark:bg-slate-900 shadow-2xl overflow-hidden border border-slate-200 dark:border-slate-800 flex flex-col h-[85vh]">
+<div class="bg-primary px-6 py-4 flex items-center justify-between text-white">
+<div class="flex items-center gap-3">
+<h1 class="text-xl font-semibold tracking-tight">Task1</h1>
+<span class="px-2 py-0.5 bg-red-500 text-[10px] font-bold uppercase rounded">High</span>
+</div>
+<div class="flex items-center gap-4">
+<button class="hover:bg-black/10 p-1.5 rounded transition-colors" title="Delete Task">
+<span class="material-symbols-outlined text-xl">delete</span>
+</button>
+<button class="hover:bg-black/10 p-1.5 rounded transition-colors" title="Close">
+<span class="material-symbols-outlined text-xl">close</span>
+</button>
+</div>
+</div>
+<div class="bg-primary/5 dark:bg-slate-800/50 p-3">
+<div class="flex h-10 w-full overflow-hidden rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900">
+<div class="status-step bg-primary text-white flex-1 flex items-center justify-center text-xs font-bold uppercase tracking-wider cursor-pointer">
+                To Do
+            </div>
+<div class="status-step bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 flex-1 flex items-center justify-center text-xs font-bold uppercase tracking-wider cursor-pointer hover:bg-slate-200 transition-colors">
+                In Progress
+            </div>
+<div class="status-step bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 flex-1 flex items-center justify-center text-xs font-bold uppercase tracking-wider cursor-pointer hover:bg-slate-200 transition-colors">
+                Testing
+            </div>
+<div class="status-step bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 flex-1 flex items-center justify-center text-xs font-bold uppercase tracking-wider cursor-pointer hover:bg-slate-200 transition-colors">
+                Done
+            </div>
+</div>
+</div>
+<div class="flex-1 flex overflow-hidden">
+<div class="w-[60%] border-r border-slate-200 dark:border-slate-800 flex flex-col">
+<div class="flex border-b border-slate-200 dark:border-slate-800 px-6">
+<button class="tab-btn px-6 py-4 text-sm font-semibold text-primary border-b-2 border-primary" onclick="switchTab('description-tab')">Description</button>
+<button class="tab-btn px-6 py-4 text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300" onclick="switchTab('subtasks-tab')">
+                    Subtasks <span class="ml-1.5 px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-[10px]">3</span>
+</button>
+</div>
+<div class="flex-1 overflow-y-auto p-6 custom-scrollbar">
+<div class="grid grid-cols-2 gap-6 mb-8">
+<div>
+<label class="block text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase mb-2">Assignee</label>
+<div class="flex items-center gap-3 p-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded cursor-pointer hover:border-primary transition-colors">
+<div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold text-sm">NH</div>
+<span class="text-sm font-medium text-slate-700 dark:text-slate-200 uppercase">Nguyễn Hoàng Huy</span>
+<span class="material-symbols-outlined ml-auto text-slate-400 text-sm">expand_more</span>
+</div>
+</div>
+<div>
+<label class="block text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase mb-2">Due Date</label>
+<div class="flex items-center gap-3 p-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded cursor-pointer hover:border-primary transition-colors">
+<span class="material-symbols-outlined text-slate-400 text-lg">calendar_today</span>
+<span class="text-sm text-slate-700 dark:text-slate-300">Oct 24, 2024</span>
+</div>
+</div>
+</div>
+<div class="tab-content active" id="description-tab">
+<div class="mb-6">
+<label class="block text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase mb-2">Detailed Description</label>
+<div class="min-h-[250px] border border-slate-200 dark:border-slate-700 rounded p-4 focus-within:ring-1 focus-within:ring-primary focus-within:border-primary bg-white dark:bg-slate-900 transition-all">
+<textarea class="w-full h-full border-none focus:ring-0 text-sm text-slate-700 dark:text-slate-300 bg-transparent resize-none leading-relaxed" placeholder="Add a more detailed description...">The manual task involves verifying the employee payroll integration modules for the Q4 cycle. Ensure all edge cases for tax deductions are covered under the new compliance rules.</textarea>
+</div>
+</div>
+</div>
+<div class="tab-content" id="subtasks-tab">
+<div class="mb-4">
+<div class="flex items-center gap-2 mb-4 bg-slate-50 dark:bg-slate-800/50 p-2 border border-slate-200 dark:border-slate-700 rounded">
+<span class="material-symbols-outlined text-slate-400 px-1">add</span>
+<input class="flex-1 bg-transparent border-none focus:ring-0 text-sm p-1" placeholder="Add a new subtask (Press Enter)..." type="text"/>
+</div>
+<div class="space-y-2">
+<div class="flex items-center gap-3 p-3 border border-slate-100 dark:border-slate-800 rounded group hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
+<input class="rounded border-slate-300 text-primary focus:ring-primary h-4 w-4" type="checkbox"/>
+<span class="text-sm text-slate-700 dark:text-slate-300 flex-1">Review Q4 compliance checklist</span>
+<button class="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-red-500 transition-all">
+<span class="material-symbols-outlined text-lg">delete</span>
+</button>
+</div>
+<div class="flex items-center gap-3 p-3 border border-slate-100 dark:border-slate-800 rounded group hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
+<input checked="" class="rounded border-slate-300 text-primary focus:ring-primary h-4 w-4" type="checkbox"/>
+<span class="text-sm text-slate-500 dark:text-slate-500 line-through flex-1">Initial module scan</span>
+<button class="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-red-500 transition-all">
+<span class="material-symbols-outlined text-lg">delete</span>
+</button>
+</div>
+<div class="flex items-center gap-3 p-3 border border-slate-100 dark:border-slate-800 rounded group hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
+<input class="rounded border-slate-300 text-primary focus:ring-primary h-4 w-4" type="checkbox"/>
+<span class="text-sm text-slate-700 dark:text-slate-300 flex-1">Export test reports to PDF</span>
+<button class="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-red-500 transition-all">
+<span class="material-symbols-outlined text-lg">delete</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="w-[40%] flex flex-col bg-slate-50/50 dark:bg-slate-900/50">
+<div class="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+<h2 class="text-sm font-bold text-primary dark:text-primary uppercase tracking-wide flex items-center gap-2">
+<span class="material-symbols-outlined text-lg">history</span>
+                    Activity Feed
+                </h2>
+</div>
+<div class="p-4 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
+<div class="relative group">
+<textarea class="w-full text-sm border-slate-200 dark:border-slate-700 dark:bg-slate-800 rounded focus:ring-primary focus:border-primary transition-all p-3" placeholder="Write a comment..." rows="3"></textarea>
+<div class="mt-2 flex justify-end">
+<button class="bg-primary hover:bg-primary-light text-white px-5 py-2 rounded text-xs font-bold uppercase tracking-wider transition-colors shadow-sm">
+                            Comment
+                        </button>
+</div>
+</div>
+</div>
+<div class="flex-1 overflow-y-auto p-4 custom-scrollbar">
+<div class="relative flex items-center justify-center my-6">
+<div aria-hidden="true" class="absolute inset-0 flex items-center">
+<div class="w-full border-t border-slate-200 dark:border-slate-800"></div>
+</div>
+<div class="relative bg-slate-50 dark:bg-[#111827] px-3">
+<span class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase">Today</span>
+</div>
+</div>
+<div class="space-y-6 relative">
+<div class="absolute left-2 top-2 bottom-2 w-px bg-slate-200 dark:bg-slate-700"></div>
+<div class="relative pl-8 group">
+<div class="absolute left-0 top-1.5 w-4 h-4 rounded-full bg-white dark:bg-slate-900 border-2 border-primary flex items-center justify-center">
+<div class="w-1.5 h-1.5 bg-primary rounded-full"></div>
+</div>
+<div class="flex items-start justify-between">
+<div class="flex flex-col">
+<span class="text-xs font-bold text-slate-700 dark:text-slate-200">System Admin</span>
+<p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                                    Changed status to <span class="font-bold text-primary">To Do</span>
+</p>
+</div>
+<span class="text-[10px] text-slate-400 dark:text-slate-500 whitespace-nowrap">11:37 PM</span>
+</div>
+</div>
+<div class="relative pl-8 group">
+<div class="absolute left-0 top-1.5 w-4 h-4 rounded-full bg-white dark:bg-slate-900 border-2 border-slate-300 dark:border-slate-600 flex items-center justify-center">
+<div class="w-1.5 h-1.5 bg-slate-300 dark:bg-slate-600 rounded-full"></div>
+</div>
+<div class="flex items-start justify-between">
+<div class="flex flex-col">
+<span class="text-xs font-bold text-slate-700 dark:text-slate-200 uppercase">Nguyễn Hoàng Huy</span>
+<p class="text-xs text-slate-500 dark:text-slate-400 mt-1 italic">
+                                    "Starting work on the compliance module now."
+                                </p>
+</div>
+<span class="text-[10px] text-slate-400 dark:text-slate-500 whitespace-nowrap">10:15 PM</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="px-6 py-4 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 flex justify-end gap-3">
+<button class="px-5 py-2 text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors">
+            Cancel
+        </button>
+<button class="bg-primary hover:bg-primary-light text-white px-6 py-2 rounded text-xs font-bold uppercase tracking-widest shadow-md transition-all active:scale-95">
+            Save Changes
+        </button>
+</div>
+</div>
+<button class="fixed bottom-6 right-6 p-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full shadow-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors" onclick="document.documentElement.classList.toggle('dark')">
+<span class="material-symbols-outlined text-slate-700 dark:text-white block dark:hidden">dark_mode</span>
+<span class="material-symbols-outlined text-slate-700 dark:text-white hidden dark:block">light_mode</span>
+</button>
+
+</body></html>

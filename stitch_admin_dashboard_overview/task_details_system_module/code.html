@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Task Details - ParadiseHR</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;family=Material+Icons+Round" rel="stylesheet"/>
+<script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              primary: "#065f46", // Deep Emerald green from ParadiseHR
+              "background-light": "#f3f4f6",
+              "background-dark": "#111827",
+            },
+            fontFamily: {
+              sans: ["Inter", "sans-serif"],
+              display: ["Inter", "sans-serif"],
+            },
+            borderRadius: {
+              DEFAULT: "0.5rem",
+            },
+          },
+        },
+      };
+      function toggleDarkMode() {
+        document.documentElement.classList.toggle('dark');
+      }
+      function toggleSubtasks(id) {
+        const row = document.getElementById(id);
+        const icon = document.getElementById('icon-' + id);
+        if (row.classList.contains('hidden')) {
+          row.classList.remove('hidden');
+          icon.textContent = 'keyboard_arrow_down';
+        } else {
+          row.classList.add('hidden');
+          icon.textContent = 'keyboard_arrow_right';
+        }
+      }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .sidebar-item-active { background-color: #f3f4f6; color: #065f46; border-right: 4px solid #065f46; }
+        .dark .sidebar-item-active { background-color: #1f2937; color: #10b981; border-right: 4px solid #10b981; }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen flex flex-col">
+<header class="h-14 bg-primary text-white flex items-center justify-between px-4 sticky top-0 z-50">
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-2">
+<div class="bg-white p-1 rounded-md">
+<span class="material-icons-round text-primary text-2xl">p_rounded</span>
+</div>
+<span class="font-bold text-lg tracking-tight">ParadiseHR</span>
+</div>
+<nav class="hidden lg:flex items-center gap-4">
+<span class="material-icons-round cursor-pointer opacity-80 hover:opacity-100">grid_view</span>
+<span class="material-icons-round cursor-pointer opacity-80 hover:opacity-100">person</span>
+<span class="material-icons-round cursor-pointer opacity-80 hover:opacity-100">schedule</span>
+<span class="material-icons-round cursor-pointer opacity-80 hover:opacity-100">account_balance_wallet</span>
+<span class="material-icons-round cursor-pointer opacity-80 hover:opacity-100">description</span>
+<span class="material-icons-round cursor-pointer opacity-80 hover:opacity-100">cloud</span>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 hover:bg-white/10 rounded-full" onclick="toggleDarkMode()">
+<span class="material-icons-round">dark_mode</span>
+</button>
+<span class="material-icons-round cursor-pointer">notifications</span>
+<div class="flex items-center gap-2 pl-2 border-l border-white/20">
+<img alt="User Profile" class="w-8 h-8 rounded-full border border-white/20" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDzgCkxRloo0v2Hfsvkrieq8gRlhJ_4BckNdGJYMrn3wbQiDp_ypMUaZ7DMtvr1829iBilGVUYsRbMnraD6N9x3H5R78mAs3DQfqinowBXTW5O1QZh0xHw9tX_jdmANKCFpNH1TjnXOxPP2X4Ls7kjlE0-lLT-G-Qi32TAhTH2OcM7kJSe-m0ByPCd9r1iT2ypBpYJ59UPlH5vacbDqYj7j41zXcUImq5Az7wAijhpMd9aamzTatOTFZcBhPjM1gkNPl9oilqojSZQ"/>
+<span class="text-sm font-medium hidden md:block">Ngọc Hải</span>
+</div>
+</div>
+</header>
+<div class="flex flex-1 overflow-hidden">
+<aside class="w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex-shrink-0 hidden md:flex flex-col">
+<div class="p-4">
+<h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4">Training Management</h3>
+<nav class="space-y-1">
+<a class="sidebar-item-active flex items-center gap-3 px-3 py-2.5 rounded-l-md transition-colors group" href="#">
+<span class="material-icons-round text-xl">assignment</span>
+<span class="text-sm font-medium">Task List</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-l-md text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-icons-round text-xl">info</span>
+<span class="text-sm font-medium">Task Details</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-l-md text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-icons-round text-xl">person_search</span>
+<span class="text-sm font-medium">My Tasks</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-l-md text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-icons-round text-xl">home</span>
+<span class="text-sm font-medium">Home Page</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-l-md text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-icons-round text-xl">school</span>
+<span class="text-sm font-medium">My Courses</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-l-md text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-icons-round text-xl">star_outline</span>
+<span class="text-sm font-medium">Staff Rankings</span>
+</a>
+</nav>
+</div>
+</aside>
+<main class="flex-1 overflow-y-auto p-4 lg:p-8">
+<nav class="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400 mb-6">
+<button class="flex items-center gap-1 hover:text-primary transition-colors border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1.5 rounded-md text-xs font-medium mr-2">
+<span class="material-icons-round text-sm">arrow_back</span> Back
+                </button>
+<a class="hover:underline" href="#">Projects</a>
+<span>/</span>
+<span class="text-slate-900 dark:text-slate-100 font-medium">Marketing Website</span>
+</nav>
+<div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-8">
+<div>
+<h1 class="text-3xl font-bold text-slate-900 dark:text-white mb-2">Marketing Website</h1>
+<p class="text-slate-500 dark:text-slate-400">Redesigning the corporate brand identity and online presence.</p>
+</div>
+<div class="flex items-center gap-3">
+<button class="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-lg font-medium shadow-sm hover:bg-emerald-800 transition-all">
+<span class="material-icons-round text-lg">auto_fix_high</span>
+                        Quick Assign from Template
+                    </button>
+<div class="flex p-1 bg-slate-200 dark:bg-slate-800 rounded-lg">
+<button class="p-1.5 rounded-md hover:bg-white dark:hover:bg-slate-700 transition-colors">
+<span class="material-icons-round text-slate-600 dark:text-slate-400">view_kanban</span>
+</button>
+<button class="p-1.5 rounded-md bg-white dark:bg-slate-700 shadow-sm text-primary">
+<span class="material-icons-round">format_list_bulleted</span>
+</button>
+<button class="p-1.5 rounded-md hover:bg-white dark:hover:bg-slate-700 transition-colors">
+<span class="material-icons-round text-slate-600 dark:text-slate-400">insert_chart_outlined</span>
+</button>
+</div>
+</div>
+</div>
+<div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6 mb-8 shadow-sm">
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+<div>
+<p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Owner</p>
+<div class="flex items-center gap-2">
+<img alt="Owner" class="w-6 h-6 rounded-full" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBspmYTsssWi4fDOijUv-V_0iouhyryjQRm3jQ5B68X-zyf3DuCdEGHDL7wvJkM4lrU-fK0tERPctSEU4V3rAuoFK0RLf_wGXiM4MbN6c2J38zANPLtzI_Nhu0lzeRfIivdfNdo0A2ePk_Px0g60KsmxmBXRDi9tcS4IBkkPgE3C70sEYDNF2PatIUKor2JE9K36etXoeImAaudyl7CAtLYW9rDrGdPQHSac5p9lr1GvO_2MHzcKaEFm53KjxK2Y-1hZUBHxEneBMU"/>
+<span class="font-medium text-slate-900 dark:text-slate-100">Đặng Ngọc Hải</span>
+</div>
+</div>
+<div>
+<p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Start Date</p>
+<div class="flex items-center gap-2 text-slate-900 dark:text-slate-100">
+<span class="material-icons-round text-slate-400 text-lg">calendar_today</span>
+<span class="font-medium">May 01, 2024</span>
+</div>
+</div>
+<div>
+<p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">End Date</p>
+<div class="flex items-center gap-2 text-slate-900 dark:text-slate-100">
+<span class="material-icons-round text-slate-400 text-lg">event_available</span>
+<span class="font-medium">Aug 01, 2024</span>
+</div>
+</div>
+<div>
+<p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Status</p>
+<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5"></span>
+                            In Progress
+                        </span>
+</div>
+</div>
+</div>
+<div class="space-y-4">
+<div class="flex items-center justify-between">
+<h2 class="text-xl font-bold text-slate-900 dark:text-white">Tasks (4)</h2>
+<div class="flex items-center gap-2">
+<div class="relative">
+<span class="material-icons-round absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg">search</span>
+<input class="pl-10 pr-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none w-64" placeholder="Search tasks..." type="text"/>
+</div>
+</div>
+</div>
+<div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-sm">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-slate-50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 text-xs font-semibold uppercase tracking-wider border-b border-slate-200 dark:border-slate-800">
+<th class="px-6 py-4 w-12"></th>
+<th class="px-6 py-4">Task Name</th>
+<th class="px-6 py-4">Assignee</th>
+<th class="px-6 py-4">Due Date</th>
+<th class="px-6 py-4">Priority</th>
+<th class="px-6 py-4 text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+<tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group cursor-pointer" onclick="toggleSubtasks('subtasks-1')">
+<td class="px-6 py-4">
+<span class="material-icons-round text-slate-400 group-hover:text-primary" id="icon-subtasks-1">keyboard_arrow_right</span>
+</td>
+<td class="px-6 py-4 font-medium text-slate-900 dark:text-slate-100">Design System Components</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2">
+<img alt="Assignee" class="w-7 h-7 rounded-full border border-white dark:border-slate-700 shadow-sm" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCRxTAjITh_rPdgjml1gwkuVXWifOSmrbbsLWErxXrNX84fGLFyJ27_2tbsxHPcRvz-j5TSxa6n-N4gfzYOw3WOuWfkn81ahV-rP50w6NtVdSYrSWElD8aGkmz1hq91-QOVWEkvWjGpPIuX9wWhCeFN6BIORDEmSQMObgCQ6wzk1vtheNdtEvK2tQJx0lszU9ktCraIrPBH0ZYzcr5s9yCEodVB6MkioObM9Xxa34LVnxGY1P8OX64wcLtg1a116TwQcX6erQ07GKA"/>
+<span class="text-sm">Nguyễn Hoàng Huy</span>
+</div>
+</td>
+<td class="px-6 py-4 text-sm text-slate-500 dark:text-slate-400">June 15, 2024</td>
+<td class="px-6 py-4">
+<span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400">High</span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg text-slate-400">
+<span class="material-icons-round text-lg">more_vert</span>
+</button>
+</td>
+</tr>
+<tr class="bg-slate-50/50 dark:bg-slate-800/20 hidden" id="subtasks-1">
+<td class="px-0 py-0" colspan="6">
+<table class="w-full border-l-4 border-primary">
+<tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+<tr>
+<td class="px-6 py-3 w-12 text-center text-slate-300">•</td>
+<td class="px-6 py-3 text-sm text-slate-600 dark:text-slate-400 pl-4">Typography &amp; Color Palette</td>
+<td class="px-6 py-3">
+<img alt="Subtask Assignee" class="w-5 h-5 rounded-full" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC2X_c-NCtRdGoj2sYoOWFYRCRlVAakJ0gTim8FjhTIHr_Ep1fzRlsSDYmRVvL6ngkzeYVbKVjhJp0MQGnym62J_spTLPrb05dDgypV5gsdOAqtUYn7tpZNiLKF80_iiFX6_b8vplRwJwaDNPMUGCBDpb1FVCCz0eO6sqyqkz-GxtsIzj6G8EWQwtbX4b4vI-B1cGL_h3Q9UaNSLME5NuvHgXoSHAeXhiulqWRM5TcZ418WBJEoNRKA9sxRQILGRyZ-ck16xbBj49Y"/>
+</td>
+<td class="px-6 py-3 text-xs text-slate-500">June 10</td>
+<td class="px-6 py-3">
+<span class="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase bg-slate-100 text-slate-500">Normal</span>
+</td>
+<td class="px-6 py-3 text-right">
+<span class="material-icons-round text-sm text-slate-300">check_circle</span>
+</td>
+</tr>
+<tr>
+<td class="px-6 py-3 w-12 text-center text-slate-300">•</td>
+<td class="px-6 py-3 text-sm text-slate-600 dark:text-slate-400 pl-4">Iconography Library</td>
+<td class="px-6 py-3">
+<img alt="Subtask Assignee" class="w-5 h-5 rounded-full" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBdZwxcsIbbwfgWqtq5jdzUB2A5agWlrfKVO_KQGfO5HFsBi393YDe3Iib0fXojZ3RmZ_AW6jZahWI7d9zbes7c8fhFu_ETSOVHYU3y7uSdZbQoehuyUley2IQOwOLu9tRAeu2dq0ncCjktBCRxMEpK9CkRgCfuoAM-sre-1QgAUKeWblkeXueUXCk_SplcgjHP0pTHuFHEWph36PjUgsKaRHcMzH0KTp_YcBeuGgK5PHjqHNcLMecpltKWOBbEBUOzgC-8esYdA_I"/>
+</td>
+<td class="px-6 py-3 text-xs text-slate-500">June 12</td>
+<td class="px-6 py-3">
+<span class="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase bg-slate-100 text-slate-500">Normal</span>
+</td>
+<td class="px-6 py-3 text-right">
+<span class="material-icons-round text-sm text-slate-300">radio_button_unchecked</span>
+</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+<tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group">
+<td class="px-6 py-4 text-center">
+<span class="material-icons-round text-slate-200">keyboard_arrow_right</span>
+</td>
+<td class="px-6 py-4 font-medium text-slate-900 dark:text-slate-100">Homepage Wireframes</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2">
+<div class="flex -space-x-2">
+<img alt="Assignee" class="w-7 h-7 rounded-full border-2 border-white dark:border-slate-900" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAJS0tmrccV-fEwyazhq-mTqbcEYQa9AFwjXX82Ib7eBnZpoOChewSvDyDGa4cE_3KD7zOk-Gk5yOWapAYFZTwEIcSmBjtIXGbzdHY1vXLojwH7E9vD-kN82ytoqN0aXqsS0kv4yRm4ZnaVrLptExzgVpDDzmjYUWc-cPWmR6bnohyTc2wkeOKlN5lPro6guEFUV6HKphW-dbj0yBrv6_excCaXo_UWRBjfp-HSkBgmICrxgrrVMObvbUcYoLDGrYh8KvVNgplUUeU"/>
+<img alt="Assignee" class="w-7 h-7 rounded-full border-2 border-white dark:border-slate-900" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBRXJlqduSGvX7y67EkNwfUT1-6sGiKnxlOrmSABrA1dGJVWFLriI8ung3_8gwz7YXRgKXNxIKuRpi-WPRAdN_8o4sU-zubyXPmqsHwNgPmBnp4HF0DNB8qqFTixga9gahezyMfqhcTRnyYp6DfG9qdcN1zMixD8fWtTcxMiYQ0Lp845Tx_NNLdXyWDN5ajeqeJ0H6Dsn6w7CCxF2lh43LxNP5DvueMU_vsYWwL_p-WguYfPfqpW5w3jg7zRVVevtMVEkGwE55KMXg"/>
+</div>
+<span class="text-sm">2 Assignees</span>
+</div>
+</td>
+<td class="px-6 py-4 text-sm text-slate-500 dark:text-slate-400">June 20, 2024</td>
+<td class="px-6 py-4">
+<span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">Medium</span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg text-slate-400">
+<span class="material-icons-round text-lg">more_vert</span>
+</button>
+</td>
+</tr>
+<tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group">
+<td class="px-6 py-4 text-center">
+<span class="material-icons-round text-slate-200">keyboard_arrow_right</span>
+</td>
+<td class="px-6 py-4 font-medium text-slate-900 dark:text-slate-100">Content Strategy &amp; Audit</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2">
+<img alt="Assignee" class="w-7 h-7 rounded-full border border-white dark:border-slate-700 shadow-sm" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDbBpQO7mgQvUJTyYKt8guwuIhUM7NL6vJPonvJErBXe-5dg7neuAW-5NLbFtJr3e8ibkKBIlerHf8ePbT3WJiZhK2rTKFUcGBiZ2gAHjqjoIqQ9vcUq5ihHP_kBe2NSVmxmvS8tFKyb9XYeF2fFd4gv7sHoYzecBSPDKZlQ32E4bTkERa4x2N0rmqaMgUcb_hUsxgCM9clqVoz42FFYGWcfCs1hA2dhzazhSg7vAYMhsDlIMQ3EnidYam2yNNCIKAr8GSGDU9Hu0I"/>
+<span class="text-sm">Trần Lê Mai</span>
+</div>
+</td>
+<td class="px-6 py-4 text-sm text-slate-500 dark:text-slate-400">July 05, 2024</td>
+<td class="px-6 py-4">
+<span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400">Low</span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg text-slate-400">
+<span class="material-icons-round text-lg">more_vert</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="px-6 py-4 bg-slate-50/50 dark:bg-slate-800/30 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between">
+<button class="text-primary text-sm font-semibold hover:underline flex items-center gap-1">
+<span class="material-icons-round text-lg">add</span> Add new task
+                        </button>
+<div class="flex items-center gap-4 text-xs text-slate-500">
+<span>Showing 4 of 12 tasks</span>
+<div class="flex gap-1">
+<button class="w-6 h-6 flex items-center justify-center rounded border border-slate-200 dark:border-slate-700 hover:bg-white dark:hover:bg-slate-800">1</button>
+<button class="w-6 h-6 flex items-center justify-center rounded border border-slate-200 dark:border-slate-700 bg-primary text-white">2</button>
+<button class="w-6 h-6 flex items-center justify-center rounded border border-slate-200 dark:border-slate-700 hover:bg-white dark:hover:bg-slate-800">3</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+
+</body></html>

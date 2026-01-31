@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Assign Template Details | ParadiseHR</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style type="text/tailwindcss">
+        :root {
+            --primary-green: #1a7f52;
+            --primary-green-hover: #146642;
+            --bg-light: #f4f7f6;
+            --border-color: #e5e7eb;
+            --text-main: #333333;
+            --text-secondary: #666666;
+        }
+        @layer base {
+            body {
+                @apply bg-[var(--bg-light)] font-['Inter'] text-[var(--text-main)];
+            }
+        }
+        .form-input-standard {
+            @apply w-full bg-white border border-gray-300 rounded px-3 py-2 text-sm focus:border-[var(--primary-green)] focus:ring-1 focus:ring-[var(--primary-green)] outline-none transition-all;
+        }
+        .btn-primary {
+            @apply bg-[var(--primary-green)] hover:bg-[var(--primary-green-hover)] text-white px-4 py-2 rounded text-sm font-medium transition-colors flex items-center justify-center gap-2;
+        }
+        .btn-secondary {
+            @apply bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 px-4 py-2 rounded text-sm font-medium transition-colors;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+<header class="bg-[#1a7f52] text-white px-6 py-2 flex items-center justify-between sticky top-0 z-50 shadow-md">
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-2xl">account_tree</span>
+<h1 class="text-lg font-bold tracking-tight">ParadiseHR</h1>
+</div>
+<nav class="hidden md:flex items-center gap-6 text-sm font-medium">
+<a class="opacity-80 hover:opacity-100" href="#">Dashboard</a>
+<a class="border-b-2 border-white pb-1" href="#">Projects</a>
+<a class="opacity-80 hover:opacity-100" href="#">Templates</a>
+<a class="opacity-80 hover:opacity-100" href="#">Team</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative hidden sm:block">
+<span class="material-symbols-outlined absolute left-2 top-1/2 -translate-y-1/2 text-white/60 text-lg">search</span>
+<input class="bg-white/10 border-none rounded py-1 pl-8 pr-3 text-sm placeholder:text-white/60 focus:ring-0 w-48 focus:w-64 transition-all" placeholder="Search..." type="text"/>
+</div>
+<div class="size-8 rounded-full bg-white/20 border border-white/30 overflow-hidden">
+<img alt="User avatar" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBylwmAlAEsHDyEnCcQs0-hEVl_RPFfiBTy7SgGUis5bHMatpn5a9jNYVx7yFNDlHcH2nORs01cYoQXF3wZlQrdQbgq_rgqQ6EQHHAqN-FTWjYDUAzLozBr4acD8_zewOJdBw373_Z41C0BvqdPkHztoihbCqoPD3TuYcPPYnBDFqShy51DVN9BmrLOKoOXbFk4R-cqoAZOnkWsR_NbXKCRxX3XRMlxhRtyu4X00BkOgGDy-kVlaPzehsQ8X88B28eWzfegY2A7Xl8"/>
+</div>
+</div>
+</header>
+<main class="max-w-6xl mx-auto px-6 py-8">
+<nav class="flex items-center gap-2 text-xs text-gray-500 mb-6 uppercase tracking-wider">
+<a class="hover:text-[var(--primary-green)]" href="#">Templates</a>
+<span class="material-symbols-outlined text-xs">chevron_right</span>
+<a class="hover:text-[var(--primary-green)]" href="#">Marketing Launch</a>
+<span class="material-symbols-outlined text-xs">chevron_right</span>
+<span class="font-bold text-gray-800">Assign Details</span>
+</nav>
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+<div>
+<h2 class="text-2xl font-bold text-gray-900 mb-1">Assign Template Details</h2>
+<p class="text-gray-500 text-sm">Configure task owners and set the project timeline for 'Marketing Launch'.</p>
+</div>
+<div class="flex items-center gap-3 bg-white border border-gray-200 rounded px-4 py-2 shadow-sm">
+<span class="material-symbols-outlined text-[var(--primary-green)]">assignment</span>
+<span class="text-sm font-semibold">12 Subtasks to configure</span>
+</div>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+<div class="lg:col-span-4 space-y-6">
+<div class="bg-white border border-gray-200 rounded p-6 shadow-sm">
+<h3 class="text-sm font-bold text-gray-800 border-b border-gray-100 pb-3 mb-4 flex items-center gap-2">
+<span class="material-symbols-outlined text-lg">settings</span>
+                    Global Settings
+                </h3>
+<div class="space-y-4">
+<div>
+<label class="block text-xs font-bold text-gray-600 mb-1 uppercase tracking-tight">Project Name</label>
+<input class="form-input-standard" type="text" value="Q4 Product Marketing Launch"/>
+</div>
+<div>
+<label class="block text-xs font-bold text-gray-600 mb-1 uppercase tracking-tight">Global Deadline</label>
+<p class="text-[11px] text-gray-500 mb-2 leading-tight">Adjusting this will shift all subtask dates automatically.</p>
+<div class="flex flex-col gap-3">
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-lg">calendar_month</span>
+<input class="form-input-standard pl-10" type="text" value="20 Dec, 2024"/>
+</div>
+<button class="btn-primary w-full">
+<span class="material-symbols-outlined text-lg">sync</span>
+                                Update Timeline
+                            </button>
+</div>
+</div>
+</div>
+</div>
+<div class="bg-[#eef5f1] border border-[#d1e7dd] rounded p-4">
+<div class="flex items-start gap-3">
+<span class="material-symbols-outlined text-[var(--primary-green)]">info</span>
+<div>
+<p class="text-xs font-bold text-[var(--primary-green)] mb-1">Quick Tip</p>
+<p class="text-xs text-gray-600 leading-relaxed">You can assign multiple owners in the project dashboard once the template is launched.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="lg:col-span-8">
+<div class="bg-white border border-gray-200 rounded shadow-sm overflow-hidden">
+<div class="bg-gray-50 border-b border-gray-200 px-6 py-3 flex items-center justify-between">
+<h3 class="text-sm font-bold text-gray-800">Subtasks Configuration</h3>
+<div class="flex items-center gap-4 text-xs font-medium text-gray-500">
+<span class="w-32">Assignee</span>
+<span class="w-48 text-center">Timeline</span>
+</div>
+</div>
+<div class="divide-y divide-gray-100">
+<div class="px-6 py-2 bg-gray-50/50 flex items-center gap-2 text-[11px] font-bold text-gray-400 uppercase tracking-widest">
+<span class="material-symbols-outlined text-sm">folder</span>
+                        Phase 1: Creative &amp; Design Assets
+                    </div>
+<div class="px-6 py-4 flex flex-col md:flex-row md:items-center gap-4 hover:bg-gray-50 transition-colors">
+<div class="flex-1">
+<div class="flex items-start gap-3">
+<span class="text-xs font-bold text-gray-300 mt-1">01</span>
+<div>
+<h4 class="text-sm font-semibold text-gray-800">Design Social Media Banners</h4>
+<p class="text-[11px] text-gray-500">Duration: 5 days</p>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="w-32">
+<div class="flex items-center gap-2 p-1 border border-gray-200 rounded bg-white hover:border-[var(--primary-green)] cursor-pointer transition-all">
+<div class="size-6 rounded-full bg-cover flex-shrink-0" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCETMVD96DSMNQDYmHuoJW07nMurhuFFTLonoqyemhuOf2lrpDyXijFPZfDXtOmrabZgkRMpQqkBoWJTIDSXSa90zuEmPacwY3TnVg0-EF-lWZ_o9dVJFHAkB9IuXlhnXEV0IBlNli7Gp_z0X4eRaNqMFWBjQYGRUN8A82qVVfeuBuiMCdWEgg7u4tYxlCnFUGR-gMmneXQNcPtH-BmQlKP9BuP5WeQfAhI1FeBmT3hm3Tbc5vBzfr8vkG9wtdckyXFFc7wcA--S2s')"></div>
+<span class="text-[12px] font-medium truncate">Sarah Chen</span>
+</div>
+</div>
+<div class="w-48 flex items-center gap-1">
+<div class="flex-1 bg-white border border-gray-200 rounded px-2 py-1 text-center text-[12px]">Nov 10</div>
+<span class="text-gray-300 text-xs">→</span>
+<div class="flex-1 bg-white border border-gray-200 rounded px-2 py-1 text-center text-[12px]">Nov 15</div>
+</div>
+</div>
+</div>
+<div class="px-6 py-4 flex flex-col md:flex-row md:items-center gap-4 hover:bg-gray-50 transition-colors">
+<div class="flex-1">
+<div class="flex items-start gap-3">
+<span class="text-xs font-bold text-gray-300 mt-1">02</span>
+<div>
+<h4 class="text-sm font-semibold text-gray-800">Review Landing Page UX</h4>
+<p class="text-[11px] text-gray-500">Duration: 3 days</p>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="w-32">
+<button class="w-full flex items-center justify-center gap-1.5 p-1 border border-dashed border-gray-300 rounded bg-white text-[var(--primary-green)] hover:border-[var(--primary-green)] hover:bg-[var(--primary-green)]/5 transition-all">
+<span class="material-symbols-outlined text-sm">person_add</span>
+<span class="text-[11px] font-bold">Assign</span>
+</button>
+</div>
+<div class="w-48 flex items-center gap-1">
+<div class="flex-1 bg-white border border-gray-200 rounded px-2 py-1 text-center text-[12px]">Nov 16</div>
+<span class="text-gray-300 text-xs">→</span>
+<div class="flex-1 bg-white border border-gray-200 rounded px-2 py-1 text-center text-[12px]">Nov 19</div>
+</div>
+</div>
+</div>
+<div class="px-6 py-4 flex flex-col md:flex-row md:items-center gap-4 hover:bg-gray-50 transition-colors">
+<div class="flex-1">
+<div class="flex items-start gap-3">
+<span class="text-xs font-bold text-gray-300 mt-1">03</span>
+<div>
+<h4 class="text-sm font-semibold text-gray-800">Copywriting for Ad Campaign</h4>
+<p class="text-[11px] text-gray-500">Duration: 7 days</p>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="w-32">
+<div class="flex items-center gap-2 p-1 border border-gray-200 rounded bg-white hover:border-[var(--primary-green)] cursor-pointer transition-all">
+<div class="size-6 rounded-full bg-cover flex-shrink-0" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCvCWKqa8wyWTdhcBlrw_kyTCOfKyc94tEe1TnBytleyTR20Fg2YtUZhe4HBV8EyRDYz1KVAELsfDexOsaTi4-cObaA56TRSRIx7NtASn5lW2sCqZ6XUy-xqfsfOGQuYzqniClbgBO5APdcMfeD71T0bFrZi9OVdPym-eMWR0WJ8wPIFCilYLprHZUa9fRsXbFkZ8eh6YckTJW9Wzmq0FhkdK9mMJJbda_SHwp10v7w6Jqr8jQVefTYnFQJO6M41G2GOQAt4QGyKww')"></div>
+<span class="text-[12px] font-medium truncate">Alex Morgan</span>
+</div>
+</div>
+<div class="w-48 flex items-center gap-1">
+<div class="flex-1 bg-white border border-gray-200 rounded px-2 py-1 text-center text-[12px]">Nov 10</div>
+<span class="text-gray-300 text-xs">→</span>
+<div class="flex-1 bg-white border border-gray-200 rounded px-2 py-1 text-center text-[12px]">Nov 17</div>
+</div>
+</div>
+</div>
+<div class="px-6 py-4 flex flex-col md:flex-row md:items-center gap-4 hover:bg-gray-50 transition-colors">
+<div class="flex-1">
+<div class="flex items-start gap-3">
+<span class="text-xs font-bold text-gray-300 mt-1">04</span>
+<div>
+<h4 class="text-sm font-semibold text-gray-800">Email Sequence Setup</h4>
+<div class="flex items-center gap-1 mt-1">
+<span class="material-symbols-outlined text-[10px] text-amber-600">link</span>
+<span class="text-[10px] text-amber-600 font-bold uppercase tracking-tighter">Depends on Task 03</span>
+</div>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="w-32">
+<div class="flex items-center gap-2 p-1 border border-gray-200 rounded bg-white hover:border-[var(--primary-green)] cursor-pointer transition-all">
+<div class="size-6 rounded-full bg-cover flex-shrink-0" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCSK_x-CjN9844IhZJPYftPQ8VWE8pAyUcL112C5JZ4wcRtCozotkHHdmRwu8waUCoKHlFpfG_aPWzQZJWJBrwP0JburbKJOhukWN221Hjd9A9JnzLycVuDaJ2jdgGiYI7rYxuOf45N_lS5doz3oQufTB356IvsH_nOHDtfphiTIB7Hhmj1qonO5kp6y6Q0LMFgNLxrxzHBYGkwnYUhYxacdegh4IHAEKUlLfBQNBH-prJY9wTHUCQGJbOgnXlKQP3cHEohk6fL6qY')"></div>
+<span class="text-[12px] font-medium truncate">James Wilson</span>
+</div>
+</div>
+<div class="w-48 flex items-center gap-1">
+<div class="flex-1 bg-white border border-gray-200 rounded px-2 py-1 text-center text-[12px]">Nov 18</div>
+<span class="text-gray-300 text-xs">→</span>
+<div class="flex-1 bg-white border border-gray-200 rounded px-2 py-1 text-center text-[12px]">Nov 22</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<footer class="bg-white border-t border-gray-200 py-4 px-6 fixed bottom-0 left-0 right-0 z-40">
+<div class="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+<div class="flex items-center gap-4 w-full sm:w-auto">
+<div class="flex-1 sm:flex-none">
+<div class="flex justify-between items-center mb-1">
+<span class="text-[10px] font-bold text-gray-500 uppercase">Assignment Progress</span>
+<span class="text-[10px] font-bold text-[var(--primary-green)]">75%</span>
+</div>
+<div class="w-48 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+<div class="h-full bg-[var(--primary-green)]" style="width: 75%"></div>
+</div>
+</div>
+<p class="hidden md:block text-[11px] text-gray-400 max-w-[180px]">3 tasks still require attention before launch.</p>
+</div>
+<div class="flex items-center gap-3 w-full sm:w-auto">
+<button class="btn-secondary flex-1 sm:flex-none">Back to Templates</button>
+<button class="btn-primary flex-1 sm:flex-none px-6">
+<span class="material-symbols-outlined text-lg">rocket_launch</span>
+                Confirm &amp; Launch Project
+            </button>
+</div>
+</div>
+</footer>
+<div class="h-24"></div> 
+
+</body></html>

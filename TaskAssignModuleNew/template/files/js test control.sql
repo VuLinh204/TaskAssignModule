@@ -1,33 +1,34 @@
-<!doctype html>
-<html lang="en">
-
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Task Management Tool</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</head>
-
-<body>
+USE Paradise_Dev
+GO
+if object_id('[dbo].[sp_Task_TaskList_html]') is null
+	EXEC ('CREATE PROCEDURE [dbo].[sp_Task_TaskList_html] as select 1')
+GO
+ALTER PROCEDURE [dbo].[sp_Task_TaskList_html]
+@LoginID    INT = 3,
+@LanguageID VARCHAR(2) = 'VN',
+@isWeb      INT = 1
+AS
+BEGIN
+SET NOCOUNT ON;
+DECLARE @html NVARCHAR(MAX);
+SET @html = N'
     <style>
         .modal {
             top: 40px;
         }
-
+        
         /* Status breadcrumb - modern refined style */
-        #sp_Task_MyWork_html .status-steps {
+        #sp_Task_TaskList_html .status-steps {
             display: flex;
             background: #fdfdfd;
             border-radius: 10px;
-            padding: 2px;
+            padding: 2px 5px;
             gap: 2px;
             border: 1px solid #e9ecef;
             box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.03);
         }
 
-        #sp_Task_MyWork_html .status-step {
+        #sp_Task_TaskList_html .status-step {
             flex: 1;
             padding: 10px 16px;
             font-size: 0.8rem;
@@ -49,12 +50,12 @@
             white-space: nowrap;
         }
 
-        #sp_Task_MyWork_html .status-step:hover {
+        #sp_Task_TaskList_html .status-step:hover {
             color: var(--bs-success);
             background: rgba(25, 135, 84, 0.05);
         }
 
-        #sp_Task_MyWork_html .status-step.active {
+        #sp_Task_TaskList_html .status-step.active {
             background: var(--bs-success);
             color: white !important;
             box-shadow: 0 4px 12px rgba(25, 135, 84, 0.25);
@@ -62,12 +63,12 @@
             z-index: 2;
         }
 
-        #sp_Task_MyWork_html .status-step.completed {
+        #sp_Task_TaskList_html .status-step.completed {
             color: var(--bs-success);
             background: rgba(25, 135, 84, 0.08);
         }
 
-        #sp_Task_MyWork_html .status-step:not(:last-child)::after {
+        #sp_Task_TaskList_html .status-step:not(:last-child)::after {
             content: "\F285";
             font-family: "bootstrap-icons";
             margin-left: auto;
@@ -76,14 +77,14 @@
             transition: opacity 0.2s;
         }
 
-        #sp_Task_MyWork_html .status-step.active::after,
-        #sp_Task_MyWork_html .status-step.completed::after {
+        #sp_Task_TaskList_html .status-step.active::after,
+        #sp_Task_TaskList_html .status-step.completed::after {
             opacity: 0.6;
             color: inherit;
         }
 
         /* Activity Timeline - Modernized */
-        #sp_Task_MyWork_html .activity-panel {
+        #sp_Task_TaskList_html .activity-panel {
             background: #f8f9fa;
             border-left: 1px solid #dee2e6;
             display: flex;
@@ -91,20 +92,20 @@
             height: 100%;
         }
 
-        #sp_Task_MyWork_html .timeline-section {
+        #sp_Task_TaskList_html .timeline-section {
             padding: 1.5rem;
             overflow-y: auto;
             flex-grow: 1;
         }
 
-        #sp_Task_MyWork_html .timeline-item {
+        #sp_Task_TaskList_html .timeline-item {
             position: relative;
             padding-left: 24px;
             margin-bottom: 1.5rem;
         }
 
-        #sp_Task_MyWork_html .timeline-item::before {
-            content: '';
+        #sp_Task_TaskList_html .timeline-item::before {
+            content: "";
             position: absolute;
             left: 0;
             top: 4px;
@@ -117,8 +118,8 @@
             z-index: 1;
         }
 
-        #sp_Task_MyWork_html .timeline-item::after {
-            content: '';
+        #sp_Task_TaskList_html .timeline-item::after {
+            content: "";
             position: absolute;
             left: 4px;
             top: 14px;
@@ -127,11 +128,11 @@
             background: #dee2e6;
         }
 
-        #sp_Task_MyWork_html .timeline-item:last-child::after {
+        #sp_Task_TaskList_html .timeline-item:last-child::after {
             display: none;
         }
 
-        #sp_Task_MyWork_html .timeline-date-separator {
+        #sp_Task_TaskList_html .timeline-date-separator {
             display: flex;
             align-items: center;
             text-align: center;
@@ -143,32 +144,32 @@
             letter-spacing: 0.5px;
         }
 
-        #sp_Task_MyWork_html .timeline-date-separator::before,
-        #sp_Task_MyWork_html .timeline-date-separator::after {
-            content: '';
+        #sp_Task_TaskList_html .timeline-date-separator::before,
+        #sp_Task_TaskList_html .timeline-date-separator::after {
+            content: "";
             flex: 1;
             border-bottom: 1px solid #dee2e6;
         }
 
-        #sp_Task_MyWork_html .timeline-date-separator:not(:empty)::before {
+        #sp_Task_TaskList_html .timeline-date-separator:not(:empty)::before {
             margin-right: 1rem;
         }
 
-        #sp_Task_MyWork_html .timeline-date-separator:not(:empty)::after {
+        #sp_Task_TaskList_html .timeline-date-separator:not(:empty)::after {
             margin-left: 1rem;
         }
 
-        #sp_Task_MyWork_html .timeline-date-separator.today {
+        #sp_Task_TaskList_html .timeline-date-separator.today {
             color: var(--bs-danger);
         }
 
         /* Nav Tabs Custom */
-        #sp_Task_MyWork_html .nav-tabs-custom {
+        #sp_Task_TaskList_html .nav-tabs-custom {
             border-bottom: 2px solid #dee2e6;
             margin-bottom: 1.5rem;
         }
 
-        #sp_Task_MyWork_html .nav-tabs-custom .nav-link {
+        #sp_Task_TaskList_html .nav-tabs-custom .nav-link {
             border: none;
             color: #6c757d;
             font-weight: 500;
@@ -177,17 +178,17 @@
             transition: all 0.2s;
         }
 
-        #sp_Task_MyWork_html .nav-tabs-custom .nav-link:hover {
+        #sp_Task_TaskList_html .nav-tabs-custom .nav-link:hover {
             color: var(--bs-success);
         }
 
-        #sp_Task_MyWork_html .nav-tabs-custom .nav-link.active {
+        #sp_Task_TaskList_html .nav-tabs-custom .nav-link.active {
             color: var(--bs-success);
             background: transparent;
         }
 
-        #sp_Task_MyWork_html .nav-tabs-custom .nav-link.active::after {
-            content: '';
+        #sp_Task_TaskList_html .nav-tabs-custom .nav-link.active::after {
+            content: "";
             position: absolute;
             bottom: -2px;
             left: 0;
@@ -197,40 +198,40 @@
         }
 
         /* Re-adding missing components colors */
-        #sp_Task_MyWork_html .view-btn {
+        #sp_Task_TaskList_html .view-btn {
             border: none;
         }
 
-        #sp_Task_MyWork_html .view-btn.active {
+        #sp_Task_TaskList_html .view-btn.active {
             background-color: var(--bs-success) !important;
             color: white !important;
         }
 
-        #sp_Task_MyWork_html .task-card:hover {
+        #sp_Task_TaskList_html .task-card:hover {
             border-color: var(--bs-success) !important;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
 
         /* Modal Layout */
-        #sp_Task_MyWork_html .task-modal-header {
+        #sp_Task_TaskList_html .task-modal-header {
             padding: 1rem 1.5rem;
             border-bottom: 1px solid #dee2e6;
         }
 
-        #sp_Task_MyWork_html .task-modal-body {
+        #sp_Task_TaskList_html .task-modal-body {
             padding: 0;
             display: flex;
             overflow: hidden;
             height: 75vh;
         }
 
-        #sp_Task_MyWork_html .main-task-content {
+        #sp_Task_TaskList_html .main-task-content {
             flex: 1;
             padding: 1.5rem;
             overflow-y: auto;
         }
 
-        #sp_Task_MyWork_html .comment-box {
+        #sp_Task_TaskList_html .comment-box {
             background: white;
             border: 1px solid #dee2e6;
             border-radius: 8px;
@@ -238,11 +239,11 @@
             transition: border-color 0.2s;
         }
 
-        #sp_Task_MyWork_html .comment-box:focus-within {
+        #sp_Task_TaskList_html .comment-box:focus-within {
             border-color: var(--bs-success);
         }
 
-        #sp_Task_MyWork_html .comment-avatar {
+        #sp_Task_TaskList_html .comment-avatar {
             width: 32px;
             height: 32px;
             border-radius: 50%;
@@ -255,33 +256,33 @@
             font-size: 0.8rem;
         }
 
-        #sp_Task_MyWork_html .btn-primary {
+        #sp_Task_TaskList_html .btn-primary {
             background-color: var(--bs-success);
             border-color: var(--bs-success);
         }
 
-        #sp_Task_MyWork_html .btn-primary:hover {
+        #sp_Task_TaskList_html .btn-primary:hover {
             background-color: #157347;
             border-color: #146c43;
         }
 
         /* Interactive elements cursor */
-        #sp_Task_MyWork_html .cursor-pointer,
-        #sp_Task_MyWork_html .status-step,
-        #sp_Task_MyWork_html .nav-link,
-        #sp_Task_MyWork_html .editable-field,
-        #sp_Task_MyWork_html .timeline-item,
-        #sp_Task_MyWork_html .list-group-item-action,
-        #sp_Task_MyWork_html .btn-link,
-        #sp_Task_MyWork_html .badge[onclick],
-        #sp_Task_MyWork_html .view-subtasks-card-btn,
-        #sp_Task_MyWork_html .view-details-card-btn,
-        #sp_Task_MyWork_html .subtask-action-btn {
+        #sp_Task_TaskList_html .cursor-pointer,
+        #sp_Task_TaskList_html .status-step,
+        #sp_Task_TaskList_html .nav-link,
+        #sp_Task_TaskList_html .editable-field,
+        #sp_Task_TaskList_html .timeline-item,
+        #sp_Task_TaskList_html .list-group-item-action,
+        #sp_Task_TaskList_html .btn-link,
+        #sp_Task_TaskList_html .badge[onclick],
+        #sp_Task_TaskList_html .view-subtasks-card-btn,
+        #sp_Task_TaskList_html .view-details-card-btn,
+        #sp_Task_TaskList_html .subtask-action-btn {
             cursor: pointer !important;
         }
 
         /* Back Button Style */
-        #sp_Task_MyWork_html .btn-back {
+        #sp_Task_TaskList_html .btn-back {
             display: inline-flex;
             align-items: center;
             gap: 6px;
@@ -298,7 +299,7 @@
             box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
         }
 
-        #sp_Task_MyWork_html .btn-back:hover {
+        #sp_Task_TaskList_html .btn-back:hover {
             background-color: #f8f9fa;
             color: var(--bs-success);
             border-color: var(--bs-success);
@@ -306,21 +307,21 @@
             transform: translateY(-1px);
         }
 
-        #sp_Task_MyWork_html .btn-back i {
+        #sp_Task_TaskList_html .btn-back i {
             font-size: 0.9rem;
         }
 
         /* Subtask action buttons in modal */
-        #sp_Task_MyWork_html .subtask-actions {
+        #sp_Task_TaskList_html .subtask-actions {
             opacity: 0;
             transition: opacity 0.2s;
         }
 
-        #sp_Task_MyWork_html .list-group-item:hover .subtask-actions {
+        #sp_Task_TaskList_html .list-group-item:hover .subtask-actions {
             opacity: 1;
         }
 
-        #sp_Task_MyWork_html .subtask-action-btn {
+        #sp_Task_TaskList_html .subtask-action-btn {
             padding: 4px 8px;
             border-radius: 4px;
             color: #6c757d;
@@ -329,21 +330,21 @@
             background: transparent;
         }
 
-        #sp_Task_MyWork_html .subtask-action-btn:hover {
+        #sp_Task_TaskList_html .subtask-action-btn:hover {
             background: rgba(0, 0, 0, 0.05);
         }
 
-        #sp_Task_MyWork_html .subtask-action-btn.view:hover {
+        #sp_Task_TaskList_html .subtask-action-btn.view:hover {
             color: var(--bs-success);
         }
 
-        #sp_Task_MyWork_html .subtask-action-btn.delete:hover {
+        #sp_Task_TaskList_html .subtask-action-btn.delete:hover {
             color: var(--bs-danger);
         }
 
         /* Card meta buttons styling */
-        #sp_Task_MyWork_html .view-subtasks-card-btn,
-        #sp_Task_MyWork_html .view-details-card-btn {
+        #sp_Task_TaskList_html .view-subtasks-card-btn,
+        #sp_Task_TaskList_html .view-details-card-btn {
             background: #f8f9fa;
             border: 1px solid #e9ecef;
             border-radius: 4px;
@@ -356,14 +357,14 @@
             transition: all 0.2s;
         }
 
-        #sp_Task_MyWork_html .view-subtasks-card-btn:hover,
-        #sp_Task_MyWork_html .view-details-card-btn:hover {
+        #sp_Task_TaskList_html .view-subtasks-card-btn:hover,
+        #sp_Task_TaskList_html .view-details-card-btn:hover {
             border-color: var(--bs-success);
             color: var(--bs-success);
             background: white;
         }
 
-        #sp_Task_MyWork_html .parent-link-badge {
+        #sp_Task_TaskList_html .parent-link-badge {
             font-size: 0.7rem;
             text-transform: uppercase;
             letter-spacing: 0.5px;
@@ -378,77 +379,194 @@
             gap: 4px;
         }
 
-        #sp_Task_MyWork_html .parent-link-badge:hover {
+        #sp_Task_TaskList_html .parent-link-badge:hover {
             background: #e9ecef;
             color: var(--bs-success);
             border-color: var(--bs-success);
         }
-
-        /* Modal styling improvements */
-        #sp_Task_MyWork_html .modal-content {
-            border: none;
-            border-radius: 12px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        /* Custom Modal System */
+        .custom-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(4px);
+            z-index: 1050;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
         }
 
-        #sp_Task_MyWork_html .modal-header {
-            border-bottom: 1px solid #f0f0f0;
-            padding: 1.25rem 1.5rem;
-            background: #fff;
-            border-radius: 12px 12px 0 0;
+        .custom-modal-overlay.active {
+            display: flex;
+            opacity: 1;
         }
 
-        #sp_Task_MyWork_html .modal-title {
-            font-weight: 600;
-            color: #333;
+        .custom-modal-container {
+            backdrop-filter: blur(50px);
+            border-radius: 16px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            width: 100%;
+            max-width: 600px;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            transform: scale(0.95);
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            overflow: hidden;
+            margin: 1rem;
         }
 
-        #sp_Task_MyWork_html .modal-body {
+        .custom-modal-container.large {
+            max-width: 90vw;
+        }
+
+        .custom-modal-overlay.active .custom-modal-container {
+            transform: scale(1);
+            opacity: 1;
+        }
+
+        .custom-modal-header {
             padding: 1.5rem;
-            background: #fdfdfd;
+            border-bottom: 1px solid #f1f5f9;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            backdrop-filter: blur(50px);
         }
 
-        #sp_Task_MyWork_html .modal-footer {
-            border-top: 1px solid #f0f0f0;
-            padding: 1rem 1.5rem;
-            background: #f8f9fa;
-            border-radius: 0 0 12px 12px;
+        .custom-modal-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin: 0;
+            line-height: 1.4;
         }
 
-        #sp_Task_MyWork_html .form-control,
-        #sp_Task_MyWork_html .form-select {
-            border-radius: 8px;
-            border: 1px solid #dee2e6;
-            padding: 0.6rem 1rem;
-            box-shadow: none;
+        .custom-modal-close {
+            background: transparent;
+            border: none;
+            color: #94a3b8;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 50%;
             transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        #sp_Task_MyWork_html .form-control:focus,
-        #sp_Task_MyWork_html .form-select:focus {
-            border-color: var(--bs-success);
-            box-shadow: 0 0 0 3px rgba(25, 135, 84, 0.1);
+        .custom-modal-close:hover {
+            color: #ef4444;
         }
 
-        #sp_Task_MyWork_html .form-floating>label {
-            padding-left: 1rem;
+        .custom-modal-body {
+            padding: 1.5rem;
+            overflow-y: auto;
+            flex-grow: 1;
+            /* Scrollbar styling */
+            scrollbar-width: thin;
+            scrollbar-color: #cbd5e1 transparent;
+        }
+
+        .custom-modal-body::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .custom-modal-body::-webkit-scrollbar-thumb {
+            background-color: #cbd5e1;
+            border-radius: 3px;
+        }
+
+        .custom-modal-footer {
+            padding: 1.25rem 1.5rem;
+            background: #f8fafc;
+            border-top: 1px solid #f1f5f9;
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+        }
+
+        /* Form Elements Enhancement for Modals */
+        .custom-form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        .custom-form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #475569;
+            font-size: 0.875rem;
+        }
+
+        .custom-input, .custom-select, .custom-textarea {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid #e2e8f0;
+            color: #1e293b;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+            outline: none;
+        }
+
+        .custom-input:focus, .custom-select:focus, .custom-textarea:focus {
+            border-color: #0f172a; /* Dark Highlight */
+            box-shadow: 0 0 0 2px rgba(15, 23, 42, 0.1);
+        }
+        
+        .custom-btn {
+            padding: 0.6rem 1.2rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            font-size: 0.9rem;
+        }
+
+        .custom-btn-secondary {
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            color: #64748b;
+        }
+
+        .custom-btn-secondary:hover {
+            background: #f8fafc;
+            color: #475569;
+            border-color: #cbd5e1;
+        }
+
+        .custom-btn-primary {
+            background: #0f172a; /* Slate 900 */
+            color: #fff;
+        }
+
+        .custom-btn-primary:hover {
+            background: #1e293b; /* Slate 800 */
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         }
     </style>
-    <div id="sp_Task_MyWork_html">
+    <div id="sp_Task_TaskList_html">
         <div class="d-flex flex-column vh-100 overflow-hidden">
             <div class="flex-grow-1 overflow-hidden d-flex">
                 <!-- Main Content Area -->
-                <main class="flex-grow-1 p-3 p-md-4 d-flex flex-column overflow-hidden">
+                <main class="flex-grow-1 p-md-4 d-flex flex-column overflow-hidden" style="padding-top: 2rem;">
                     <div id="mode-switcher" class="nav-tabs-custom d-flex gap-3 mb-3">
                         <button class="nav-link active" data-mode="projects">Projects</button>
                         <button class="nav-link" data-mode="templates">Templates Library</button>
                         <button class="nav-link" data-mode="timeline">Overall Timeline</button>
                     </div>
-                    <div id="main-header" class="mb-3">
+                    <div id="main-header" class="mb-3 d-flex justify-content-between align-items-center">
                         <div id="breadcrumb" class="small text-muted mb-2" style="min-height: 20px;"></div>
                         <div class="d-flex justify-content-between align-items-center">
-                            <h2 id="view-title" class="mb-0 text-truncate">Projects</h2>
-                            <div id="view-switcher" class="d-flex align-items-center gap-2 p-1 rounded"
+                            <div id="view-switcher" class="d-flex align-items-center gap-2 rounded"
                                 style="background-color: rgba(203,213,225,.5);">
                                 <!-- View switcher buttons will be inserted here -->
                             </div>
@@ -461,59 +579,59 @@
                 </main>
             </div>
 
-            <!-- Task Details Modal -->
-            <div class="modal fade" id="task-modal" tabindex="-1" aria-hidden="true">
-                <div class="modal-dialog modal-xl modal-dialog-scrollable">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <div class="flex-grow-1">
-                                <h5 id="modal-task-name" class="modal-title editable-field" data-field="TaskName">Task
-                                    Details</h5>
-                                <div id="task-nav-bar" class="d-flex gap-2 mt-2 flex-wrap"></div>
-                            </div>
-                            <div class="d-flex gap-2">
-                                <button id="delete-task-btn" class="btn btn-outline-danger btn-sm no-print"
-                                    type="button">
-                                    <i class="bi bi-trash"></i>
-                                </button>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                    aria-label="Close"></button>
-                            </div>
+            <!-- Custom Task Details Modal -->
+            <div id="task-modal" class="custom-modal-overlay">
+                <div class="custom-modal-container large bg-body">
+                    <div class="custom-modal-header">
+                        <div class="flex-grow-1">
+                            <h5 id="modal-task-name" class="custom-modal-title editable-field" data-field="TaskName">Task Details</h5>
+                            <div id="task-nav-bar" class="d-flex gap-2 mt-2 flex-wrap"></div>
                         </div>
-                        <div id="modal-content" class="modal-body"></div>
+                        <div class="d-flex gap-2 align-items-center">
+                            <button id="delete-task-btn" class="custom-btn custom-btn-secondary" type="button" title="Delete Task">
+                                <i class="bi bi-trash text-danger"></i>
+                            </button>
+                            <button type="button" class="custom-modal-close" onclick="closeModal(''task-modal'')">
+                                <i class="bi bi-x-lg"></i>
+                            </button>
+                        </div>
                     </div>
+                    <div id="modal-content" class="custom-modal-body"></div>
                 </div>
             </div>
 
-            <!-- Create/Edit Task Modal -->
-            <div class="modal fade" id="create-task-modal" tabindex="-1" aria-hidden="true">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <form id="create-task-form">
-                            <div class="modal-header">
-                                <h5 id="create-modal-title" class="modal-title">Create New Task</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                    aria-label="Close"></button>
+            <!-- Custom Create/Edit Task Modal -->
+            <div id="create-task-modal" class="custom-modal-overlay">
+                <div class="custom-modal-container">
+                    <form id="create-task-form">
+                        <div class="custom-modal-header">
+                            <h5 id="create-modal-title" class="custom-modal-title">Create New Task</h5>
+                            <button type="button" class="custom-modal-close" onclick="closeModal(''create-task-modal'')">
+                                <i class="bi bi-x-lg"></i>
+                            </button>
+                        </div>
+                        <div class="custom-modal-body">
+                            <div class="custom-form-group">
+                                <label class="custom-form-label" for="create-task-name">Task Name</label>
+                                <input type="text" class="custom-input" id="create-task-name" placeholder="Enter task name" required>
                             </div>
-                            <div class="modal-body">
-                                <div class="form-floating mb-3">
-                                    <input type="text" class="form-control" id="create-task-name"
-                                        placeholder="Task Name" required>
-                                    <label for="create-task-name">Task Name</label>
-                                </div>
-                                <div class="form-floating mb-3">
-                                    <textarea class="form-control" id="create-task-desc" placeholder="Description"
-                                        style="height: 100px"></textarea>
-                                    <label for="create-task-desc">Description</label>
-                                </div>
-                                <div class="row g-3">
-                                    <div class="col-md-6">
-                                        <select id="create-task-assignee" class="form-select" required>
+                            <div class="custom-form-group">
+                                <label class="custom-form-label" for="create-task-desc">Description</label>
+                                <textarea class="custom-textarea" id="create-task-desc" placeholder="Enter description" rows="4"></textarea>
+                            </div>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <div class="custom-form-group mb-0">
+                                        <label class="custom-form-label">Assignee</label>
+                                        <select id="create-task-assignee" class="custom-select" required>
                                             <option value="">Select Assignee</option>
                                         </select>
                                     </div>
-                                    <div class="col-md-6">
-                                        <select id="create-task-priority" class="form-select">
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="custom-form-group mb-0">
+                                        <label class="custom-form-label">Priority</label>
+                                        <select id="create-task-priority" class="custom-select">
                                             <option>Low</option>
                                             <option selected>Medium</option>
                                             <option>High</option>
@@ -521,98 +639,88 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                <button type="submit" class="btn btn-success">Save Task</button>
-                            </div>
-                        </form>
-                    </div>
+                        </div>
+                        <div class="custom-modal-footer">
+                            <button type="button" class="custom-btn custom-btn-secondary" onclick="closeModal(''create-task-modal'')">Cancel</button>
+                            <button type="submit" class="custom-btn custom-btn-primary">Save Task</button>
+                        </div>
+                    </form>
                 </div>
             </div>
 
-            <!-- Add Project Modal -->
-            <div class="modal fade" id="add-project-modal" tabindex="-1" aria-hidden="true">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <form id="add-project-form">
-                            <div class="modal-header">
-                                <h5 class="modal-title">Add New Project</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                    aria-label="Close"></button>
-                            </div>
-                            <div class="modal-body">
-                                <div class="form-floating">
-                                    <input type="text" class="form-control" id="add-project-name"
-                                        placeholder="Project Name" required>
-                                    <label for="add-project-name">Project Name</label>
-                                </div>
-                            </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                <button type="submit" class="btn btn-success">Create Project</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-            <!-- Assignment Modal -->
-            <div class="modal fade" id="mdlAssign" tabindex="-1" aria-hidden="true">
-                <div class="modal-dialog modal-lg">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title">Batch Assignment (Giao việc bổ sung)</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body">
-                            <div class="row g-3 mb-3">
-                                <div class="col-12">
-                                    <label class="form-label">Select Template</label>
-                                    <select id="assign-template" class="form-select"
-                                        onchange="loadSubtasksFromTemplate(this.value)">
-                                        <option value="">-- No Template --</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label">Requester</label>
-                                    <select id="assign-requester" class="form-select">
-                                    </select>
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label">Assignee</label>
-                                    <select id="assign-assignee" class="form-select">
-                                    </select>
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label">Due Date</label>
-                                    <input type="date" id="assign-date" class="form-control">
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label">Est. Hours</label>
-                                    <input type="number" id="assign-hours" class="form-control" value="1.0" step="0.5">
-                                </div>
-                            </div>
-
-                            <hr class="my-4">
-
-                            <h6 class="fw-bold mb-3">Subtasks List</h6>
-                            <div class="input-group mb-3">
-                                <input type="text" id="assign-new-task-name" class="form-control"
-                                    placeholder="Enter subtask name...">
-                                <button class="btn btn-outline-primary" type="button" onclick="addAssignSubtaskRow()">
-                                    <i class="bi bi-plus-lg"></i> Add
-                                </button>
-                            </div>
-
-                            <div class="list-group" id="assign-subtasks-list">
-                                <!-- Dynamic list -->
-                            </div>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                            <button type="button" class="btn btn-primary" onclick="submitTaskAssignment()">
-                                <i class="bi bi-check2-all"></i> Create Tasks
+            <!-- Custom Add Project Modal -->
+            <div id="add-project-modal" class="custom-modal-overlay">
+                <div class="custom-modal-container">
+                    <form id="add-project-form">
+                        <div class="custom-modal-header">
+                            <h5 class="custom-modal-title">Add New Project</h5>
+                            <button type="button" class="custom-modal-close" onclick="closeModal(''add-project-modal'')">
+                                <i class="bi bi-x-lg"></i>
                             </button>
                         </div>
+                        <div class="custom-modal-body">
+                            <div class="custom-form-group">
+                                <label class="custom-form-label" for="add-project-name">Project Name</label>
+                                <input type="text" class="custom-input" id="add-project-name" placeholder="Enter project name" required>
+                            </div>
+                        </div>
+                        <div class="custom-modal-footer">
+                            <button type="button" class="custom-btn custom-btn-secondary" onclick="closeModal(''add-project-modal'')">Cancel</button>
+                            <button type="submit" class="custom-btn custom-btn-primary">Create Project</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Custom Assignment Modal -->
+            <div id="mdlAssign" class="custom-modal-overlay">
+                <div class="custom-modal-container large bg-body">
+                    <div class="custom-modal-header">
+                        <h5 class="custom-modal-title">Giao việc bổ sung</h5>
+                        <button type="button" class="custom-modal-close" onclick="closeModal(''mdlAssign'')">
+                            <i class="bi bi-x-lg"></i>
+                        </button>
+                    </div>
+                    <div class="custom-modal-body">
+                        <div class="row g-3 mb-3">
+                            <div class="col-12">
+                                <label class="custom-form-label">Chọn từ mẫu (Template)</label>
+                                <select id="assign-template" class="custom-select" onchange="loadSubtasksFromTemplate(this.value)">
+                                    <option value="">-- Không dùng mẫu --</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="custom-form-label">Người giao</label>
+                                <select id="assign-requester" class="custom-select">
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="custom-form-label">Người thực hiện</label>
+                                <select id="assign-assignee" class="custom-select">
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="custom-form-label">Ngày yêu cầu</label>
+                                <input type="date" id="assign-date" class="custom-input">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="custom-form-label">Giờ cam kết</label>
+                                <input type="number" id="assign-hours" class="custom-input" step="0.5">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <h6 class="font-weight-bold mb-2">Danh sách việc phụ</h6>
+                            <div id="assign-subtasks-list" class="list-group mb-2 custom-list-group">
+                            </div>
+                            <div class="d-flex gap-2">
+                                <input type="text" id="assign-new-task-name" class="custom-input" placeholder="Tên việc phụ...">
+                                <button class="custom-btn custom-btn-secondary" type="button" id="btn-add-assign-subtask">Thêm</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="custom-modal-footer">
+                        <button type="button" class="custom-btn custom-btn-secondary" onclick="closeModal(''mdlAssign'')">Đóng</button>
+                        <button type="button" class="custom-btn custom-btn-primary" id="btn-submit-assignment">Hoàn tất giao việc</button>
                     </div>
                 </div>
             </div>
@@ -622,288 +730,65 @@
         <script>
             (function () {
                 "use strict";
-                // Mock Data Simulation
-                const positions_Linh = [
-                    { PositionID: 1, PositionName: "Project Manager" },
-                    { PositionID: 2, PositionName: "Software Engineer" },
-                    { PositionID: 3, PositionName: "QA Engineer" },
-                    { PositionID: 4, PositionName: "UI/UX Designer" },
-                ];
+                const LoginID = window.LoginID;
+                const LanguageID = window.LanguageID;
 
-                const employees_Linh = [
-                    { EmployeeID: 1, FullName: "Alice", PositionID: 1, Email: "alice@example.com" },
-                    { EmployeeID: 2, FullName: "Bob", PositionID: 2, Email: "bob@example.com" },
-                    { EmployeeID: 3, FullName: "Charlie", PositionID: 2, Email: "charlie@example.com" },
-                    { EmployeeID: 4, FullName: "Diana", PositionID: 3, Email: "diana@example.com" },
-                    { EmployeeID: 5, FullName: "Ethan", PositionID: 4, Email: "ethan@example.com" },
-                ];
+                // --- DATABASE DATA (State) ---
+                let projects_Linh = [];
+                let employees_Linh = [];
+                let tasks = [];
+                let positions_Linh = [];
+                let tags_Linh = [];
+                let taskProcesses_Linh = [];
+                let comments_Linh = [];
+                let templates_Linh = [];
+                let DataSource = [];
 
-                const templates_Linh = [
-                    {
-                        TemplateID: 1,
-                        TemplateName: "Software Release Cycle",
-                        Category: "Development",
-                        Description: "Standard steps for a software release.",
-                        EstDays: 14,
-                        Subtasks: JSON.stringify([
-                            { TaskName: "Requirement Analysis", Description: "Gather and document requirements", EstHours: 8, Order: 1, IsRequired: true, DefaultRole: "PM" },
-                            { TaskName: "Design", Description: "Create technical design", EstHours: 16, Order: 2, IsRequired: true, DefaultRole: "Dev" },
-                            { TaskName: "Implementation", Description: "Coding the feature", EstHours: 40, Order: 3, IsRequired: true, DefaultRole: "Dev" },
-                            { TaskName: "Testing", Description: "QA and Bug fixing", EstHours: 16, Order: 4, IsRequired: true, DefaultRole: "QA" },
-                            { TaskName: "Deployment", Description: "Push to production", EstHours: 4, Order: 5, IsRequired: true, DefaultRole: "DevOps" }
-                        ])
-                    },
-                    {
-                        TemplateID: 2,
-                        TemplateName: "Marketing Content Creation",
-                        Category: "Marketing",
-                        Description: "Process for creating blog posts or social media content.",
-                        EstDays: 5,
-                        Subtasks: JSON.stringify([
-                            { TaskName: "Topic Research", Description: "Research trending topics", EstHours: 4, Order: 1, IsRequired: true, DefaultRole: "Writer" },
-                            { TaskName: "Drafting", Description: "Write the first draft", EstHours: 6, Order: 2, IsRequired: true, DefaultRole: "Writer" },
-                            { TaskName: "Review", Description: "Edit and proofread", EstHours: 2, Order: 3, IsRequired: true, DefaultRole: "Editor" },
-                            { TaskName: "Publishing", Description: "Post to channels", EstHours: 1, Order: 4, IsRequired: true, DefaultRole: "Manager" }
-                        ])
-                    }
-                ];
+                window.DataSource_Status = [{ID:0, Name:"To Do"},{ID:1, Name:"In Progress"},{ID:2, Name:"Testing"},{ID:3, Name:"Done"}]
 
-                let nextProjectId = 4;
-                const projects_Linh = [
-                    {
-                        ProjectID: 1,
-                        ProjectName: "Phoenix Project",
-                        Description: "A major overhaul of the legacy system.",
-                        OwnerID: 1,
-                        StartDate: "2024-01-01",
-                        EndDate: "2024-12-31",
-                        Status: "In Progress",
-                        Priority: "High",
-                    },
-                    {
-                        ProjectID: 2,
-                        ProjectName: "Mobile App Launch",
-                        Description: "Develop and launch the new mobile application.",
-                        OwnerID: 1,
-                        StartDate: "2024-03-01",
-                        EndDate: "2024-09-30",
-                        Status: "On Track",
-                        Priority: "High",
-                    },
-                    {
-                        ProjectID: 3,
-                        ProjectName: "Marketing Website",
-                        Description: "Redesign the company marketing website.",
-                        OwnerID: 1,
-                        StartDate: "2024-05-01",
-                        EndDate: "2024-08-01",
-                        Status: "Completed",
-                        Priority: "Medium",
-                    },
-                ];
+                function fetchData(callback) {
+                    AjaxHPAParadise({
+                        data: {
+                            name: "sp_Task_GetData",
+                            param: ["LoginID", LoginID, "LanguageID", LanguageID]
+                        },
+                        success: (res) => {
+                            const data = (typeof res === "string" ? JSON.parse(res) : res).data?.[0]?.[0] || {};
+                            projects_Linh = typeof data.Projects === "string" ? JSON.parse(data.Projects) : (data.Projects || []);
+                            employees_Linh = typeof data.Employees === "string" ? JSON.parse(data.Employees) : (data.Employees || []);
+                            tasks = typeof data.Tasks === "string" ? JSON.parse(data.Tasks) : (data.Tasks || []);
+                            positions_Linh = typeof data.Positions === "string" ? JSON.parse(data.Positions) : (data.Positions || []);
+                            tags_Linh = typeof data.Tags === "string" ? JSON.parse(data.Tags) : (data.Tags || []);
+                            taskProcesses_Linh = typeof data.Processes === "string" ? JSON.parse(data.Processes) : (data.Processes || []);
+                            comments_Linh = typeof data.Comments === "string" ? JSON.parse(data.Comments) : (data.Comments || []);
+                            templates_Linh = typeof data.Templates === "string" ? JSON.parse(data.Templates) : (data.Templates || []);
+                            if (callback) callback(res);
+                            else render();
+                        }
+                    });
+                }
 
-                const tags_Linh = [
-                    { TagID: 1, TagName: "Bug", Color: "#ef4444" },
-                    { TagID: 2, TagName: "Feature", Color: "#3b82f6" },
-                    { TagID: 3, TagName: "UI", Color: "#a855f7" },
-                    { TagID: 4, TagName: "Backend", Color: "#f97316" },
-                ];
-
-                let nextTaskId = 1;
-                const tasks_Linh = [
-                    // Project 1
-                    {
-                        TaskID: 1,
-                        ProjectID: 1,
-                        TaskName: "Setup project repository",
-                        Description: "Initialize Git repo and CI/CD pipeline.",
-                        AssigneeID: 2,
-                        CreatedBy: 1,
-                        ParentTaskID: null,
-                        StartDate: "2024-01-05",
-                        DueDate: "2024-01-15",
-                        Status: "Done",
-                        Priority: "High",
-                    },
-                    {
-                        TaskID: 2,
-                        ProjectID: 1,
-                        TaskName: "Design architecture",
-                        Description: "Finalize the database schema and microservices plan.",
-                        AssigneeID: 3,
-                        CreatedBy: 1,
-                        ParentTaskID: null,
-                        StartDate: "2024-01-16",
-                        DueDate: "2024-02-01",
-                        Status: "Done",
-                        Priority: "High",
-                    },
-                    {
-                        TaskID: 3,
-                        ProjectID: 1,
-                        TaskName: "Develop authentication service",
-                        Description: "Implement JWT-based authentication.",
-                        AssigneeID: 2,
-                        CreatedBy: 1,
-                        ParentTaskID: null,
-                        StartDate: "2024-02-02",
-                        DueDate: "2024-03-10",
-                        Status: "In Progress",
-                        Priority: "High",
-                    },
-                    // Subtasks for Task 3
-                    {
-                        TaskID: 4,
-                        ProjectID: 1,
-                        TaskName: "Implement login endpoint",
-                        Description: "",
-                        AssigneeID: 2,
-                        CreatedBy: 1,
-                        ParentTaskID: 3,
-                        StartDate: "2024-02-05",
-                        DueDate: "2024-02-15",
-                        Status: "Done",
-                        Priority: "High",
-                    },
-                    {
-                        TaskID: 5,
-                        ProjectID: 1,
-                        TaskName: "Implement registration endpoint",
-                        Description: "",
-                        AssigneeID: 3,
-                        CreatedBy: 1,
-                        ParentTaskID: 3,
-                        StartDate: "2024-02-16",
-                        DueDate: "2024-02-25",
-                        Status: "In Progress",
-                        Priority: "High",
-                    },
-                    {
-                        TaskID: 6,
-                        ProjectID: 1,
-                        TaskName: "Add password hashing",
-                        Description: "",
-                        AssigneeID: 3,
-                        CreatedBy: 1,
-                        ParentTaskID: 5,
-                        StartDate: "2024-02-18",
-                        DueDate: "2024-02-22",
-                        Status: "To Do",
-                        Priority: "High",
-                    },
-                    {
-                        TaskID: 7,
-                        ProjectID: 1,
-                        TaskName: "Create UI mockups for dashboard",
-                        Description: "Use Figma to design the main dashboard view.",
-                        AssigneeID: 5,
-                        CreatedBy: 1,
-                        ParentTaskID: null,
-                        StartDate: "2024-02-10",
-                        DueDate: "2024-02-28",
-                        Status: "In Progress",
-                        Priority: "Medium",
-                    },
-                    {
-                        TaskID: 8,
-                        ProjectID: 1,
-                        TaskName: "QA & Testing",
-                        Description: "Write unit tests and E2E tests.",
-                        AssigneeID: 4,
-                        CreatedBy: 1,
-                        ParentTaskID: null,
-                        StartDate: "2024-03-01",
-                        DueDate: "2024-04-01",
-                        Status: "To Do",
-                        Priority: "Medium",
-                    },
-                    // Project 2
-                    {
-                        TaskID: 9,
-                        ProjectID: 2,
-                        TaskName: "Market research for new app",
-                        Description: "Analyze competitor apps and user demographics.",
-                        AssigneeID: 1,
-                        CreatedBy: 1,
-                        ParentTaskID: null,
-                        StartDate: "2024-03-05",
-                        DueDate: "2024-03-15",
-                        Status: "Done",
-                        Priority: "High",
-                    },
-                    {
-                        TaskID: 10,
-                        ProjectID: 2,
-                        TaskName: "Develop Core Features",
-                        Description: "Implement the initial loading screen for iOS and Android.",
-                        AssigneeID: 5,
-                        CreatedBy: 1,
-                        ParentTaskID: null,
-                        StartDate: "2024-03-20",
-                        DueDate: "2024-05-01",
-                        Status: "In Progress",
-                        Priority: "Medium",
-                    },
-                    {
-                        TaskID: 11,
-                        ProjectID: 2,
-                        TaskName: "API for user profiles",
-                        Description: "Build REST endpoints for creating and updating user profiles.",
-                        AssigneeID: 3,
-                        CreatedBy: 1,
-                        ParentTaskID: 10,
-                        StartDate: "2024-04-01",
-                        DueDate: "2024-04-30",
-                        Status: "To Do",
-                        Priority: "High",
-                    },
-                ];
-                nextTaskId = 12;
-
-                const taskTags_Linh = [
-                    { TaskID: 3, TagID: 4 },
-                    { TaskID: 7, TagID: 3 },
-                    { TaskID: 8, TagID: 2 },
-                    { TaskID: 6, TagID: 4 },
-                    { TaskID: 11, TagID: 4 },
-                ];
-
-                let nextProcessId = 4;
-                const taskProcesses_Linh = [
-                    { ProcessID: 1, TaskID: 1, OldStatus: "To Do", NewStatus: "In Progress", ChangedBy: 2, ChangedDate: "2024-01-10T10:00:00Z" },
-                    { ProcessID: 2, TaskID: 1, OldStatus: "In Progress", NewStatus: "Done", ChangedBy: 2, ChangedDate: "2024-01-12T15:30:00Z" },
-                    { ProcessID: 3, TaskID: 3, OldStatus: "To Do", NewStatus: "In Progress", ChangedBy: 1, ChangedDate: "2024-02-05T09:00:00Z" },
-                ];
-
-                let nextCommentId = 3;
-                const comments_Linh = [
-                    { CommentID: 1, TaskID: 3, UserID: 1, Comment: "We need to prioritize security features for this task.", CreatedDate: "2024-02-03T14:30:00Z" },
-                    { CommentID: 2, TaskID: 3, UserID: 2, Comment: "I will start working on the JWT implementation today.", CreatedDate: "2024-02-04T09:15:00Z" },
-                ];
-
-                function getNextTaskId() { return nextTaskId++; }
-                function getNextProcessId() { return nextProcessId++; }
-                function getNextProjectId() { return nextProjectId++; }
-                function getNextCommentId() { return nextCommentId++; }
+                function ReloadData() {
+                    fetchData(handleResultReload);
+                }
 
                 // --- STATE MANAGEMENT ---
                 let navigationStack = [];
                 let currentViewMode = "list";
-                let currentAppMode = "projects";
+                let currentAppMode = "projects"; // "projects", "templates", "timeline"
                 let draggedTaskId = null;
                 const KANBAN_STATUSES = ["To Do", "In Progress", "Testing", "Done"];
                 const PRIORITY_OPTIONS = ["Low", "Medium", "High"];
                 let currentEditingTaskId = null;
+                let currentAssignParentTaskId = null;
+                let assignSubtasks = [];
 
-                // Bootstrap Modal instances
-                let taskModal, createTaskModal, addProjectModal;
+                // Bootstrap Modal instances removed (replaced by custom modals)
 
                 // --- DOM ELEMENT REFERENCES ---
-                const viewTitleEl = document.getElementById("view-title");
                 const breadcrumbEl = document.getElementById("breadcrumb");
                 const viewSwitcherEl = document.getElementById("view-switcher");
                 const viewContainerEl = document.getElementById("view-container");
-                const modeSwitcherEl = document.getElementById("mode-switcher");
 
                 // Modals
                 const taskModalEl = document.getElementById("task-modal");
@@ -917,6 +802,7 @@
 
                 const addProjectModalEl = document.getElementById("add-project-modal");
                 const addProjectForm = document.getElementById("add-project-form");
+                const modeSwitcherEl = document.getElementById("mode-switcher");
 
                 // --- UTILITY FUNCTIONS ---
                 const findEmployee = (id) => employees_Linh.find((e) => e.EmployeeID === id) || { FullName: "Unassigned" };
@@ -930,7 +816,7 @@
                     }
                 };
 
-                const hasSubtasks = (taskId) => tasks_Linh.some((t) => t.ParentTaskID === taskId);
+                const hasSubtasks = (taskId) => tasks.some((t) => t.ParentTaskID === taskId);
 
                 function formatDate(dateString) {
                     const date = new Date(dateString);
@@ -947,36 +833,30 @@
                     return date.toLocaleDateString();
                 }
 
-                // --- CORE RENDER FUNCTION ---
                 function render() {
                     const context = navigationStack[navigationStack.length - 1];
+                    updateModeSwitcher();
                     renderBreadcrumb();
                     renderViewSwitcher();
-                    updateModeSwitcher();
 
                     if (currentAppMode === "templates") {
                         if (!context) {
-                            viewTitleEl.textContent = "Templates Library";
                             renderTemplatesView();
-                            return;
-                        }
-                        if (context.type === "template") {
+                        } else if (context.type === "template") {
                             const template = templates_Linh.find(t => t.TemplateID === context.id);
-                            if (!template) return;
-                            viewTitleEl.textContent = template.TemplateName;
-                            renderTemplateDetail(template);
-                            return;
+                            if (template) {
+                                renderTemplateDetail(template);
+                            }
                         }
+                        return;
                     }
 
                     if (currentAppMode === "timeline") {
-                        viewTitleEl.textContent = "Overall Timeline";
                         renderOverallTimeline();
                         return;
                     }
 
                     if (!context) {
-                        viewTitleEl.textContent = "Projects";
                         renderProjectsView(projects_Linh);
                         return;
                     }
@@ -984,16 +864,14 @@
                     if (context.type === "project") {
                         const project = projects_Linh.find((p) => p.ProjectID === context.id);
                         if (!project) return;
-                        viewTitleEl.textContent = project.ProjectName;
                         renderProjectDetail(project);
                         return;
                     }
 
                     if (context.type === "task") {
-                        const task = tasks_Linh.find((t) => t.TaskID === context.id);
+                        const task = tasks.find((t) => t.TaskID === context.id);
                         if (!task) return;
-                        viewTitleEl.textContent = task.TaskName;
-                        const itemsToRender = tasks_Linh.filter((t) => t.ParentTaskID === context.id);
+                        const itemsToRender = tasks.filter((t) => t.ParentTaskID === context.id);
 
                         switch (currentViewMode) {
                             case "list":
@@ -1053,7 +931,7 @@
                         if (item.type === "project") {
                             name = projects_Linh.find((p) => p.ProjectID === item.id)?.ProjectName;
                         } else if (item.type === "task") {
-                            name = tasks_Linh.find((t) => t.TaskID === item.id)?.TaskName;
+                            name = tasks.find((t) => t.TaskID === item.id)?.TaskName;
                         } else if (item.type === "template") {
                             name = templates_Linh.find((t) => t.TemplateID === item.id)?.TemplateName;
                         }
@@ -1136,7 +1014,7 @@
                     grid.className = "row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3";
 
                     if (projectsToRender.length === 0) {
-                        targetEl.innerHTML += `<p class="text-center text-muted py-5">No projects yet. Create your first project!</p>`;
+                        targetEl.innerHTML += `<div class="text-center text-muted py-5">No projects yet. Create your first project!</div>`;
                         return;
                     }
 
@@ -1191,6 +1069,65 @@
                             render();
                         });
                         tbody.appendChild(row);
+                    });
+                }
+
+                // --- TEMPLATE VIEWS ---
+                function renderTemplatesView() {
+                    const templates = templates_Linh;
+                    viewContainerEl.innerHTML = `
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h4 class="mb-0">Task Template Library</h4>
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-outline-primary btn-sm" onclick="ReloadData()">
+                                    <i class="bi bi-arrow-clockwise"></i> Refresh
+                                </button>
+                                <button class="btn btn-primary btn-sm" onclick="openCreateTemplateModal()">
+                                    <i class="bi bi-plus-lg"></i> Create Template
+                                </button>
+                            </div>
+                        </div>
+                        <div class="row row-cols-1 row-cols-md-3 g-4" id="template-grid"></div>
+                    `;
+                    
+                    const grid = document.getElementById("template-grid");
+                    if (templates.length === 0) {
+                        grid.innerHTML = `<div class="col-12 text-center text-muted py-5">
+                            <div class="mb-3"><i class="bi bi-box-seam fs-1 opacity-25"></i></div>
+                            No templates found. Create one to standardize your workflow!
+                        </div>`;
+                        return;
+                    }
+
+                    templates.forEach(t => {
+                        const col = document.createElement("div");
+                        col.className = "col";
+                        const subtasksCount = (typeof t.Subtasks === "string" ? JSON.parse(t.Subtasks) : (t.Subtasks || [])).length;
+                        col.innerHTML = `
+                            <div class="card h-100 shadow-sm border-0 bg-light-subtle hover-transform">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <span class="badge bg-primary-subtle text-primary">${t.Category || "General"}</span>
+                                        <div class="dropdown">
+                                            <button class="btn btn-link link-dark p-0" data-bs-toggle="dropdown"><i class="bi bi-three-dots-vertical"></i></button>
+                                            <ul class="dropdown-menu dropdown-menu-end">
+                                                <li><a class="dropdown-item" href="#" onclick="event.preventDefault(); openCreateTemplateModal(${t.TemplateID})">Edit Template</a></li>
+                                                <li><a class="dropdown-item text-danger" href="#" onclick="event.preventDefault(); deleteTemplate(${t.TemplateID})">Delete</a></li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    <h5 class="card-title fw-bold">${t.TemplateName}</h5>
+                                    <div class="card-text text-muted small mb-4">${t.Description || "No description provided."}</div>
+                                    <div class="d-flex justify-content-between align-items-center mt-auto pt-3 border-top">
+                                        <span class="text-muted small"><i class="bi bi-list-task me-1"></i> ${subtasksCount} steps</span>
+                                        <button class="btn btn-sm btn-success rounded-pill px-3" onclick="navigationStack.push({type:''template'', id:${t.TemplateID}}); render();">
+                                            View Content
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        grid.appendChild(col);
                     });
                 }
 
@@ -1273,7 +1210,7 @@
                             <div class="overflow-auto">
                                 <div style="min-width: fit-content;">
                                     <div class="d-flex align-items-center bg-body-secondary border-bottom sticky-top" style="top: 0; z-index: 10;">
-                                        <div style="width: 200px; min-width: 200px;" class="fw-bold p-2 bg-body-secondary">Project</div>
+                                        <div style="width: 200px; min-width: 200px; padding: 1rem;" class="fw-bold bg-body-secondary">Project</div>
                                         <div class="flex-grow-1 bg-body-secondary">${headerHtml}</div>
                                     </div>
                                     ${rowsHtml}
@@ -1292,7 +1229,7 @@
                 }
 
                 function createProjectCard(project) {
-                    const taskCount = tasks_Linh.filter((t) => t.ProjectID === project.ProjectID && !t.ParentTaskID).length;
+                    const taskCount = tasks.filter((t) => t.ProjectID === project.ProjectID && !t.ParentTaskID).length;
                     const card = document.createElement("div");
                     card.className = "card project-card h-100 border";
                     card.dataset.projectId = project.ProjectID;
@@ -1302,7 +1239,7 @@
                                     <h5 class="card-title mb-0">${project.ProjectName}</h5>
                                     <span class="badge ${getPriorityClass(project.Priority)}">${project.Priority || "N/A"}</span>
                                 </div>
-                                <p class="card-text text-muted small">${project.Description || "No description"}</p>
+                                <div class="card-text text-muted small">${project.Description || "No description"}</div>
                             </div>
                             <div class="card-footer bg-transparent d-flex justify-content-between align-items-center">
                                 <small class="text-muted">${taskCount} tasks</small>
@@ -1318,33 +1255,42 @@
 
                 // --- PROJECT DETAIL PAGE ---
                 function renderProjectDetail(project) {
-                    const projectTasks = tasks_Linh.filter((t) => t.ProjectID === project.ProjectID && t.ParentTaskID === null);
+                    const projectTasks = tasks.filter((t) => t.ProjectID === project.ProjectID && (t.ParentTaskID === null || t.ParentTaskID === undefined || t.ParentTaskID === 0));
                     const detailHtml = `
                             <div class="mb-4">
                                 <div class="card border mb-3">
                                     <div class="card-body">
                                         <div class="d-flex justify-content-between align-items-start mb-3">
                                             <div>
-                                                <h3 class="mb-2">${project.ProjectName} <span class="badge ${getPriorityClass(project.Priority)}">${project.Priority || "N/A"}</span></h3>
-                                                <p class="text-muted">${project.Description || "No description provided."}</p>
+                                                <h3 class="mb-2">
+                                                    <!-- TODO: Add ProjectName -->
+                                                    <div id="P794C2F8348554BF6B8EB236EC6F3A215"></div> 
+                                                    <span class="badge ${getPriorityClass(project.Priority)}">${project.Priority || "N/A"}</span>
+                                                </h3>
+                                                <div class="text-muted small">${project.Description || "No description provided."}</div>
                                             </div>
                                         </div>
                                         <div class="row g-3">
                                             <div class="col-md-3">
                                                 <small class="text-muted d-block">Owner</small>
+                                                <!-- TODO: Add Owner -->
+                                                <div id="PCDF4A5D2F59249DD9446C029B7849322"></div>
                                                 <span class="fw-medium">${findEmployee(project.OwnerID).FullName}</span>
                                             </div>
                                             <div class="col-md-3">
                                                 <small class="text-muted d-block">Start Date</small>
-                                                <span class="fw-medium">${project.StartDate || "N/A"}</span>
+                                                <!-- TODO: Add StartDate -->
+                                                <div id="P40385F4F923B4BB4A6D20DC9AE6850B6"></div>
                                             </div>
                                             <div class="col-md-3">
                                                 <small class="text-muted d-block">End Date</small>
-                                                <span class="fw-medium">${project.EndDate || "N/A"}</span>
+                                                <!-- TODO: Add EndDate -->
+                                                <div id="P5CE9880C159C4472A986171C034CF295"></div>
                                             </div>
                                             <div class="col-md-3">
                                                 <small class="text-muted d-block">Status</small>
-                                                <span class="badge bg-secondary">${project.Status || "N/A"}</span>
+                                                <!-- TODO: Add Status -->
+                                                <div id="P8A441B97BF684EBBA615B484D92A4850"></div>
                                             </div>
                                         </div>
                                     </div>
@@ -1379,8 +1325,9 @@
 
                     KANBAN_STATUSES.forEach((status) => {
                         const column = document.createElement("div");
-                        column.className = "kanban-column rounded p-2 flex-shrink-0";
+                        column.className = "kanban-column rounded flex-shrink-0";
                         column.style.width = "280px";
+                        column.style.padding = "1rem";
                         column.dataset.status = status;
                         column.innerHTML = `
                                 <div class="column-header d-flex justify-content-between align-items-center">
@@ -1413,64 +1360,91 @@
 
                 function renderListView(tasksToRender, targetEl = viewContainerEl) {
                     let listHtml = `
-                            <div class="table-responsive">
-                                <table class="table table-hover">
-                                    <thead>
-                                        <tr>
-                                            <th>Task Name</th>
-                                            <th>Assignee</th>
-                                            <th>Due Date</th>
-                                            <th>Priority</th>
-                                            <th style="width: 150px;">Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="list-container"></tbody>
-                                </table>
-                            </div>
-                        `;
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Task Name</th>
+                                    <th>Assignee</th>
+                                    <th>Due Date</th>
+                                    <th>Priority</th>
+                                    <th style="width: 150px;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="list-container"></tbody>
+                        </table>
+                    </div>
+                    `;
+                    
                     targetEl.innerHTML = listHtml;
                     const listContainerEl = targetEl.querySelector("#list-container");
-
+                    
                     if (tasksToRender.length === 0) {
-                        listContainerEl.innerHTML = `<tr><td colspan="5" class="text-center text-muted">No tasks to display.</td></tr>`;
+                        listContainerEl.innerHTML = `
+                            <tr>
+                                <td colspan="5" class="text-center py-5">
+                                    <div class="mb-3">
+                                        <i class="bi bi-check2-square" style="font-size: 3rem; color: #dee2e6;"></i>
+                                    </div>
+                                    <div class="text-muted small mb-3">No tasks to display</div>
+                                    <button id="add-task-btn-empty" class="btn btn-success">
+                                        <i class="bi bi-plus-lg"></i> Add Task
+                                    </button>
+                                </td>
+                            </tr>
+                        `;
+                        
+                        // Thêm event listener cho nút Add Task
+                        const addTaskBtn = document.getElementById("add-task-btn-empty");
+                        if (addTaskBtn) {
+                            addTaskBtn.addEventListener("click", () => {
+                                const context = navigationStack[navigationStack.length - 1];
+                                if (context && context.type === "project") {
+                                    openCreateTaskModal();
+                                } else if (context && context.type === "task") {
+                                    openCreateTaskModal({ parentTaskId: context.id });
+                                }
+                            });
+                        }
+                        
                         return;
                     }
-
+                    
                     tasksToRender.forEach((task) => {
                         const row = document.createElement("tr");
                         row.className = "cursor-pointer";
                         const subtaskIcon = hasSubtasks(task.TaskID) ? `<i class="bi bi-diagram-3 me-2"></i>` : "";
-                        const subtaskCount = tasks_Linh.filter((t) => t.ParentTaskID === task.TaskID).length;
+                        const subtaskCount = tasks.filter((t) => t.ParentTaskID === task.TaskID).length;
                         const hasSubtasksFlag = subtaskCount > 0;
-
                         row.innerHTML = `
-                                <td class="fw-semibold">${subtaskIcon}${task.TaskName}</td>
-                                <td class="text-muted">${findEmployee(task.AssigneeID).FullName}</td>
-                                <td class="text-muted">${task.DueDate || "N/A"}</td>
-                                <td><span class="badge ${getPriorityClass(task.Priority)}">${task.Priority}</span></td>
-                                <td>
-                                    <div class="d-flex gap-2">
-                                        ${hasSubtasksFlag ? `
-                                            <button class="view-subtasks-card-btn" data-task-id="${task.TaskID}" title="View ${subtaskCount} subtask${subtaskCount > 1 ? "s" : ""}">
-                                                <i class="bi bi-diagram-3"></i>
-                                                <span>${subtaskCount}</span>
-                                            </button>
-                                        ` : ""}
-                                        <button class="view-details-card-btn" data-task-id="${task.TaskID}" title="View details">
-                                            <i class="bi bi-eye"></i>
+                            <td class="fw-semibold">${subtaskIcon}${task.TaskName}</td>
+                            <td class="text-muted">${findEmployee(task.AssigneeID).FullName}</td>
+                            <td class="text-muted">${task.DueDate || "N/A"}</td>
+                            <td><span class="badge ${getPriorityClass(task.Priority)}">${task.Priority}</span></td>
+                            <td>
+                                <div class="d-flex gap-2">
+                                    ${hasSubtasksFlag ? `
+                                        <button class="view-subtasks-card-btn" data-task-id="${task.TaskID}" title="View ${subtaskCount} subtask${subtaskCount > 1 ? "s" : ""}">
+                                            <i class="bi bi-diagram-3"></i>
+                                            <span>${subtaskCount}</span>
                                         </button>
-                                    </div>
-                                </td>
-                            `;
+                                    ` : ""}
+                                    <button class="view-details-card-btn" data-task-id="${task.TaskID}" title="View details">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        `;
+                        
                         // Click on row (not buttons) opens details
                         row.addEventListener("click", (e) => {
                             if (!e.target.closest("button")) {
                                 openTaskModal(task.TaskID);
                             }
                         });
-
+                        
                         listContainerEl.appendChild(row);
-
+                        
                         // View subtasks button click
                         const subtasksBtn = row.querySelector(".view-subtasks-card-btn");
                         if (subtasksBtn) {
@@ -1480,7 +1454,7 @@
                                 render();
                             });
                         }
-
+                        
                         // View details button click
                         const detailsBtn = row.querySelector(".view-details-card-btn");
                         if (detailsBtn) {
@@ -1584,7 +1558,7 @@
                             <div class="overflow-auto">
                                 <div style="min-width: fit-content;">
                                     <div class="d-flex align-items-center bg-body-secondary border-bottom sticky-top" style="top: 0; z-index: 10;">
-                                        <div style="width: 200px; min-width: 200px;" class="fw-bold p-2 bg-body-secondary">Task</div>
+                                        <div style="width: 200px; min-width: 200px; padding: 1rem;" class="fw-bold bg-body-secondary">Task</div>
                                         <div class="flex-grow-1 bg-body-secondary">${headerHtml}</div>
                                     </div>
                                     ${rowsHtml}
@@ -1600,7 +1574,7 @@
                     card.dataset.taskId = task.TaskID;
                     card.draggable = true;
 
-                    const subtaskCount = tasks_Linh.filter((t) => t.ParentTaskID === task.TaskID).length;
+                    const subtaskCount = tasks.filter((t) => t.ParentTaskID === task.TaskID).length;
                     const hasSubtasksFlag = subtaskCount > 0;
 
                     card.innerHTML = `
@@ -1667,127 +1641,117 @@
                 window.showPriorityDropdown = showPriorityDropdown;
                 window.showAssigneeDropdown = showAssigneeDropdown;
 
+                function openModal(modalId) {
+                    const modal = document.getElementById(modalId);
+                    if (modal) {
+                        modal.classList.add("active");
+                    }
+                }
+
+                function closeModal(modalId) {
+                    const modal = document.getElementById(modalId);
+                    if (modal) {
+                        modal.classList.remove("active");
+                    }
+                }
+                
+                // Allow closing by clicking outside the container
+                document.querySelectorAll(''.custom-modal-overlay'').forEach(overlay => {
+                    overlay.addEventListener(''click'', (e) => {
+                        if (e.target === overlay) {
+                            overlay.classList.remove(''active'');
+                        }
+                    });
+                });
+
+                window.openModal = openModal;
+                window.closeModal = closeModal;
+
+                // --- MODAL OPENERS ---
                 function openTaskModal(taskId) {
-                    const task = tasks_Linh.find((t) => t.TaskID === taskId);
+                    const task = tasks.find((t) => t.TaskID === taskId);
                     if (!task) return;
 
                     currentEditingTaskId = taskId;
 
-                    // Update Modal Header with Breadcrumb and controls
-                    const modalHeader = taskModalEl.querySelector('.modal-header');
-                    modalHeader.className = "modal-header task-modal-header d-flex flex-column gap-3";
-
-                    const parentTask = task.ParentTaskID ? tasks_Linh.find(t => t.TaskID === task.ParentTaskID) : null;
+                    // Update contents...
+                    const modalHeader = taskModalEl.querySelector(".custom-modal-header");
+                    
+                    const parentTask = task.ParentTaskID ? tasks.find(t => t.TaskID === task.ParentTaskID) : null;
                     const parentLinkHtml = parentTask ? `
                         <a href="#" class="parent-link-badge mb-2" onclick="event.preventDefault(); openTaskModal(${parentTask.TaskID})">
                             <i class="bi bi-arrow-up-circle"></i> Parent: ${parentTask.TaskName}
                         </a>
-                    ` : '';
+                    ` : "";
 
+                    // Re-inject dynamic header content (keeping the close button static structure if possible, but here we replace innerHTML mostly)
+                    // Note: We need to preserve the Close button or re-add it.
+                    // Lets rewrite the header content carefully.
                     modalHeader.innerHTML = `
-                        <div class="d-flex justify-content-between align-items-center w-100">
-                            <div class="d-flex flex-column">
-                                ${parentLinkHtml}
-                                <div class="d-flex align-items-center gap-3">
-                                    <h5 id="modal-task-name" class="modal-title editable-field mb-0 fw-bold" data-field="TaskName" data-task-id="${taskId}">${task.TaskName}</h5>
-                                    <span class="badge ${getPriorityClass(task.Priority)} rounded-pill cursor-pointer" onclick="showPriorityDropdown(this, ${JSON.stringify(task).replace(/"/g, '&quot;')})">${task.Priority}</span>
-                                </div>
+                        <div class="flex-grow-1">
+                            ${parentLinkHtml}
+                            <div class="d-flex align-items-center gap-3">
+                                <h5 id="modal-task-name" class="custom-modal-title editable-field mb-0" data-field="TaskName" data-task-id="${taskId}">${task.TaskName}</h5>
+                                <span class="badge ${getPriorityClass(task.Priority)} rounded-pill cursor-pointer" onclick="showPriorityDropdown(this, ${JSON.stringify(task).replace(/""/g, "&quot;")})">${task.Priority}</span>
                             </div>
-                            <div class="d-flex gap-2 align-items-center">
-                                <button id="delete-task-btn" class="btn btn-link text-danger p-0 no-print cursor-pointer" title="Delete task">
-                                    <i class="bi bi-trash fs-5"></i>
-                                </button>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            <div class="status-steps mt-3">
+                                ${KANBAN_STATUSES.map(status => `
+                                    <button class="status-step ${task.Status === status ? ''active'' : ''''} ${KANBAN_STATUSES.indexOf(task.Status) > KANBAN_STATUSES.indexOf(status) ? ''completed'' : ''''}" onclick="changeTaskStatus(${taskId}, ''${status}'')">
+                                        ${status}
+                                    </button>
+                                `).join("")}
                             </div>
                         </div>
-                        <div class="status-steps w-100">
-                            ${KANBAN_STATUSES.map(status => `
-                                <button class="status-step ${task.Status === status ? 'active' : ''} ${KANBAN_STATUSES.indexOf(task.Status) > KANBAN_STATUSES.indexOf(status) ? 'completed' : ''}" 
-                                        onclick="changeTaskStatus(${taskId}, '${status}')">
-                                    ${status}
-                                </button>
-                            `).join('')}
+                        <div class="d-flex gap-2 align-items-center">
+                            <button id="delete-task-btn" class="custom-modal-close text-danger" title="Delete task">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                            <button type="button" class="custom-modal-close" onclick="closeModal(''task-modal'')">
+                                <i class="bi bi-x-lg"></i>
+                            </button>
                         </div>
                     `;
 
-                    // Handle delete button in new header
                     document.getElementById("delete-task-btn").addEventListener("click", () => handleDeleteTask(taskId));
 
-                    // Update Modal Body with two-column layout
-                    const modalBody = taskModalEl.querySelector('.modal-body');
-                    modalBody.className = "modal-body task-modal-body";
+                    const modalBody = taskModalEl.querySelector("#modal-content");
                     modalBody.innerHTML = `
-                        <div class="main-task-content">
-                            <ul class="nav nav-tabs nav-tabs-custom" id="taskTabs" role="tablist">
-                                <li class="nav-item">
-                                    <button class="nav-link active" id="desc-tab" data-bs-toggle="tab" data-bs-target="#desc-pane" type="button" role="tab">Description</button>
-                                </li>
-                                <li class="nav-item">
-                                    <button class="nav-link" id="subtasks-tab" data-bs-toggle="tab" data-bs-target="#subtasks-pane" type="button" role="tab">
-                                        Subtasks <span class="badge bg-secondary-subtle text-secondary rounded-pill ms-1">${tasks_Linh.filter(t => t.ParentTaskID === taskId).length}</span>
-                                    </button>
-                                </li>
-                            </ul>
-                            
-                            <div class="tab-content" id="taskTabContent">
-                                <div class="tab-pane fade show active" id="desc-pane" role="tabpanel" tabindex="0">
-                                    <div class="row g-3">
-                                        <div class="col-md-6">
-                                            <label class="small text-muted fw-bold mb-1">ASSIGNEE</label>
-                                            <div class="d-flex align-items-center gap-2 editable-field p-2 border rounded" data-field="AssigneeID" data-task-id="${taskId}">
-                                                <div class="comment-avatar">${findEmployee(task.AssigneeID).FullName.charAt(0)}</div>
-                                                <span>${findEmployee(task.AssigneeID).FullName}</span>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label class="small text-muted fw-bold mb-1">DUE DATE</label>
-                                            <div class="p-2 border rounded bg-light-subtle">${task.DueDate || 'No deadline'}</div>
-                                        </div>
+                        <div class="row g-4">
+                            <div class="col-md-7 border-end">
+                                <div class="row g-3 mb-4">
+                                    <div class="col-md-6">
+                                        <label class="custom-form-label text-muted">ASSIGNEE</label>
+                                        <!-- TODO: Add Assignee -->
+                                        <div id="P8D081E689C8B4072AFE480737FBCF0E8"></div>
                                     </div>
-
-                                    <div class="mt-4">
-                                        <label class="small text-muted fw-bold mb-2">DESCRIPTION</label>
-                                        <div class="editable-field p-3 border rounded bg-light-subtle" data-field="Description" data-task-id="${taskId}" style="min-height: 150px;">
-                                            ${task.Description || '<span class="text-muted italic">Add details about this task...</span>'}
-                                        </div>
+                                    <div class="col-md-6">
+                                        <label class="custom-form-label text-muted">DUE DATE</label>
+                                        <div id="P5AA042EE89064CD3A87E1731D091AEB7"></div>
                                     </div>
                                 </div>
-                                <div class="tab-pane fade" id="subtasks-pane" role="tabpanel" tabindex="0">
-                                    <div class="d-flex justify-content-between align-items-center mb-3">
-                                        <h6 class="mb-0 fw-bold">Subtasks</h6>
-                                        <div class="d-flex gap-2">
-                                            <button class="btn btn-sm btn-outline-primary" onclick="openAssignModal(${taskId})">
-                                                <i class="bi bi-stack"></i> Batch Assign
-                                            </button>
-                                            <button class="btn btn-sm btn-primary" onclick="openCreateTaskModal({ parentTaskId: ${taskId} })">
-                                                <i class="bi bi-plus-lg"></i> Add Subtask
-                                            </button>
-                                        </div>
-                                    </div>
-                                    <div class="list-group list-group-flush border rounded overflow-hidden">
-                                        ${renderSubtasksHtml(taskId)}
-                                    </div>
+                                <div class="mb-4">
+                                    <label class="custom-form-label text-muted">DESCRIPTION</label>
+                                    <div id="PE163B877AF934B69A8B09C828BD02C86"></div>
+                                </div>
+                                <div>
+                                    ${renderSubtasksHtml(taskId)}
                                 </div>
                             </div>
-                        </div>
-                        
-                        <div class="activity-panel col-lg-4 d-none d-lg-flex">
-                            <div class="p-3 border-bottom bg-white sticky-top">
-                                <h6 class="mb-3 fw-bold">Activity Feed</h6>
-                                <div class="comment-box d-flex flex-column gap-2">
-                                    <textarea id="new-comment-input" class="form-control border-0 shadow-none scrollbar-hide" placeholder="Write a comment..." rows="2" style="resize: none;"></textarea>
-                                    <div class="d-flex justify-content-end p-1">
-                                        <button id="add-comment-btn" class="btn btn-sm btn-primary px-3 rounded-pill">Comment</button>
+                            <div class="col-md-5">
+                                <h6 class="fw-bold mb-3">Activity</h6>
+                                <div class="mb-3">
+                                    <textarea id="new-comment-input" class="custom-textarea" placeholder="Write a comment..." rows="2"></textarea>
+                                    <div class="d-flex justify-content-end mt-2">
+                                        <button id="add-comment-btn" class="custom-btn custom-btn-primary btn-sm">Post</button>
                                     </div>
                                 </div>
-                            </div>
-                            <div class="timeline-section">
-                                ${renderActivityTimeline(taskId)}
+                                <div class="timeline-section" style="max-height: 400px; overflow-y: auto;">
+                                    ${renderActivityTimeline(taskId)}
+                                </div>
                             </div>
                         </div>
                     `;
 
-                    // Add Event Listeners
                     document.getElementById("add-comment-btn").addEventListener("click", () => {
                         const input = document.getElementById("new-comment-input");
                         addComment(taskId, input.value.trim());
@@ -1795,64 +1759,285 @@
                     });
 
                     setupInlineEditing();
-                    taskModal.show();
+                    openModal(''task-modal'');
                 }
 
-                function changeTaskStatus(taskId, newStatus) {
-                    const task = tasks_Linh.find(t => t.TaskID === taskId);
-                    if (!task || task.Status === newStatus) return;
+                function openCreateTaskModal({ parentTaskId = null, editTaskId = null, defaultStatus = "To Do" } = {}) {
+                    const context = navigationStack[navigationStack.length - 1];
+                    if (!context && !editTaskId) { // Allow edit without context if strict
+                         // Actually mostly we need context for ProjectID if new
+                    }
+                    
+                    if (!context && !editTaskId) {
+                         // Default to first project if exists or error
+                         if (projects_Linh.length > 0) {
+                             // Context is implicitly project 0?
+                         } else {
+                             alert("Please select a project first!");
+                             return;
+                         }
+                    }
 
-                    const oldStatus = task.Status;
-                    task.Status = newStatus;
+                    createTaskForm.reset();
+                    createTaskForm.dataset.parentTaskId = parentTaskId || "";
+                    createTaskForm.dataset.editTaskId = editTaskId || "";
+                    createTaskForm.dataset.defaultStatus = defaultStatus;
 
-                    // Log status change
-                    taskProcesses_Linh.push({
-                        ProcessID: getNextProcessId(),
-                        TaskID: taskId,
-                        OldStatus: oldStatus,
-                        NewStatus: newStatus,
-                        ChangedBy: 1, // Current User (Alice)
-                        ChangedDate: new Date().toISOString(),
+                    const assigneeSelect = document.getElementById("create-task-assignee");
+                    assigneeSelect.innerHTML = `<option value="">Select Assignee</option>`;
+                    employees_Linh.forEach((emp) => {
+                        const option = document.createElement("option");
+                        option.value = emp.EmployeeID;
+                        option.textContent = emp.FullName;
+                        assigneeSelect.appendChild(option);
                     });
 
-                    // Auto-comment
-                    addComment(taskId, `Stage changed: **${oldStatus}** → **${newStatus}**`, true);
+                    if (editTaskId) {
+                        createModalTitleEl.textContent = "Edit Task";
+                        const task = tasks.find((t) => t.TaskID === editTaskId);
+                        document.getElementById("create-task-name").value = task.TaskName;
+                        document.getElementById("create-task-desc").value = task.Description;
+                        assigneeSelect.value = task.AssigneeID;
+                        document.getElementById("create-task-priority").value = task.Priority;
+                    } else {
+                        createModalTitleEl.textContent = parentTaskId ? "Create New Subtask" : "Create New Task";
+                    }
 
-                    // Refresh Modal and Board
-                    openTaskModal(taskId);
-                    render();
+                    openModal(''create-task-modal'');
+                }
+
+                function openAddProjectModal() {
+                    addProjectForm.reset();
+                    openModal(''add-project-modal'');
+                }
+                
+                // Override Batch Modal Opener
+                 window.openAssignModal = function(parentId) {
+                    currentAssignParentTaskId = parentId;
+                    assignSubtasks = [];
+                    
+                    const requesterSelect = document.getElementById("assign-requester");
+                    const assigneeSelect = document.getElementById("assign-assignee");
+                    const templateSelect = document.getElementById("assign-template");
+                    
+                    requesterSelect.innerHTML = employees_Linh.map(e => `<option value="${e.EmployeeID}">${e.FullName}</option>`).join("");
+                    assigneeSelect.innerHTML = employees_Linh.map(e => `<option value="${e.EmployeeID}">${e.FullName}</option>`).join("");
+                    
+                    if (templateSelect) {
+                        templateSelect.innerHTML = `<option value="">-- Không dùng mẫu --</option>` + 
+                            templates_Linh.map(t => `<option value="${t.TemplateID}">${t.TemplateName}</option>`).join("");
+                        templateSelect.value = "";
+                    }
+
+                    const currentEmpID = employees_Linh.find(e => parseInt(e.EmployeeID) === LoginID)?.EmployeeID;
+                    if (currentEmpID) requesterSelect.value = currentEmpID;
+                    
+                    document.getElementById("assign-date").value = new Date().toISOString().split("T")[0];
+                    document.getElementById("assign-hours").value = "1.0";
+                    document.getElementById("assign-new-task-name").value = "";
+                    
+                    renderAssignSubtasks();
+                    openModal(''mdlAssign'');
                 };
 
-                function addComment(taskId, text, isSystem = false) {
-                    if (!text) return;
+                // Remove Bootstrap Initialization
 
-                    const newComment = {
-                        CommentID: getNextCommentId(),
-                        TaskID: taskId,
-                        UserID: 1,
-                        Comment: text,
-                        CreatedDate: new Date().toISOString(),
-                        IsSystem: isSystem
-                    };
-                    comments_Linh.push(newComment);
+                function changeTaskStatus(taskId, newStatus) {
+                    AjaxHPAParadise({
+                        data: {
+                            name: "sp_Task_UpdateStatus",
+                            param: ["TaskID", taskId, "NewStatus", newStatus, "LoginID", LoginID]
+                        },
+                        success: (res) => {
+                            const data = (typeof res === "string" ? JSON.parse(res) : res).data?.[0]?.[0] || {};
+                            if (data.Status !== "SUCCESS") return;
 
-                    if (!isSystem) {
-                        const timelineSection = document.querySelector('.timeline-section');
-                        if (timelineSection) {
-                            timelineSection.innerHTML = renderActivityTimeline(taskId);
+                            const task = tasks.find(t => t.TaskID == taskId);
+                            if (task) task.Status = newStatus;
+
+                            if (typeof uiManager !== "undefined") {
+                                uiManager.showAlert({ type: "success", message: "Cập nhật trạng thái thành công" });
+                            }
+
+                            const modal = document.getElementById("task-modal");
+                            if (modal?.classList.contains("active") && currentEditingTaskId === taskId) {
+                                const statusStepsContainer = modal.querySelector(".status-steps");
+                                if (statusStepsContainer) {
+                                    const buttons = statusStepsContainer.querySelectorAll(".status-step");
+                                    buttons.forEach((button, index) => {
+                                        button.classList.remove("active", "completed");
+                                        if (newStatus === KANBAN_STATUSES[index]) {
+                                            button.classList.add("active");
+                                        }
+                                        if (KANBAN_STATUSES.indexOf(newStatus) > index) {
+                                            button.classList.add("completed");
+                                        }
+                                    });
+                                }
+                            }
                         }
+                    });
+                }
+
+                function addComment(taskId, text, isSystem = false) {
+                    if (!text.trim()) return;
+                    AjaxHPAParadise({
+                        data: { name: "sp_Task_AddComment", param: ["TaskID", taskId, "Comment", text, "LoginID", LoginID] },
+                        success: (res) => {
+                            ReloadData();
+                        }
+                    });
+                }
+
+                // --- BATCH ASSIGNMENT FUNCTIONS ---
+                window.openAssignModal = function(parentId) {
+                    currentAssignParentTaskId = parentId;
+                    assignSubtasks = [];
+                    
+                    const requesterSelect = document.getElementById("assign-requester");
+                    const assigneeSelect = document.getElementById("assign-assignee");
+                    const templateSelect = document.getElementById("assign-template");
+                    
+                    requesterSelect.innerHTML = employees_Linh.map(e => `<option value="${e.EmployeeID}">${e.FullName}</option>`).join("");
+                    assigneeSelect.innerHTML = employees_Linh.map(e => `<option value="${e.EmployeeID}">${e.FullName}</option>`).join("");
+                    
+                    if (templateSelect) {
+                        templateSelect.innerHTML = `<option value="">-- Không dùng mẫu --</option>` + 
+                            templates_Linh.map(t => `<option value="${t.TemplateID}">${t.TemplateName}</option>`).join("");
+                        templateSelect.value = "";
                     }
+
+                    // Set default requester to LoginID if matches
+                    const currentEmpID = employees_Linh.find(e => parseInt(e.EmployeeID) === LoginID)?.EmployeeID;
+                    if (currentEmpID) requesterSelect.value = currentEmpID;
+                    
+                    document.getElementById("assign-date").value = new Date().toISOString().split("T")[0];
+                    document.getElementById("assign-hours").value = "1.0";
+                    document.getElementById("assign-new-task-name").value = "";
+                    
+                    renderAssignSubtasks();
+                    new bootstrap.Modal(document.getElementById("mdlAssign")).show();
+                };
+
+                window.loadSubtasksFromTemplate = function(templateId) {
+                    if (!templateId) {
+                        assignSubtasks = [];
+                        renderAssignSubtasks();
+                        return;
+                    }
+
+                    const template = templates_Linh.find(t => t.TemplateID == templateId);
+                    if (!template) return;
+
+                    const subs = typeof template.Subtasks === "string" ? JSON.parse(template.Subtasks) : (template.Subtasks || []);
+                    
+                    // Clear existing and load template tasks
+                    assignSubtasks = [];
+                    subs.forEach(s => {
+                        assignSubtasks.push({
+                            TaskName: s.TaskName,
+                            Description: s.Description,
+                            Priority: "Medium"
+                        });
+                    });
+                    
+                    renderAssignSubtasks();
+                };
+
+                function addAssignSubtaskRow() {
+                    const input = document.getElementById("assign-new-task-name");
+                    const name = input.value.trim();
+                    if (!name) return;
+                    
+                    assignSubtasks.push({ TaskName: name, Description: "" });
+                    input.value = "";
+                    renderAssignSubtasks();
+                }
+
+                function renderAssignSubtasks() {
+                    const list = document.getElementById("assign-subtasks-list");
+                    if (assignSubtasks.length === 0) {
+                        list.innerHTML = `<div class="text-center text-muted small" style="padding: 2rem;">No subtasks added yet.</div>`;
+                        return;
+                    }
+                    
+                    list.innerHTML = assignSubtasks.map((st, index) => `
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>${st.TaskName}</span>
+                            <button class="btn btn-link text-danger p-0" onclick="removeAssignSubtask(${index})">
+                                <i class="bi bi-x-circle"></i>
+                            </button>
+                        </div>
+                    `).join("");
+                }
+
+                window.removeAssignSubtask = function(index) {
+                    assignSubtasks.splice(index, 1);
+                    renderAssignSubtasks();
+                };
+
+                function submitTaskAssignment() {
+                    if (assignSubtasks.length === 0) {
+                        alert("Vui lòng thêm ít nhất một việc phụ");
+                        return;
+                    }
+
+                    const requesterID = document.getElementById("assign-requester").value;
+                    const assigneeID = document.getElementById("assign-assignee").value;
+                    const requestDate = document.getElementById("assign-date").value;
+                    const committedHours = document.getElementById("assign-hours").value;
+
+                    AjaxHPAParadise({
+                        data: {
+                            name: "sp_Task_AssignSubtasks",
+                            param: [
+                                "ParentTaskID", currentAssignParentTaskId,
+                                "RequesterEmployeeID", requesterID || null,
+                                "AssigneeEmployeeID", assigneeID || null,
+                                "RequestDate", requestDate || null,
+                                "CommittedHours", committedHours || null,
+                                "SubtasksJSON", JSON.stringify(assignSubtasks),
+                                "LoginID", LoginID,
+                                "LanguageID", LanguageID
+                            ]
+                        },
+                        success: function(res) {
+                            const json = typeof res === "string" ? JSON.parse(res) : res;
+                            const errors = json.data?.[json.data.length - 1] || [];
+                            if (errors.length > 0 && errors[0].Status === "ERROR") {
+                                if (typeof uiManager !== "undefined") uiManager.showAlert({ type: "error", message: errors[0].Message || "Giao việc thất bại" });
+                            } else {
+                                if (typeof uiManager !== "undefined") uiManager.showAlert({ type: "success", message: "Giao việc thành công" });
+                                const modal = bootstrap.Modal.getInstance(document.getElementById("mdlAssign"));
+                                if (modal) modal.hide();
+                                ReloadData();
+                            }
+                        }
+                    });
                 }
 
                 function renderSubtasksHtml(taskId) {
-                    const subtasks = tasks_Linh.filter(t => t.ParentTaskID === taskId);
-                    if (subtasks.length === 0) return '<div class="p-4 text-center text-muted small">No subtasks found.</div>';
+                    const subtasks = tasks.filter(t => t.ParentTaskID === taskId);
+                    
+                    let html = `
+                        <div class="d-flex justify-content-between align-items-center mb-2 px-3">
+                            <h6 class="mb-0">Subtasks (${subtasks.length})</h6>
+                            <button class="btn btn-sm btn-outline-primary" onclick="openAssignModal(${taskId})">
+                                <i class="bi bi-person-plus"></i> Batch Assign
+                            </button>
+                        </div>
+                    `;
 
-                    return subtasks.map(st => `
+                    if (subtasks.length === 0) {
+                        html += `<div class="text-center text-muted small">No subtasks found.</div>`;
+                        return html;
+                    }
+
+                    html += subtasks.map(st => `
                         <div class="list-group-item list-group-item-action d-flex align-items-center justify-content-between py-3">
                             <div class="d-flex align-items-center gap-3 cursor-pointer flex-grow-1" onclick="openTaskModal(${st.TaskID})">
                                 <i class="bi bi-check2-circle text-muted"></i>
-                                <span class="${st.Status === 'Done' ? 'text-decoration-line-through text-muted' : ''}">${st.TaskName}</span>
+                                <span class="${st.Status === "Done" ? "text-decoration-line-through text-muted" : ""}">${st.TaskName}</span>
                             </div>
                             <div class="d-flex align-items-center gap-3">
                                 <div class="d-flex align-items-center gap-2">
@@ -1869,19 +2054,21 @@
                                 </div>
                             </div>
                         </div>
-                    `).join('');
+                    `).join("");
+                    
+                    return html;
                 }
 
                 function renderActivityTimeline(taskId) {
                     const processes = taskProcesses_Linh.filter(p => p.TaskID === taskId).map(p => ({
-                        type: 'status',
+                        type: "status",
                         date: new Date(p.ChangedDate),
                         content: `Changed status from **${p.OldStatus}** to **${p.NewStatus}**`,
                         user: findEmployee(p.ChangedBy).FullName
                     }));
 
                     const comments = comments_Linh.filter(c => c.TaskID === taskId).map(c => ({
-                        type: 'comment',
+                        type: "comment",
                         date: new Date(c.CreatedDate),
                         content: c.Comment,
                         user: findEmployee(c.UserID).FullName,
@@ -1890,21 +2077,21 @@
 
                     const allEvents = [...processes, ...comments].sort((a, b) => b.date - a.date);
 
-                    if (allEvents.length === 0) return '<div class="text-center text-muted small mt-4">No activity yet.</div>';
+                    if (allEvents.length === 0) return `<div class="text-center text-muted small mt-4">No activity yet.</div>`;
 
-                    let html = '';
-                    let lastDateStr = '';
+                    let html = "";
+                    let lastDateStr = "";
                     const today = new Date().toLocaleDateString();
 
                     allEvents.forEach(event => {
                         const dateStr = event.date.toLocaleDateString();
                         if (dateStr !== lastDateStr) {
-                            const label = dateStr === today ? 'Today' : dateStr;
-                            html += `<div class="timeline-date-separator ${dateStr === today ? 'today' : ''}">${label}</div>`;
+                            const label = dateStr === today ? "Today" : dateStr;
+                            html += `<div class="timeline-date-separator ${dateStr === today ? "today" : ""}">${label}</div>`;
                             lastDateStr = dateStr;
                         }
 
-                        const timeStr = event.date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                        const timeStr = event.date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 
                         html += `
                             <div class="timeline-item">
@@ -1912,7 +2099,7 @@
                                     <span class="fw-bold small">${event.user}</span>
                                     <span class="text-muted" style="font-size: 0.7rem;">${timeStr}</span>
                                 </div>
-                                <div class="small ${event.isSystem ? 'text-muted italic' : 'text-dark'}">${event.content.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>')}</div>
+                                <div class="small ${event.isSystem ? "text-body italic" : "text-body"}">${event.content.replace(/\*\*(.*?)\*\*/g, "<b>$1</b>")}</div>
                             </div>
                         `;
                     });
@@ -1928,7 +2115,7 @@
                             e.stopPropagation();
                             const fieldName = this.dataset.field;
                             const taskId = parseInt(this.dataset.taskId || currentEditingTaskId);
-                            const task = tasks_Linh.find((t) => t.TaskID === taskId);
+                            const task = tasks.find((t) => t.TaskID === taskId);
 
                             if (!task) return;
 
@@ -2008,10 +2195,13 @@
                         option.href = "#";
                         option.addEventListener("click", (e) => {
                             e.preventDefault();
-                            task.Priority = priority;
-                            dropdown.remove();
-                            openTaskModal(task.TaskID);
-                            render();
+                            AjaxHPAParadise({
+                                data: { name: "sp_Task_UpdateField", param: ["TaskID", task.TaskID, "FieldName", "Priority", "Value", priority, "LoginID", LoginID] },
+                                success: (res) => {
+                                    dropdown.remove();
+                                    ReloadData();
+                                }
+                            });
                         });
                         dropdown.appendChild(option);
                     });
@@ -2046,10 +2236,13 @@
                         option.href = "#";
                         option.addEventListener("click", (e) => {
                             e.preventDefault();
-                            task.AssigneeID = emp.EmployeeID;
-                            dropdown.remove();
-                            openTaskModal(task.TaskID);
-                            render();
+                            AjaxHPAParadise({
+                                data: { name: "sp_Task_UpdateField", param: ["TaskID", task.TaskID, "FieldName", "AssigneeID", "Value", emp.EmployeeID, "LoginID", LoginID] },
+                                success: (res) => {
+                                    dropdown.remove();
+                                    ReloadData();
+                                }
+                            });
                         });
                         dropdown.appendChild(option);
                     });
@@ -2086,15 +2279,19 @@
 
                     const saveEdit = () => {
                         const newValue = editor.value.trim();
-                        task[fieldName] = newValue || (isDescription ? "" : task[fieldName]);
-                        element.classList.remove("editing");
-
-                        if (fieldName === "TaskName") {
-                            modalTaskNameEl.textContent = task.TaskName;
+                        if (newValue === currentValue) {
+                            element.classList.remove("editing");
+                            openTaskModal(task.TaskID);
+                            return;
                         }
 
-                        openTaskModal(task.TaskID);
-                        render();
+                        AjaxHPAParadise({
+                            data: { name: "sp_Task_UpdateField", param: ["TaskID", task.TaskID, "FieldName", fieldName, "Value", newValue, "LoginID", LoginID] },
+                            success: (res) => {
+                                element.classList.remove("editing");
+                                ReloadData();
+                            }
+                        });
                     };
 
                     editor.addEventListener("blur", saveEdit);
@@ -2110,117 +2307,68 @@
                     });
                 }
 
-                function openCreateTaskModal({ parentTaskId = null, editTaskId = null, defaultStatus = "To Do" } = {}) {
-                    const context = navigationStack[navigationStack.length - 1];
-                    if (!context) {
-                        alert("Please select a project first!");
-                        return;
-                    }
-
-                    createTaskForm.reset();
-                    createTaskForm.dataset.parentTaskId = parentTaskId || "";
-                    createTaskForm.dataset.editTaskId = editTaskId || "";
-                    createTaskForm.dataset.defaultStatus = defaultStatus;
-
-                    const assigneeSelect = document.getElementById("create-task-assignee");
-                    assigneeSelect.innerHTML = `<option value="">Select Assignee</option>`;
-                    employees_Linh.forEach((emp) => {
-                        const option = document.createElement("option");
-                        option.value = emp.EmployeeID;
-                        option.textContent = emp.FullName;
-                        assigneeSelect.appendChild(option);
-                    });
-
-                    if (editTaskId) {
-                        createModalTitleEl.textContent = "Edit Task";
-                        const task = tasks_Linh.find((t) => t.TaskID === editTaskId);
-                        document.getElementById("create-task-name").value = task.TaskName;
-                        document.getElementById("create-task-desc").value = task.Description;
-                        assigneeSelect.value = task.AssigneeID;
-                        document.getElementById("create-task-priority").value = task.Priority;
-                    } else {
-                        createModalTitleEl.textContent = parentTaskId ? "Create New Subtask" : "Create New Task";
-                    }
-
-                    createTaskModal.show();
-                }
-
-                function openAddProjectModal() {
-                    addProjectForm.reset();
-                    addProjectModal.show();
-                }
-
                 // --- EVENT HANDLERS ---
                 function handleCreateOrUpdateTask(e) {
                     e.preventDefault();
                     const context = navigationStack[0];
-                    const editTaskId = createTaskForm.dataset.editTaskId ? parseInt(createTaskForm.dataset.editTaskId) : null;
+                    const editTaskId = createTaskForm.dataset.editTaskId ? parseInt(createTaskForm.dataset.editTaskId) : 0;
+                    const parentTaskId = createTaskForm.dataset.parentTaskId ? parseInt(createTaskForm.dataset.parentTaskId) : null;
+                    const defaultStatus = createTaskForm.dataset.defaultStatus || "To Do";
 
-                    if (editTaskId) {
-                        const task = tasks_Linh.find((t) => t.TaskID === editTaskId);
-                        task.TaskName = document.getElementById("create-task-name").value;
-                        task.Description = document.getElementById("create-task-desc").value;
-                        task.AssigneeID = parseInt(document.getElementById("create-task-assignee").value);
-                        task.Priority = document.getElementById("create-task-priority").value;
-                    } else {
-                        const parentTaskId = createTaskForm.dataset.parentTaskId ? parseInt(createTaskForm.dataset.parentTaskId) : null;
-                        const defaultStatus = createTaskForm.dataset.defaultStatus || "To Do";
-                        const newTask = {
-                            TaskID: getNextTaskId(),
-                            ProjectID: context.id,
-                            TaskName: document.getElementById("create-task-name").value,
-                            Description: document.getElementById("create-task-desc").value,
-                            AssigneeID: parseInt(document.getElementById("create-task-assignee").value),
-                            CreatedBy: 1,
-                            ParentTaskID: parentTaskId,
-                            StartDate: new Date().toISOString().split("T")[0],
-                            DueDate: null,
-                            Status: defaultStatus,
-                            Priority: document.getElementById("create-task-priority").value,
-                        };
-                        tasks_Linh.push(newTask);
-                    }
-                    createTaskModal.hide();
-                    render();
-                    if (editTaskId) openTaskModal(editTaskId);
+                    AjaxHPAParadise({
+                        data: {
+                            name: "sp_Task_Save",
+                            param: [
+                                "TaskID", editTaskId,
+                                "ProjectID", context.id,
+                                "TaskName", document.getElementById("create-task-name").value,
+                                "Description", document.getElementById("create-task-desc").value,
+                                "AssigneeID", document.getElementById("create-task-assignee").value,
+                                "Priority", document.getElementById("create-task-priority").value,
+                                "Status", defaultStatus,
+                                "ParentTaskID", parentTaskId,
+                                "LoginID", LoginID
+                            ]
+                        },
+                        success: (res) => {
+                            closeModal(''create-task-modal'');
+                            if (typeof uiManager !== "undefined") uiManager.showAlert({ type: "success", message: "Lưu công việc thành công" });
+                            ReloadData();
+                        }
+                    });
                 }
 
                 function handleDeleteTask(taskId) {
                     if (!confirm("Are you sure you want to delete this task and all its subtasks? This action cannot be undone.")) return;
-
-                    let tasksToDelete = [taskId];
-                    let i = 0;
-                    while (i < tasksToDelete.length) {
-                        const currentTaskId = tasksToDelete[i];
-                        const subtasksToDelete = tasks_Linh.filter((t) => t.ParentTaskID === currentTaskId).map((t) => t.TaskID);
-                        tasksToDelete.push(...subtasksToDelete);
-                        i++;
-                    }
-
-                    tasksToDelete.forEach((id) => {
-                        const index = tasks_Linh.findIndex((t) => t.TaskID === id);
-                        if (index > -1) tasks_Linh.splice(index, 1);
+                    AjaxHPAParadise({
+                        data: { name: "sp_Task_Delete", param: ["TaskID", taskId, "LoginID", LoginID] },
+                        success: (res) => {
+                            closeModal(''task-modal'');
+                            if (typeof uiManager !== "undefined") uiManager.showAlert({ type: "success", message: "Xóa công việc thành công" });
+                            ReloadData();
+                        }
                     });
-
-                    taskModal.hide();
-                    render();
                 }
 
                 function handleCreateProject(e) {
                     e.preventDefault();
                     const newProjectName = document.getElementById("add-project-name").value;
                     if (!newProjectName) return;
-                    const newProject = {
-                        ProjectID: getNextProjectId(),
-                        ProjectName: newProjectName,
-                        OwnerID: 1,
-                        Status: "Planning",
-                        Priority: "Medium",
-                    };
-                    projects_Linh.push(newProject);
-                    addProjectModal.hide();
-                    navigationStack = [{ type: "project", id: newProject.ProjectID }];
-                    render();
+
+                    AjaxHPAParadise({
+                        data: {
+                            name: "sp_Task_Project_Save",
+                            param: [
+                                "ProjectName", newProjectName,
+                                "LoginID", LoginID
+                            ]
+                        },
+                        success: (res) => {
+                            closeModal(''add-project-modal'');
+                            if (typeof uiManager !== "undefined") uiManager.showAlert({ type: "success", message: "Thêm dự án thành công" });
+                            ReloadData();
+                        }
+                    });
                 }
 
                 function addDragAndDropListeners() {
@@ -2250,7 +2398,7 @@
                             e.preventDefault();
                             column.classList.remove("drag-over");
                             const newStatus = column.dataset.status;
-                            const task = tasks_Linh.find((t) => t.TaskID === draggedTaskId);
+                            const task = tasks.find((t) => t.TaskID === draggedTaskId);
                             if (task && task.Status !== newStatus) {
                                 const oldStatus = task.Status;
                                 task.Status = newStatus;
@@ -2268,49 +2416,8 @@
                     });
                 }
 
-                // --- TEMPLATE VIEWS ---
-                function renderTemplatesView() {
-                    const templates = templates_Linh;
-                    viewContainerEl.innerHTML = `
-                        <div class="d-flex justify-content-between align-items-center mb-4">
-                            <h4 class="mb-0">Task Template Library</h4>
-                            <div class="d-flex gap-2">
-                                <button class="btn btn-primary btn-sm" onclick="alert('Create Template function not available in local mock version.')">
-                                    <i class="bi bi-plus-lg"></i> Create Template
-                                </button>
-                            </div>
-                        </div>
-                        <div class="row row-cols-1 row-cols-md-3 g-4" id="template-grid"></div>
-                    `;
-
-                    const grid = document.getElementById("template-grid");
-                    templates.forEach(t => {
-                        const col = document.createElement("div");
-                        col.className = "col";
-                        const subtasksCount = JSON.parse(t.Subtasks).length;
-                        col.innerHTML = `
-                            <div class="card h-100 shadow-sm border-0 bg-light-subtle hover-transform">
-                                <div class="card-body">
-                                    <div class="d-flex justify-content-between align-items-start mb-2">
-                                        <span class="badge bg-primary-subtle text-primary">${t.Category || "General"}</span>
-                                    </div>
-                                    <h5 class="card-title fw-bold">${t.TemplateName}</h5>
-                                    <p class="card-text text-muted small mb-4">${t.Description || "No description provided."}</p>
-                                    <div class="d-flex justify-content-between align-items-center mt-auto pt-3 border-top">
-                                        <span class="text-muted small"><i class="bi bi-list-task me-1"></i> ${subtasksCount} steps</span>
-                                        <button class="btn btn-sm btn-success rounded-pill px-3" onclick="navigationStack.push({type:'template', id:${t.TemplateID}}); render();">
-                                            View Content
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        `;
-                        grid.appendChild(col);
-                    });
-                }
-
                 function renderTemplateDetail(template) {
-                    const subtasks = JSON.parse(template.Subtasks);
+                    const subtasks = typeof template.Subtasks === "string" ? JSON.parse(template.Subtasks) : (template.Subtasks || []);
                     viewContainerEl.innerHTML = `
                         <div class="row">
                             <div class="col-md-4">
@@ -2333,6 +2440,11 @@
                                             <label class="small text-muted d-block">Description</label>
                                             <div class="text-muted small">${template.Description || "N/A"}</div>
                                         </div>
+                                        <div class="mt-4 pt-3 border-top">
+                                            <button class="btn btn-primary w-100" onclick="openCreateTemplateModal(${template.TemplateID})">
+                                                <i class="bi bi-pencil"></i> Edit Template
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -2343,7 +2455,7 @@
                                     </div>
                                     <div class="card-body p-0">
                                         <div class="list-group list-group-flush">
-                                            ${subtasks.sort((a, b) => a.Order - b.Order).map((s, idx) => `
+                                            ${subtasks.sort((a,b) => a.Order - b.Order).map((s, idx) => `
                                                 <div class="list-group-item py-3">
                                                     <div class="d-flex gap-3">
                                                         <div class="flex-shrink-0">
@@ -2354,9 +2466,13 @@
                                                         <div class="flex-grow-1">
                                                             <div class="d-flex justify-content-between">
                                                                 <h6 class="mb-1 fw-bold">${s.TaskName}</h6>
-                                                                <span class="badge bg-light text-dark border">${s.EstHours}h</span>
+                                                                <span class="badge border">${s.EstHours}h</span>
                                                             </div>
-                                                            <p class="text-muted small mb-0">${s.Description || "No description"}</p>
+                                                            <div class="text-muted small mb-0">${s.Description || "No description"}</div>
+                                                            <div class="mt-1">
+                                                                ${s.IsRequired ? ''<span class="badge bg-danger-subtle text-danger" style="font-size:0.65rem;">Required</span>'' : ''''}
+                                                                <span class="text-muted small" style="font-size:0.65rem;">Default Role: ${s.DefaultRole || "None"}</span>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -2382,148 +2498,158 @@
                     renderProjectsChart(projects_Linh, chartWrapper);
                 }
 
-                // --- BATCH ASSIGNMENT ---
-                let assignSubtasks = [];
-                let currentAssignParentTaskId = null;
-
-                window.openAssignModal = function (parentId) {
-                    currentAssignParentTaskId = parentId;
-                    assignSubtasks = [];
-
-                    const requesterSelect = document.getElementById("assign-requester");
-                    const assigneeSelect = document.getElementById("assign-assignee");
-                    const templateSelect = document.getElementById("assign-template");
-
-                    requesterSelect.innerHTML = employees_Linh.map(e => `<option value="${e.EmployeeID}">${e.FullName}</option>`).join("");
-                    assigneeSelect.innerHTML = employees_Linh.map(e => `<option value="${e.EmployeeID}">${e.FullName}</option>`).join("");
-                    templateSelect.innerHTML = `<option value="">-- No Template --</option>` +
-                        templates_Linh.map(t => `<option value="${t.TemplateID}">${t.TemplateName}</option>`).join("");
-
-                    requesterSelect.value = "1"; // Default to Alice
-                    document.getElementById("assign-date").value = new Date().toISOString().split("T")[0];
-                    document.getElementById("assign-hours").value = "1.0";
-                    document.getElementById("assign-new-task-name").value = "";
-
-                    renderAssignSubtasks();
-                    new bootstrap.Modal(document.getElementById("mdlAssign")).show();
+                window.openCreateTemplateModal = function(templateId = null) {
+                    alert("Chức năng tạo template đang được hoàn thiện. Vui lòng sử dụng template có sẵn.");
                 };
-
-                window.loadSubtasksFromTemplate = function (templateId) {
-                    if (!templateId) {
-                        assignSubtasks = [];
-                        renderAssignSubtasks();
-                        return;
-                    }
-
-                    const template = templates_Linh.find(t => t.TemplateID == templateId);
-                    if (!template) return;
-
-                    // Clear previous subtasks to avoid duplicates/confusion
-                    assignSubtasks = [];
-
-                    const subs = typeof template.Subtasks === "string" ? JSON.parse(template.Subtasks) : (template.Subtasks || []);
-                    subs.forEach(s => {
-                        assignSubtasks.push({
-                            TaskName: s.TaskName,
-                            Description: s.Description,
-                            Priority: "Medium"
-                        });
-                    });
-                    renderAssignSubtasks();
-                };
-
-                window.addAssignSubtaskRow = function () {
-                    const input = document.getElementById("assign-new-task-name");
-                    const name = input.value.trim();
-                    if (!name) return;
-
-                    assignSubtasks.push({ TaskName: name, Description: "" });
-                    input.value = "";
-                    renderAssignSubtasks();
-                }
-
-                window.removeAssignSubtask = function (index) {
-                    assignSubtasks.splice(index, 1);
-                    renderAssignSubtasks();
-                };
-
-                window.renderAssignSubtasks = function () {
-                    const list = document.getElementById("assign-subtasks-list");
-                    if (assignSubtasks.length === 0) {
-                        list.innerHTML = `<div class="p-3 text-center text-muted small">No subtasks added yet.</div>`;
-                        return;
-                    }
-
-                    list.innerHTML = assignSubtasks.map((st, index) => `
-                        <div class="list-group-item d-flex justify-content-between align-items-center">
-                            <span>${st.TaskName}</span>
-                            <button class="btn btn-link text-danger p-0" onclick="removeAssignSubtask(${index})">
-                                <i class="bi bi-x-circle"></i>
-                            </button>
-                        </div>
-                    `).join("");
-                }
-
-                window.submitTaskAssignment = function () {
-                    if (assignSubtasks.length === 0) {
-                        alert("Please add at least one subtask.");
-                        return;
-                    }
-
-                    const parentTask = tasks_Linh.find(t => t.TaskID === currentAssignParentTaskId);
-                    const projectId = parentTask ? parentTask.ProjectID : 1;
-                    const assigneeID = parseInt(document.getElementById("assign-assignee").value) || 2;
-                    const dueDate = document.getElementById("assign-date").value;
-
-                    assignSubtasks.forEach(st => {
-                        tasks_Linh.push({
-                            TaskID: getNextTaskId(),
-                            ProjectID: projectId,
-                            TaskName: st.TaskName,
-                            Description: st.Description,
-                            AssigneeID: assigneeID,
-                            CreatedBy: 1,
-                            ParentTaskID: currentAssignParentTaskId,
-                            StartDate: new Date().toISOString().split("T")[0],
-                            DueDate: dueDate,
-                            Status: "To Do",
-                            Priority: "Medium"
-                        });
-                    });
-
-                    bootstrap.Modal.getInstance(document.getElementById("mdlAssign")).hide();
-
-                    // Refresh parent modal
-                    openTaskModal(currentAssignParentTaskId);
-                    render();
-                }
 
                 // --- INITIALIZATION ---
-                taskModal = new bootstrap.Modal(taskModalEl);
-                createTaskModal = new bootstrap.Modal(createTaskModalEl);
-                addProjectModal = new bootstrap.Modal(addProjectModalEl);
-
                 addProjectForm.addEventListener("submit", handleCreateProject);
                 createTaskForm.addEventListener("submit", handleCreateOrUpdateTask);
-                deleteTaskBtn.addEventListener("click", (e) => handleDeleteTask(parseInt(e.currentTarget.dataset.taskId)));
+                
+                // Note: deleteTaskBtn listener is attached dynamically in openTaskModal because the button is re-rendered.
+
+                document.getElementById("btn-add-assign-subtask").addEventListener("click", addAssignSubtaskRow);
+                document.getElementById("btn-submit-assignment").addEventListener("click", submitTaskAssignment);
 
                 modeSwitcherEl.addEventListener("click", (e) => {
                     const btn = e.target.closest(".nav-link");
                     if (btn) {
                         currentAppMode = btn.dataset.mode;
-                        navigationStack = [];
+                        navigationStack = []; // Reset navigation when changing mode
                         render();
                     }
                 });
+            
+                function loadDataSourceCommon(columnName, dataSourceSP, onSuccessCallback) {
+                    if (!columnName || !dataSourceSP || dataSourceSP.trim() === "") {
+                        console.warn("[loadDataSourceCommon] Missing columnName or dataSourceSP");
+                        return;
+                    }
 
-                // Start with projects view
-                render();
+                    const dataSourceKey = "DataSource_" + columnName;
+                    // Sử dụng format: columnNameDataSourceLoaded để tương thích với code hiện tại
+                    const loadedKey = columnName + "DataSourceLoaded";
 
-                // If no projects exist, open add project modal
-                if (projects_Linh.length === 0) openAddProjectModal();
+                    // Kiểm tra nếu đã load rồi thì không load lại
+                    if (window[loadedKey] === true) {
+                        if (typeof onSuccessCallback === "function") {
+                            onSuccessCallback(window[dataSourceKey] || []);
+                        }
+                        return;
+                    }
+
+                    // Kiểm tra nếu đang load thì đợi
+                    if (window[loadedKey] === "loading") {
+                        // Đợi một chút rồi thử lại
+                        setTimeout(function() {
+                            loadDataSourceCommon(columnName, dataSourceSP, onSuccessCallback);
+                        }, 100);
+
+                        return;
+                    }
+
+
+                    // Đánh dấu đang load để tránh load trùng lặp
+                    window[loadedKey] = "loading";
+
+                    return new Promise((resolve, reject) => {
+                        AjaxHPAParadise({
+                            data: {
+                                name: dataSourceSP,
+                                param: ["LoginID", LoginID, "LanguageID", LanguageID]
+                            },
+                            success: function (res) {
+                                const json = typeof res === "string" ? JSON.parse(res) : res;
+
+                                window[dataSourceKey] = (json.data && json.data[0]) || [];
+                                window[loadedKey] = true;
+
+                                // Ưu tiên lấy từ json response (nếu API trả về explicit)
+                                // Sau đó mới fallback query dataSchema
+                                let idField = json.valueExpr;
+                                let nameField = json.displayExpr;
+
+                                if (!idField || !nameField) {
+                                    if (json.dataSchema && json.dataSchema[0]) {
+                                        const schema = json.dataSchema[0];
+                                        if (!idField) idField = schema[0]?.name;
+                                        if (!nameField) nameField = schema[1]?.name;
+                                    }
+                                }
+
+                                window["DataSourceIDField_" + columnName]   = idField || "ID";
+                                window["DataSourceNameField_" + columnName] = nameField || "Name";
+
+                                const data = window[dataSourceKey];
+
+                                // callback trước
+                                if (typeof onSuccessCallback === "function") {
+                                    onSuccessCallback(data, json);
+                                }
+
+                                // resolve sau
+                                resolve(data);
+                            },
+                            error: function (err) {
+                                console.error("[loadDataSourceCommon] Failed to load datasource for", columnName, ":", err);
+                                window[loadedKey] = false;
+
+                                if (typeof onSuccessCallback === "function") {
+                                    onSuccessCallback([]);
+                                }
+
+                                reject(err);
+                            }
+                        });
+                    });
+                }
+
+                // Start with data fetching
+                fetchData((res) => {
+                    // If no projects exist, open add project modal
+                    handleResultReload(res);
+                    if (projects_Linh.length === 0) openAddProjectModal();
+                    else render();
+                });
+
+                '
+                +(select loadUI from tblCommonControlType_Signed where UID = 'P794C2F8348554BF6B8EB236EC6F3A215')
+                +(select loadUI from tblCommonControlType_Signed where UID = 'PCDF4A5D2F59249DD9446C029B7849322')
+                +(select loadUI from tblCommonControlType_Signed where UID = 'P40385F4F923B4BB4A6D20DC9AE6850B6')
+                +(select loadUI from tblCommonControlType_Signed where UID = 'P5CE9880C159C4472A986171C034CF295')
+                +(select loadUI from tblCommonControlType_Signed where UID = 'P8A441B97BF684EBBA615B484D92A4850')
+                +(select loadUI from tblCommonControlType_Signed where UID = 'P8D081E689C8B4072AFE480737FBCF0E8')
+                +(select loadUI from tblCommonControlType_Signed where UID = 'P5AA042EE89064CD3A87E1731D091AEB7')
+                +(select loadUI from tblCommonControlType_Signed where UID = 'PE163B877AF934B69A8B09C828BD02C86') +N'
+                window.currentRecordID_ProjectID = null; window.currentRecordID_TaskID = null;
+            
+                function handleResultReload(res) {
+                    const json = typeof res === "string" ? JSON.parse(res) : res;
+                    const results = Array.isArray(json?.data?.[0])
+                        ? json.data[0]
+                        : (json?.data?.[0] ? [json.data[0]] : []);
+
+                    const obj = results.length === 1 ? results[0] : (results[0] || null);
+                    console.log(obj);
+
+                    if (obj) { window.currentRecordID_ProjectID = (obj.ProjectID !== undefined && obj.ProjectID !== null) ? obj.ProjectID : window.currentRecordID_ProjectID; } if (obj) { window.currentRecordID_TaskID = (obj.TaskID !== undefined && obj.TaskID !== null) ? obj.TaskID : window.currentRecordID_TaskID; }
+                    DataSource = results;
+                    '
+                    +(select loadData from tblCommonControlType_Signed where UID = 'P794C2F8348554BF6B8EB236EC6F3A215')
+                    +(select loadData from tblCommonControlType_Signed where UID = 'PCDF4A5D2F59249DD9446C029B7849322')
+                    +(select loadData from tblCommonControlType_Signed where UID = 'P40385F4F923B4BB4A6D20DC9AE6850B6')
+                    +(select loadData from tblCommonControlType_Signed where UID = 'P5CE9880C159C4472A986171C034CF295')
+                    +(select loadData from tblCommonControlType_Signed where UID = 'P8A441B97BF684EBBA615B484D92A4850')
+                    +(select loadData from tblCommonControlType_Signed where UID = 'P8D081E689C8B4072AFE480737FBCF0E8')
+                    +(select loadData from tblCommonControlType_Signed where UID = 'P5AA042EE89064CD3A87E1731D091AEB7')
+                    +(select loadData from tblCommonControlType_Signed where UID = 'PE163B877AF934B69A8B09C828BD02C86') +N'
+                }
             })();
         </script>
     </div>
-</body>
-
-</html>
+';
+SELECT @html AS html;
+--EXEC sp_GenerateHTMLScript_new 'sp_Task_TaskList_html'
+END
+GO
+EXEC sp_GenerateHTMLScript_new 'sp_Task_TaskList_html'

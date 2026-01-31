@@ -180,6 +180,18 @@ BEGIN
     DECLARE @TagsJSON NVARCHAR(MAX) = (SELECT TagID, TagName, Color FROM tblTask_Tags FOR JSON PATH);
     DECLARE @ProcessesJSON NVARCHAR(MAX) = (SELECT ProcessID, TaskID, OldStatus, NewStatus, ChangedBy, ChangedDate FROM tblTask_TaskProcesses FOR JSON PATH);
     DECLARE @CommentsJSON NVARCHAR(MAX) = (SELECT CommentID, TaskID, EmployeeID AS UserID, Comment, dDate AS CreatedDate FROM tblTask_Comments FOR JSON PATH);
+    
+    -- New: Templates
+    DECLARE @TemplatesJSON NVARCHAR(MAX) = (
+        SELECT 
+            t.TemplateID, t.TemplateName, t.Category, t.Description, t.EstDays,
+            CAST((SELECT st.SubtaskID, st.TaskName, st.Description, st.EstHours, st.[Order], st.IsRequired, st.DefaultRole 
+                  FROM tblTask_TemplateSubtasks st 
+                  WHERE st.TemplateID = t.TemplateID 
+                  FOR JSON PATH) AS NVARCHAR(MAX)) AS Subtasks
+        FROM tblTask_Templates t
+        FOR JSON PATH
+    );
 
     SELECT 
         ISNULL(@ProjectsJSON, '[]') AS Projects,
@@ -188,7 +200,8 @@ BEGIN
         ISNULL(@PositionsJSON, '[]') AS Positions,
         ISNULL(@TagsJSON, '[]') AS Tags,
         ISNULL(@ProcessesJSON, '[]') AS Processes,
-        ISNULL(@CommentsJSON, '[]') AS Comments;
+        ISNULL(@CommentsJSON, '[]') AS Comments,
+        ISNULL(@TemplatesJSON, '[]') AS Templates;
 END
 GO
 
@@ -377,5 +390,126 @@ BEGIN
     VALUES (@TaskID, @LoginID, @Comment, GETDATE());
     
     SELECT 'SUCCESS' AS Status, N'Thêm comment thành công' AS Message, SCOPE_IDENTITY() AS NewCommentID;
+END
+GO
+
+-- sp_Task_Template_Save
+IF OBJECT_ID('[dbo].[sp_Task_Template_Save]') IS NULL
+    EXEC ('CREATE PROCEDURE [dbo].[sp_Task_Template_Save] AS SELECT 1')
+GO
+
+ALTER PROCEDURE [dbo].[sp_Task_Template_Save]
+    @TemplateID INT = NULL,
+    @TemplateName NVARCHAR(255),
+    @Category NVARCHAR(100) = NULL,
+    @Description NVARCHAR(MAX) = NULL,
+    @EstDays INT = 0,
+    @SubtasksJSON NVARCHAR(MAX), -- JSON array of subtasks
+    @LoginID INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    BEGIN TRY
+        BEGIN TRANSACTION;
+
+        IF @TemplateID IS NULL OR @TemplateID = 0
+        BEGIN
+            INSERT INTO tblTask_Templates (TemplateName, Category, Description, EstDays, dBy, dDate, ModifiedDate)
+            VALUES (@TemplateName, @Category, @Description, @EstDays, CAST(@LoginID AS NVARCHAR(20)), GETDATE(), GETDATE());
+            SET @TemplateID = SCOPE_IDENTITY();
+        END
+        ELSE
+        BEGIN
+            UPDATE tblTask_Templates SET 
+                TemplateName = @TemplateName,
+                Category = @Category,
+                Description = @Description,
+                EstDays = @EstDays,
+                ModifiedDate = GETDATE()
+            WHERE TemplateID = @TemplateID;
+            
+            -- Delete old subtasks for re-insertion
+            DELETE FROM tblTask_TemplateSubtasks WHERE TemplateID = @TemplateID;
+        END
+
+        -- Insert subtasks
+        INSERT INTO tblTask_TemplateSubtasks (TemplateID, TaskName, Description, EstHours, [Order], IsRequired, DefaultRole)
+        SELECT 
+            @TemplateID,
+            JSON_VALUE(val.value, '$.TaskName'),
+            JSON_VALUE(val.value, '$.Description'),
+            ISNULL(CAST(JSON_VALUE(val.value, '$.EstHours') AS DECIMAL(18,2)), 0),
+            ISNULL(CAST(JSON_VALUE(val.value, '$.Order') AS INT), 0),
+            ISNULL(CAST(JSON_VALUE(val.value, '$.IsRequired') AS BIT), 1),
+            JSON_VALUE(val.value, '$.DefaultRole')
+        FROM OPENJSON(@SubtasksJSON) AS val;
+
+        COMMIT TRANSACTION;
+        SELECT 'SUCCESS' AS Status, N'Lưu template thành công' AS Message, @TemplateID AS NewTemplateID;
+    END TRY
+    BEGIN CATCH
+        IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION;
+        SELECT 'ERROR' AS Status, ERROR_MESSAGE() AS Message;
+    END CATCH
+END
+GO
+
+-- sp_Task_AssignFromTemplate
+IF OBJECT_ID('[dbo].[sp_Task_AssignFromTemplate]') IS NULL
+    EXEC ('CREATE PROCEDURE [dbo].[sp_Task_AssignFromTemplate] AS SELECT 1')
+GO
+
+ALTER PROCEDURE [dbo].[sp_Task_AssignFromTemplate]
+    @ProjectID INT,
+    @TemplateID INT,
+    @AssigneeID NVARCHAR(20) = NULL,
+    @StartDate DATE = NULL,
+    @Priority NVARCHAR(20) = 'Medium',
+    @LoginID INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    BEGIN TRY
+        BEGIN TRANSACTION;
+
+        DECLARE @TemplateName NVARCHAR(255), @TemplateDesc NVARCHAR(MAX);
+        SELECT @TemplateName = TemplateName, @TemplateDesc = Description FROM tblTask_Templates WHERE TemplateID = @TemplateID;
+
+        -- 1. Create Parent Task
+        DECLARE @ParentTaskID INT;
+        INSERT INTO tblTask_Tasks (ProjectID, TaskName, Description, AssigneeID, Status, Priority, StartDate, dBy, dDate, ModifiedDate)
+        VALUES (@ProjectID, @TemplateName, @TemplateDesc, @AssigneeID, 'To Do', @Priority, @StartDate, CAST(@LoginID AS NVARCHAR(20)), GETDATE(), GETDATE());
+        SET @ParentTaskID = SCOPE_IDENTITY();
+
+        -- 2. Clone Subtasks
+        INSERT INTO tblTask_Tasks (
+            ProjectID, TaskName, Description, AssigneeID, 
+            ParentTaskID, Status, Priority, StartDate, DueDate, 
+            dBy, dDate, ModifiedDate
+        )
+        SELECT 
+            @ProjectID,
+            st.TaskName,
+            st.Description,
+            NULL, -- Subtasks initially unassigned or can be assigned by Role later
+            @ParentTaskID,
+            'To Do',
+            @Priority,
+            @StartDate,
+            DATEADD(HOUR, st.EstHours, CAST(@StartDate AS DATETIME)), -- Basic date calc
+            CAST(@LoginID AS NVARCHAR(20)),
+            GETDATE(),
+            GETDATE()
+        FROM tblTask_TemplateSubtasks st
+        WHERE st.TemplateID = @TemplateID
+        ORDER BY st.[Order];
+
+        COMMIT TRANSACTION;
+        SELECT 'SUCCESS' AS Status, N'Giao việc từ template thành công' AS Message, @ParentTaskID AS NewTaskID;
+    END TRY
+    BEGIN CATCH
+        IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION;
+        SELECT 'ERROR' AS Status, ERROR_MESSAGE() AS Message;
+    END CATCH
 END
 GO

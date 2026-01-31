@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Project Task Board - ParadiseHR</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#2bee7c",
+                        "background-light": "#f6f8f7",
+                        "background-dark": "#102218",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark min-h-screen">
+<div class="flex h-screen overflow-hidden">
+<!-- Side Navigation -->
+<aside class="w-64 border-r border-[#dbe6e0] bg-white dark:bg-[#111814] dark:border-[#223329] flex flex-col justify-between p-4 shrink-0">
+<div class="flex flex-col gap-8">
+<div class="flex gap-3 items-center px-2">
+<div class="size-10 rounded-full bg-primary flex items-center justify-center text-[#111814]">
+<span class="material-symbols-outlined">package_2</span>
+</div>
+<div class="flex flex-col">
+<h1 class="text-[#111814] dark:text-white text-base font-bold leading-none">ParadiseHR</h1>
+<p class="text-[#618972] text-xs font-medium">HR Ecosystem</p>
+</div>
+</div>
+<nav class="flex flex-col gap-2">
+<a class="flex items-center gap-3 px-3 py-2 text-[#618972] hover:bg-background-light dark:hover:bg-[#1c2e24] rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-sm font-medium">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 bg-primary/10 text-[#111814] dark:text-white rounded-lg" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">assignment</span>
+<span class="text-sm font-bold">Projects</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-[#618972] hover:bg-background-light dark:hover:bg-[#1c2e24] rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined">group</span>
+<span class="text-sm font-medium">Employees</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-[#618972] hover:bg-background-light dark:hover:bg-[#1c2e24] rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined">payments</span>
+<span class="text-sm font-medium">Payroll</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-[#618972] hover:bg-background-light dark:hover:bg-[#1c2e24] rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-sm font-medium">Settings</span>
+</a>
+</nav>
+</div>
+<button class="flex items-center justify-center gap-2 w-full py-2.5 bg-primary text-[#111814] rounded-lg text-sm font-bold tracking-tight hover:opacity-90 transition-opacity">
+<span class="material-symbols-outlined text-[18px]">help</span>
+                Help Center
+            </button>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 flex flex-col overflow-hidden">
+<!-- Top Header -->
+<header class="h-16 border-b border-[#dbe6e0] dark:border-[#223329] bg-white dark:bg-[#111814] px-8 flex items-center justify-between shrink-0">
+<div class="flex items-center gap-4 flex-1">
+<div class="relative max-w-md w-full">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#618972] text-[20px]">search</span>
+<input class="w-full pl-10 pr-4 py-2 bg-[#f0f4f2] dark:bg-[#1c2e24] border-none rounded-lg text-sm focus:ring-2 focus:ring-primary/50 dark:text-white" placeholder="Search tasks or files..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-4 mr-4 border-r border-[#dbe6e0] dark:border-[#223329] pr-6">
+<button class="text-[#618972] hover:text-[#111814] dark:hover:text-white transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="text-[#618972] hover:text-[#111814] dark:hover:text-white transition-colors">
+<span class="material-symbols-outlined">calendar_today</span>
+</button>
+</div>
+<div class="flex items-center gap-3">
+<div class="text-right hidden sm:block">
+<p class="text-sm font-bold text-[#111814] dark:text-white leading-none">Alex Rivera</p>
+<p class="text-xs font-medium text-[#618972]">Project Lead</p>
+</div>
+<div class="size-10 rounded-full bg-cover bg-center border-2 border-primary/20" data-alt="Profile photo of Alex Rivera" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCjkJn3K5RidQMHnfWiywfxG5t6ZOZ16Zc-Vo2B1yDM9nG-hH9qF1F0A-oWf4zrdwZnSQuRBRB9kTM64H2ON9cHgp_v8xUIznVii3hiO062VhgTLt4xr6VUpJBb7Ry5zpBb5YMuuvjnYdL0Gb5P8oJcQmjRk1HLTiHEKGY7bWrfXAUM14k9-RLiYOb1mOGc-mXgEkomAWxbhm3PMCWU1vIgMqs-zoX2aVPZ-GuiDVWQXTt97cs3y49KJcb4eLh9syVFx-z-V267eUY')"></div>
+</div>
+</div>
+</header>
+<!-- Scrollable Content -->
+<div class="flex-1 overflow-y-auto p-8 flex flex-col gap-6">
+<!-- Breadcrumbs & Heading -->
+<div class="flex flex-col gap-4">
+<nav class="flex items-center gap-2 text-sm">
+<a class="text-[#618972] hover:text-primary transition-colors" href="#">ParadiseHR</a>
+<span class="text-[#618972] select-none">/</span>
+<a class="text-[#618972] hover:text-primary transition-colors" href="#">Projects</a>
+<span class="text-[#618972] select-none">/</span>
+<span class="text-[#111814] dark:text-white font-semibold tracking-tight">Q4 System Upgrade</span>
+</nav>
+<div class="flex justify-between items-end">
+<div class="flex flex-col gap-1">
+<h2 class="text-3xl font-black text-[#111814] dark:text-white tracking-tight">Project: Q4 System Upgrade</h2>
+<p class="text-[#618972] text-sm">Reviewing 12 active tasks and 4 milestones for this quarter's release.</p>
+</div>
+<button class="bg-primary text-[#111814] px-6 py-2.5 rounded-lg font-bold text-sm shadow-sm hover:shadow-md transition-all flex items-center gap-2">
+<span class="material-symbols-outlined text-[20px]">add</span>
+                            Add Task
+                        </button>
+</div>
+</div>
+<!-- Tabs -->
+<div class="border-b border-[#dbe6e0] dark:border-[#223329] flex gap-8">
+<button class="px-1 py-4 text-sm font-bold text-[#111814] dark:text-white border-b-2 border-primary">All Tasks</button>
+<button class="px-1 py-4 text-sm font-medium text-[#618972] border-b-2 border-transparent hover:text-[#111814] dark:hover:text-white transition-colors">My Tasks</button>
+<button class="px-1 py-4 text-sm font-medium text-[#618972] border-b-2 border-transparent hover:text-[#111814] dark:hover:text-white transition-colors">Completed</button>
+<button class="px-1 py-4 text-sm font-medium text-[#618972] border-b-2 border-transparent hover:text-[#111814] dark:hover:text-white transition-colors">Milestones</button>
+</div>
+<!-- Task Board Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+<!-- Task Card 1 (Collapsed) -->
+<div class="bg-white dark:bg-[#111814] rounded-xl border border-[#dbe6e0] dark:border-[#223329] p-5 flex flex-col gap-4 shadow-sm hover:shadow-md transition-shadow">
+<div class="flex justify-between items-start">
+<span class="bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded">High Priority</span>
+<button class="text-[#618972] hover:text-[#111814] dark:hover:text-white">
+<span class="material-symbols-outlined text-[20px]">more_vert</span>
+</button>
+</div>
+<div class="flex flex-col gap-1">
+<h3 class="text-base font-bold text-[#111814] dark:text-white leading-tight">Update Employee Records</h3>
+<p class="text-sm text-[#618972] line-clamp-2">Migration of all legacy employee data into the new secure cloud storage module.</p>
+</div>
+<div class="flex items-center justify-between pt-2 border-t border-[#f0f4f2] dark:border-[#1c2e24]">
+<div class="flex -space-x-2">
+<div class="size-8 rounded-full border-2 border-white dark:border-[#111814] bg-cover bg-center" data-alt="Assignee Sarah Johnson" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuABEd50hQol47uxQpCKYaOCidhnG5_PSMmp3r2-jV_aKQts-yEz8MOkwgz7flEswZqWYjqWOF0Kt1aE8JhhqDQSo6AJIjjYFcEGfNspjWYxq1X2-kZGIeZ33MN9gayf637f4kFVhVKZygfyqnQxbtRTGljYd648IGCvl9e0xSF97f2Bp_nRGeZuWrHSl53YKorFNhh7ojqyRaqE0hE4dU_FDEFvDJ8zeOFxASxWOIy1mPFB8CddjD7m8i5iqGF4kOhUdChIH3-gSRA')"></div>
+<div class="size-8 rounded-full border-2 border-white dark:border-[#111814] bg-[#f0f4f2] dark:bg-[#1c2e24] flex items-center justify-center text-[10px] font-bold text-[#618972]">+2</div>
+</div>
+<button class="flex items-center gap-1.5 text-xs font-bold text-[#111814] dark:text-white bg-[#f0f4f2] dark:bg-[#1c2e24] px-3 py-1.5 rounded-lg hover:bg-primary/20 transition-colors">
+<span class="material-symbols-outlined text-[16px]">stat_minus_1</span>
+                                Show Subtasks (3)
+                            </button>
+</div>
+</div>
+<!-- Task Card 2 (Expanded) -->
+<div class="bg-white dark:bg-[#111814] rounded-xl border-2 border-primary/40 dark:border-primary/20 p-5 flex flex-col gap-4 shadow-md col-span-1 md:col-span-2 lg:col-span-1">
+<div class="flex justify-between items-start">
+<span class="bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded">Medium Priority</span>
+<button class="text-[#618972] hover:text-[#111814] dark:hover:text-white">
+<span class="material-symbols-outlined text-[20px]">more_vert</span>
+</button>
+</div>
+<div class="flex flex-col gap-1">
+<h3 class="text-base font-bold text-[#111814] dark:text-white leading-tight">Benefits Enrollment Setup</h3>
+<p class="text-sm text-[#618972]">Configuring the open enrollment period for 2024 healthcare plans.</p>
+</div>
+<!-- Subtasks Section -->
+<div class="mt-2 bg-[#f6f8f7] dark:bg-[#15271d] rounded-lg p-3 flex flex-col gap-3">
+<p class="text-[10px] font-bold text-[#618972] uppercase tracking-widest">Subtasks (2/3 complete)</p>
+<div class="flex flex-col gap-2">
+<label class="flex items-center gap-3 cursor-pointer group">
+<input checked="" class="rounded border-[#dbe6e0] text-primary focus:ring-primary size-4 cursor-pointer" type="checkbox"/>
+<span class="text-sm text-[#618972] line-through decoration-primary/50">Verify medical plan data fields</span>
+</label>
+<label class="flex items-center gap-3 cursor-pointer group">
+<input checked="" class="rounded border-[#dbe6e0] text-primary focus:ring-primary size-4 cursor-pointer" type="checkbox"/>
+<span class="text-sm text-[#618972] line-through decoration-primary/50">Map legacy provider IDs</span>
+</label>
+<label class="flex items-center gap-3 cursor-pointer group">
+<input class="rounded border-[#dbe6e0] text-primary focus:ring-primary size-4 bg-white dark:bg-[#111814] cursor-pointer" type="checkbox"/>
+<span class="text-sm text-[#111814] dark:text-white font-medium">Draft announcement email</span>
+</label>
+</div>
+<button class="text-left text-xs font-bold text-primary mt-1 flex items-center gap-1 hover:underline">
+<span class="material-symbols-outlined text-[14px]">add</span>
+                                Add subtask
+                            </button>
+</div>
+<div class="flex items-center justify-between pt-2">
+<div class="flex -space-x-2">
+<div class="size-8 rounded-full border-2 border-white dark:border-[#111814] bg-cover bg-center" data-alt="Assignee Mike Chen" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuB0wfmamKYUav9vETCaDGT_uPPyCKW0TsRu28NkC40meDvYJfzSL3dkL5W1vgLtj4hauolO_S40zr4m7q8-RZp9Ynsr62THiRdfs6ksgjczMKISUFQoW7vmZhTlfSqo-wnDXP5M8iX9UtGW3h9379dFY7qvh1ZaqWJXN6KXQLMuqcK1-Y2qHrWSdwsSPT0VHJDlc7A6bS_yDIrqEfvuf6WGm9cpEu5Q973GYYBQz1rhW5XFnpvUhGhODtgQtva3Fi2Y_BFqQB5HWQk')"></div>
+</div>
+<button class="flex items-center gap-1.5 text-xs font-bold text-[#111814] dark:text-white bg-primary px-3 py-1.5 rounded-lg">
+<span class="material-symbols-outlined text-[16px]">stat_1</span>
+                                Hide Subtasks
+                            </button>
+</div>
+</div>
+<!-- Task Card 3 -->
+<div class="bg-white dark:bg-[#111814] rounded-xl border border-[#dbe6e0] dark:border-[#223329] p-5 flex flex-col gap-4 shadow-sm hover:shadow-md transition-shadow">
+<div class="flex justify-between items-start">
+<span class="bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded">Low Priority</span>
+<button class="text-[#618972] hover:text-[#111814] dark:hover:text-white">
+<span class="material-symbols-outlined text-[20px]">more_vert</span>
+</button>
+</div>
+<div class="flex flex-col gap-1">
+<h3 class="text-base font-bold text-[#111814] dark:text-white leading-tight">API Endpoint Integration</h3>
+<p class="text-sm text-[#618972] line-clamp-2">Ensuring secure connectivity between the mobile app and core HR servers.</p>
+</div>
+<div class="flex items-center justify-between pt-2 border-t border-[#f0f4f2] dark:border-[#1c2e24]">
+<div class="flex -space-x-2">
+<div class="size-8 rounded-full border-2 border-white dark:border-[#111814] bg-cover bg-center" data-alt="Assignee Emma Stone" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCdDLKxM26YizYTFIxFiZa-tZ_LtsNkkjWXukAcVyWDMDZqp65oDK3H32wwF8MoVNEpbwPZJ5g0ERKAtnDfp9xi5bLHs6g6Qa2y_fCtDjeFKSAjJ2L4KHIkokSQ2X_rNpdZ_lGRJHSugshOHqow_Gy4ep9UzOT19qJD0kDN4pyCp6cqfIfNiALRcC-Xo07M4pH2XhMJQpSVftxkdzoemEEU-ubkUwdwZtwsN9fYdIh8BtFQFVExaRajLz0xehv3nd3G07lj_8Seg1M')"></div>
+</div>
+<button class="flex items-center gap-1.5 text-xs font-bold text-[#111814] dark:text-white bg-[#f0f4f2] dark:bg-[#1c2e24] px-3 py-1.5 rounded-lg hover:bg-primary/20 transition-colors">
+<span class="material-symbols-outlined text-[16px]">stat_minus_1</span>
+                                Show Subtasks (5)
+                            </button>
+</div>
+</div>
+<!-- Task Card 4 -->
+<div class="bg-white dark:bg-[#111814] rounded-xl border border-[#dbe6e0] dark:border-[#223329] p-5 flex flex-col gap-4 shadow-sm hover:shadow-md transition-shadow">
+<div class="flex justify-between items-start">
+<span class="bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded">High Priority</span>
+<button class="text-[#618972] hover:text-[#111814] dark:hover:text-white">
+<span class="material-symbols-outlined text-[20px]">more_vert</span>
+</button>
+</div>
+<div class="flex flex-col gap-1">
+<h3 class="text-base font-bold text-[#111814] dark:text-white leading-tight">QA Environment Sync</h3>
+<p class="text-sm text-[#618972] line-clamp-2">Synchronizing testing data with production-ready schemas for the next release.</p>
+</div>
+<div class="flex items-center justify-between pt-2 border-t border-[#f0f4f2] dark:border-[#1c2e24]">
+<div class="flex -space-x-2">
+<div class="size-8 rounded-full border-2 border-white dark:border-[#111814] bg-cover bg-center" data-alt="Assignee David Wang" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuD-tCtMgviHkYpWeC5cXdQU28tMPGoT0iCWONJiz19ZHB8v3PNunFrNGfu5mg9Qxe-T7eOVVXI7kHeGCU6siDW-7Pf24mumoDEuCWEcdM8Ct-a-sp4eOmVhu3NL0jleKJIrM3CIqW9caNT0FolSljxJdxV5MHZskAfI3u4NZHJs3sdv9CLnmchInC6diooAEmZdx7SL60WAv54jOf58XQGxK_i54JkVDRVykYa-BzpkInEHW1Ax1gM5EOfy1G4T23KLmpw7Xf0VHnQ')"></div>
+</div>
+<button class="flex items-center gap-1.5 text-xs font-bold text-[#111814] dark:text-white bg-[#f0f4f2] dark:bg-[#1c2e24] px-3 py-1.5 rounded-lg hover:bg-primary/20 transition-colors">
+<span class="material-symbols-outlined text-[16px]">stat_minus_1</span>
+                                Show Subtasks (2)
+                            </button>
+</div>
+</div>
+<!-- Empty/Add New Task Placeholder -->
+<div class="border-2 border-dashed border-[#dbe6e0] dark:border-[#223329] rounded-xl flex flex-col items-center justify-center p-8 gap-3 opacity-60 hover:opacity-100 transition-opacity cursor-pointer group">
+<div class="size-12 rounded-full bg-[#f0f4f2] dark:bg-[#1c2e24] flex items-center justify-center text-[#618972] group-hover:bg-primary/20 group-hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[32px]">add_circle</span>
+</div>
+<div class="text-center">
+<p class="text-sm font-bold text-[#111814] dark:text-white">Create New Task</p>
+<p class="text-xs text-[#618972]">Click to add a task to this project</p>
+</div>
+</div>
+</div>
+<!-- Footer Summary -->
+<div class="mt-4 flex items-center justify-between bg-white dark:bg-[#111814] p-4 rounded-xl border border-[#dbe6e0] dark:border-[#223329]">
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-2">
+<div class="size-3 rounded-full bg-primary"></div>
+<span class="text-xs font-bold text-[#111814] dark:text-white">4 Completed</span>
+</div>
+<div class="flex items-center gap-2">
+<div class="size-3 rounded-full bg-orange-400"></div>
+<span class="text-xs font-bold text-[#111814] dark:text-white">8 In Progress</span>
+</div>
+<div class="flex items-center gap-2">
+<div class="size-3 rounded-full bg-[#618972]"></div>
+<span class="text-xs font-bold text-[#111814] dark:text-white">2 Blocked</span>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<span class="text-xs font-medium text-[#618972]">Overall Progress</span>
+<div class="w-48 h-2 bg-[#f0f4f2] dark:bg-[#1c2e24] rounded-full overflow-hidden">
+<div class="h-full bg-primary w-[33%]"></div>
+</div>
+<span class="text-xs font-bold text-[#111814] dark:text-white">33%</span>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

@@ -384,17 +384,189 @@ SET @html = N'
             color: var(--bs-success);
             border-color: var(--bs-success);
         }
+        /* Custom Modal System */
+        .custom-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(4px);
+            z-index: 1050;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .custom-modal-overlay.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        .custom-modal-container {
+            backdrop-filter: blur(50px);
+            border-radius: 16px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            width: 100%;
+            max-width: 600px;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            transform: scale(0.95);
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            overflow: hidden;
+            margin: 1rem;
+        }
+
+        .custom-modal-container.large {
+            max-width: 90vw;
+        }
+
+        .custom-modal-overlay.active .custom-modal-container {
+            transform: scale(1);
+            opacity: 1;
+        }
+
+        .custom-modal-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid #f1f5f9;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            backdrop-filter: blur(50px);
+        }
+
+        .custom-modal-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin: 0;
+            line-height: 1.4;
+        }
+
+        .custom-modal-close {
+            background: transparent;
+            border: none;
+            color: #94a3b8;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 50%;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .custom-modal-close:hover {
+            color: #ef4444;
+        }
+
+        .custom-modal-body {
+            padding: 1.5rem;
+            overflow-y: auto;
+            flex-grow: 1;
+            /* Scrollbar styling */
+            scrollbar-width: thin;
+            scrollbar-color: #cbd5e1 transparent;
+        }
+
+        .custom-modal-body::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .custom-modal-body::-webkit-scrollbar-thumb {
+            background-color: #cbd5e1;
+            border-radius: 3px;
+        }
+
+        .custom-modal-footer {
+            padding: 1.25rem 1.5rem;
+            background: #f8fafc;
+            border-top: 1px solid #f1f5f9;
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+        }
+
+        /* Form Elements Enhancement for Modals */
+        .custom-form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        .custom-form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #475569;
+            font-size: 0.875rem;
+        }
+
+        .custom-input, .custom-select, .custom-textarea {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid #e2e8f0;
+            color: #1e293b;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+            outline: none;
+        }
+
+        .custom-input:focus, .custom-select:focus, .custom-textarea:focus {
+            border-color: #0f172a; /* Dark Highlight */
+            box-shadow: 0 0 0 2px rgba(15, 23, 42, 0.1);
+        }
+        
+        .custom-btn {
+            padding: 0.6rem 1.2rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            font-size: 0.9rem;
+        }
+
+        .custom-btn-secondary {
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            color: #64748b;
+        }
+
+        .custom-btn-secondary:hover {
+            background: #f8fafc;
+            color: #475569;
+            border-color: #cbd5e1;
+        }
+
+        .custom-btn-primary {
+            background: #0f172a; /* Slate 900 */
+            color: #fff;
+        }
+
+        .custom-btn-primary:hover {
+            background: #1e293b; /* Slate 800 */
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
     </style>
     <div id="sp_Task_TaskList_html">
         <div class="d-flex flex-column vh-100 overflow-hidden">
             <div class="flex-grow-1 overflow-hidden d-flex">
                 <!-- Main Content Area -->
-                <main class="flex-grow-1 p-3 p-md-4 d-flex flex-column overflow-hidden">
-                    <div id="main-header" class="mb-3">
+                <main class="flex-grow-1 p-md-4 d-flex flex-column overflow-hidden" style="padding-top: 2rem;">
+                    <div id="mode-switcher" class="nav-tabs-custom d-flex gap-3 mb-3">
+                        <button class="nav-link active" data-mode="projects">Projects</button>
+                        <button class="nav-link" data-mode="templates">Templates Library</button>
+                        <button class="nav-link" data-mode="timeline">Overall Timeline</button>
+                    </div>
+                    <div id="main-header" class="mb-3 d-flex justify-content-between align-items-center">
                         <div id="breadcrumb" class="small text-muted mb-2" style="min-height: 20px;"></div>
                         <div class="d-flex justify-content-between align-items-center">
-                            <h2 id="view-title" class="mb-0 text-truncate">Projects</h2>
-                            <div id="view-switcher" class="d-flex align-items-center gap-2 p-1 rounded"
+                            <div id="view-switcher" class="d-flex align-items-center gap-2 rounded"
                                 style="background-color: rgba(203,213,225,.5);">
                                 <!-- View switcher buttons will be inserted here -->
                             </div>
@@ -407,59 +579,59 @@ SET @html = N'
                 </main>
             </div>
 
-            <!-- Task Details Modal -->
-            <div class="modal fade" id="task-modal" tabindex="-1" aria-hidden="true">
-                <div class="modal-dialog modal-xl modal-dialog-scrollable">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <div class="flex-grow-1">
-                                <h5 id="modal-task-name" class="modal-title editable-field" data-field="TaskName">Task
-                                    Details</h5>
-                                <div id="task-nav-bar" class="d-flex gap-2 mt-2 flex-wrap"></div>
-                            </div>
-                            <div class="d-flex gap-2">
-                                <button id="delete-task-btn" class="btn btn-outline-danger btn-sm no-print"
-                                    type="button">
-                                    <i class="bi bi-trash"></i>
-                                </button>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                    aria-label="Close"></button>
-                            </div>
+            <!-- Custom Task Details Modal -->
+            <div id="task-modal" class="custom-modal-overlay">
+                <div class="custom-modal-container large bg-body">
+                    <div class="custom-modal-header">
+                        <div class="flex-grow-1">
+                            <h5 id="modal-task-name" class="custom-modal-title editable-field" data-field="TaskName">Task Details</h5>
+                            <div id="task-nav-bar" class="d-flex gap-2 mt-2 flex-wrap"></div>
                         </div>
-                        <div id="modal-content" class="modal-body"></div>
+                        <div class="d-flex gap-2 align-items-center">
+                            <button id="delete-task-btn" class="custom-btn custom-btn-secondary" type="button" title="Delete Task">
+                                <i class="bi bi-trash text-danger"></i>
+                            </button>
+                            <button type="button" class="custom-modal-close" onclick="closeModal(''task-modal'')">
+                                <i class="bi bi-x-lg"></i>
+                            </button>
+                        </div>
                     </div>
+                    <div id="modal-content" class="custom-modal-body"></div>
                 </div>
             </div>
 
-            <!-- Create/Edit Task Modal -->
-            <div class="modal fade" id="create-task-modal" tabindex="-1" aria-hidden="true">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <form id="create-task-form">
-                            <div class="modal-header">
-                                <h5 id="create-modal-title" class="modal-title">Create New Task</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                    aria-label="Close"></button>
+            <!-- Custom Create/Edit Task Modal -->
+            <div id="create-task-modal" class="custom-modal-overlay">
+                <div class="custom-modal-container">
+                    <form id="create-task-form">
+                        <div class="custom-modal-header">
+                            <h5 id="create-modal-title" class="custom-modal-title">Create New Task</h5>
+                            <button type="button" class="custom-modal-close" onclick="closeModal(''create-task-modal'')">
+                                <i class="bi bi-x-lg"></i>
+                            </button>
+                        </div>
+                        <div class="custom-modal-body">
+                            <div class="custom-form-group">
+                                <label class="custom-form-label" for="create-task-name">Task Name</label>
+                                <input type="text" class="custom-input" id="create-task-name" placeholder="Enter task name" required>
                             </div>
-                            <div class="modal-body">
-                                <div class="form-floating mb-3">
-                                    <input type="text" class="form-control" id="create-task-name"
-                                        placeholder="Task Name" required>
-                                    <label for="create-task-name">Task Name</label>
-                                </div>
-                                <div class="form-floating mb-3">
-                                    <textarea class="form-control" id="create-task-desc" placeholder="Description"
-                                        style="height: 100px"></textarea>
-                                    <label for="create-task-desc">Description</label>
-                                </div>
-                                <div class="row g-3">
-                                    <div class="col-md-6">
-                                        <select id="create-task-assignee" class="form-select" required>
+                            <div class="custom-form-group">
+                                <label class="custom-form-label" for="create-task-desc">Description</label>
+                                <textarea class="custom-textarea" id="create-task-desc" placeholder="Enter description" rows="4"></textarea>
+                            </div>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <div class="custom-form-group mb-0">
+                                        <label class="custom-form-label">Assignee</label>
+                                        <select id="create-task-assignee" class="custom-select" required>
                                             <option value="">Select Assignee</option>
                                         </select>
                                     </div>
-                                    <div class="col-md-6">
-                                        <select id="create-task-priority" class="form-select">
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="custom-form-group mb-0">
+                                        <label class="custom-form-label">Priority</label>
+                                        <select id="create-task-priority" class="custom-select">
                                             <option>Low</option>
                                             <option selected>Medium</option>
                                             <option>High</option>
@@ -467,84 +639,88 @@ SET @html = N'
                                     </div>
                                 </div>
                             </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                <button type="submit" class="btn btn-success">Save Task</button>
-                            </div>
-                        </form>
-                    </div>
+                        </div>
+                        <div class="custom-modal-footer">
+                            <button type="button" class="custom-btn custom-btn-secondary" onclick="closeModal(''create-task-modal'')">Cancel</button>
+                            <button type="submit" class="custom-btn custom-btn-primary">Save Task</button>
+                        </div>
+                    </form>
                 </div>
             </div>
 
-            <!-- Add Project Modal -->
-            <div class="modal fade" id="add-project-modal" tabindex="-1" aria-hidden="true">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <form id="add-project-form">
-                            <div class="modal-header">
-                                <h5 class="modal-title">Add New Project</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                    aria-label="Close"></button>
+            <!-- Custom Add Project Modal -->
+            <div id="add-project-modal" class="custom-modal-overlay">
+                <div class="custom-modal-container">
+                    <form id="add-project-form">
+                        <div class="custom-modal-header">
+                            <h5 class="custom-modal-title">Add New Project</h5>
+                            <button type="button" class="custom-modal-close" onclick="closeModal(''add-project-modal'')">
+                                <i class="bi bi-x-lg"></i>
+                            </button>
+                        </div>
+                        <div class="custom-modal-body">
+                            <div class="custom-form-group">
+                                <label class="custom-form-label" for="add-project-name">Project Name</label>
+                                <input type="text" class="custom-input" id="add-project-name" placeholder="Enter project name" required>
                             </div>
-                            <div class="modal-body">
-                                <div class="form-floating">
-                                    <input type="text" class="form-control" id="add-project-name"
-                                        placeholder="Project Name" required>
-                                    <label for="add-project-name">Project Name</label>
-                                </div>
-                            </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                <button type="submit" class="btn btn-success">Create Project</button>
-                            </div>
-                        </form>
-                    </div>
+                        </div>
+                        <div class="custom-modal-footer">
+                            <button type="button" class="custom-btn custom-btn-secondary" onclick="closeModal(''add-project-modal'')">Cancel</button>
+                            <button type="submit" class="custom-btn custom-btn-primary">Create Project</button>
+                        </div>
+                    </form>
                 </div>
             </div>
 
-            <!-- Assignment Modal -->
-            <div class="modal fade" id="mdlAssign" tabindex="-1" aria-hidden="true">
-                <div class="modal-dialog modal-lg">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title">Giao việc bổ sung</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body">
-                            <div class="row g-3 mb-3">
-                                <div class="col-md-6">
-                                    <label class="form-label">Người giao</label>
-                                    <select id="assign-requester" class="form-select">
-                                    </select>
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label">Người thực hiện</label>
-                                    <select id="assign-assignee" class="form-select">
-                                    </select>
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label">Ngày yêu cầu</label>
-                                    <input type="date" id="assign-date" class="form-control">
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label">Giờ cam kết</label>
-                                    <input type="number" id="assign-hours" class="form-control" step="0.5">
-                                </div>
+            <!-- Custom Assignment Modal -->
+            <div id="mdlAssign" class="custom-modal-overlay">
+                <div class="custom-modal-container large bg-body">
+                    <div class="custom-modal-header">
+                        <h5 class="custom-modal-title">Giao việc bổ sung</h5>
+                        <button type="button" class="custom-modal-close" onclick="closeModal(''mdlAssign'')">
+                            <i class="bi bi-x-lg"></i>
+                        </button>
+                    </div>
+                    <div class="custom-modal-body">
+                        <div class="row g-3 mb-3">
+                            <div class="col-12">
+                                <label class="custom-form-label">Chọn từ mẫu (Template)</label>
+                                <select id="assign-template" class="custom-select" onchange="loadSubtasksFromTemplate(this.value)">
+                                    <option value="">-- Không dùng mẫu --</option>
+                                </select>
                             </div>
-                            <div class="mb-3">
-                                <h6>Danh sách việc phụ</h6>
-                                <div id="assign-subtasks-list" class="list-group mb-2">
-                                </div>
-                                <div class="input-group">
-                                    <input type="text" id="assign-new-task-name" class="form-control" placeholder="Tên việc phụ...">
-                                    <button class="btn btn-outline-primary" type="button" id="btn-add-assign-subtask">Thêm</button>
-                                </div>
+                            <div class="col-md-6">
+                                <label class="custom-form-label">Người giao</label>
+                                <select id="assign-requester" class="custom-select">
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="custom-form-label">Người thực hiện</label>
+                                <select id="assign-assignee" class="custom-select">
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="custom-form-label">Ngày yêu cầu</label>
+                                <input type="date" id="assign-date" class="custom-input">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="custom-form-label">Giờ cam kết</label>
+                                <input type="number" id="assign-hours" class="custom-input" step="0.5">
                             </div>
                         </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
-                            <button type="button" class="btn btn-primary" id="btn-submit-assignment">Hoàn tất giao việc</button>
+                        <div class="mb-3">
+                            <h6 class="font-weight-bold mb-2">Danh sách việc phụ</h6>
+                            <div id="assign-subtasks-list" class="list-group mb-2 custom-list-group">
+                            </div>
+                            <div class="d-flex gap-2">
+                                <input type="text" id="assign-new-task-name" class="custom-input" placeholder="Tên việc phụ...">
+                                <button class="custom-btn custom-btn-secondary" type="button" id="btn-add-assign-subtask">Thêm</button>
+                            </div>
                         </div>
+                    </div>
+                    <div class="custom-modal-footer">
+                        <button type="button" class="custom-btn custom-btn-secondary" onclick="closeModal(''mdlAssign'')">Đóng</button>
+                        <button type="button" class="custom-btn custom-btn-primary" id="btn-submit-assignment">Hoàn tất giao việc</button>
                     </div>
                 </div>
             </div>
@@ -565,6 +741,7 @@ SET @html = N'
                 let tags_Linh = [];
                 let taskProcesses_Linh = [];
                 let comments_Linh = [];
+                let templates_Linh = [];
 
                 function fetchData(callback) {
                     AjaxHPAParadise({
@@ -581,6 +758,7 @@ SET @html = N'
                             tags_Linh = typeof data.Tags === "string" ? JSON.parse(data.Tags) : (data.Tags || []);
                             taskProcesses_Linh = typeof data.Processes === "string" ? JSON.parse(data.Processes) : (data.Processes || []);
                             comments_Linh = typeof data.Comments === "string" ? JSON.parse(data.Comments) : (data.Comments || []);
+                            templates_Linh = typeof data.Templates === "string" ? JSON.parse(data.Templates) : (data.Templates || []);
                             if (callback) callback();
                             else render();
                         }
@@ -595,6 +773,7 @@ SET @html = N'
                 // --- STATE MANAGEMENT ---
                 let navigationStack = [];
                 let currentViewMode = "list";
+                let currentAppMode = "projects"; // "projects", "templates", "timeline"
                 let draggedTaskId = null;
                 const KANBAN_STATUSES = ["To Do", "In Progress", "Testing", "Done"];
                 const PRIORITY_OPTIONS = ["Low", "Medium", "High"];
@@ -602,11 +781,9 @@ SET @html = N'
                 let currentAssignParentTaskId = null;
                 let assignSubtasks = [];
 
-                // Bootstrap Modal instances
-                let taskModal, createTaskModal, addProjectModal;
+                // Bootstrap Modal instances removed (replaced by custom modals)
 
                 // --- DOM ELEMENT REFERENCES ---
-                const viewTitleEl = document.getElementById("view-title");
                 const breadcrumbEl = document.getElementById("breadcrumb");
                 const viewSwitcherEl = document.getElementById("view-switcher");
                 const viewContainerEl = document.getElementById("view-container");
@@ -623,6 +800,7 @@ SET @html = N'
 
                 const addProjectModalEl = document.getElementById("add-project-modal");
                 const addProjectForm = document.getElementById("add-project-form");
+                const modeSwitcherEl = document.getElementById("mode-switcher");
 
                 // --- UTILITY FUNCTIONS ---
                 const findEmployee = (id) => employees_Linh.find((e) => e.EmployeeID === id) || { FullName: "Unassigned" };
@@ -653,14 +831,30 @@ SET @html = N'
                     return date.toLocaleDateString();
                 }
 
-                // --- CORE RENDER FUNCTION ---
                 function render() {
                     const context = navigationStack[navigationStack.length - 1];
+                    updateModeSwitcher();
                     renderBreadcrumb();
                     renderViewSwitcher();
 
+                    if (currentAppMode === "templates") {
+                        if (!context) {
+                            renderTemplatesView();
+                        } else if (context.type === "template") {
+                            const template = templates_Linh.find(t => t.TemplateID === context.id);
+                            if (template) {
+                                renderTemplateDetail(template);
+                            }
+                        }
+                        return;
+                    }
+
+                    if (currentAppMode === "timeline") {
+                        renderOverallTimeline();
+                        return;
+                    }
+
                     if (!context) {
-                        viewTitleEl.textContent = "Projects";
                         renderProjectsView(projects_Linh);
                         return;
                     }
@@ -668,7 +862,6 @@ SET @html = N'
                     if (context.type === "project") {
                         const project = projects_Linh.find((p) => p.ProjectID === context.id);
                         if (!project) return;
-                        viewTitleEl.textContent = project.ProjectName;
                         renderProjectDetail(project);
                         return;
                     }
@@ -676,7 +869,6 @@ SET @html = N'
                     if (context.type === "task") {
                         const task = tasks.find((t) => t.TaskID === context.id);
                         if (!task) return;
-                        viewTitleEl.textContent = task.TaskName;
                         const itemsToRender = tasks.filter((t) => t.ParentTaskID === context.id);
 
                         switch (currentViewMode) {
@@ -691,6 +883,14 @@ SET @html = N'
                                 renderKanbanView(itemsToRender);
                                 break;
                         }
+                    }
+                }
+
+                function updateModeSwitcher() {
+                    if (modeSwitcherEl) {
+                        modeSwitcherEl.querySelectorAll(".nav-link").forEach(btn => {
+                            btn.classList.toggle("active", btn.dataset.mode === currentAppMode);
+                        });
                     }
                 }
 
@@ -710,14 +910,14 @@ SET @html = N'
                         breadcrumbEl.appendChild(backBtn);
                     }
 
-                    const projectsCrumb = document.createElement("span");
-                    projectsCrumb.className = "cursor-pointer text-decoration-underline";
-                    projectsCrumb.textContent = "Projects";
-                    projectsCrumb.addEventListener("click", () => {
+                    const rootCrumb = document.createElement("span");
+                    rootCrumb.className = "cursor-pointer text-decoration-underline";
+                    rootCrumb.textContent = currentAppMode === "templates" ? "Templates Library" : "Projects";
+                    rootCrumb.addEventListener("click", () => {
                         navigationStack = [];
                         render();
                     });
-                    breadcrumbEl.appendChild(projectsCrumb);
+                    breadcrumbEl.appendChild(rootCrumb);
 
                     navigationStack.forEach((item, index) => {
                         const separator = document.createElement("span");
@@ -725,9 +925,14 @@ SET @html = N'
                         separator.textContent = "/";
                         breadcrumbEl.appendChild(separator);
 
-                        let name = item.type === "project"
-                            ? projects_Linh.find((p) => p.ProjectID === item.id)?.ProjectName
-                            : tasks.find((t) => t.TaskID === item.id)?.TaskName;
+                        let name = "";
+                        if (item.type === "project") {
+                            name = projects_Linh.find((p) => p.ProjectID === item.id)?.ProjectName;
+                        } else if (item.type === "task") {
+                            name = tasks.find((t) => t.TaskID === item.id)?.TaskName;
+                        } else if (item.type === "template") {
+                            name = templates_Linh.find((t) => t.TemplateID === item.id)?.TemplateName;
+                        }
 
                         const crumb = document.createElement("span");
                         crumb.className = "cursor-pointer text-decoration-underline";
@@ -807,7 +1012,7 @@ SET @html = N'
                     grid.className = "row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3";
 
                     if (projectsToRender.length === 0) {
-                        targetEl.innerHTML += `<p class="text-center text-muted py-5">No projects yet. Create your first project!</p>`;
+                        targetEl.innerHTML += `<div class="text-center text-muted py-5">No projects yet. Create your first project!</div>`;
                         return;
                     }
 
@@ -862,6 +1067,65 @@ SET @html = N'
                             render();
                         });
                         tbody.appendChild(row);
+                    });
+                }
+
+                // --- TEMPLATE VIEWS ---
+                function renderTemplatesView() {
+                    const templates = templates_Linh;
+                    viewContainerEl.innerHTML = `
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h4 class="mb-0">Task Template Library</h4>
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-outline-primary btn-sm" onclick="ReloadData()">
+                                    <i class="bi bi-arrow-clockwise"></i> Refresh
+                                </button>
+                                <button class="btn btn-primary btn-sm" onclick="openCreateTemplateModal()">
+                                    <i class="bi bi-plus-lg"></i> Create Template
+                                </button>
+                            </div>
+                        </div>
+                        <div class="row row-cols-1 row-cols-md-3 g-4" id="template-grid"></div>
+                    `;
+                    
+                    const grid = document.getElementById("template-grid");
+                    if (templates.length === 0) {
+                        grid.innerHTML = `<div class="col-12 text-center text-muted py-5">
+                            <div class="mb-3"><i class="bi bi-box-seam fs-1 opacity-25"></i></div>
+                            No templates found. Create one to standardize your workflow!
+                        </div>`;
+                        return;
+                    }
+
+                    templates.forEach(t => {
+                        const col = document.createElement("div");
+                        col.className = "col";
+                        const subtasksCount = (typeof t.Subtasks === "string" ? JSON.parse(t.Subtasks) : (t.Subtasks || [])).length;
+                        col.innerHTML = `
+                            <div class="card h-100 shadow-sm border-0 bg-light-subtle hover-transform">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <span class="badge bg-primary-subtle text-primary">${t.Category || "General"}</span>
+                                        <div class="dropdown">
+                                            <button class="btn btn-link link-dark p-0" data-bs-toggle="dropdown"><i class="bi bi-three-dots-vertical"></i></button>
+                                            <ul class="dropdown-menu dropdown-menu-end">
+                                                <li><a class="dropdown-item" href="#" onclick="event.preventDefault(); openCreateTemplateModal(${t.TemplateID})">Edit Template</a></li>
+                                                <li><a class="dropdown-item text-danger" href="#" onclick="event.preventDefault(); deleteTemplate(${t.TemplateID})">Delete</a></li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    <h5 class="card-title fw-bold">${t.TemplateName}</h5>
+                                    <div class="card-text text-muted small mb-4">${t.Description || "No description provided."}</div>
+                                    <div class="d-flex justify-content-between align-items-center mt-auto pt-3 border-top">
+                                        <span class="text-muted small"><i class="bi bi-list-task me-1"></i> ${subtasksCount} steps</span>
+                                        <button class="btn btn-sm btn-success rounded-pill px-3" onclick="navigationStack.push({type:''template'', id:${t.TemplateID}}); render();">
+                                            View Content
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        grid.appendChild(col);
                     });
                 }
 
@@ -944,7 +1208,7 @@ SET @html = N'
                             <div class="overflow-auto">
                                 <div style="min-width: fit-content;">
                                     <div class="d-flex align-items-center bg-body-secondary border-bottom sticky-top" style="top: 0; z-index: 10;">
-                                        <div style="width: 200px; min-width: 200px;" class="fw-bold p-2 bg-body-secondary">Project</div>
+                                        <div style="width: 200px; min-width: 200px; padding: 1rem;" class="fw-bold bg-body-secondary">Project</div>
                                         <div class="flex-grow-1 bg-body-secondary">${headerHtml}</div>
                                     </div>
                                     ${rowsHtml}
@@ -973,7 +1237,7 @@ SET @html = N'
                                     <h5 class="card-title mb-0">${project.ProjectName}</h5>
                                     <span class="badge ${getPriorityClass(project.Priority)}">${project.Priority || "N/A"}</span>
                                 </div>
-                                <p class="card-text text-muted small">${project.Description || "No description"}</p>
+                                <div class="card-text text-muted small">${project.Description || "No description"}</div>
                             </div>
                             <div class="card-footer bg-transparent d-flex justify-content-between align-items-center">
                                 <small class="text-muted">${taskCount} tasks</small>
@@ -997,7 +1261,7 @@ SET @html = N'
                                         <div class="d-flex justify-content-between align-items-start mb-3">
                                             <div>
                                                 <h3 class="mb-2">${project.ProjectName} <span class="badge ${getPriorityClass(project.Priority)}">${project.Priority || "N/A"}</span></h3>
-                                                <p class="text-muted">${project.Description || "No description provided."}</p>
+                                                <div class="text-muted small">${project.Description || "No description provided."}</div>
                                             </div>
                                         </div>
                                         <div class="row g-3">
@@ -1050,8 +1314,9 @@ SET @html = N'
 
                     KANBAN_STATUSES.forEach((status) => {
                         const column = document.createElement("div");
-                        column.className = "kanban-column rounded p-2 flex-shrink-0";
+                        column.className = "kanban-column rounded flex-shrink-0";
                         column.style.width = "280px";
+                        column.style.padding = "1rem";
                         column.dataset.status = status;
                         column.innerHTML = `
                                 <div class="column-header d-flex justify-content-between align-items-center">
@@ -1110,7 +1375,7 @@ SET @html = N'
                                     <div class="mb-3">
                                         <i class="bi bi-check2-square" style="font-size: 3rem; color: #dee2e6;"></i>
                                     </div>
-                                    <p class="text-muted mb-3">No tasks to display</p>
+                                    <div class="text-muted small mb-3">No tasks to display</div>
                                     <button id="add-task-btn-empty" class="btn btn-success">
                                         <i class="bi bi-plus-lg"></i> Add Task
                                     </button>
@@ -1282,7 +1547,7 @@ SET @html = N'
                             <div class="overflow-auto">
                                 <div style="min-width: fit-content;">
                                     <div class="d-flex align-items-center bg-body-secondary border-bottom sticky-top" style="top: 0; z-index: 10;">
-                                        <div style="width: 200px; min-width: 200px;" class="fw-bold p-2 bg-body-secondary">Task</div>
+                                        <div style="width: 200px; min-width: 200px; padding: 1rem;" class="fw-bold bg-body-secondary">Task</div>
                                         <div class="flex-grow-1 bg-body-secondary">${headerHtml}</div>
                                     </div>
                                     ${rowsHtml}
@@ -1365,16 +1630,42 @@ SET @html = N'
                 window.showPriorityDropdown = showPriorityDropdown;
                 window.showAssigneeDropdown = showAssigneeDropdown;
 
+                function openModal(modalId) {
+                    const modal = document.getElementById(modalId);
+                    if (modal) {
+                        modal.classList.add("active");
+                    }
+                }
+
+                function closeModal(modalId) {
+                    const modal = document.getElementById(modalId);
+                    if (modal) {
+                        modal.classList.remove("active");
+                    }
+                }
+                
+                // Allow closing by clicking outside the container
+                document.querySelectorAll(''.custom-modal-overlay'').forEach(overlay => {
+                    overlay.addEventListener(''click'', (e) => {
+                        if (e.target === overlay) {
+                            overlay.classList.remove(''active'');
+                        }
+                    });
+                });
+
+                window.openModal = openModal;
+                window.closeModal = closeModal;
+
+                // --- MODAL OPENERS ---
                 function openTaskModal(taskId) {
                     const task = tasks.find((t) => t.TaskID === taskId);
                     if (!task) return;
 
                     currentEditingTaskId = taskId;
 
-                    // Update Modal Header with Breadcrumb and controls
-                    const modalHeader = taskModalEl.querySelector(".modal-header");
-                    modalHeader.className = "modal-header task-modal-header d-flex flex-column gap-3";
-
+                    // Update contents...
+                    const modalHeader = taskModalEl.querySelector(".custom-modal-header");
+                    
                     const parentTask = task.ParentTaskID ? tasks.find(t => t.TaskID === task.ParentTaskID) : null;
                     const parentLinkHtml = parentTask ? `
                         <a href="#" class="parent-link-badge mb-2" onclick="event.preventDefault(); openTaskModal(${parentTask.TaskID})">
@@ -1382,104 +1673,78 @@ SET @html = N'
                         </a>
                     ` : "";
 
+                    // Re-inject dynamic header content (keeping the close button static structure if possible, but here we replace innerHTML mostly)
+                    // Note: We need to preserve the Close button or re-add it.
+                    // Lets rewrite the header content carefully.
                     modalHeader.innerHTML = `
-                        <div class="d-flex justify-content-between align-items-center w-100">
-                            <div class="d-flex flex-column">
-                                ${parentLinkHtml}
-                                <div class="d-flex align-items-center gap-3">
-                                    <h5 id="modal-task-name" class="modal-title editable-field mb-0 fw-bold" data-field="TaskName" data-task-id="${taskId}">${task.TaskName}</h5>
-                                    <span class="badge ${getPriorityClass(task.Priority)} rounded-pill cursor-pointer" onclick="showPriorityDropdown(this, ${JSON.stringify(task).replace(/""/g, "&quot;")})">${task.Priority}</span>
-                                </div>
+                        <div class="flex-grow-1">
+                            ${parentLinkHtml}
+                            <div class="d-flex align-items-center gap-3">
+                                <h5 id="modal-task-name" class="custom-modal-title editable-field mb-0" data-field="TaskName" data-task-id="${taskId}">${task.TaskName}</h5>
+                                <span class="badge ${getPriorityClass(task.Priority)} rounded-pill cursor-pointer" onclick="showPriorityDropdown(this, ${JSON.stringify(task).replace(/""/g, "&quot;")})">${task.Priority}</span>
                             </div>
-                            <div class="d-flex gap-2 align-items-center">
-                                <button id="delete-task-btn" class="btn btn-link text-danger p-0 no-print cursor-pointer" title="Delete task">
-                                    <i class="bi bi-trash fs-5"></i>
-                                </button>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            <div class="status-steps mt-3">
+                                ${KANBAN_STATUSES.map(status => `
+                                    <button class="status-step ${task.Status === status ? ''active'' : ''''} ${KANBAN_STATUSES.indexOf(task.Status) > KANBAN_STATUSES.indexOf(status) ? ''completed'' : ''''}" onclick="changeTaskStatus(${taskId}, ''${status}'')">
+                                        ${status}
+                                    </button>
+                                `).join("")}
                             </div>
                         </div>
-                        <div class="status-steps w-100">
-                            ${KANBAN_STATUSES.map(status => `
-                                <button class="status-step ${task.Status === status ? ''active'' : ''''} ${KANBAN_STATUSES.indexOf(task.Status) > KANBAN_STATUSES.indexOf(status) ? ''completed'' : ''''}" onclick="changeTaskStatus(${taskId}, ''${status}'')">
-                                    ${status}
-                                </button>
-                            `).join("")}
+                        <div class="d-flex gap-2 align-items-center">
+                            <button id="delete-task-btn" class="custom-modal-close text-danger" title="Delete task">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                            <button type="button" class="custom-modal-close" onclick="closeModal(''task-modal'')">
+                                <i class="bi bi-x-lg"></i>
+                            </button>
                         </div>
                     `;
 
-                    // Handle delete button in new header
                     document.getElementById("delete-task-btn").addEventListener("click", () => handleDeleteTask(taskId));
 
-                    // Update Modal Body with two-column layout
-                    const modalBody = taskModalEl.querySelector(".modal-body");
-                    modalBody.className = "modal-body task-modal-body";
+                    const modalBody = taskModalEl.querySelector("#modal-content");
                     modalBody.innerHTML = `
-                        <div class="main-task-content">
-                            <ul class="nav nav-tabs nav-tabs-custom" id="taskTabs" role="tablist">
-                                <li class="nav-item">
-                                    <button class="nav-link active" id="desc-tab" data-bs-toggle="tab" data-bs-target="#desc-pane" type="button" role="tab">Description</button>
-                                </li>
-                                <li class="nav-item">
-                                    <button class="nav-link" id="subtasks-tab" data-bs-toggle="tab" data-bs-target="#subtasks-pane" type="button" role="tab">
-                                        Subtasks <span class="badge bg-secondary-subtle text-secondary rounded-pill ms-1">${tasks.filter(t => t.ParentTaskID === taskId).length}</span>
-                                    </button>
-                                </li>
-                            </ul>
-                            
-                            <div class="tab-content" id="taskTabContent">
-                                <div class="tab-pane fade show active" id="desc-pane" role="tabpanel" tabindex="0">
-                                    <div class="row g-3">
-                                        <div class="col-md-6">
-                                            <label class="small text-muted fw-bold mb-1">ASSIGNEE</label>
-                                            <div class="d-flex align-items-center gap-2 editable-field p-2 border rounded" data-field="AssigneeID" data-task-id="${taskId}">
-                                                <div class="comment-avatar">${findEmployee(task.AssigneeID).FullName.charAt(0)}</div>
-                                                <span>${findEmployee(task.AssigneeID).FullName}</span>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label class="small text-muted fw-bold mb-1">DUE DATE</label>
-                                            <div class="p-2 border rounded bg-light-subtle">${task.DueDate || "No deadline"}</div>
+                        <div class="row g-4">
+                            <div class="col-md-7 border-end">
+                                <div class="row g-3 mb-4">
+                                    <div class="col-md-6">
+                                        <label class="custom-form-label text-muted">ASSIGNEE</label>
+                                        <div class="d-flex align-items-center gap-2 editable-field border rounded" data-field="AssigneeID" data-task-id="${taskId}">
+                                            <div class="comment-avatar">${findEmployee(task.AssigneeID).FullName.charAt(0)}</div>
+                                            <span>${findEmployee(task.AssigneeID).FullName}</span>
                                         </div>
                                     </div>
-
-                                    <div class="mt-4">
-                                        <label class="small text-muted fw-bold mb-2">DESCRIPTION</label>
-                                        <div class="editable-field p-3 border rounded bg-light-subtle" data-field="Description" data-task-id="${taskId}" style="min-height: 150px;">
-                                            ${task.Description || `<span class="text-muted italic">Add details about this task...</span>`}
-                                        </div>
+                                    <div class="col-md-6">
+                                        <label class="custom-form-label text-muted">DUE DATE</label>
+                                        <div class="border rounded" style="padding: 1rem;">${task.DueDate || "No deadline"}</div>
                                     </div>
                                 </div>
-                                <div class="tab-pane fade" id="subtasks-pane" role="tabpanel" tabindex="0">
-                                    <div class="d-flex justify-content-between align-items-center mb-3">
-                                        <h6 class="mb-0 fw-bold">Subtasks</h6>
-                                        <button class="btn btn-sm btn-primary" onclick="openCreateTaskModal({ parentTaskId: ${taskId} })">
-                                            <i class="bi bi-plus-lg"></i> Add Subtask
-                                        </button>
+                                <div class="mb-4">
+                                    <label class="custom-form-label text-muted">DESCRIPTION</label>
+                                    <div class="editable-field border rounded" data-field="Description" data-task-id="${taskId}" style="min-height: 100px; padding: 2rem;">
+                                        ${task.Description || `<span class="text-muted italic">Add details about this task...</span>`}
                                     </div>
-                                    <div class="list-group list-group-flush border rounded overflow-hidden">
-                                        ${renderSubtasksHtml(taskId)}
-                                    </div>
+                                </div>
+                                <div>
+                                    ${renderSubtasksHtml(taskId)}
                                 </div>
                             </div>
-                        </div>
-                        
-                        <div class="activity-panel col-lg-4 d-none d-lg-flex">
-                            <div class="p-3 border-bottom bg-white sticky-top">
-                                <h6 class="mb-3 fw-bold">Activity Feed</h6>
-                                <div class="comment-box d-flex flex-column gap-2">
-                                    <textarea id="new-comment-input" class="form-control border-0 shadow-none scrollbar-hide" placeholder="Write a comment..." rows="2" style="resize: none;"></textarea>
-                                    <div class="d-flex justify-content-end p-1">
-                                        <button id="add-comment-btn" class="btn btn-sm btn-primary px-3 rounded-pill">Comment</button>
+                            <div class="col-md-5">
+                                <h6 class="fw-bold mb-3">Activity</h6>
+                                <div class="mb-3">
+                                    <textarea id="new-comment-input" class="custom-textarea" placeholder="Write a comment..." rows="2"></textarea>
+                                    <div class="d-flex justify-content-end mt-2">
+                                        <button id="add-comment-btn" class="custom-btn custom-btn-primary btn-sm">Post</button>
                                     </div>
                                 </div>
-                            </div>
-                            <div class="timeline-section">
-                                ${renderActivityTimeline(taskId)}
+                                <div class="timeline-section" style="max-height: 400px; overflow-y: auto;">
+                                    ${renderActivityTimeline(taskId)}
+                                </div>
                             </div>
                         </div>
                     `;
 
-                    // Add Event Listeners
                     document.getElementById("add-comment-btn").addEventListener("click", () => {
                         const input = document.getElementById("new-comment-input");
                         addComment(taskId, input.value.trim());
@@ -1487,8 +1752,88 @@ SET @html = N'
                     });
 
                     setupInlineEditing();
-                    taskModal.show();
+                    openModal(''task-modal'');
                 }
+
+                function openCreateTaskModal({ parentTaskId = null, editTaskId = null, defaultStatus = "To Do" } = {}) {
+                    const context = navigationStack[navigationStack.length - 1];
+                    if (!context && !editTaskId) { // Allow edit without context if strict
+                         // Actually mostly we need context for ProjectID if new
+                    }
+                    
+                    if (!context && !editTaskId) {
+                         // Default to first project if exists or error
+                         if (projects_Linh.length > 0) {
+                             // Context is implicitly project 0?
+                         } else {
+                             alert("Please select a project first!");
+                             return;
+                         }
+                    }
+
+                    createTaskForm.reset();
+                    createTaskForm.dataset.parentTaskId = parentTaskId || "";
+                    createTaskForm.dataset.editTaskId = editTaskId || "";
+                    createTaskForm.dataset.defaultStatus = defaultStatus;
+
+                    const assigneeSelect = document.getElementById("create-task-assignee");
+                    assigneeSelect.innerHTML = `<option value="">Select Assignee</option>`;
+                    employees_Linh.forEach((emp) => {
+                        const option = document.createElement("option");
+                        option.value = emp.EmployeeID;
+                        option.textContent = emp.FullName;
+                        assigneeSelect.appendChild(option);
+                    });
+
+                    if (editTaskId) {
+                        createModalTitleEl.textContent = "Edit Task";
+                        const task = tasks.find((t) => t.TaskID === editTaskId);
+                        document.getElementById("create-task-name").value = task.TaskName;
+                        document.getElementById("create-task-desc").value = task.Description;
+                        assigneeSelect.value = task.AssigneeID;
+                        document.getElementById("create-task-priority").value = task.Priority;
+                    } else {
+                        createModalTitleEl.textContent = parentTaskId ? "Create New Subtask" : "Create New Task";
+                    }
+
+                    openModal(''create-task-modal'');
+                }
+
+                function openAddProjectModal() {
+                    addProjectForm.reset();
+                    openModal(''add-project-modal'');
+                }
+                
+                // Override Batch Modal Opener
+                 window.openAssignModal = function(parentId) {
+                    currentAssignParentTaskId = parentId;
+                    assignSubtasks = [];
+                    
+                    const requesterSelect = document.getElementById("assign-requester");
+                    const assigneeSelect = document.getElementById("assign-assignee");
+                    const templateSelect = document.getElementById("assign-template");
+                    
+                    requesterSelect.innerHTML = employees_Linh.map(e => `<option value="${e.EmployeeID}">${e.FullName}</option>`).join("");
+                    assigneeSelect.innerHTML = employees_Linh.map(e => `<option value="${e.EmployeeID}">${e.FullName}</option>`).join("");
+                    
+                    if (templateSelect) {
+                        templateSelect.innerHTML = `<option value="">-- Không dùng mẫu --</option>` + 
+                            templates_Linh.map(t => `<option value="${t.TemplateID}">${t.TemplateName}</option>`).join("");
+                        templateSelect.value = "";
+                    }
+
+                    const currentEmpID = employees_Linh.find(e => parseInt(e.EmployeeID) === LoginID)?.EmployeeID;
+                    if (currentEmpID) requesterSelect.value = currentEmpID;
+                    
+                    document.getElementById("assign-date").value = new Date().toISOString().split("T")[0];
+                    document.getElementById("assign-hours").value = "1.0";
+                    document.getElementById("assign-new-task-name").value = "";
+                    
+                    renderAssignSubtasks();
+                    openModal(''mdlAssign'');
+                };
+
+                // Remove Bootstrap Initialization
 
                 function changeTaskStatus(taskId, newStatus) {
                     AjaxHPAParadise({
@@ -1508,7 +1853,7 @@ SET @html = N'
                             }
 
                             const modal = document.getElementById("task-modal");
-                            if (modal?.classList.contains("show") && currentEditingTaskId === taskId) {
+                            if (modal?.classList.contains("active") && currentEditingTaskId === taskId) {
                                 const statusStepsContainer = modal.querySelector(".status-steps");
                                 if (statusStepsContainer) {
                                     const buttons = statusStepsContainer.querySelectorAll(".status-step");
@@ -1544,10 +1889,17 @@ SET @html = N'
                     
                     const requesterSelect = document.getElementById("assign-requester");
                     const assigneeSelect = document.getElementById("assign-assignee");
+                    const templateSelect = document.getElementById("assign-template");
                     
                     requesterSelect.innerHTML = employees_Linh.map(e => `<option value="${e.EmployeeID}">${e.FullName}</option>`).join("");
                     assigneeSelect.innerHTML = employees_Linh.map(e => `<option value="${e.EmployeeID}">${e.FullName}</option>`).join("");
                     
+                    if (templateSelect) {
+                        templateSelect.innerHTML = `<option value="">-- Không dùng mẫu --</option>` + 
+                            templates_Linh.map(t => `<option value="${t.TemplateID}">${t.TemplateName}</option>`).join("");
+                        templateSelect.value = "";
+                    }
+
                     // Set default requester to LoginID if matches
                     const currentEmpID = employees_Linh.find(e => parseInt(e.EmployeeID) === LoginID)?.EmployeeID;
                     if (currentEmpID) requesterSelect.value = currentEmpID;
@@ -1558,6 +1910,31 @@ SET @html = N'
                     
                     renderAssignSubtasks();
                     new bootstrap.Modal(document.getElementById("mdlAssign")).show();
+                };
+
+                window.loadSubtasksFromTemplate = function(templateId) {
+                    if (!templateId) {
+                        assignSubtasks = [];
+                        renderAssignSubtasks();
+                        return;
+                    }
+
+                    const template = templates_Linh.find(t => t.TemplateID == templateId);
+                    if (!template) return;
+
+                    const subs = typeof template.Subtasks === "string" ? JSON.parse(template.Subtasks) : (template.Subtasks || []);
+                    
+                    // Clear existing and load template tasks
+                    assignSubtasks = [];
+                    subs.forEach(s => {
+                        assignSubtasks.push({
+                            TaskName: s.TaskName,
+                            Description: s.Description,
+                            Priority: "Medium"
+                        });
+                    });
+                    
+                    renderAssignSubtasks();
                 };
 
                 function addAssignSubtaskRow() {
@@ -1573,7 +1950,7 @@ SET @html = N'
                 function renderAssignSubtasks() {
                     const list = document.getElementById("assign-subtasks-list");
                     if (assignSubtasks.length === 0) {
-                        list.innerHTML = `<div class="p-3 text-center text-muted small">No subtasks added yet.</div>`;
+                        list.innerHTML = `<div class="text-center text-muted small" style="padding: 2rem;">No subtasks added yet.</div>`;
                         return;
                     }
                     
@@ -1645,7 +2022,7 @@ SET @html = N'
                     `;
 
                     if (subtasks.length === 0) {
-                        html += `<div class="p-4 text-center text-muted small">No subtasks found.</div>`;
+                        html += `<div class="text-center text-muted small">No subtasks found.</div>`;
                         return html;
                     }
 
@@ -1715,7 +2092,7 @@ SET @html = N'
                                     <span class="fw-bold small">${event.user}</span>
                                     <span class="text-muted" style="font-size: 0.7rem;">${timeStr}</span>
                                 </div>
-                                <div class="small ${event.isSystem ? "text-muted italic" : "text-dark"}">${event.content.replace(/\*\*(.*?)\*\*/g, "<b>$1</b>")}</div>
+                                <div class="small ${event.isSystem ? "text-body italic" : "text-body"}">${event.content.replace(/\*\*(.*?)\*\*/g, "<b>$1</b>")}</div>
                             </div>
                         `;
                     });
@@ -1923,46 +2300,6 @@ SET @html = N'
                     });
                 }
 
-                function openCreateTaskModal({ parentTaskId = null, editTaskId = null, defaultStatus = "To Do" } = {}) {
-                    const context = navigationStack[navigationStack.length - 1];
-                    if (!context) {
-                        alert("Please select a project first!");
-                        return;
-                    }
-
-                    createTaskForm.reset();
-                    createTaskForm.dataset.parentTaskId = parentTaskId || "";
-                    createTaskForm.dataset.editTaskId = editTaskId || "";
-                    createTaskForm.dataset.defaultStatus = defaultStatus;
-
-                    const assigneeSelect = document.getElementById("create-task-assignee");
-                    assigneeSelect.innerHTML = `<option value="">Select Assignee</option>`;
-                    employees_Linh.forEach((emp) => {
-                        const option = document.createElement("option");
-                        option.value = emp.EmployeeID;
-                        option.textContent = emp.FullName;
-                        assigneeSelect.appendChild(option);
-                    });
-
-                    if (editTaskId) {
-                        createModalTitleEl.textContent = "Edit Task";
-                        const task = tasks.find((t) => t.TaskID === editTaskId);
-                        document.getElementById("create-task-name").value = task.TaskName;
-                        document.getElementById("create-task-desc").value = task.Description;
-                        assigneeSelect.value = task.AssigneeID;
-                        document.getElementById("create-task-priority").value = task.Priority;
-                    } else {
-                        createModalTitleEl.textContent = parentTaskId ? "Create New Subtask" : "Create New Task";
-                    }
-
-                    createTaskModal.show();
-                }
-
-                function openAddProjectModal() {
-                    addProjectForm.reset();
-                    addProjectModal.show();
-                }
-
                 // --- EVENT HANDLERS ---
                 function handleCreateOrUpdateTask(e) {
                     e.preventDefault();
@@ -1987,7 +2324,7 @@ SET @html = N'
                             ]
                         },
                         success: (res) => {
-                            createTaskModal.hide();
+                            closeModal(''create-task-modal'');
                             if (typeof uiManager !== "undefined") uiManager.showAlert({ type: "success", message: "Lưu công việc thành công" });
                             ReloadData();
                         }
@@ -1999,7 +2336,7 @@ SET @html = N'
                     AjaxHPAParadise({
                         data: { name: "sp_Task_Delete", param: ["TaskID", taskId, "LoginID", LoginID] },
                         success: (res) => {
-                            taskModal.hide();
+                            closeModal(''task-modal'');
                             if (typeof uiManager !== "undefined") uiManager.showAlert({ type: "success", message: "Xóa công việc thành công" });
                             ReloadData();
                         }
@@ -2020,7 +2357,7 @@ SET @html = N'
                             ]
                         },
                         success: (res) => {
-                            addProjectModal.hide();
+                            closeModal(''add-project-modal'');
                             if (typeof uiManager !== "undefined") uiManager.showAlert({ type: "success", message: "Thêm dự án thành công" });
                             ReloadData();
                         }
@@ -2072,17 +2409,109 @@ SET @html = N'
                     });
                 }
 
-                // --- INITIALIZATION ---
-                taskModal = new bootstrap.Modal(taskModalEl);
-                createTaskModal = new bootstrap.Modal(createTaskModalEl);
-                addProjectModal = new bootstrap.Modal(addProjectModalEl);
+                function renderTemplateDetail(template) {
+                    const subtasks = typeof template.Subtasks === "string" ? JSON.parse(template.Subtasks) : (template.Subtasks || []);
+                    viewContainerEl.innerHTML = `
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="card border-0 shadow-sm mb-4">
+                                    <div class="card-body">
+                                        <h6 class="text-muted small text-uppercase fw-bold mb-3">Template Info</h6>
+                                        <div class="mb-3">
+                                            <label class="small text-muted d-block">Name</label>
+                                            <div class="fw-bold fs-5">${template.TemplateName}</div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="small text-muted d-block">Category</label>
+                                            <span class="badge bg-primary-subtle text-primary">${template.Category || "N/A"}</span>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="small text-muted d-block">Est. Days</label>
+                                            <div class="fw-bold">${template.EstDays} days</div>
+                                        </div>
+                                        <div>
+                                            <label class="small text-muted d-block">Description</label>
+                                            <div class="text-muted small">${template.Description || "N/A"}</div>
+                                        </div>
+                                        <div class="mt-4 pt-3 border-top">
+                                            <button class="btn btn-primary w-100" onclick="openCreateTemplateModal(${template.TemplateID})">
+                                                <i class="bi bi-pencil"></i> Edit Template
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-8">
+                                <div class="card border-0 shadow-sm">
+                                    <div class="card-header bg-white border-0 py-3">
+                                        <h6 class="mb-0 fw-bold">Steps Workflow</h6>
+                                    </div>
+                                    <div class="card-body p-0">
+                                        <div class="list-group list-group-flush">
+                                            ${subtasks.sort((a,b) => a.Order - b.Order).map((s, idx) => `
+                                                <div class="list-group-item py-3">
+                                                    <div class="d-flex gap-3">
+                                                        <div class="flex-shrink-0">
+                                                            <div class="bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center fw-bold" style="width: 32px; height:32px;">
+                                                                ${idx + 1}
+                                                            </div>
+                                                        </div>
+                                                        <div class="flex-grow-1">
+                                                            <div class="d-flex justify-content-between">
+                                                                <h6 class="mb-1 fw-bold">${s.TaskName}</h6>
+                                                                <span class="badge border">${s.EstHours}h</span>
+                                                            </div>
+                                                            <div class="text-muted small mb-0">${s.Description || "No description"}</div>
+                                                            <div class="mt-1">
+                                                                ${s.IsRequired ? ''<span class="badge bg-danger-subtle text-danger" style="font-size:0.65rem;">Required</span>'' : ''''}
+                                                                <span class="text-muted small" style="font-size:0.65rem;">Default Role: ${s.DefaultRole || "None"}</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            `).join("")}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
 
+                function renderOverallTimeline() {
+                    viewContainerEl.innerHTML = `
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-body">
+                                <h5 class="fw-bold mb-4">Portfolio Gantt Chart</h5>
+                                <div id="overall-chart-container" class="overflow-auto" style="min-height: 400px;"></div>
+                            </div>
+                        </div>
+                    `;
+                    const chartWrapper = document.getElementById("overall-chart-container");
+                    renderProjectsChart(projects_Linh, chartWrapper);
+                }
+
+                window.openCreateTemplateModal = function(templateId = null) {
+                    alert("Chức năng tạo template đang được hoàn thiện. Vui lòng sử dụng template có sẵn.");
+                };
+
+                // --- INITIALIZATION ---
                 addProjectForm.addEventListener("submit", handleCreateProject);
                 createTaskForm.addEventListener("submit", handleCreateOrUpdateTask);
-                deleteTaskBtn.addEventListener("click", (e) => handleDeleteTask(parseInt(e.currentTarget.dataset.taskId)));
+                
+                // Note: deleteTaskBtn listener is attached dynamically in openTaskModal because the button is re-rendered.
 
                 document.getElementById("btn-add-assign-subtask").addEventListener("click", addAssignSubtaskRow);
                 document.getElementById("btn-submit-assignment").addEventListener("click", submitTaskAssignment);
+
+                modeSwitcherEl.addEventListener("click", (e) => {
+                    const btn = e.target.closest(".nav-link");
+                    if (btn) {
+                        currentAppMode = btn.dataset.mode;
+                        navigationStack = []; // Reset navigation when changing mode
+                        render();
+                    }
+                });
 
                 // Start with data fetching
                 fetchData(() => {

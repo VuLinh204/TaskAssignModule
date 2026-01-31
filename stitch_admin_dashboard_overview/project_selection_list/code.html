@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Project Selection List - ParadiseHR</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#2bee6c",
+                        "background-light": "#f6f8f6",
+                        "background-dark": "#102216",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .progress-ring-circle {
+            transition: stroke-dashoffset 0.35s;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-[#0d1b12] dark:text-white min-h-screen">
+<div class="relative flex flex-col min-h-screen w-full overflow-x-hidden">
+<!-- TopNavBar -->
+<header class="flex items-center justify-between border-b border-solid border-[#e7f3eb] dark:border-white/10 bg-white dark:bg-[#1a2e20] px-10 py-3 sticky top-0 z-50">
+<div class="flex items-center gap-8 w-full max-w-[1200px] mx-auto">
+<div class="flex items-center gap-4 text-[#0d1b12] dark:text-white">
+<div class="size-8 text-primary">
+<svg fill="none" viewbox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+<path clip-rule="evenodd" d="M24 18.4228L42 11.475V34.3663C42 34.7796 41.7457 35.1504 41.3601 35.2992L24 42V18.4228Z" fill="currentColor" fill-rule="evenodd"></path>
+<path clip-rule="evenodd" d="M24 8.18819L33.4123 11.574L24 15.2071L14.5877 11.574L24 8.18819ZM9 15.8487L21 20.4805V37.6263L9 32.9945V15.8487ZM27 37.6263V20.4805L39 15.8487V32.9945L27 37.6263ZM25.354 2.29885C24.4788 1.98402 23.5212 1.98402 22.646 2.29885L4.98454 8.65208C3.7939 9.08038 3 10.2097 3 11.475V34.3663C3 36.0196 4.01719 37.5026 5.55962 38.098L22.9197 44.7987C23.6149 45.0671 24.3851 45.0671 25.0803 44.7987L42.4404 38.098C43.9828 37.5026 45 36.0196 45 34.3663V11.475C45 10.2097 44.2061 9.08038 43.0155 8.65208L25.354 2.29885Z" fill="currentColor" fill-rule="evenodd"></path>
+</svg>
+</div>
+<h2 class="text-xl font-black leading-tight tracking-[-0.015em]">ParadiseHR</h2>
+</div>
+<div class="flex-1 flex justify-center">
+<label class="flex flex-col min-w-40 h-10 w-full max-w-md">
+<div class="flex w-full flex-1 items-stretch rounded-lg h-full bg-[#e7f3eb] dark:bg-white/5 border-none">
+<div class="text-[#4c9a66] flex items-center justify-center pl-4">
+<span class="material-symbols-outlined">search</span>
+</div>
+<input class="form-input flex w-full min-w-0 flex-1 border-none bg-transparent focus:outline-0 focus:ring-0 h-full placeholder:text-[#4c9a66] px-4 text-base font-normal" placeholder="Search projects..." value=""/>
+</div>
+</label>
+</div>
+<div class="flex items-center gap-4">
+<button class="flex items-center justify-center rounded-lg size-10 bg-[#e7f3eb] dark:bg-white/5 text-[#0d1b12] dark:text-white">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="flex items-center justify-center rounded-lg size-10 bg-[#e7f3eb] dark:bg-white/5 text-[#0d1b12] dark:text-white">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 border-2 border-primary" data-alt="User profile avatar portrait" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCEl2ZJ_RD8pD_fktatG_enaSDEmz7Gc4Y6rcnQUnIa5uRZRwLodBnvyD3K1Zl04P9vxx2aMAIvSnDogV0Ek-yXaPHAroIQ7T35bhbrYzzIuT088A6ZN84YEoXDmGPpIvB9Nrhfcb5wW-b7nJ5G4vOQbSO8fkgwcOLMHNVF_MeAg5g5vbqFXN87C9HOZOr0A5sbeqMQOdKi_RIWkDRIyn0G5PaI2EkT0W60Tbrd-R44qneFnUAwdPrQAjyrjq1NhCglr6Hw-Kog1as");'></div>
+</div>
+</div>
+</header>
+<main class="flex-1 w-full max-w-[1200px] mx-auto py-10 px-6">
+<!-- PageHeading -->
+<div class="flex flex-wrap justify-between items-end gap-3 mb-8">
+<div class="flex min-w-72 flex-col gap-2">
+<h1 class="text-[#0d1b12] dark:text-white text-4xl font-black leading-tight tracking-[-0.033em]">My Projects</h1>
+<p class="text-[#4c9a66] dark:text-[#4c9a66] text-base font-normal leading-normal">Select a project to manage tasks and track progress.</p>
+</div>
+<button class="flex min-w-[160px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-12 px-6 bg-primary text-[#0d1b12] text-sm font-bold leading-normal tracking-[0.015em] hover:opacity-90 transition-opacity">
+<span class="material-symbols-outlined mr-2">add</span>
+<span class="truncate">Create New Project</span>
+</button>
+</div>
+<!-- Chips / Filters -->
+<div class="flex gap-3 mb-8 flex-wrap">
+<button class="flex h-10 shrink-0 items-center justify-center gap-x-2 rounded-lg bg-primary/20 text-[#0d1b12] dark:text-primary px-4 border border-primary/30">
+<p class="text-sm font-semibold">All Projects</p>
+<span class="material-symbols-outlined text-sm">keyboard_arrow_down</span>
+</button>
+<button class="flex h-10 shrink-0 items-center justify-center gap-x-2 rounded-lg bg-white dark:bg-white/5 text-[#0d1b12] dark:text-white px-4 border border-[#e7f3eb] dark:border-white/10">
+<p class="text-sm font-medium">Active</p>
+</button>
+<button class="flex h-10 shrink-0 items-center justify-center gap-x-2 rounded-lg bg-white dark:bg-white/5 text-[#0d1b12] dark:text-white px-4 border border-[#e7f3eb] dark:border-white/10">
+<p class="text-sm font-medium">Completed</p>
+</button>
+<button class="flex h-10 shrink-0 items-center justify-center gap-x-2 rounded-lg bg-white dark:bg-white/5 text-[#0d1b12] dark:text-white px-4 border border-[#e7f3eb] dark:border-white/10">
+<p class="text-sm font-medium">On Hold</p>
+</button>
+</div>
+<h2 class="text-[#0d1b12] dark:text-white text-[22px] font-bold leading-tight tracking-[-0.015em] pb-6">Active Initiatives</h2>
+<!-- Project Card Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+<!-- Project Card 1 -->
+<div class="group flex flex-col bg-white dark:bg-[#1a2e20] rounded-xl border border-[#e7f3eb] dark:border-white/10 p-6 shadow-sm hover:shadow-md transition-all cursor-pointer">
+<div class="flex justify-between items-start mb-6">
+<div class="size-20 relative flex items-center justify-center">
+<svg class="size-20">
+<circle class="text-[#e7f3eb] dark:text-white/10" cx="40" cy="40" fill="transparent" r="34" stroke="currentColor" stroke-width="6"></circle>
+<circle class="text-primary progress-ring-circle" cx="40" cy="40" fill="transparent" r="34" stroke="currentColor" stroke-dasharray="213.6" stroke-dashoffset="74.7" stroke-linecap="round" stroke-width="6"></circle>
+</svg>
+<span class="absolute text-sm font-bold">65%</span>
+</div>
+<div class="bg-primary/10 text-[#0d1b12] dark:text-primary px-2 py-1 rounded text-xs font-bold">ACTIVE</div>
+</div>
+<div class="flex flex-col gap-1 mb-6">
+<h3 class="text-[#0d1b12] dark:text-white text-xl font-bold">Website Redesign</h3>
+<div class="flex items-center gap-2 text-[#4c9a66]">
+<span class="material-symbols-outlined text-base">list_alt</span>
+<span class="text-sm font-medium">12 Active Tasks</span>
+</div>
+</div>
+<div class="mt-auto pt-4 border-t border-[#e7f3eb] dark:border-white/10 flex items-center justify-between">
+<div class="flex -space-x-2">
+<div class="size-8 rounded-full border-2 border-white dark:border-[#1a2e20] bg-cover" data-alt="Team member 1" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDcYfF6l8pBXhDYPEtpUsFZ0OPAwefqSOFWrJz8WGLe13ZxY7-H_j4f4YxTf7NCn9gdZAMrBDuoR6NS2EdvGacqMb2GxYmTE-jEvsyZdLuc1aWluUa9PvrEPXqUmojmjCaGw2pdtFewQcU-VrfNHZW38fMTfC1ja40dSnJqUA-0gFulW3tgNdgWwyikyiA8AiRfE4Fbi8VFP_OO3sQdu8sMswTZg6-gf1cLJZBOwuvUOSuVZqIaCUo7MAII8qG2orAiVjOv6sTeGdw");'></div>
+<div class="size-8 rounded-full border-2 border-white dark:border-[#1a2e20] bg-cover" data-alt="Team member 2" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuD-0aeTCZGeCHfj5PcWMMe6YJC6kmZltuUnjRsil1nYMJeYTcl8UhaHlrTfMEiYWkIIinPnxCyzLRQrFQDGASkSoA3MjjHkYZBKrjRcXB6q149qEAcNFnyeEEb56LseGIoZVA_19Azji6GLzhB2Ve5qWvGUfsK6qde2DUz7jC1pUPpkC8GqExpw3elQopTWw4lD-UhhNRIdU4jlgZ8S6jpHPAvr_MNsJ6NkzuJIA5ZFqxEsLXne21rfdqhO08iTYIrk6nQGpw44oS4");'></div>
+<div class="size-8 rounded-full border-2 border-white dark:border-[#1a2e20] bg-gray-200 flex items-center justify-center text-[10px] font-bold text-gray-600">+3</div>
+</div>
+<button class="text-[#0d1b12] dark:text-primary text-sm font-bold flex items-center gap-1 group-hover:translate-x-1 transition-transform">
+                            View Board
+                            <span class="material-symbols-outlined text-base">arrow_forward</span>
+</button>
+</div>
+</div>
+<!-- Project Card 2 -->
+<div class="group flex flex-col bg-white dark:bg-[#1a2e20] rounded-xl border border-[#e7f3eb] dark:border-white/10 p-6 shadow-sm hover:shadow-md transition-all cursor-pointer">
+<div class="flex justify-between items-start mb-6">
+<div class="size-20 relative flex items-center justify-center">
+<svg class="size-20">
+<circle class="text-[#e7f3eb] dark:text-white/10" cx="40" cy="40" fill="transparent" r="34" stroke="currentColor" stroke-width="6"></circle>
+<circle class="text-primary progress-ring-circle" cx="40" cy="40" fill="transparent" r="34" stroke="currentColor" stroke-dasharray="213.6" stroke-dashoffset="170.8" stroke-linecap="round" stroke-width="6"></circle>
+</svg>
+<span class="absolute text-sm font-bold">20%</span>
+</div>
+<div class="bg-primary/10 text-[#0d1b12] dark:text-primary px-2 py-1 rounded text-xs font-bold">ACTIVE</div>
+</div>
+<div class="flex flex-col gap-1 mb-6">
+<h3 class="text-[#0d1b12] dark:text-white text-xl font-bold">Internal Audit</h3>
+<div class="flex items-center gap-2 text-[#4c9a66]">
+<span class="material-symbols-outlined text-base">list_alt</span>
+<span class="text-sm font-medium">5 Active Tasks</span>
+</div>
+</div>
+<div class="mt-auto pt-4 border-t border-[#e7f3eb] dark:border-white/10 flex items-center justify-between">
+<div class="flex -space-x-2">
+<div class="size-8 rounded-full border-2 border-white dark:border-[#1a2e20] bg-cover" data-alt="Team member 3" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCKulVsI07IlTIKYN9KMt1k4-9TN-WU56CXsFoBPeKt-BFK9LpCvD41buAYAys8Tx2aXttkCbKnaEzTLSvpmQ5kK74k9knPGZNcryaCKCyi3JVeWg5p2tviSVsGdP8yBu6rFB_CPRn31s3PglsSvRQq1Y9YKCk_nIH-9NIdeQJpLtsmyxUtqIKYZjpSskg0NxhHI4Ty9W5YFACIut5zLO7tl3WfNpYE9F8jX-CJzVLS1rDok_89WRMgJTGuXHH-fxNFwqGeaUZLcH4");'></div>
+<div class="size-8 rounded-full border-2 border-white dark:border-[#1a2e20] bg-cover" data-alt="Team member 4" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCd-_kvKJjIuQnali7zA1jUeJysEUZx9V2CTo_W4YmLTIeeuAcDcPkp55JnN94jXMvegOkexYinw2LkncWhlsUPQJkPhK6SCl3DZxX8XDC-m-eLXf33uMNEWBPhS9zPN0muCIOY5hRYfrlZkI5PM_KqfHpCPeDI_RKpFDRcpsQMtkWklIbvyemLB71fx-Cv65MnknWqAYhyhgYP4EirC6IAKtySZhvzpK0uiQX3rEEda3TfojeFQpkhl7xpQPF-RVtSJYwhjQtWlWg");'></div>
+</div>
+<button class="text-[#0d1b12] dark:text-primary text-sm font-bold flex items-center gap-1 group-hover:translate-x-1 transition-transform">
+                            View Board
+                            <span class="material-symbols-outlined text-base">arrow_forward</span>
+</button>
+</div>
+</div>
+<!-- Project Card 3 -->
+<div class="group flex flex-col bg-white dark:bg-[#1a2e20] rounded-xl border border-[#e7f3eb] dark:border-white/10 p-6 shadow-sm hover:shadow-md transition-all cursor-pointer">
+<div class="flex justify-between items-start mb-6">
+<div class="size-20 relative flex items-center justify-center">
+<svg class="size-20">
+<circle class="text-[#e7f3eb] dark:text-white/10" cx="40" cy="40" fill="transparent" r="34" stroke="currentColor" stroke-width="6"></circle>
+<circle class="text-primary progress-ring-circle" cx="40" cy="40" fill="transparent" r="34" stroke="currentColor" stroke-dasharray="213.6" stroke-dashoffset="21.3" stroke-linecap="round" stroke-width="6"></circle>
+</svg>
+<span class="absolute text-sm font-bold">90%</span>
+</div>
+<div class="bg-[#0d1b12] text-primary px-2 py-1 rounded text-xs font-bold uppercase">Closing</div>
+</div>
+<div class="flex flex-col gap-1 mb-6">
+<h3 class="text-[#0d1b12] dark:text-white text-xl font-bold">HR Policy Update</h3>
+<div class="flex items-center gap-2 text-[#4c9a66]">
+<span class="material-symbols-outlined text-base">list_alt</span>
+<span class="text-sm font-medium">2 Active Tasks</span>
+</div>
+</div>
+<div class="mt-auto pt-4 border-t border-[#e7f3eb] dark:border-white/10 flex items-center justify-between">
+<div class="flex -space-x-2">
+<div class="size-8 rounded-full border-2 border-white dark:border-[#1a2e20] bg-cover" data-alt="Team member 5" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBcokOiitXBdbM-kSWWHwgbDVBtjph93-7iP9S8V4dCpTcm2Px0ZVYXheKmkLTuAzF378VMNPwK3oCbNoAD35BJU9Cbt5uuUOT97Q6urjKcNEIoRpc283Hiw_qToBFZRhEIL9c_ALcOl2p8z0PC1hvpTuzRfxclvn3HUM_Uv23JOy6I8EABQPgde9_cd_sfE4ubrMehnZpW5fRgn7Ocu2X7Q6RNfFsb8hsL3ECRJ0qz3FRvfIxk8eCJRcME7MaiMqUXEehY_miLSR8");'></div>
+</div>
+<button class="text-[#0d1b12] dark:text-primary text-sm font-bold flex items-center gap-1 group-hover:translate-x-1 transition-transform">
+                            View Board
+                            <span class="material-symbols-outlined text-base">arrow_forward</span>
+</button>
+</div>
+</div>
+<!-- Project Card 4 (Placeholder) -->
+<div class="group flex flex-col bg-white dark:bg-[#1a2e20] rounded-xl border border-[#e7f3eb] dark:border-white/10 p-6 shadow-sm hover:shadow-md transition-all cursor-pointer">
+<div class="flex justify-between items-start mb-6">
+<div class="size-20 relative flex items-center justify-center">
+<svg class="size-20">
+<circle class="text-[#e7f3eb] dark:text-white/10" cx="40" cy="40" fill="transparent" r="34" stroke="currentColor" stroke-width="6"></circle>
+<circle class="text-primary progress-ring-circle" cx="40" cy="40" fill="transparent" r="34" stroke="currentColor" stroke-dasharray="213.6" stroke-dashoffset="128" stroke-linecap="round" stroke-width="6"></circle>
+</svg>
+<span class="absolute text-sm font-bold">40%</span>
+</div>
+<div class="bg-primary/10 text-[#0d1b12] dark:text-primary px-2 py-1 rounded text-xs font-bold">ACTIVE</div>
+</div>
+<div class="flex flex-col gap-1 mb-6">
+<h3 class="text-[#0d1b12] dark:text-white text-xl font-bold">Q4 Recruitment Drive</h3>
+<div class="flex items-center gap-2 text-[#4c9a66]">
+<span class="material-symbols-outlined text-base">list_alt</span>
+<span class="text-sm font-medium">8 Active Tasks</span>
+</div>
+</div>
+<div class="mt-auto pt-4 border-t border-[#e7f3eb] dark:border-white/10 flex items-center justify-between">
+<div class="flex -space-x-2">
+<div class="size-8 rounded-full border-2 border-white dark:border-[#1a2e20] bg-cover" data-alt="Team member 6" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDmC_xmL8RMknYJjqfmRhKDRhEt2TgBLXMbHGW-KJr0n6u3SeIxl7BF7-XdW53WxL-uKAa9OhN1iDrKWc5lhPzUn-Lxh3HI_5Bo2y_Cc1CMyWxpjeUvR7tPMr2WiVIJ-xbg2VV2mlJcfs9avrgNf0YrOwtpy4sjdi0vb_wJTOj5U1Tucjpq119fkGLMUo3qxKzwZWk5Uv5i7MzBT5wDV1AlBMuTRuPQL5YYJ5JLTjmw4g7X6DiJ7WDTaLDnom0R4PYTHjSvGIkM898");'></div>
+</div>
+<button class="text-[#0d1b12] dark:text-primary text-sm font-bold flex items-center gap-1 group-hover:translate-x-1 transition-transform">
+                            View Board
+                            <span class="material-symbols-outlined text-base">arrow_forward</span>
+</button>
+</div>
+</div>
+</div>
+</main>
+<footer class="mt-auto border-t border-[#e7f3eb] dark:border-white/10 py-6 px-10 text-center">
+<p class="text-sm text-[#4c9a66]">© 2023 ParadiseHR Ecosystem. All rights reserved.</p>
+</footer>
+</div>
+</body></html>
